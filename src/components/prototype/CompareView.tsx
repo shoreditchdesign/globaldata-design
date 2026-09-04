@@ -53,7 +53,10 @@ export function CompareView({
         </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-[1600px] flex-1 gap-6 px-6 py-8 lg:grid-cols-2">
+      <main
+        className="mx-auto grid w-full max-w-[1600px] flex-1 gap-6 px-6 py-8"
+        style={{ gridTemplateColumns: `repeat(${ideas.length}, minmax(0, 1fr))` }}
+      >
         {ideas.map((idea) => {
           const screen = idea.screens[step]
           return (
