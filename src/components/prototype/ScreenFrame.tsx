@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils"
 
 const widths = {
-  desktop: "max-w-[1280px]",
+  desktop: "max-w-[1440px]",
   tablet: "max-w-[834px]",
   mobile: "max-w-[420px]",
 } as const
