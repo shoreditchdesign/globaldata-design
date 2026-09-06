@@ -1,24 +1,22 @@
-import { ChevronDownIcon, XIcon } from "lucide-react"
+import { ChevronDownIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { FilterPill } from "@/components/prototype/FilterPill"
 import type { FilterChip, FilterGroup, Operator } from "@/flows/sprint-3/idea-1/data"
 
-/** A removable filter value. */
+/**
+ * A removable filter value. The shared pill in its plainer `muted` skin — this
+ * is the incumbent's chip, and it should look like the incumbent's chip.
+ */
 export function Chip({ chip, className }: { chip: FilterChip; className?: string }) {
   return (
-    <span
-      className={cn(
-        "bg-muted inline-flex items-center gap-1.5 rounded-full py-1 pr-1.5 pl-3 text-sm",
-        className,
-      )}
-    >
+    <FilterPill variant="muted" removeLabel={`Remove ${chip.label}`} className={className}>
       {chip.prefix ? <span className="text-muted-foreground">{chip.prefix}</span> : null}
       {chip.label}
       {chip.count !== undefined ? (
         <span className="text-muted-foreground text-xs tabular-nums">{chip.count}</span>
       ) : null}
-      <XIcon className="text-muted-foreground size-3.5" />
-    </span>
+    </FilterPill>
   )
 }
 

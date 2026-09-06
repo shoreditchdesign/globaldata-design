@@ -2,7 +2,7 @@
 
 import { ArrowDownIcon, ChevronDownIcon, ChevronRightIcon, FunnelIcon, PinIcon } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
+import { StageBadge } from "@/components/prototype/StageBadge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator"
@@ -159,9 +159,7 @@ function Cell({
     case "stage":
       return (
         <div className={base}>
-          <Badge variant="outline" className="h-[18px] px-1.5 text-[11px] font-normal">
-            {row.stage}
-          </Badge>
+          <StageBadge stage={row.stage} className="h-[18px] px-1.5" />
         </div>
       )
     case "therapyArea":

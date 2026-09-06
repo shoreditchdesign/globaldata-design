@@ -1,4 +1,4 @@
-import { AppChrome } from "@/flows/sprint-3/idea-2/components/AppChrome"
+import { ProductChrome } from "@/components/prototype/ProductChrome"
 import { FilterPanel } from "@/flows/sprint-3/idea-2/components/FilterPanel"
 import { ResultsPane } from "@/flows/sprint-3/idea-2/components/ResultsPane"
 
@@ -12,9 +12,9 @@ import { ResultsPane } from "@/flows/sprint-3/idea-2/components/ResultsPane"
  */
 export function Screener() {
   return (
-    <AppChrome>
+    <ProductChrome activeArea="Drugs" body="row">
       <FilterPanel className="w-[40%] max-w-[760px] min-w-[580px] shrink-0 border-r" />
       <ResultsPane className="flex-1" />
-    </AppChrome>
+    </ProductChrome>
   )
 }

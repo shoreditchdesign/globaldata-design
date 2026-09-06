@@ -7,11 +7,13 @@
  * 285,529. Where a set of selected values sits under one attribute, their counts
  * sum to the live total, so the panel and the results agree with each other.
  *
- * Labels for the areas, attributes and therapy areas are imported read-only
- * from Idea 1 so the two prototypes speak the same vocabulary.
+ * The areas come from the shared `productAreas` list; attribute and therapy-area
+ * labels are imported read-only from Idea 1, so the prototypes speak the same
+ * vocabulary.
  */
 
-import { drugAttributes, filterAreas, therapyAreas } from "@/flows/sprint-3/idea-1/data"
+import { productAreas } from "@/components/prototype/product-areas"
+import { drugAttributes, therapyAreas } from "@/flows/sprint-3/idea-1/data"
 
 /** The unfiltered database, and the set the applied query leaves behind. */
 export const baseTotal = 285_529
@@ -38,7 +40,7 @@ const areaCounts: Record<string, number> = {
   "Advanced Company Watchlist": 96,
 }
 
-export const areaItems: ColumnItem[] = filterAreas.map((label) => ({
+export const areaItems: ColumnItem[] = productAreas.map((label) => ({
   label,
   count: areaCounts[label] ?? 0,
   drillable: label === "Drugs",

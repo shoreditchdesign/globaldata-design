@@ -100,17 +100,6 @@ export const exampleQuery =
 export const assistantReply =
   "The filters and groups on the left will show you generic anti-inflammatory therapies targeting Actin Gamma Enteric Smooth Muscle, but exclude drugs available in Austria or Italy, as well as marketed drugs that are withdrawn or archived."
 
-export const filterAreas = [
-  "Companies",
-  "Drugs",
-  "Licensing Opportunities",
-  "Regulatory Milestones",
-  "Sales and Forecast",
-  "Drugs by Manufacturer",
-  "NPV",
-  "Advanced Company Watchlist",
-]
-
 export const drugAttributes = [
   "Drug Name",
   "Therapy Area / Indication",
