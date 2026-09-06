@@ -1,24 +1,8 @@
 import { Fragment } from "react"
-import { PlusIcon, XIcon } from "lucide-react"
+import { PlusIcon } from "lucide-react"
 
+import { FilterPill, OperatorWord } from "@/components/prototype/FilterPill"
 import { appliedRuns } from "@/flows/sprint-3/idea-2/data"
-
-/** One applied value. Individually removable, whatever it is grouped with. */
-function Pill({ label }: { label: string }) {
-  return (
-    <span className="bg-background inline-flex h-6 items-center gap-1 rounded-full border pr-1 pl-2.5 text-[12px]">
-      {label}
-      <span className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-4 items-center justify-center rounded-full">
-        <XIcon className="size-3" />
-      </span>
-    </span>
-  )
-}
-
-/** The connecting words between and inside runs — `is`, `or`, `and`. */
-function Word({ children }: { children: string }) {
-  return <span className="text-muted-foreground text-[12px]">{children}</span>
-}
 
 /**
  * The query, above the results, as a sentence made of removable objects.
@@ -32,12 +16,12 @@ export function AppliedPills() {
     <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1.5">
       {appliedRuns.map((run, i) => (
         <Fragment key={run.attribute}>
-          {i > 0 ? <Word>and</Word> : null}
-          <Word>{`${run.subject} is`}</Word>
+          {i > 0 ? <OperatorWord>and</OperatorWord> : null}
+          <OperatorWord>{`${run.subject} is`}</OperatorWord>
           {run.values.map((value, j) => (
             <Fragment key={value}>
-              {j > 0 ? <Word>{run.join}</Word> : null}
-              <Pill label={value} />
+              {j > 0 ? <OperatorWord>{run.join}</OperatorWord> : null}
+              <FilterPill removeLabel={`Remove ${value}`}>{value}</FilterPill>
             </Fragment>
           ))}
         </Fragment>

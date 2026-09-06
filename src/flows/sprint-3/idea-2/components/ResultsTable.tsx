@@ -1,6 +1,6 @@
 import { ChevronsUpDownIcon } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
+import { StageBadge } from "@/components/prototype/StageBadge"
 import { resultRows } from "@/flows/sprint-3/idea-2/data"
 
 const columns = [
@@ -57,9 +57,7 @@ export function ResultsTable() {
                 <span className="block truncate">{row.indication}</span>
               </td>
               <td className="px-3 py-1.5">
-                <Badge variant="outline" className="text-[11px] font-normal">
-                  {row.stage}
-                </Badge>
+                <StageBadge stage={row.stage} />
               </td>
               <td className="text-muted-foreground px-3 py-1.5">
                 <span className="block truncate">{row.geography}</span>

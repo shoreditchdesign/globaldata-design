@@ -6,13 +6,13 @@
  * filters, the Development Stage filter takes that to 248, and every number in
  * the column menu adds up to 1,091.
  *
- * `src/flows/sprint-3/idea-1/data.ts` is imported read-only for the shared
- * vocabulary — the entity areas and the attribute list behind the column
- * manager — so the two ideas stay on the same domain nouns.
+ * `src/flows/sprint-3/idea-1/data.ts` is imported read-only for the attribute
+ * list behind the column manager, so the two ideas stay on the same domain
+ * nouns. The header's area tabs come from the shared chrome.
  */
-import { drugAttributes, filterAreas } from "@/flows/sprint-3/idea-1/data"
+import { drugAttributes } from "@/flows/sprint-3/idea-1/data"
 
-export { drugAttributes, filterAreas }
+export { drugAttributes }
 
 /* -------------------------------------------------------------------------- */
 /* Columns                                                                     */

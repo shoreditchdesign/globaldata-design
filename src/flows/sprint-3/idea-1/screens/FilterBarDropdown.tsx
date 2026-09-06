@@ -1,4 +1,4 @@
-import { AppChrome } from "@/flows/sprint-3/idea-1/components/AppChrome"
+import { ProductChrome } from "@/components/prototype/ProductChrome"
 import { FilterBar } from "@/flows/sprint-3/idea-1/components/FilterBar"
 import { CascadePanel, CascadeValueRow } from "@/flows/sprint-3/idea-1/components/ManualPane"
 import { ResultsTable } from "@/flows/sprint-3/idea-1/components/ResultsTable"
@@ -10,7 +10,7 @@ import { developmentalStages, parsedGroups } from "@/flows/sprint-3/idea-1/data"
  */
 export function FilterBarDropdown() {
   return (
-    <AppChrome>
+    <ProductChrome activeArea="Drugs" body="scroll">
       <FilterBar groups={parsedGroups} resultCount="245 Drugs">
         <CascadePanel
           title="Developmental stage"
@@ -26,6 +26,6 @@ export function FilterBarDropdown() {
       <div className="pt-6">
         <ResultsTable />
       </div>
-    </AppChrome>
+    </ProductChrome>
   )
 }

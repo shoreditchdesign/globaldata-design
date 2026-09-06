@@ -1,4 +1,4 @@
-import { AppChrome } from "@/flows/sprint-3/idea-1/components/AppChrome"
+import { ProductChrome } from "@/components/prototype/ProductChrome"
 import { FilterBar } from "@/flows/sprint-3/idea-1/components/FilterBar"
 import { ResultsTable } from "@/flows/sprint-3/idea-1/components/ResultsTable"
 import { overflowGroups, parsedGroups } from "@/flows/sprint-3/idea-1/data"
@@ -10,7 +10,7 @@ import { overflowGroups, parsedGroups } from "@/flows/sprint-3/idea-1/data"
  */
 export function ManyFilters() {
   return (
-    <AppChrome>
+    <ProductChrome activeArea="Drugs" body="scroll">
       <FilterBar
         groups={[...parsedGroups, ...overflowGroups]}
         resultCount="245 Drugs"
@@ -19,6 +19,6 @@ export function ManyFilters() {
       <div className="pt-6">
         <ResultsTable />
       </div>
-    </AppChrome>
+    </ProductChrome>
   )
 }

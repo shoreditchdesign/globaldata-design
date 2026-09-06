@@ -7,10 +7,10 @@ import {
   DownloadIcon,
   LayersIcon,
   SigmaIcon,
-  XIcon,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { FilterPill, OperatorWord } from "@/components/prototype/FilterPill"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator"
 import { ColumnManager } from "@/flows/sprint-3/idea-4/components/ColumnManager"
@@ -113,26 +113,16 @@ export function AppliedFilterBar() {
 
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
         {appliedFilters.map((filter) => (
-          <span
-            key={filter.columnKey}
-            className="bg-background border-border flex h-6 items-center gap-1 rounded-full border pr-1 pl-2.5 text-[12px]"
-          >
-            <span className="text-muted-foreground">{filter.subject}</span>
-            <span className="text-muted-foreground">{filter.operator}</span>
+          <FilterPill key={filter.columnKey} removeLabel={`Remove ${filter.subject} filter`}>
+            <OperatorWord>{filter.subject}</OperatorWord>
+            <OperatorWord>{filter.operator}</OperatorWord>
             {filter.values.map((value, i) => (
               <span key={value} className="flex items-center gap-1">
-                {i > 0 ? <span className="text-muted-foreground">{filter.joiner}</span> : null}
+                {i > 0 ? <OperatorWord>{filter.joiner}</OperatorWord> : null}
                 <span className="font-medium">{value}</span>
               </span>
             ))}
-            <button
-              type="button"
-              className="text-muted-foreground hover:bg-muted hover:text-foreground ml-0.5 flex size-4 items-center justify-center rounded-full transition-colors"
-              aria-label={`Remove ${filter.subject} filter`}
-            >
-              <XIcon className="size-3" />
-            </button>
-          </span>
+          </FilterPill>
         ))}
       </div>
 

@@ -1,6 +1,6 @@
 import { ArrowUpDownIcon } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
+import { StageBadge } from "@/components/prototype/StageBadge"
 import type { ResultRow } from "@/flows/sprint-3/idea-3/data"
 
 const columns = [
@@ -69,9 +69,7 @@ export function ResultsGrid({ rows, total }: { rows: ResultRow[]; total: number 
                   <td className="text-muted-foreground px-4 py-2.5 whitespace-nowrap">{row.company}</td>
                   <td className="text-muted-foreground px-4 py-2.5 whitespace-nowrap">{row.target}</td>
                   <td className="px-4 py-2.5">
-                    <Badge variant="outline" className="font-normal">
-                      {row.stage}
-                    </Badge>
+                    <StageBadge stage={row.stage} />
                   </td>
                   <td className="text-muted-foreground px-4 py-2.5 whitespace-nowrap">{row.route}</td>
                   <td className="text-muted-foreground px-4 py-2.5 whitespace-nowrap">

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-import { AppChrome } from "@/flows/sprint-3/idea-4/components/AppChrome"
+import { ProductChrome } from "@/components/prototype/ProductChrome"
 import { AppliedFilterBar, GridToolbar } from "@/flows/sprint-3/idea-4/components/GridToolbar"
 import { ResultsGrid } from "@/flows/sprint-3/idea-4/components/ResultsGrid"
 
@@ -34,7 +34,7 @@ export function Grid() {
     )
 
   return (
-    <AppChrome>
+    <ProductChrome activeArea="Drugs">
       <GridToolbar
         columnsOpen={columnsOpen}
         onColumnsOpenChange={(open) => {
@@ -52,6 +52,6 @@ export function Grid() {
         expandedRows={expandedRows}
         onToggleRow={toggleRow}
       />
-    </AppChrome>
+    </ProductChrome>
   )
 }

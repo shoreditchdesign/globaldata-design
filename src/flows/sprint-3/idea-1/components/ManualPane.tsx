@@ -3,7 +3,7 @@ import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, SearchIcon } from "lucide
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { PaneHeading } from "@/flows/sprint-3/idea-1/components/FilterModal"
-import { filterAreas } from "@/flows/sprint-3/idea-1/data"
+import { productAreas } from "@/components/prototype/product-areas"
 
 /**
  * Left pane of the manual tab: a column of area pills, with the cascading
@@ -29,7 +29,7 @@ export function ManualPane({
 
       <div className="relative min-h-0 flex-1 px-6 pt-6">
         <div className="flex w-fit flex-col items-start gap-2">
-          {filterAreas.map((area) => {
+          {productAreas.map((area) => {
             const isOpen = area === openArea
             return (
               <div key={area} className="flex items-center gap-2">

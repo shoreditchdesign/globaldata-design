@@ -1,24 +1,24 @@
-import { ChevronRightIcon, PlusIcon, XIcon } from "lucide-react"
+import { ChevronRightIcon, PlusIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { AppChrome } from "@/flows/sprint-3/idea-1/components/AppChrome"
+import { FilterPill } from "@/components/prototype/FilterPill"
+import { ProductChrome } from "@/components/prototype/ProductChrome"
 import { FilterBar } from "@/flows/sprint-3/idea-1/components/FilterBar"
 import { groupByRows, parsedGroups } from "@/flows/sprint-3/idea-1/data"
 
 /** Results collapsed into groups, with room for a second grouping. */
 export function GroupBy() {
   return (
-    <AppChrome>
+    <ProductChrome activeArea="Drugs" body="scroll">
       <FilterBar groups={parsedGroups} resultCount="245 Drugs" />
 
       <div className="flex items-center gap-3 px-6 py-4">
         <span className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
           Group by
         </span>
-        <span className="bg-muted inline-flex items-center gap-1.5 rounded-full py-1 pr-1.5 pl-3 text-sm">
+        <FilterPill variant="muted" removeLabel="Remove developmental stage grouping">
           Developmental stage
-          <XIcon className="text-muted-foreground size-3.5" />
-        </span>
+        </FilterPill>
         <span className="bg-muted flex size-7 items-center justify-center rounded-full">
           <PlusIcon className="size-3.5" />
         </span>
@@ -41,6 +41,6 @@ export function GroupBy() {
           ))}
         </div>
       </div>
-    </AppChrome>
+    </ProductChrome>
   )
 }
