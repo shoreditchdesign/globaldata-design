@@ -20,9 +20,11 @@ const rows: SprintTableSprint[] = sprints.map((sprint) => ({
 
 export default function Home() {
   return (
-    <div className="min-h-svh px-8 py-10">
+    <div className="bg-surface-page min-h-svh px-8 py-10">
       <h1 className="mb-6 text-sm font-medium tracking-tight">GlobalData — design sprints</h1>
-      <SprintTable sprints={rows} defaultOpen={["sprint-3"]} />
+      <div className="bg-surface-panel border-border shadow-panel overflow-hidden rounded-xl border">
+        <SprintTable sprints={rows} defaultOpen={["sprint-3"]} />
+      </div>
     </div>
   )
 }

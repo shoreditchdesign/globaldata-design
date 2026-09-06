@@ -35,8 +35,6 @@ export interface OperatorOption {
   word: string
   /** Whether the clause keeps or drops the matching rows. */
   mode: "include" | "exclude"
-  /** Plain-English gloss shown in the dropdown, so the logic is legible. */
-  hint: string
 }
 
 export interface Clause {
@@ -248,9 +246,9 @@ const applicationOptions: ValueOption[] = [
   { value: "Investigational New Drug", term: "an IND", share: 0.05, count: 23 },
 ]
 
-const includeExclude = (include: string, exclude: string, subject: string): OperatorOption[] => [
-  { word: include, mode: "include", hint: `Keep drugs where ${subject} matches` },
-  { word: exclude, mode: "exclude", hint: `Drop drugs where ${subject} matches` },
+const includeExclude = (include: string, exclude: string): OperatorOption[] => [
+  { word: include, mode: "include" },
+  { word: exclude, mode: "exclude" },
 ]
 
 /**
@@ -280,7 +278,7 @@ export const exampleClauses: Clause[] = [
     id: "target",
     attribute: "Target",
     operator: {
-      options: includeExclude("targeting", "not targeting", "the target"),
+      options: includeExclude("targeting", "not targeting"),
       selected: "targeting",
     },
     join: "or",
@@ -293,8 +291,8 @@ export const exampleClauses: Clause[] = [
     comma: true,
     operator: {
       options: [
-        { word: "excluding", mode: "exclude", hint: "Drop drugs marketed in these countries" },
-        { word: "only in", mode: "include", hint: "Keep only drugs marketed in these countries" },
+        { word: "excluding", mode: "exclude" },
+        { word: "only in", mode: "include" },
       ],
       selected: "excluding",
     },
@@ -307,7 +305,7 @@ export const exampleClauses: Clause[] = [
     attribute: "Development Stage",
     comma: true,
     operator: {
-      options: includeExclude("in", "not in", "the development stage"),
+      options: includeExclude("in", "not in"),
       selected: "in",
     },
     join: "or",
@@ -319,7 +317,7 @@ export const exampleClauses: Clause[] = [
     attribute: "Route of Administration",
     comma: true,
     operator: {
-      options: includeExclude("taken", "not taken", "the route of administration"),
+      options: includeExclude("taken", "not taken"),
       selected: "taken",
     },
     join: "or",
@@ -331,7 +329,7 @@ export const exampleClauses: Clause[] = [
     attribute: "Molecule Type",
     comma: true,
     operator: {
-      options: includeExclude("limited to", "excluding", "the molecule type"),
+      options: includeExclude("limited to", "excluding"),
       selected: "limited to",
     },
     join: "or",
@@ -346,7 +344,7 @@ export const addableClauses: Clause[] = [
     id: "mono",
     attribute: "Mono/Combination Drug",
     comma: true,
-    operator: { options: includeExclude("given as", "not given as", "the regimen"), selected: "given as" },
+    operator: { options: includeExclude("given as", "not given as"), selected: "given as" },
     join: "or",
     selected: ["Mono"],
     options: monoOptions,
@@ -356,7 +354,7 @@ export const addableClauses: Clause[] = [
     attribute: "ATC Classification",
     comma: true,
     operator: {
-      options: includeExclude("classified under", "not classified under", "the ATC class"),
+      options: includeExclude("classified under", "not classified under"),
       selected: "classified under",
     },
     join: "or",
@@ -367,7 +365,7 @@ export const addableClauses: Clause[] = [
     id: "application",
     attribute: "Application Type",
     comma: true,
-    operator: { options: includeExclude("filed as", "not filed as", "the application type"), selected: "filed as" },
+    operator: { options: includeExclude("filed as", "not filed as"), selected: "filed as" },
     join: "or",
     selected: ["Abbreviated New Drug Application"],
     options: applicationOptions,
@@ -391,7 +389,7 @@ export function operatorWord(clause: Clause, mode: "include" | "exclude") {
 /* -------------------------------------------------------------------------- */
 
 /** Whether a clause keeps or drops the rows it matches. Include by default. */
-function clauseMode(clause: Clause) {
+export function clauseMode(clause: Clause) {
   const operator = clause.operator
   if (!operator) return "include"
   return operator.options.find((o) => o.word === operator.selected)?.mode ?? "include"

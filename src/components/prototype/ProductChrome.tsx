@@ -32,7 +32,7 @@ function Wordmark() {
  */
 function StaticSearch({ placeholder }: { placeholder: string }) {
   return (
-    <div className="border-input text-muted-foreground bg-muted/40 flex h-8 w-full items-center gap-2 rounded-lg border px-2.5 text-[13px]">
+    <div className="border-border text-muted-foreground bg-surface-sunken flex h-8 w-full items-center gap-2 rounded-lg border px-2.5 text-[13px]">
       <SearchIcon className="size-3.5 shrink-0" />
       <span className="truncate">{placeholder}</span>
     </div>
@@ -94,8 +94,8 @@ export function ProductChrome({
   className,
 }: ProductChromeProps) {
   return (
-    <div className={cn("bg-background flex h-full flex-col overflow-hidden", className)}>
-      <header className="flex h-14 shrink-0 items-center gap-4 border-b px-4">
+    <div className={cn("bg-surface-page flex h-full flex-col overflow-hidden", className)}>
+      <header className="bg-surface-chrome border-edge flex h-14 shrink-0 items-center gap-4 border-b px-4">
         <Wordmark />
 
         <div className="ml-auto flex items-center gap-3">
@@ -107,14 +107,16 @@ export function ProductChrome({
 
           <BellIcon className="text-muted-foreground size-4 shrink-0" aria-hidden />
           <Avatar className="size-7 shrink-0">
-            <AvatarFallback className="text-muted-foreground text-[11px]">{user}</AvatarFallback>
+            <AvatarFallback className="bg-brand-tint text-brand-ink text-[11px] font-medium">
+              {user}
+            </AvatarFallback>
           </Avatar>
         </div>
       </header>
 
       <nav
         aria-label="Product areas"
-        className="flex h-9 shrink-0 items-center gap-1 overflow-x-auto border-b px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="bg-surface-chrome border-edge flex h-9 shrink-0 items-center gap-1 overflow-x-auto border-b px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {productAreas.map((area) => {
           const active = area === activeArea
@@ -125,7 +127,7 @@ export function ProductChrome({
               className={cn(
                 "relative flex h-full items-center px-2.5 text-[12.5px] whitespace-nowrap",
                 active
-                  ? "text-foreground after:bg-foreground font-medium after:absolute after:inset-x-2.5 after:-bottom-px after:h-0.5"
+                  ? "text-brand-ink after:bg-brand font-medium after:absolute after:inset-x-2.5 after:-bottom-px after:h-0.5"
                   : "text-muted-foreground",
               )}
             >

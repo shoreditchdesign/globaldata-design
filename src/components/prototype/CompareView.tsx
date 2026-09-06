@@ -34,8 +34,8 @@ export function CompareView({
   const [step, setStep] = useState(0)
 
   return (
-    <div className="bg-muted/30 flex min-h-svh flex-col">
-      <header className="bg-background border-b">
+    <div className="bg-surface-page flex min-h-svh flex-col">
+      <header className="bg-surface-chrome border-edge border-b">
         <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center gap-4 px-6 py-3">
           <Button asChild size="sm" variant="ghost" className="-ml-3">
             <Link href="/">← All sprints</Link>
@@ -70,7 +70,7 @@ export function CompareView({
                   {screen ? screen.title : "No screen at this step"}
                 </p>
               </div>
-              <div className="bg-background flex-1 overflow-hidden rounded-xl border shadow-sm">
+              <div className="bg-surface-panel border-border shadow-raised flex-1 overflow-hidden rounded-xl border">
                 {screen ? (
                   <iframe
                     key={`${idea.id}-${screen.slug}`}

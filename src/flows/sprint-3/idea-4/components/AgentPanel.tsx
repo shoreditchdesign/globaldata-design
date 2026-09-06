@@ -6,6 +6,7 @@ import { ArrowUpIcon, CheckIcon, Loader2Icon, SparklesIcon, XIcon } from "lucide
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
+import { motion, settleClass, staggerDelay, useSettle } from "@/components/prototype/motion"
 import { examplePrompts, previewCount, type AgentMessage } from "@/flows/sprint-3/idea-4/agent"
 import type { GridState } from "@/flows/sprint-3/idea-4/grid-state"
 
@@ -28,22 +29,38 @@ function ProposalCard({
   onReject: () => void
 }) {
   const proposal = message.proposal
+  // The settle has to be hooked before the early return, or the hook order
+  // changes with the shape of the message.
+  const resolved = message.outcome
+  // The beat after the change lands: the card lights, the changes it made read
+  // back in the accent, then it settles into an ordinary logged item. Same
+  // vocabulary as Idea 3's resolve, spent on a proposal becoming the grid.
+  const justApplied = useSettle(resolved, motion.hold) && resolved === "accepted"
   if (!proposal) return null
   const next = previewCount(state, proposal.actions)
-  const resolved = message.outcome
 
   return (
     <div
       className={cn(
-        "bg-background rounded-lg border p-2.5",
+        "bg-surface-panel rounded-lg border p-2.5",
+        settleClass,
         resolved === "rejected" && "opacity-60",
+        justApplied ? "border-brand-border bg-brand-wash" : "border-border",
       )}
     >
       <p className="text-[12.5px] leading-[1.35] font-medium">{proposal.headline}</p>
 
       <ul className="mt-1.5 flex flex-col gap-1">
-        {proposal.changes.map((change) => (
-          <li key={change} className="text-muted-foreground flex gap-1.5 text-[11.5px] leading-[1.4]">
+        {proposal.changes.map((change, index) => (
+          <li
+            key={change}
+            style={staggerDelay(index)}
+            className={cn(
+              "flex gap-1.5 text-[11.5px] leading-[1.4]",
+              settleClass,
+              justApplied ? "text-brand-ink" : "text-muted-foreground",
+            )}
+          >
             <span aria-hidden className="text-muted-foreground/60 pt-px">
               ·
             </span>
@@ -55,7 +72,7 @@ function ProposalCard({
       {next !== matchCount ? (
         <p className="text-muted-foreground mt-2 text-[11px] tabular-nums">
           <span className="text-foreground font-medium">{matchCount}</span> →{" "}
-          <span className="text-foreground font-medium">{next}</span> drugs
+          <span className="text-brand-ink font-medium">{next}</span> drugs
         </p>
       ) : (
         <p className="text-muted-foreground mt-2 text-[11px] tabular-nums">
@@ -67,7 +84,8 @@ function ProposalCard({
         <p
           className={cn(
             "mt-2 flex items-center gap-1.5 text-[11px]",
-            resolved === "accepted" ? "text-foreground" : "text-muted-foreground",
+            settleClass,
+            resolved === "accepted" ? "text-brand-ink" : "text-muted-foreground",
           )}
         >
           {resolved === "accepted" ? (
@@ -138,36 +156,28 @@ export function AgentPanel({
   return (
     <aside
       className={cn(
-        "bg-muted/20 flex min-h-0 shrink-0 flex-col border-l",
+        "bg-surface-chrome border-edge flex min-h-0 shrink-0 flex-col border-l",
         AGENT_PANEL_WIDTH,
       )}
       aria-label="Grid assistant"
     >
-      <div className="flex h-10 shrink-0 items-center gap-2 border-b px-3">
-        <SparklesIcon className="text-muted-foreground size-3.5" />
+      <div className="border-edge flex h-10 shrink-0 items-center gap-2 border-b px-3">
+        <SparklesIcon className="text-brand size-3.5" />
         <span className="flex-1 text-[12.5px] font-medium">Assistant</span>
         <Button variant="ghost" size="xs" onClick={onClose} aria-label="Close assistant">
           <XIcon />
         </Button>
       </div>
 
-      <p className="text-muted-foreground border-b px-3 py-2 text-[11px] leading-[1.45]">
-        Ask in plain language. It proposes a change to this grid and nothing moves until you
-        accept it.
-      </p>
-
       <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto p-3">
         {messages.length === 0 ? (
           <div className="flex flex-col gap-1.5">
-            <p className="text-muted-foreground text-[11px] tracking-[0.06em] uppercase">
-              Try
-            </p>
             {examplePrompts.map((prompt) => (
               <button
                 key={prompt}
                 type="button"
                 onClick={() => send(prompt)}
-                className="bg-background hover:border-foreground/30 rounded-md border px-2.5 py-1.5 text-left text-[12px] transition-colors"
+                className="bg-surface-panel border-border hover:border-brand-border hover:bg-brand-wash hover:text-brand-ink rounded-md border px-2.5 py-1.5 text-left text-[12px] transition-colors"
               >
                 {prompt}
               </button>
@@ -179,13 +189,15 @@ export function AgentPanel({
           message.role === "analyst" ? (
             <p
               key={message.id}
-              className="bg-background self-end rounded-lg border px-2.5 py-1.5 text-[12.5px] leading-[1.4]"
+              className="bg-surface-panel border-border self-end rounded-lg border px-2.5 py-1.5 text-[12.5px] leading-[1.4]"
             >
               {message.text}
             </p>
           ) : (
             <div key={message.id} className="flex flex-col gap-2">
-              <p className="text-[12.5px] leading-[1.45]">{message.text}</p>
+              {message.text ? (
+                <p className="text-[12.5px] leading-[1.45]">{message.text}</p>
+              ) : null}
               {message.proposal ? (
                 <ProposalCard
                   message={message}
@@ -203,7 +215,7 @@ export function AgentPanel({
                       key={suggestion}
                       type="button"
                       onClick={() => send(suggestion)}
-                      className="bg-background text-muted-foreground hover:text-foreground hover:border-foreground/30 rounded-full border px-2 py-0.5 text-[11px] transition-colors"
+                      className="bg-surface-panel border-border text-muted-foreground hover:text-brand-ink hover:border-brand-border hover:bg-brand-wash rounded-full border px-2 py-0.5 text-[11px] transition-colors"
                     >
                       {suggestion}
                     </button>
@@ -228,8 +240,8 @@ export function AgentPanel({
         <input
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
-          placeholder="Ask for a change to the grid"
-          className="border-input focus-within:border-ring bg-background placeholder:text-muted-foreground h-8 min-w-0 flex-1 rounded-md border px-2.5 text-[12.5px] outline-none"
+          aria-label="Ask the assistant for a change to the grid"
+          className="border-border focus-visible:border-ring focus-visible:ring-ring/40 bg-surface-panel h-8 min-w-0 flex-1 rounded-md border px-2.5 text-[12.5px] outline-none focus-visible:ring-3"
         />
         <Button type="submit" size="icon-sm" disabled={!draft.trim()} aria-label="Send">
           <ArrowUpIcon />

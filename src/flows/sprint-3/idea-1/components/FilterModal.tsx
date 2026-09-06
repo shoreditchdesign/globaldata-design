@@ -33,11 +33,11 @@ export function FilterModal({
 } & GroupHandlers) {
   // `z-40` puts the overlay above the sticky filter bar it has to cover.
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/25 px-6 py-6">
-      <div className="bg-background relative flex h-full max-h-[750px] w-full max-w-[1055px] overflow-hidden rounded-2xl shadow-2xl">
+    <div className="bg-foreground/25 absolute inset-0 z-40 flex items-center justify-center px-6 py-6">
+      <div className="bg-surface-raised border-edge relative flex h-full max-h-[750px] w-full max-w-[1055px] overflow-hidden rounded-2xl border shadow-2xl">
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="px-6 pt-6">
-            <div className="bg-muted inline-flex rounded-full p-1">
+            <div className="bg-surface-sunken border-border inline-flex rounded-full border p-1">
               <Tab active={tab === "ai"} onClick={() => onTab("ai")}>
                 AI filter
               </Tab>
@@ -80,7 +80,9 @@ function Tab({
       aria-pressed={active}
       className={cn(
         "rounded-full px-4 py-1.5 text-sm transition-colors",
-        active ? "bg-background shadow-xs" : "text-muted-foreground hover:text-foreground",
+        active
+          ? "bg-surface-panel text-brand-ink shadow-panel"
+          : "text-muted-foreground hover:text-foreground",
       )}
     >
       {children}
@@ -89,11 +91,10 @@ function Tab({
 }
 
 /** Heading block shared by both tabs. */
-export function PaneHeading({ title, subtitle }: { title: string; subtitle: string }) {
+export function PaneHeading({ title }: { title: string }) {
   return (
     <div className="px-6 pt-6">
       <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
-      <p className="text-muted-foreground text-sm">{subtitle}</p>
     </div>
   )
 }

@@ -50,6 +50,13 @@ function HeaderCell({
   const filtered = state.filters[column.key]?.length ?? 0
   const sorted = state.sort?.columnKey === column.key ? state.sort.direction : null
   const pinned = state.pinned.includes(column.key)
+  /*
+   * Whether this lane is currently doing something the analyst asked for.
+   * Pinning is not in it: the first column is pinned out of the box, and a
+   * permanently tinted header would spend the accent on the one state nobody
+   * chose.
+   */
+  const active = filtered > 0 || sorted !== null
 
   // The state icons float inside the label rather than sitting beside it, so a
   // long column name wraps around them and still gets the full second line.
@@ -57,16 +64,21 @@ function HeaderCell({
     <button
       type="button"
       className={cn(
-        "hover:bg-muted group flex h-full w-full items-center px-2.5 py-2 text-left transition-colors",
-        open && "bg-muted",
+        "group flex h-full w-full items-center px-2.5 py-2 text-left transition-colors",
+        open ? "bg-brand-tint" : active ? "bg-brand-wash hover:bg-brand-tint" : "hover:bg-accent",
       )}
     >
-      <span className="text-muted-foreground block w-full text-[10px] leading-[1.3] font-medium tracking-[0.07em] uppercase">
+      <span
+        className={cn(
+          "block w-full text-[10px] leading-[1.3] font-medium tracking-[0.07em] uppercase",
+          active ? "text-brand-ink" : "text-muted-foreground",
+        )}
+      >
         <span className="float-right ml-1 flex items-center gap-1 pt-px">
-          {pinned ? <PinIcon className="fill-muted-foreground text-muted-foreground size-3" /> : null}
-          {sorted === "asc" ? <ArrowDownIcon className="text-foreground size-3" /> : null}
-          {sorted === "desc" ? <ArrowUpIcon className="text-foreground size-3" /> : null}
-          {filtered ? <FunnelIcon className="fill-foreground text-foreground size-2.5" /> : null}
+          {pinned ? <PinIcon className="fill-brand text-brand size-3" /> : null}
+          {sorted === "asc" ? <ArrowDownIcon className="text-brand size-3" /> : null}
+          {sorted === "desc" ? <ArrowUpIcon className="text-brand size-3" /> : null}
+          {filtered ? <FunnelIcon className="fill-brand text-brand size-2.5" /> : null}
           <ChevronDownIcon
             className={cn(
               "size-3 transition-opacity",
@@ -80,7 +92,7 @@ function HeaderCell({
   )
 
   return (
-    <div className={cn("border-border/60 border-r last:border-r-0", pinned && "border-border")}>
+    <div className={cn("border-hairline border-r last:border-r-0", pinned && "border-edge")}>
       <Popover open={open} onOpenChange={onOpenChange}>
         <PopoverTrigger asChild>{trigger}</PopoverTrigger>
         <PopoverContent align="start" sideOffset={1} className="w-[272px] gap-0 p-0">
@@ -115,7 +127,7 @@ function Cell({
   onExpand: () => void
   onSelect: () => void
 }) {
-  const base = cn("min-w-0 px-2.5 py-2", pinned && "border-border/60 border-r")
+  const base = cn("min-w-0 px-2.5 py-2", pinned && "border-hairline border-r")
 
   switch (column.kind) {
     case "select":
@@ -206,14 +218,14 @@ function ExpandedDetail({ row, keys }: { row: DrugRecord; keys: string[] }) {
 
   if (groups.length === 0) {
     return (
-      <div className="border-border/60 text-muted-foreground border-t py-2.5 pr-2.5 pl-12 text-[11.5px]">
+      <div className="border-hairline text-muted-foreground border-t py-2.5 pr-2.5 pl-12 text-[11.5px]">
         One value in every lane — this record is already shown in full.
       </div>
     )
   }
 
   return (
-    <div className="border-border/60 border-t py-2.5 pr-2.5 pl-12">
+    <div className="border-hairline border-t py-2.5 pr-2.5 pl-12">
       <div className="flex flex-col gap-2">
         {groups.map((group) => (
           <div key={group.label} className="flex gap-3">
@@ -224,7 +236,7 @@ function ExpandedDetail({ row, keys }: { row: DrugRecord; keys: string[] }) {
               {group.values.map((value) => (
                 <span
                   key={value}
-                  className="bg-background border-border/70 rounded-md border px-1.5 py-0.5 text-[11px] leading-[16px]"
+                  className="bg-surface-panel border-border rounded-md border px-1.5 py-0.5 text-[11px] leading-[16px]"
                 >
                   {value}
                 </span>
@@ -280,10 +292,10 @@ export function ResultsGrid({
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 overflow-auto">
         <div
-          className="bg-background sticky top-0 z-10 grid border-b"
+          className="bg-surface-panel border-edge sticky top-0 z-10 grid border-b"
           style={{ gridTemplateColumns: template }}
         >
-          <div className="border-border/60 border-r px-1.5 py-2">
+          <div className="border-hairline border-r px-1.5 py-2">
             <Checkbox
               checked={allSelected}
               onCheckedChange={onToggleSelectAll}
@@ -307,11 +319,6 @@ export function ResultsGrid({
         {matchCount === 0 ? (
           <div className="flex flex-col items-start gap-2 px-4 py-10">
             <p className="text-[13px] font-medium">No drug in this sample matches all of it.</p>
-            <p className="text-muted-foreground max-w-[52ch] text-[12px] leading-[1.5]">
-              Values inside one column are joined with “or”, and the columns are joined with “and”,
-              so every filter you add can only take rows away. Drop one of the pills above, or clear
-              them all and start again.
-            </p>
             <Button
               variant="outline"
               size="sm"
@@ -337,7 +344,7 @@ export function ResultsGrid({
                         : [...current, group.key],
                     )
                   }
-                  className="bg-muted/60 hover:bg-muted border-border/60 sticky top-[33px] z-[5] flex w-full items-center gap-2 border-b px-2.5 py-1.5 text-left"
+                  className="bg-surface-sunken hover:bg-brand-wash border-hairline sticky top-[33px] z-[5] flex w-full items-center gap-2 border-b px-2.5 py-1.5 text-left transition-colors"
                 >
                   {isCollapsed ? (
                     <ChevronRightIcon className="text-muted-foreground size-3.5" />
@@ -358,10 +365,10 @@ export function ResultsGrid({
                     return (
                       <div
                         key={row.id}
-                        className={cn("border-border/60 border-b", expanded && "bg-muted/30")}
+                        className={cn("border-hairline border-b", expanded && "bg-surface-sunken")}
                       >
                         <div
-                          className="hover:bg-muted/40 grid transition-colors"
+                          className="hover:bg-brand-wash grid transition-colors"
                           style={{ gridTemplateColumns: template }}
                         >
                           {keys.map((key) => (
@@ -386,7 +393,7 @@ export function ResultsGrid({
         })}
       </div>
 
-      <div className="flex h-9 shrink-0 items-center gap-4 overflow-x-auto border-t px-4">
+      <div className="bg-surface-chrome border-edge flex h-9 shrink-0 items-center gap-4 overflow-x-auto border-t px-4">
         <span className="text-muted-foreground shrink-0 text-[11px] tabular-nums">
           {matchCount === 0 ? "0 drugs" : `1–${matchCount} of ${matchCount} drugs`}
         </span>

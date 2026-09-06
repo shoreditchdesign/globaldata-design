@@ -40,7 +40,7 @@ export function FilterBar({
   const { onGroupOperator } = handlers
 
   return (
-    <div className="bg-background sticky top-0 z-20 border-b px-6 py-4">
+    <div className="bg-surface-chrome border-edge sticky top-0 z-20 border-b px-6 py-4">
       <div className="flex items-start gap-6">
         <div className="flex min-w-0 flex-1 flex-wrap items-start gap-x-6 gap-y-4">
           {groups.map((group, i) => {

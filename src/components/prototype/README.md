@@ -6,9 +6,10 @@ Two kinds of thing live here.
 around a prototype. Not part of the product being designed; you should not need to touch it.
 
 **Shared product surface** — `ProductChrome`, `StageBadge`, `FilterPill`, `OperatorWord`,
-`product-areas`. These are the parts of the *product* that every Sprint 3 direction shows. They are
-shared because four directions get reviewed in one session, and anything that drifts between two of
-them reads to the client as four different products rather than four proposals for one.
+`product-areas`, `motion`. These are the parts of the *product* that every Sprint 3 direction shows.
+They are shared because four directions get reviewed in one session, and anything that drifts
+between two of them reads to the client as four different products rather than four proposals for
+one. `motion` is the same argument applied to time rather than colour.
 
 Everything below is presentational and static. No handlers, no data fetching, no state beyond an
 active-state prop. If you need interaction, build it inside your idea.
@@ -108,12 +109,37 @@ constant.
 <StageBadge stage={row.stage} className="h-[18px] px-1.5" />  // Idea 4's dense grid
 ```
 
-A development stage — Discovery, Preclinical, Phase I/II/III/IV, Marketed, Withdrawn. Used by the
-results grids in Ideas 2, 3 and 4.
+A development stage. Used by the results grids in Ideas 2, 3 and 4.
+
+**Stage is an ordering, not a label.** The colour encodes position in the pipeline — one hue, the
+product's accent, deepening as the drug advances — so maturity is scannable down a column without
+anyone learning a key. Two values leave the ramp because they mean something it cannot say.
+
+| Rung | Stages | Reads as |
+|---|---|---|
+| `pre` | Discovery, Preclinical | grey — not in the clinic |
+| `early` | Phase I | palest blue |
+| `mid` | Phase II | |
+| `late` | Phase III | |
+| `final` | Phase IV, Pre-registration | deepest blue |
+| `live` | Approved, Marketed | green — it arrived |
+| `stopped` | Withdrawn, Discontinued, Suspended | rose — it stopped |
+| `dormant` | Archived | grey, quieter than `pre` |
+
+Phase IV and Pre-registration share the last rung on purpose: five steps of one hue is more than an
+eleven-pixel badge can hold apart, and both mean *late* to the ordering. An unknown stage falls back
+to `pre` rather than to an error state.
+
+Every fill is under 0.06 chroma. The badges are tints; the accent proper is solid. They appear
+within a few pixels of each other in three directions and must not compete.
+
+`stageTone(stage)` is exported for anything that has to match a badge without being one — a legend,
+a count, a group header.
 
 Deliberately one size. If your grid needs it tighter, pass spacing through `className`; do not add a
 variant. Idea 1's incumbent table shows the stage as a plain cell rather than a badge, which is
-correct — it is a faithful port of the design being argued against.
+correct — it is a faithful port of the design being argued against, and the live product has no
+status colour at all.
 
 ## `FilterPill` and `OperatorWord`
 
@@ -133,14 +159,19 @@ subject–operator–value phrase in Idea 4, a value and its count in Idea 1.
 | Prop | Type | Default |
 |---|---|---|
 | `children` | `ReactNode` | — |
-| `variant` | `"outline" \| "muted"` | `"outline"` |
+| `variant` | `"applied" \| "excluded" \| "muted"` | `"applied"` |
 | `removable` | `boolean` | `true` |
 | `removeLabel` | `string` | `"Remove filter"` |
 | `className` | `string` | — |
 
-`variant="muted"` is the incumbent's plainer chip — filled, no border, larger type. Idea 1 uses it
-so it can read as the current product without forking the component. Everything else uses
-`"outline"`.
+The variants say what the pill *means*, not what it looks like.
+
+- `applied` — a condition that is on. Carries the accent, because that is what "on" looks like
+  everywhere in this product.
+- `excluded` — a condition that takes rows away. It cannot look identical to one that keeps them; a
+  bar of grey chips where half are `is not` is a bar you have to read word by word.
+- `muted` — the incumbent's plainer chip, filled, no border, larger type. Idea 1 uses it so it can
+  read as the current product without forking the component.
 
 `OperatorWord` is a plain-language connective — `is`, `and`, `or`, `is not`. Muted and unstyled on
 purpose: the values are the objects you grab, the words are the grammar holding them together.
@@ -150,6 +181,45 @@ dropdowns carrying that direction's entire argument, they sit inline in running 
 baseline alignment and dotted underlines, and flattening them into this one would destroy the
 direction. Same for Idea 1's `OperatorPill` (the incumbent's `AND`/`OR`/`NOT` Boolean chip) and Idea
 4's `ValuePills` (multi-value cells in a grid lane, not filters).
+
+## `motion`
+
+```ts
+import {
+  motion, resolveMarks, settleClass, liftClass, tintClass,
+  staggerDelay, useStagedSequence, useSettle, usePrefersReducedMotion,
+} from "@/components/prototype/motion"
+```
+
+The timing vocabulary, lifted out of Idea 3's resolve — the transition where the typed request
+lights up phrase by phrase, hardens into pills and dissolves into the sentence. That was the piece
+of motion the client singled out, and what makes it work is not the effect, it is the beat: a short
+pause before anything moves, a stagger small enough to read as one gesture rather than a queue, and
+a curve that decelerates hard so things *arrive* rather than slide.
+
+If Idea 2 ticks a value at one speed and Idea 4 accepts a proposal at another, the set reads as
+three products. So the numbers live here and the directions spend them.
+
+| Export | What it is |
+|---|---|
+| `motion` | `quick` 160, `settle` 300, `reflow` 420, `handover` 150, `stagger` 70, `staggerCap` 8, `hold` 900 (ms) |
+| `resolveMarks` | `highlight` 180, `structure` 760, `done` 1400 — Idea 3's timeline, from mount |
+| `settleClass` / `liftClass` / `tintClass` | className fragments pairing a duration with a curve |
+| `staggerDelay(i)` | inline `transitionDelay` for item `i`, capped at `staggerCap` |
+| `useStagedSequence({ marks, done, onDone })` | returns how many marks have passed |
+| `useSettle(signal, hold)` | true for a beat after `signal` changes — the "that just happened" flag |
+| `usePrefersReducedMotion()` | for the rare case where reduction has to change behaviour, not just transitions |
+
+Two curves, `ease-settle` and `ease-lift`, are Tailwind utilities defined in `globals.css`.
+
+Spent so far: Idea 3's resolve (the source), Idea 2's Miller rows lighting as the agent ticks them,
+Idea 4's proposal card lighting as it lands on the grid.
+
+**Reduced motion.** The three class fragments all carry `motion-reduce:transition-none`, so a reader
+who has asked for less motion gets the end state with no interpolation and never a half-drawn one.
+`useSettle` deliberately does *not* gate rendering — the value, the column and the count are correct
+whether or not the flash is drawn. Reach for `usePrefersReducedMotion` only when the reduction has
+to change what a component does.
 
 ---
 

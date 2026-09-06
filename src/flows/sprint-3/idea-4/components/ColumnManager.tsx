@@ -52,7 +52,7 @@ export function ColumnManager({
   return (
     <div className="flex flex-col">
       <div className="p-1.5">
-        <div className="border-input focus-within:border-ring flex h-7 items-center gap-2 rounded-md border px-2">
+        <div className="border-border focus-within:border-ring focus-within:ring-ring/40 flex h-7 items-center gap-2 rounded-md border px-2 transition-shadow focus-within:ring-3">
           <SearchIcon className="text-muted-foreground size-3.5 shrink-0" />
           <input
             value={query}
@@ -76,7 +76,7 @@ export function ColumnManager({
             return (
               <div
                 key={key}
-                className="hover:bg-muted group/row flex h-7 items-center gap-1.5 rounded-md pr-1 pl-1 text-[12.5px] transition-colors"
+                className="hover:bg-accent group/row flex h-7 items-center gap-1.5 rounded-md pr-1 pl-1 text-[12.5px] transition-colors"
               >
                 <span className="flex shrink-0 flex-col leading-none">
                   <button
@@ -116,7 +116,7 @@ export function ColumnManager({
                     className={cn(
                       "size-3.5",
                       pinned
-                        ? "fill-foreground text-foreground"
+                        ? "fill-brand text-brand"
                         : "text-muted-foreground/50 opacity-0 group-hover/row:opacity-100",
                     )}
                   />
@@ -133,7 +133,7 @@ export function ColumnManager({
             return (
               <div
                 key={key}
-                className="hover:bg-muted group/row text-muted-foreground flex h-7 items-center gap-1.5 rounded-md pr-1 pl-1 text-[12.5px] transition-colors"
+                className="hover:bg-accent group/row text-muted-foreground flex h-7 items-center gap-1.5 rounded-md pr-1 pl-1 text-[12.5px] transition-colors"
               >
                 <span className="size-3 shrink-0" />
                 <Checkbox

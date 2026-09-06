@@ -39,6 +39,62 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /* ---- Surfaces. `bg-surface-page`, `bg-surface-panel`, … ---- */
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-page: var(--surface-page);
+  --color-surface-chrome: var(--surface-chrome);
+  --color-surface-panel: var(--surface-panel);
+  --color-surface-raised: var(--surface-raised);
+
+  /* ---- Rules. `border-hairline`, `border-border`, `border-edge`. ---- */
+  --color-hairline: var(--hairline);
+  --color-edge: var(--edge);
+
+  /* ---- The accent. `bg-brand`, `text-brand-ink`, `border-brand-border`, … ---- */
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-border: var(--brand-border);
+  --color-brand-tint: var(--brand-tint);
+  --color-brand-wash: var(--brand-wash);
+  --color-brand-foreground: var(--brand-foreground);
+
+  /* ---- Negation. An excluded value is not a selected one. ---- */
+  --color-negative: var(--negative);
+  --color-negative-ink: var(--negative-ink);
+  --color-negative-border: var(--negative-border);
+
+  /* ---- The development-stage ladder. See the note on `--stage-*` below. ---- */
+  --color-stage-pre: var(--stage-pre);
+  --color-stage-pre-ink: var(--stage-pre-ink);
+  --color-stage-pre-edge: var(--stage-pre-edge);
+  --color-stage-early: var(--stage-early);
+  --color-stage-early-ink: var(--stage-early-ink);
+  --color-stage-early-edge: var(--stage-early-edge);
+  --color-stage-mid: var(--stage-mid);
+  --color-stage-mid-ink: var(--stage-mid-ink);
+  --color-stage-mid-edge: var(--stage-mid-edge);
+  --color-stage-late: var(--stage-late);
+  --color-stage-late-ink: var(--stage-late-ink);
+  --color-stage-late-edge: var(--stage-late-edge);
+  --color-stage-final: var(--stage-final);
+  --color-stage-final-ink: var(--stage-final-ink);
+  --color-stage-final-edge: var(--stage-final-edge);
+  --color-stage-live: var(--stage-live);
+  --color-stage-live-ink: var(--stage-live-ink);
+  --color-stage-live-edge: var(--stage-live-edge);
+  --color-stage-stopped: var(--stage-stopped);
+  --color-stage-stopped-ink: var(--stage-stopped-ink);
+  --color-stage-stopped-edge: var(--stage-stopped-edge);
+  --color-stage-dormant: var(--stage-dormant);
+  --color-stage-dormant-ink: var(--stage-dormant-ink);
+  --color-stage-dormant-edge: var(--stage-dormant-edge);
+
+  /* ---- Motion. The vocabulary lifted out of Idea 3's resolve. ---- */
+  --ease-settle: var(--ease-settle-curve);
+  --ease-lift: var(--ease-lift-curve);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -51,40 +107,200 @@
 :root {
   /* Prototypes are shadcn light mode only — no dark theme in this repo. */
   color-scheme: light;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
 
+  /*
+   * ------------------------------------------------------------------
+   * Surfaces
+   * ------------------------------------------------------------------
+   * Communicated as if this were a dark-mode UI and executed in light
+   * mode: the page is the ground everything else sits on, panels come
+   * forward off it, and a well is pushed back into it. Five steps, and
+   * they are the only backgrounds a screen should reach for.
+   *
+   *   sunken  — a well cut into a panel: inputs, empty states, the strip
+   *             behind a sticky table head, a disabled row.
+   *   page    — the application ground. Nothing sits at this level
+   *             except the gaps between panels.
+   *   chrome  — structure: the product header, area tabs, toolbars,
+   *             panel headers, side rails. Reads as fixed furniture.
+   *   panel   — the content plane. Tables, filter trees, the agent.
+   *   raised  — popovers, menus, dialogs and anything floating over a
+   *             panel. Same white as `panel`; the shadow does the work.
+   *
+   * All five carry a trace of the accent's hue so a blue selection sits
+   * on them without looking pasted on.
+   */
+  --surface-sunken: oklch(0.942 0.005 255);
+  --surface-page: oklch(0.966 0.004 255);
+  --surface-chrome: oklch(0.984 0.003 255);
+  --surface-panel: oklch(1 0 0);
+  --surface-raised: oklch(1 0 0);
+
+  --background: var(--surface-panel);
+  --foreground: oklch(0.17 0.008 260);
+  --card: var(--surface-panel);
+  --card-foreground: var(--foreground);
+  --popover: var(--surface-raised);
+  --popover-foreground: var(--foreground);
+
+  /*
+   * ------------------------------------------------------------------
+   * Rules — three weights, because one was doing four jobs
+   * ------------------------------------------------------------------
+   *   hairline — inside a surface: row rules, a divider in a menu.
+   *   border   — the default edge of a control or a card.
+   *   edge     — structure between two surfaces: header to body, filter
+   *              panel to results, the outline of a raised panel.
+   */
+  --hairline: oklch(0.945 0.003 255);
+  --border: oklch(0.912 0.004 255);
+  --edge: oklch(0.868 0.005 255);
+  --input: var(--border);
+
+  /*
+   * ------------------------------------------------------------------
+   * The accent — cerulean
+   * ------------------------------------------------------------------
+   * GlobalData's live platform runs on a corporate navy. This is the
+   * same family a few steps lighter and considerably more saturated, so
+   * it reads as theirs without reading as 2011. It carries primary
+   * actions, active and selected states, filter chips that are on,
+   * focus rings and the agent's own accents — and nothing else. Black
+   * is no longer an active-state colour anywhere.
+   *
+   *   brand         solid fills; white sits on it at 5.6:1
+   *   brand-strong  hover and pressed
+   *   brand-ink     the accent as text or an icon on a light surface
+   *   brand-border  the edge of a selected chip or an active tab
+   *   brand-tint    the fill of a selected chip
+   *   brand-wash    a selected row or a hovered option
+   */
+  --brand: oklch(0.52 0.16 253);
+  --brand-strong: oklch(0.455 0.14 253);
+  --brand-ink: oklch(0.45 0.135 253);
+  --brand-border: oklch(0.855 0.05 253);
+  --brand-tint: oklch(0.955 0.02 253);
+  --brand-wash: oklch(0.974 0.011 253);
+  --brand-foreground: oklch(0.99 0 0);
+
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --ring: oklch(0.62 0.14 253);
+
+  --secondary: oklch(0.968 0.002 255);
+  --secondary-foreground: oklch(0.26 0.01 260);
+  --muted: oklch(0.968 0.002 255);
+  --muted-foreground: oklch(0.545 0.012 258);
+  --accent: oklch(0.962 0.003 255);
+  --accent-foreground: oklch(0.26 0.01 260);
+  --destructive: oklch(0.55 0.19 25);
+
+  /*
+   * ------------------------------------------------------------------
+   * Negation
+   * ------------------------------------------------------------------
+   * An excluded value must not look identical to an included one. The
+   * accent says "in"; this says "out". Kept low in chroma so a row of
+   * excluded chips does not read as an error state.
+   */
+  --negative: oklch(0.95 0.024 22);
+  --negative-ink: oklch(0.48 0.14 22);
+  --negative-border: oklch(0.885 0.044 22);
+
+  /*
+   * ------------------------------------------------------------------
+   * Development stage — a pipeline, not a set of labels
+   * ------------------------------------------------------------------
+   * An analyst reads this ordering constantly, so the colour encodes
+   * position rather than identity. One hue — the accent's — deepening
+   * as the drug advances, which makes maturity scannable straight down
+   * a column without asking anyone to learn a key. Two exits from the
+   * ramp carry their own meaning: green for a drug that arrived, rose
+   * for one that stopped.
+   *
+   *   pre      Discovery, Preclinical          grey — not in the clinic
+   *   early    Phase I
+   *   mid      Phase II
+   *   late     Phase III
+   *   final    Phase IV, Pre-registration      the deepest blue
+   *   live     Approved, Marketed              green
+   *   stopped  Withdrawn, Discontinued, Suspended
+   *   dormant  Archived                        grey, quieter than `pre`
+   *
+   * Chroma stays under 0.06 on every fill. The badges are tints; the
+   * accent proper is solid. They are used within a few pixels of each
+   * other in three of the four directions and must not compete.
+   */
+  --stage-pre: oklch(0.966 0.003 255);
+  --stage-pre-ink: oklch(0.535 0.012 255);
+  --stage-pre-edge: oklch(0.918 0.004 255);
+
+  --stage-early: oklch(0.97 0.016 253);
+  --stage-early-ink: oklch(0.51 0.125 253);
+  --stage-early-edge: oklch(0.905 0.042 253);
+
+  --stage-mid: oklch(0.946 0.03 253);
+  --stage-mid-ink: oklch(0.47 0.14 253);
+  --stage-mid-edge: oklch(0.875 0.056 253);
+
+  --stage-late: oklch(0.918 0.045 253);
+  --stage-late-ink: oklch(0.42 0.13 253);
+  --stage-late-edge: oklch(0.845 0.07 253);
+
+  --stage-final: oklch(0.89 0.058 253);
+  --stage-final-ink: oklch(0.38 0.12 253);
+  --stage-final-edge: oklch(0.815 0.082 253);
+
+  --stage-live: oklch(0.905 0.052 158);
+  --stage-live-ink: oklch(0.395 0.09 158);
+  --stage-live-edge: oklch(0.84 0.066 158);
+
+  --stage-stopped: oklch(0.938 0.028 22);
+  --stage-stopped-ink: oklch(0.485 0.15 22);
+  --stage-stopped-edge: oklch(0.878 0.05 22);
+
+  --stage-dormant: oklch(0.966 0.003 255);
+  --stage-dormant-ink: oklch(0.6 0.008 255);
+  --stage-dormant-edge: oklch(0.93 0.003 255);
+
+  /* Charts follow the accent rather than a greyscale, so a bar and a
+   * selected chip belong to the same product. */
+  --chart-1: oklch(0.52 0.16 253);
+  --chart-2: oklch(0.63 0.13 253);
+  --chart-3: oklch(0.74 0.095 253);
+  --chart-4: oklch(0.83 0.065 253);
+  --chart-5: oklch(0.9 0.04 253);
+
+  --radius: 0.625rem;
+
+  --sidebar: var(--surface-chrome);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: var(--brand-foreground);
+  --sidebar-accent: var(--brand-wash);
+  --sidebar-accent-foreground: var(--brand-ink);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+
+  /*
+   * ------------------------------------------------------------------
+   * Motion
+   * ------------------------------------------------------------------
+   * Lifted from Idea 3's resolve, which is the transition the client
+   * liked. The curve decelerates hard: things arrive rather than slide
+   * in. `lift` is its shorter sibling for a single element settling.
+   * The timings that go with these live in
+   * `src/components/prototype/motion.ts` so TypeScript can stagger
+   * against them.
+   */
+  --ease-settle-curve: cubic-bezier(0.2, 0.75, 0.25, 1);
+  --ease-lift-curve: cubic-bezier(0.32, 0.72, 0.3, 1);
+
+  /* Shadows. A raised surface earns one; a panel on the page does not. */
+  --shadow-panel: 0 1px 2px oklch(0.2 0.02 260 / 0.04);
+  --shadow-raised:
+    0 1px 2px oklch(0.2 0.02 260 / 0.06), 0 8px 24px -6px oklch(0.2 0.02 260 / 0.1);
+}
 
 @layer base {
   * {
@@ -95,5 +311,16 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer utilities {
+  /* The two shadows above, as classes, so a panel and a popover cannot
+   * drift apart between directions. */
+  .shadow-panel {
+    box-shadow: var(--shadow-panel);
+  }
+  .shadow-raised {
+    box-shadow: var(--shadow-raised);
   }
 }

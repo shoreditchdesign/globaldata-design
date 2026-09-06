@@ -4,6 +4,7 @@ import { Fragment } from "react"
 import { PlusIcon } from "lucide-react"
 
 import { FilterPill, OperatorWord } from "@/components/prototype/FilterPill"
+import { cn } from "@/lib/utils"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,13 +20,29 @@ import type { Screener } from "@/flows/sprint-3/idea-2/use-screener"
  * values are the objects you grab, the words are the grammar holding them
  * together, and the grammar only announces itself on hover.
  */
-function WordButton({ children, label }: { children: React.ReactNode; label: string }) {
+function WordButton({
+  children,
+  label,
+  negated,
+}: {
+  children: React.ReactNode
+  label: string
+  /** The clause drops rows rather than keeping them. */
+  negated?: boolean
+}) {
   return (
     <DropdownMenuTrigger
       aria-label={label}
-      className="hover:bg-accent hover:text-foreground rounded px-1 py-0.5 decoration-dotted underline-offset-4 hover:underline"
+      className={cn(
+        "rounded px-1 py-0.5 decoration-dotted underline-offset-4 hover:underline",
+        negated
+          ? "text-negative-ink hover:bg-negative"
+          : "hover:bg-accent hover:text-foreground",
+      )}
     >
-      <OperatorWord>{children}</OperatorWord>
+      <OperatorWord className={cn(negated && "text-negative-ink font-medium")}>
+        {children}
+      </OperatorWord>
     </DropdownMenuTrigger>
   )
 }
@@ -50,9 +67,7 @@ export function AppliedPills({ screener }: { screener: Screener }) {
   return (
     <div className="flex flex-wrap items-center gap-x-1 gap-y-1.5">
       {filters.length === 0 ? (
-        <OperatorWord className="py-0.5">
-          No filters applied — the whole sample is in the table.
-        </OperatorWord>
+        <OperatorWord className="py-0.5">No filters applied.</OperatorWord>
       ) : null}
 
       {filters.map((filter, i) => {
@@ -62,17 +77,18 @@ export function AppliedPills({ screener }: { screener: Screener }) {
             {i > 0 ? <OperatorWord className="px-1">and</OperatorWord> : null}
 
             <DropdownMenu>
-              <WordButton label={`Change how ${def.subject} is applied`}>
+              <WordButton
+                label={`Change how ${def.subject} is applied`}
+                negated={filter.mode === "is not"}
+              >
                 {`${def.subject} ${filter.mode}`}
               </WordButton>
               <DropdownMenuContent align="start" className="w-56">
                 <DropdownMenuItem onSelect={() => screener.setMode(filter.attribute, "is")}>
                   is
-                  <span className="text-muted-foreground ml-auto text-[11px]">keep matches</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => screener.setMode(filter.attribute, "is not")}>
                   is not
-                  <span className="text-muted-foreground ml-auto text-[11px]">drop matches</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -99,15 +115,9 @@ export function AppliedPills({ screener }: { screener: Screener }) {
                     <DropdownMenuContent align="start" className="w-56">
                       <DropdownMenuItem onSelect={() => screener.setJoin(filter.attribute, "or")}>
                         or
-                        <span className="text-muted-foreground ml-auto text-[11px]">
-                          any of these
-                        </span>
                       </DropdownMenuItem>
                       <DropdownMenuItem onSelect={() => screener.setJoin(filter.attribute, "and")}>
                         and
-                        <span className="text-muted-foreground ml-auto text-[11px]">
-                          all of these
-                        </span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -126,7 +136,12 @@ export function AppliedPills({ screener }: { screener: Screener }) {
                     }
                   }}
                 >
-                  <FilterPill removeLabel={`Remove ${value}`}>{value}</FilterPill>
+                  <FilterPill
+                    variant={filter.mode === "is not" ? "excluded" : "applied"}
+                    removeLabel={`Remove ${value}`}
+                  >
+                    {value}
+                  </FilterPill>
                 </span>
               </Fragment>
             ))}
@@ -135,7 +150,7 @@ export function AppliedPills({ screener }: { screener: Screener }) {
       })}
 
       <DropdownMenu>
-        <DropdownMenuTrigger className="text-muted-foreground hover:text-foreground hover:border-foreground/30 ml-0.5 inline-flex h-6 items-center gap-1 rounded-full border border-dashed px-2 text-[12px]">
+        <DropdownMenuTrigger className="text-muted-foreground hover:text-brand-ink hover:border-brand-border hover:bg-brand-wash border-border ml-0.5 inline-flex h-6 items-center gap-1 rounded-full border border-dashed px-2 text-[12px] transition-colors">
           <PlusIcon className="size-3" />
           Add filter
         </DropdownMenuTrigger>

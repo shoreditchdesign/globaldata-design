@@ -26,7 +26,7 @@ export function PrototypeScreen({
   return (
     <>
       {/* `relative` so screens that overlay a modal centre on the viewport. */}
-      <div className="bg-background relative h-svh overflow-hidden">
+      <div className="bg-surface-page relative h-svh overflow-hidden">
         <Screen />
       </div>
       <Explorer

@@ -68,7 +68,7 @@ export function GlobalSearch({ onScreen }: { onScreen: (query: string) => void }
   return (
     <Popover open={open}>
       <PopoverAnchor asChild>
-        <div className="border-input bg-muted/40 focus-within:border-ring focus-within:ring-ring/50 flex h-8 w-full items-center gap-2 rounded-lg border px-2.5 transition-colors focus-within:ring-3">
+        <div className="border-border bg-surface-sunken focus-within:border-ring focus-within:ring-ring/40 flex h-8 w-full items-center gap-2 rounded-lg border px-2.5 transition-colors focus-within:ring-3">
           <SearchIcon className="text-muted-foreground size-3.5 shrink-0" />
           <input
             value={value}
@@ -100,15 +100,12 @@ export function GlobalSearch({ onScreen }: { onScreen: (query: string) => void }
           type="button"
           onMouseDown={(event) => event.preventDefault()}
           onClick={hand}
-          className="hover:bg-accent flex w-full items-start gap-2.5 border-t px-3 py-2.5 text-left transition-colors"
+          className="hover:bg-brand-wash border-edge flex w-full items-start gap-2.5 border-t px-3 py-2.5 text-left transition-colors"
         >
-          <ArrowRightIcon className="text-muted-foreground mt-0.5 size-3.5 shrink-0" />
+          <ArrowRightIcon className="text-brand mt-0.5 size-3.5 shrink-0" />
           <span className="min-w-0">
             <span className="block truncate text-[13px] font-medium">
               Screen drugs matching &ldquo;{value.trim()}&rdquo;
-            </span>
-            <span className="text-muted-foreground block text-xs">
-              Carries this into the screener as a query you can edit
             </span>
           </span>
         </button>
@@ -120,7 +117,7 @@ export function GlobalSearch({ onScreen }: { onScreen: (query: string) => void }
 function Group({ label, items }: { label: string; items: string[] }) {
   if (items.length === 0) return null
   return (
-    <div className="border-b p-1.5 last-of-type:border-b-0">
+    <div className="border-hairline border-b p-1.5 last-of-type:border-b-0">
       <p className="text-muted-foreground px-1.5 py-1 text-[10px] font-medium tracking-[0.08em] uppercase">
         {label}
       </p>
