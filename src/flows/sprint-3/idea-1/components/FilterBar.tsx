@@ -1,7 +1,11 @@
 import { PlusIcon, SearchIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Chip, OperatorPill } from "@/flows/sprint-3/idea-1/components/FilterChips"
+import {
+  GroupChips,
+  OperatorPill,
+  type GroupHandlers,
+} from "@/flows/sprint-3/idea-1/components/FilterChips"
 import type { FilterGroup } from "@/flows/sprint-3/idea-1/data"
 
 /**
@@ -15,15 +19,26 @@ export function FilterBar({
   groups,
   resultCount,
   overflowCount,
-  children,
+  onOpenGroup,
+  onAddFilter,
+  onClearFilters,
+  onEditFilters,
+  renderPopover,
+  ...handlers
 }: {
   groups: FilterGroup[]
   resultCount: string
   /** Rendered as a `+N` pill when the bar runs out of room. */
   overflowCount?: number
-  /** Anchored popover, for the editable-from-the-bar state. */
-  children?: React.ReactNode
-}) {
+  onOpenGroup: (index: number) => void
+  onAddFilter: () => void
+  onClearFilters: () => void
+  onEditFilters: () => void
+  /** The value popover for a group, when that group's is open. */
+  renderPopover?: (index: number) => React.ReactNode
+} & GroupHandlers) {
+  const { onGroupOperator } = handlers
+
   return (
     <div className="bg-background sticky top-0 z-20 border-b px-6 py-4">
       <div className="flex items-start gap-6">
@@ -33,22 +48,29 @@ export function FilterBar({
             // second one, the way the source bar reads left to right.
             const leading = groups[i - 1]?.next
             return (
-              <div key={group.label} className="flex items-stretch gap-6">
+              <div key={group.label} className="relative flex items-stretch gap-6">
                 {i > 0 && !leading ? <span className="bg-border w-px self-stretch" /> : null}
                 <div className="flex flex-col gap-1.5">
-                  <p className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
+                  <button
+                    type="button"
+                    onClick={() => onOpenGroup(i)}
+                    className="text-muted-foreground hover:text-foreground w-fit text-left text-[10px] font-medium tracking-[0.08em] uppercase transition-colors"
+                  >
                     {group.label}
-                  </p>
+                  </button>
                   <div className="flex flex-wrap items-center gap-2">
-                    {leading ? <OperatorPill operator={leading} /> : null}
-                    {group.chips.map((chip) => (
-                      <span key={chip.label} className="contents">
-                        <Chip chip={chip} />
-                        {chip.next ? <OperatorPill operator={chip.next} /> : null}
-                      </span>
-                    ))}
+                    {leading ? (
+                      <OperatorPill
+                        operator={leading}
+                        onChange={
+                          onGroupOperator && ((operator) => onGroupOperator(i - 1, operator))
+                        }
+                      />
+                    ) : null}
+                    <GroupChips group={group} groupIndex={i} {...handlers} />
                   </div>
                 </div>
+                {renderPopover?.(i)}
               </div>
             )
           })}
@@ -59,27 +81,30 @@ export function FilterBar({
                 +{overflowCount}
               </span>
             ) : null}
-            <span className="bg-muted flex size-7 items-center justify-center rounded-full">
+            <button
+              type="button"
+              onClick={onAddFilter}
+              aria-label="Add a filter"
+              className="bg-muted hover:bg-accent flex size-7 items-center justify-center rounded-full transition-colors"
+            >
               <PlusIcon className="size-3.5" />
-            </span>
+            </button>
           </div>
         </div>
 
         <div className="flex shrink-0 flex-col items-end gap-3">
           <p className="text-xl font-semibold tracking-tight tabular-nums">{resultCount}</p>
           <div className="flex gap-2">
-            <Button variant="secondary" size="sm">
+            <Button variant="secondary" size="sm" onClick={onClearFilters}>
               Clear filters
             </Button>
-            <Button size="sm">
+            <Button size="sm" onClick={onEditFilters}>
               <SearchIcon className="size-3.5" />
               Edit filters
             </Button>
           </div>
         </div>
       </div>
-
-      {children}
     </div>
   )
 }

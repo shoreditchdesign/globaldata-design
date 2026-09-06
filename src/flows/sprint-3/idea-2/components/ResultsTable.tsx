@@ -1,7 +1,9 @@
+"use client"
+
 import { ChevronsUpDownIcon } from "lucide-react"
 
 import { StageBadge } from "@/components/prototype/StageBadge"
-import { resultRows } from "@/flows/sprint-3/idea-2/data"
+import type { DrugRow } from "@/flows/sprint-3/idea-2/data"
 
 const columns = [
   { key: "name", label: "Drug name", width: "w-[19%]" },
@@ -19,7 +21,7 @@ const columns = [
  * Generic name rides under the brand rather than taking a column of its own —
  * the live grid runs eight locked columns and scrolls sideways at 1600px.
  */
-export function ResultsTable() {
+export function ResultsTable({ rows }: { rows: DrugRow[] }) {
   return (
     <div className="min-h-0 flex-1 overflow-auto">
       <table className="w-full table-fixed border-collapse text-[12.5px]">
@@ -39,8 +41,8 @@ export function ResultsTable() {
           </tr>
         </thead>
         <tbody>
-          {resultRows.map((row) => (
-            <tr key={row.name} className="hover:bg-muted/40 border-b last:border-0">
+          {rows.map((row) => (
+            <tr key={row.id} className="hover:bg-muted/40 border-b last:border-0">
               <td className="px-3 py-1.5">
                 <span className="block truncate font-medium">{row.name}</span>
                 <span className="text-muted-foreground block truncate text-[11px]">
@@ -60,7 +62,7 @@ export function ResultsTable() {
                 <StageBadge stage={row.stage} />
               </td>
               <td className="text-muted-foreground px-3 py-1.5">
-                <span className="block truncate">{row.geography}</span>
+                <span className="block truncate">{row.country}</span>
               </td>
             </tr>
           ))}

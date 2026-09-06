@@ -1,5 +1,6 @@
 import type { Flow } from "@/flows/types"
 import { Sentence } from "@/flows/sprint-3/idea-3/screens/Sentence"
+import { Start } from "@/flows/sprint-3/idea-3/screens/Start"
 
 /**
  * One input, one representation. Natural language goes in and the query comes
@@ -17,6 +18,7 @@ export const sprint3Idea3: Flow = {
     "The Boolean lives in the words. `excluding`, `or`, `in` are dropdowns, so AND/OR/NOT never appears as a radio group and the logic stays readable to a non-technical analyst.",
     "One representation, not two. Sprint 2 put a chat thread beside a stack of filter cards and asked the user to reconcile them; the `Filters` toggle here swaps the same clauses in place rather than adding a second surface.",
     "The platform already ships a fast cross-entity natural-language search in the global header and nothing found there can be carried into a screener. This is that search, wired to the data.",
+    "Typing is the beginning, not a given: the cold start takes a loose phrase, shows the words it recognised being turned into structure, and resolves. `edit as text` runs the same trip backwards, which is the answer to \"what if it read me wrong\".",
     "Cheap reversal is the load-bearing claim: dismiss a clause from the sentence, clear a value from its dropdown, or undo. Editing mid-query beats retyping it.",
     "Tests: can AI replace the filter UI rather than sit beside it. Fewest clicks of the three, highest trust risk.",
   ],
@@ -25,6 +27,13 @@ export const sprint3Idea3: Flow = {
   tags: ["Natural language", "Editable sentence", "Inline Boolean", "Non-modal", "Fewest clicks"],
   status: "in-progress",
   screens: [
+    {
+      slug: "start",
+      title: "Cold start — type it yourself",
+      note: "Nothing asked yet. Type a loose request in your own words and watch the phrases it recognises harden into the sentence. Keyword matching against a fixed map, and it says what it could not place.",
+      viewport: "desktop",
+      component: Start,
+    },
     {
       slug: "sentence",
       title: "Query as a sentence",

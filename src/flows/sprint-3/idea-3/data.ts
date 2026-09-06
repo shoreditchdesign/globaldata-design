@@ -90,12 +90,19 @@ const geographyOptions: ValueOption[] = [
   { value: "Japan", term: "Japan", share: 0.16, count: 263 },
 ]
 
+/**
+ * Pipeline order, not count order. Every other attribute lists its values by
+ * size, but a development stage has an inherent sequence and an analyst reads
+ * it that way — and because a clause renders its values in its own option
+ * order, `phase 1/2` would otherwise resolve to the sentence "in Phase II or
+ * Phase I".
+ */
 const stageOptions: ValueOption[] = [
+  { value: "Discovery", term: "Discovery", share: 0.08, count: 131 },
+  { value: "Preclinical", term: "Preclinical", share: 0.11, count: 181 },
+  { value: "Phase I", term: "Phase I", share: 0.14, count: 230 },
   { value: "Phase II", term: "Phase II", share: 0.29, count: 478 },
   { value: "Phase III", term: "Phase III", share: 0.18, count: 296 },
-  { value: "Phase I", term: "Phase I", share: 0.14, count: 230 },
-  { value: "Preclinical", term: "Preclinical", share: 0.11, count: 181 },
-  { value: "Discovery", term: "Discovery", share: 0.08, count: 131 },
   { value: "Pre-registration", term: "Pre-registration", share: 0.05, count: 82 },
   { value: "Marketed", term: "Marketed", share: 0.12, count: 197 },
   { value: "Withdrawn", term: "Withdrawn", share: 0.03, count: 49 },
@@ -266,6 +273,18 @@ export const addableClauses: Clause[] = [
     options: applicationOptions,
   },
 ]
+
+/**
+ * Every clause the sentence can hold, in the order it reads. The resolver
+ * clones from here rather than authoring clauses of its own, so a typed query
+ * and the worked example are the same objects with different values ticked.
+ */
+export const clauseTemplates: Clause[] = [...exampleClauses, ...addableClauses]
+
+/** The word a clause uses when it keeps rows, and when it drops them. */
+export function operatorWord(clause: Clause, mode: "include" | "exclude") {
+  return clause.operator?.options.find((option) => option.mode === mode)?.word
+}
 
 /* -------------------------------------------------------------------------- */
 /* The count                                                                   */

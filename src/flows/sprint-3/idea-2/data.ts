@@ -1,37 +1,941 @@
 /**
  * Static content for Sprint 3 / Idea 2 — the full-pane screener.
  *
- * Nothing here is computed. The numbers are authored to hang together for one
- * worked example: Therapy area is Dermatology or Cardiovascular, Drug geography
- * is Europe, Development stage is Phase II or Phase III — 146 drugs out of
- * 285,529. Where a set of selected values sits under one attribute, their counts
- * sum to the live total, so the panel and the results agree with each other.
+ * Nothing here fetches and nothing parses. What it does do is hold a **fixed
+ * sample of 1,440 drug rows**, built once at module load from weighted tables
+ * and a seeded generator, so the numbers on screen can be derived rather than
+ * authored. Every count in the prototype — the headline, the per-value counts
+ * in the Miller columns, the badges on the attribute rows — is counted off that
+ * one array against the filters currently applied. The panel therefore cannot
+ * disagree with the pill bar or with the table, which is the failure this
+ * direction could not afford once selection became live.
  *
- * The areas come from the shared `productAreas` list; attribute and therapy-area
- * labels are imported read-only from Idea 1, so the prototypes speak the same
- * vocabulary.
+ * The sample stands in for a corpus of 285,529. It is a sample, and the screen
+ * says so rather than scaling the numbers up to look bigger than they are.
+ *
+ * Vocabulary comes from the shared `productAreas` list and from Idea 1's
+ * attribute and therapy-area labels, read-only, so the four prototypes speak
+ * the same language.
  */
 
 import { productAreas } from "@/components/prototype/product-areas"
 import { drugAttributes, therapyAreas } from "@/flows/sprint-3/idea-1/data"
 
-/** The unfiltered database, and the set the applied query leaves behind. */
-export const baseTotal = 285_529
-export const liveTotal = 146
+/* -------------------------------------------------------------------------- */
+/* The taxonomy                                                                */
+/* -------------------------------------------------------------------------- */
 
-/** One row in a Miller column. */
+/** A label and the share of the sample that carries it. Weights are relative. */
+type Weighted = [label: string, weight: number]
+
+const labelsOf = (table: Weighted[]) => table.map(([label]) => label)
+
+/** Development stages, in pipeline order. Weighted towards the live phases. */
+const stageTable: Weighted[] = [
+  ["Discovery", 8],
+  ["Preclinical", 12],
+  ["Phase 0", 2],
+  ["Phase I", 12],
+  ["Phase II", 18],
+  ["Phase III", 14],
+  ["Phase IV", 5],
+  ["Pre-registration", 4],
+  ["Approved", 5],
+  ["Marketed", 12],
+  ["Suspended", 2],
+  ["Discontinued", 4],
+  ["Withdrawn", 2],
+]
+
+/** Stages that count as "Phase II or later" when the agent is asked for them. */
+export const phaseTwoOrLater = ["Phase II", "Phase III", "Phase IV"]
+
+const regionTable: Weighted[] = [
+  ["Europe", 34],
+  ["North America", 27],
+  ["Asia-Pacific", 21],
+  ["Latin America", 8],
+  ["Middle East & Africa", 5],
+  ["Global", 5],
+]
+
+const routeTable: Weighted[] = [
+  ["Oral", 38],
+  ["Subcutaneous", 16],
+  ["Topical", 13],
+  ["Intravenous", 15],
+  ["Intramuscular", 5],
+  ["Inhaled", 6],
+  ["Ophthalmic", 4],
+  ["Transdermal", 3],
+]
+
+const moleculeTable: Weighted[] = [
+  ["Small Molecule", 46],
+  ["Monoclonal Antibody", 20],
+  ["Peptide", 11],
+  ["Recombinant Protein", 8],
+  ["Oligonucleotide", 7],
+  ["Cell Therapy", 4],
+  ["Gene Therapy", 4],
+]
+
+const drugTypeTable: Weighted[] = [
+  ["New Molecular Entity", 52],
+  ["Generic", 18],
+  ["Biosimilar", 9],
+  ["Repurposed", 13],
+  ["Fixed Dose Combination", 8],
+]
+
+const regimenTable: Weighted[] = [
+  ["Mono", 78],
+  ["Combination", 22],
+]
+
+const applicationTable: Weighted[] = [
+  ["IND", 32],
+  ["NDA", 23],
+  ["MAA", 19],
+  ["BLA", 14],
+  ["ANDA", 12],
+]
+
+const vectorTable: Weighted[] = [
+  ["Adeno Associated Virus (AAV)", 42],
+  ["Lentivirus", 26],
+  ["Adenovirus", 18],
+  ["Lipid Nanoparticle (non-viral)", 14],
+]
+
+const descriptorTable: Weighted[] = [
+  ["Antiinflammatory Therapy", 24],
+  ["Immunosuppressant Therapy", 13],
+  ["Analgesic Therapy", 11],
+  ["Antiinfective Therapy", 11],
+  ["Antineoplastic Therapy", 9],
+  ["Antihypertensive Therapy", 8],
+  ["Antidiabetic Therapy", 7],
+  ["Lipid Regulator Therapy", 6],
+  ["Antithrombotic Therapy", 6],
+  ["Neuromodulator Therapy", 5],
+]
+
+const atcTable: Weighted[] = [
+  ["A — Alimentary Tract & Metabolism", 11],
+  ["B — Blood & Blood Forming Organs", 6],
+  ["C — Cardiovascular System", 10],
+  ["D — Dermatologicals", 15],
+  ["G — Genito Urinary System", 7],
+  ["H — Systemic Hormonal Preparations", 5],
+  ["J — Antiinfectives for Systemic Use", 11],
+  ["L — Antineoplastic & Immunomodulating", 12],
+  ["M — Musculoskeletal System", 14],
+  ["N — Nervous System", 6],
+  ["R — Respiratory System", 3],
+]
+
+/**
+ * A target and the mechanism it implies. Keeping the two in one table is the
+ * point: a row carrying `Interleukin 23` against `Beta Adrenoceptor Antagonist`
+ * is the kind of nonsense a pharma analyst spots in a second, and the sample is
+ * shown to pharma analysts.
+ */
+const mechanismByTarget: Record<string, string> = {
+  "Interleukin 23": "Interleukin 23 Inhibitor",
+  "Interleukin 17A": "Interleukin 17A Inhibitor",
+  "Janus Kinase 1": "Janus Kinase Inhibitor",
+  "Tumour Necrosis Factor": "Tumour Necrosis Factor Alpha Inhibitor",
+  "Phosphodiesterase 4": "Phosphodiesterase 4 Inhibitor",
+  "Cyclooxygenase 2": "Cyclooxygenase 2 Inhibitor",
+  "Interleukin 6 Receptor": "Interleukin 6 Receptor Antagonist",
+  "Interleukin 4 Receptor": "Interleukin 4 Receptor Antagonist",
+  "Interleukin 5": "Interleukin 5 Inhibitor",
+  "Histamine H1 Receptor": "Histamine H1 Receptor Antagonist",
+  "Endothelin Receptor A": "Endothelin Receptor Antagonist",
+  "Angiotensin II Receptor": "Angiotensin II Receptor Antagonist",
+  "Beta Adrenoceptor": "Beta Adrenoceptor Antagonist",
+  PCSK9: "PCSK9 Inhibitor",
+  "Factor Xa": "Factor Xa Inhibitor",
+  "Erythropoietin Receptor": "Erythropoietin Receptor Agonist",
+  BCL11A: "BCL11A Gene Silencer",
+  "Sodium Glucose Cotransporter 2": "SGLT2 Inhibitor",
+  "Glucagon Like Peptide 1 Receptor": "GLP-1 Receptor Agonist",
+  "Dipeptidyl Peptidase 4": "DPP-4 Inhibitor",
+  "NMDA Receptor": "NMDA Receptor Antagonist",
+  "Dopamine D2 Receptor": "Dopamine D2 Receptor Antagonist",
+  "Voltage Gated Sodium Channel": "Sodium Channel Blocker",
+  "Muscarinic M3 Receptor": "Muscarinic M3 Receptor Antagonist",
+  "Androgen Receptor": "Androgen Receptor Antagonist",
+  "Estrogen Receptor": "Estrogen Receptor Modulator",
+  "Viral RNA Polymerase": "Viral RNA Polymerase Inhibitor",
+  "Viral Protease": "Viral Protease Inhibitor",
+  "Bacterial DNA Gyrase": "DNA Gyrase Inhibitor",
+  "Somatostatin Receptor": "Somatostatin Receptor Agonist",
+  "Thyroid Hormone Receptor": "Thyroid Hormone Receptor Agonist",
+  "Cortisol Synthase": "Cortisol Synthesis Inhibitor",
+  CFTR: "CFTR Potentiator",
+  Dystrophin: "Exon Skipping Oligonucleotide",
+  "Survival Motor Neuron 2": "SMN2 Splicing Modifier",
+}
+
+/** Which targets a therapy area is actually worked on through. */
+const targetsByArea: Record<string, Weighted[]> = {
+  Dermatology: [
+    ["Interleukin 23", 30],
+    ["Interleukin 17A", 25],
+    ["Janus Kinase 1", 20],
+    ["Tumour Necrosis Factor", 15],
+    ["Phosphodiesterase 4", 10],
+  ],
+  "Musculoskeletal Disorders": [
+    ["Tumour Necrosis Factor", 30],
+    ["Cyclooxygenase 2", 25],
+    ["Janus Kinase 1", 23],
+    ["Interleukin 6 Receptor", 22],
+  ],
+  Immunology: [
+    ["Interleukin 6 Receptor", 30],
+    ["Tumour Necrosis Factor", 28],
+    ["Janus Kinase 1", 24],
+    ["Interleukin 17A", 18],
+  ],
+  Cardiovascular: [
+    ["Angiotensin II Receptor", 28],
+    ["PCSK9", 28],
+    ["Endothelin Receptor A", 22],
+    ["Beta Adrenoceptor", 22],
+  ],
+  "Infectious Disease": [
+    ["Viral RNA Polymerase", 40],
+    ["Viral Protease", 32],
+    ["Bacterial DNA Gyrase", 28],
+  ],
+  "Metabolic Disorders": [
+    ["Glucagon Like Peptide 1 Receptor", 40],
+    ["Sodium Glucose Cotransporter 2", 34],
+    ["Dipeptidyl Peptidase 4", 26],
+  ],
+  "Central Nervous System": [
+    ["NMDA Receptor", 34],
+    ["Dopamine D2 Receptor", 34],
+    ["Voltage Gated Sodium Channel", 32],
+  ],
+  Gastrointestinal: [
+    ["Interleukin 23", 36],
+    ["Tumour Necrosis Factor", 34],
+    ["Janus Kinase 1", 30],
+  ],
+  "Ear Nose Throat Disorders": [
+    ["Interleukin 4 Receptor", 38],
+    ["Histamine H1 Receptor", 34],
+    ["Interleukin 5", 28],
+  ],
+  "Genito Urinary System": [
+    ["Muscarinic M3 Receptor", 40],
+    ["Androgen Receptor", 32],
+    ["Estrogen Receptor", 28],
+  ],
+  "Hermatological Disorders": [
+    ["Factor Xa", 38],
+    ["Erythropoietin Receptor", 34],
+    ["BCL11A", 28],
+  ],
+  "Hormonal Disorders": [
+    ["Somatostatin Receptor", 36],
+    ["Thyroid Hormone Receptor", 34],
+    ["Cortisol Synthase", 30],
+  ],
+  "Genetic Disorders": [
+    ["CFTR", 38],
+    ["Dystrophin", 32],
+    ["Survival Motor Neuron 2", 30],
+  ],
+}
+
+/** Both columns list alphabetically — thirty-odd values is past useful order. */
+const targetLabels = Array.from(
+  new Set(Object.values(targetsByArea).flatMap((table) => labelsOf(table))),
+).sort()
+
+const mechanismLabels = Array.from(
+  new Set(targetLabels.map((target) => mechanismByTarget[target])),
+).sort()
+
+/**
+ * Attributes with no value list — free text in the real product. Their column
+ * is a search field rather than a list of options.
+ */
+export const searchAttributes = new Set(["Drug Name", "CAS Number"])
+
+/** One row in a Miller column. Counts are computed, never authored. */
 export interface ColumnItem {
   label: string
-  /** Drugs this row would yield, in the context of the other applied filters. */
-  count: number
   /** True when the row opens a further column rather than only being selectable. */
   drillable?: boolean
 }
 
-/** Level 1 — the filter areas. Counts are whole-entity totals, pre-filter. */
-const areaCounts: Record<string, number> = {
+/**
+ * Level 4 — what sits under a value. Therapy areas open into indications,
+ * regions into countries. The fourth column is what pushes the first one into
+ * the breadcrumb, which is the case this direction exists to prove.
+ *
+ * The weights double as the generator's distribution, so the taxonomy and the
+ * sample can never drift apart: nothing appears in a column that no row can
+ * carry, and nothing is in a row that the columns cannot reach.
+ */
+const childTables: Record<string, Weighted[]> = {
+  Dermatology: [
+    ["Plaque Psoriasis", 24],
+    ["Atopic Dermatitis", 21],
+    ["Acne Vulgaris", 12],
+    ["Hidradenitis Suppurativa", 9],
+    ["Vitiligo", 7],
+    ["Alopecia Areata", 7],
+    ["Chronic Urticaria", 6],
+    ["Rosacea", 6],
+    ["Pemphigus Vulgaris", 4],
+    ["Cutaneous Lupus Erythematosus", 2],
+    ["Epidermolysis Bullosa", 2],
+  ],
+  Cardiovascular: [
+    ["Chronic Heart Failure", 24],
+    ["Pulmonary Arterial Hypertension", 17],
+    ["Resistant Hypertension", 15],
+    ["Dyslipidaemia", 14],
+    ["Atrial Fibrillation", 12],
+    ["Venous Thrombosis", 10],
+    ["Cardiomyopathy", 8],
+  ],
+  "Central Nervous System": [
+    ["Alzheimer's Disease", 30],
+    ["Parkinson's Disease", 24],
+    ["Epilepsy", 21],
+    ["Multiple Sclerosis", 15],
+    ["Major Depressive Disorder", 10],
+  ],
+  "Ear Nose Throat Disorders": [
+    ["Chronic Rhinosinusitis", 32],
+    ["Allergic Rhinitis", 25],
+    ["Otitis Media", 17],
+    ["Sensorineural Hearing Loss", 15],
+    ["Tinnitus", 11],
+  ],
+  Gastrointestinal: [
+    ["Ulcerative Colitis", 31],
+    ["Crohn's Disease", 27],
+    ["Irritable Bowel Syndrome", 17],
+    ["Coeliac Disease", 14],
+    ["Eosinophilic Oesophagitis", 11],
+  ],
+  "Genetic Disorders": [
+    ["Cystic Fibrosis", 30],
+    ["Duchenne Muscular Dystrophy", 24],
+    ["Sickle Cell Disease", 20],
+    ["Spinal Muscular Atrophy", 14],
+    ["Huntington's Disease", 12],
+  ],
+  "Genito Urinary System": [
+    ["Overactive Bladder", 30],
+    ["Chronic Kidney Disease", 25],
+    ["Benign Prostatic Hyperplasia", 18],
+    ["Endometriosis", 16],
+    ["Interstitial Cystitis", 11],
+  ],
+  "Hermatological Disorders": [
+    ["Anaemia", 32],
+    ["Haemophilia A", 26],
+    ["Immune Thrombocytopenia", 22],
+    ["Beta Thalassaemia", 20],
+  ],
+  "Hormonal Disorders": [
+    ["Hypothyroidism", 30],
+    ["Cushing's Syndrome", 22],
+    ["Acromegaly", 19],
+    ["Hypogonadism", 16],
+    ["Primary Adrenal Insufficiency", 13],
+  ],
+  Immunology: [
+    ["Rheumatoid Arthritis", 34],
+    ["Systemic Lupus Erythematosus", 28],
+    ["Sjögren's Syndrome", 21],
+    ["Giant Cell Arteritis", 17],
+  ],
+  "Infectious Disease": [
+    ["Influenza", 24],
+    ["COVID-19", 21],
+    ["Hepatitis B", 16],
+    ["HIV Infection", 15],
+    ["Tuberculosis", 13],
+    ["Respiratory Syncytial Virus", 11],
+  ],
+  "Metabolic Disorders": [
+    ["Obesity", 30],
+    ["Type 2 Diabetes", 27],
+    ["Non-alcoholic Steatohepatitis", 17],
+    ["Gout", 15],
+    ["Phenylketonuria", 11],
+  ],
+  "Musculoskeletal Disorders": [
+    ["Osteoarthritis", 27],
+    ["Rheumatoid Arthritis", 24],
+    ["Osteoporosis", 17],
+    ["Ankylosing Spondylitis", 15],
+    ["Psoriatic Arthritis", 11],
+    ["Fibromyalgia", 6],
+  ],
+  Europe: [
+    ["Germany", 19],
+    ["France", 15],
+    ["Italy", 14],
+    ["United Kingdom", 12],
+    ["Spain", 10],
+    ["Switzerland", 7],
+    ["Austria", 6],
+    ["Denmark", 5],
+    ["Belgium", 4],
+    ["Netherlands", 4],
+    ["Finland", 3],
+    ["Sweden", 3],
+    ["Ireland", 2],
+  ],
+  "North America": [
+    ["United States", 74],
+    ["Canada", 20],
+    ["Mexico", 6],
+  ],
+  "Asia-Pacific": [
+    ["Japan", 30],
+    ["China", 26],
+    ["South Korea", 15],
+    ["Australia", 15],
+    ["India", 14],
+  ],
+  "Latin America": [
+    ["Brazil", 52],
+    ["Argentina", 24],
+    ["Chile", 13],
+    ["Colombia", 11],
+  ],
+  "Middle East & Africa": [
+    ["Israel", 42],
+    ["South Africa", 28],
+    ["United Arab Emirates", 18],
+    ["Saudi Arabia", 12],
+  ],
+}
+
+export const childrenByValue: Record<string, ColumnItem[]> = Object.fromEntries(
+  Object.entries(childTables).map(([parent, table]) => [
+    parent,
+    table.map(([label]) => ({ label })),
+  ]),
+)
+
+/** Therapy areas keep Idea 1's ordering; the weights are this prototype's. */
+const therapyAreaTable: Weighted[] = therapyAreas.map(({ label }) => [
+  label,
+  {
+    Dermatology: 14,
+    "Musculoskeletal Disorders": 13,
+    "Infectious Disease": 11,
+    Cardiovascular: 9,
+    "Metabolic Disorders": 9,
+    "Genito Urinary System": 7,
+    "Ear Nose Throat Disorders": 6,
+    Gastrointestinal: 6,
+    Immunology: 6,
+    "Hormonal Disorders": 5,
+    "Hermatological Disorders": 5,
+    "Genetic Disorders": 5,
+    "Central Nervous System": 4,
+  }[label] ?? 5,
+])
+
+/** Values per attribute, in the order the column lists them. */
+export const valuesByAttribute: Record<string, ColumnItem[]> = {
+  "Therapy Area / Indication": labelsOf(therapyAreaTable).map((label) => ({
+    label,
+    drillable: true,
+  })),
+  "Development Stage": labelsOf(stageTable).map((label) => ({ label })),
+  "Drug Geography": labelsOf(regionTable).map((label) => ({
+    label,
+    drillable: label !== "Global",
+  })),
+  "Route of Administration": labelsOf(routeTable).map((label) => ({ label })),
+  "Molecule Type": labelsOf(moleculeTable).map((label) => ({ label })),
+  Target: targetLabels.map((label) => ({ label })),
+  "Mechanism of Action": mechanismLabels.map((label) => ({ label })),
+  "ATC Classification": labelsOf(atcTable).map((label) => ({ label })),
+  "Drug Type": labelsOf(drugTypeTable).map((label) => ({ label })),
+  "Mono/Combination Drug": labelsOf(regimenTable).map((label) => ({ label })),
+  "Drug Descriptor": labelsOf(descriptorTable).map((label) => ({ label })),
+  "Gene Therapy Vector": labelsOf(vectorTable).map((label) => ({ label })),
+  "Application Type": labelsOf(applicationTable).map((label) => ({ label })),
+}
+
+/* -------------------------------------------------------------------------- */
+/* The sample                                                                  */
+/* -------------------------------------------------------------------------- */
+
+export interface DrugRow {
+  id: string
+  name: string
+  generic: string
+  company: string
+  therapyArea: string
+  indication: string
+  stage: string
+  region: string
+  country: string
+  route: string
+  moleculeType: string
+  target: string
+  moa: string
+  atc: string
+  drugType: string
+  regimen: string
+  descriptor: string
+  applicationType: string
+  /** Only gene therapies carry one. Everything else has no value for it. */
+  vector?: string
+}
+
+/**
+ * Fixed-seed mulberry32. Deterministic — the same 1,440 rows on every render,
+ * every reload and every build — but without the lattice a plain LCG leaves,
+ * which showed up as neighbouring rows sharing half their values.
+ */
+function seededRandom(seed: number) {
+  let state = seed >>> 0
+  return () => {
+    state = (state + 0x6d2b79f5) | 0
+    let t = Math.imul(state ^ (state >>> 15), 1 | state)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4_294_967_296
+  }
+}
+
+function weightedPick(table: Weighted[], roll: number) {
+  const total = table.reduce((sum, [, weight]) => sum + weight, 0)
+  let cursor = roll * total
+  for (const [label, weight] of table) {
+    cursor -= weight
+    if (cursor <= 0) return label
+  }
+  return table[table.length - 1][0]
+}
+
+/** Which descriptors a therapy area can plausibly carry, so rows read true. */
+const descriptorsByArea: Record<string, Weighted[]> = {
+  Dermatology: [
+    ["Antiinflammatory Therapy", 52],
+    ["Immunosuppressant Therapy", 30],
+    ["Antiinfective Therapy", 10],
+    ["Analgesic Therapy", 8],
+  ],
+  "Musculoskeletal Disorders": [
+    ["Antiinflammatory Therapy", 48],
+    ["Analgesic Therapy", 30],
+    ["Immunosuppressant Therapy", 22],
+  ],
+  Immunology: [
+    ["Immunosuppressant Therapy", 46],
+    ["Antiinflammatory Therapy", 44],
+    ["Antineoplastic Therapy", 10],
+  ],
+  Cardiovascular: [
+    ["Antihypertensive Therapy", 40],
+    ["Lipid Regulator Therapy", 30],
+    ["Antithrombotic Therapy", 30],
+  ],
+  "Infectious Disease": [
+    ["Antiinfective Therapy", 78],
+    ["Antiinflammatory Therapy", 14],
+    ["Immunosuppressant Therapy", 8],
+  ],
+  "Metabolic Disorders": [
+    ["Antidiabetic Therapy", 62],
+    ["Lipid Regulator Therapy", 24],
+    ["Antiinflammatory Therapy", 14],
+  ],
+  "Central Nervous System": [
+    ["Neuromodulator Therapy", 58],
+    ["Analgesic Therapy", 26],
+    ["Antiinflammatory Therapy", 16],
+  ],
+  Gastrointestinal: [
+    ["Antiinflammatory Therapy", 50],
+    ["Immunosuppressant Therapy", 34],
+    ["Analgesic Therapy", 16],
+  ],
+  "Ear Nose Throat Disorders": [
+    ["Antiinflammatory Therapy", 54],
+    ["Antiinfective Therapy", 28],
+    ["Analgesic Therapy", 18],
+  ],
+  "Genito Urinary System": [
+    ["Antiinflammatory Therapy", 34],
+    ["Neuromodulator Therapy", 30],
+    ["Antiinfective Therapy", 20],
+    ["Antineoplastic Therapy", 16],
+  ],
+  "Hermatological Disorders": [
+    ["Antithrombotic Therapy", 44],
+    ["Antineoplastic Therapy", 32],
+    ["Immunosuppressant Therapy", 24],
+  ],
+  "Hormonal Disorders": [
+    ["Neuromodulator Therapy", 40],
+    ["Antineoplastic Therapy", 32],
+    ["Antidiabetic Therapy", 28],
+  ],
+  "Genetic Disorders": [
+    ["Immunosuppressant Therapy", 38],
+    ["Neuromodulator Therapy", 34],
+    ["Antiinflammatory Therapy", 28],
+  ],
+}
+
+/** ATC class follows the therapy area — a class is a body system, not a mood. */
+const atcByArea: Record<string, Weighted[]> = {
+  Dermatology: [
+    ["D — Dermatologicals", 72],
+    ["L — Antineoplastic & Immunomodulating", 28],
+  ],
+  "Musculoskeletal Disorders": [
+    ["M — Musculoskeletal System", 78],
+    ["L — Antineoplastic & Immunomodulating", 22],
+  ],
+  Immunology: [
+    ["L — Antineoplastic & Immunomodulating", 66],
+    ["M — Musculoskeletal System", 34],
+  ],
+  Cardiovascular: [["C — Cardiovascular System", 100]],
+  "Infectious Disease": [
+    ["J — Antiinfectives for Systemic Use", 84],
+    ["R — Respiratory System", 16],
+  ],
+  "Metabolic Disorders": [["A — Alimentary Tract & Metabolism", 100]],
+  "Central Nervous System": [["N — Nervous System", 100]],
+  Gastrointestinal: [
+    ["A — Alimentary Tract & Metabolism", 74],
+    ["L — Antineoplastic & Immunomodulating", 26],
+  ],
+  "Ear Nose Throat Disorders": [
+    ["R — Respiratory System", 62],
+    ["J — Antiinfectives for Systemic Use", 38],
+  ],
+  "Genito Urinary System": [["G — Genito Urinary System", 100]],
+  "Hermatological Disorders": [["B — Blood & Blood Forming Organs", 100]],
+  "Hormonal Disorders": [["H — Systemic Hormonal Preparations", 100]],
+  "Genetic Disorders": [
+    ["L — Antineoplastic & Immunomodulating", 58],
+    ["M — Musculoskeletal System", 42],
+  ],
+}
+
+/** Route follows the molecule — biologics are not tablets. */
+const routesByMolecule: Record<string, Weighted[]> = {
+  "Small Molecule": [
+    ["Oral", 62],
+    ["Topical", 18],
+    ["Intravenous", 8],
+    ["Inhaled", 6],
+    ["Ophthalmic", 3],
+    ["Transdermal", 3],
+  ],
+  "Monoclonal Antibody": [
+    ["Subcutaneous", 54],
+    ["Intravenous", 44],
+    ["Ophthalmic", 2],
+  ],
+  Peptide: [
+    ["Subcutaneous", 62],
+    ["Intravenous", 20],
+    ["Oral", 12],
+    ["Intramuscular", 6],
+  ],
+  "Recombinant Protein": [
+    ["Intravenous", 52],
+    ["Subcutaneous", 34],
+    ["Intramuscular", 14],
+  ],
+  Oligonucleotide: [
+    ["Subcutaneous", 48],
+    ["Intravenous", 40],
+    ["Inhaled", 12],
+  ],
+  "Cell Therapy": [["Intravenous", 100]],
+  "Gene Therapy": [
+    ["Intravenous", 68],
+    ["Intramuscular", 20],
+    ["Ophthalmic", 12],
+  ],
+}
+
+const companies: { name: string; code: string }[] = [
+  { name: "Novartis", code: "NVS" },
+  { name: "AstraZeneca", code: "AZ" },
+  { name: "Sanofi", code: "SAN" },
+  { name: "Roche", code: "RG" },
+  { name: "Pfizer", code: "PF" },
+  { name: "Bayer", code: "BAY" },
+  { name: "Boehringer Ingelheim", code: "BI" },
+  { name: "LEO Pharma", code: "LEO" },
+  { name: "UCB", code: "UCB" },
+  { name: "Almirall", code: "ALM" },
+  { name: "Galderma", code: "GAL" },
+  { name: "Ipsen", code: "IPS" },
+  { name: "Servier", code: "SVR" },
+  { name: "Orion", code: "ORI" },
+  { name: "Grünenthal", code: "GRN" },
+  { name: "Pierre Fabre", code: "PFB" },
+  { name: "Recordati", code: "REC" },
+  { name: "Lundbeck", code: "LUN" },
+  { name: "Chiesi", code: "CHI" },
+  { name: "Menarini", code: "MEN" },
+  { name: "Zydus Lifesciences", code: "ZYD" },
+  { name: "Sun Pharmaceutical", code: "SUN" },
+  { name: "Teva Pharmaceutical", code: "TEV" },
+  { name: "Daiichi Sankyo", code: "DS" },
+  { name: "Astellas Pharma", code: "AST" },
+  { name: "Eisai", code: "EIS" },
+]
+
+/**
+ * Brand-name syllables. 48 × 15 = 720 combinations, walked with a stride
+ * coprime to 720, so the 720 coined names in the sample never repeat.
+ */
+const namePrefixes = [
+  "Vetra", "Karde", "Sori", "Psor", "Derma", "Cardi", "Immu", "Neuro",
+  "Onco", "Respi", "Hepa", "Reno", "Osteo", "Rheu", "Glyca", "Lipi",
+  "Vascu", "Alve", "Corti", "Dermo", "Endo", "Fibro", "Gastro", "Hema",
+  "Kera", "Lumi", "Meta", "Myco", "Nephro", "Oculo", "Pulmo", "Sero",
+  "Somno", "Thera", "Tono", "Uro", "Vira", "Xylo", "Zeno", "Clari",
+  "Dena", "Elva", "Ferra", "Gliva", "Ivera", "Nova", "Orbi", "Quilo",
+]
+const nameSuffixes = [
+  "luma", "vex", "dex", "ryn", "zia", "tra", "mid", "nol",
+  "sten", "vir", "cel", "dyn", "phor", "tide", "xan",
+]
+
+const genericStems = [
+  "vetral", "karden", "soril", "psoral", "dermal", "cardim", "immun", "neural",
+  "oncal", "respir", "hepat", "renal", "osteo", "rheum", "glycan", "lipid",
+  "vascul", "alvel", "cortic", "dermon", "endor", "fibrol", "gastr", "hemat",
+  "kerat", "lumin", "metabr", "mycol", "nephr", "ocul", "pulmon", "seral",
+  "somnol", "therap", "tonel", "urol", "viral", "xylor", "zenor", "ferral",
+]
+const genericEndings = [
+  "imab", "inib", "stat", "dine", "tide", "mab", "cept", "sartan", "prazole",
+  "ciclib", "tinib", "zumab", "ximab", "olol", "parib", "gliptin", "floxacin",
+  "vastatin",
+]
+const genericSalts = ["", " Sodium", " Hydrochloride", " Besilate"]
+
+const SAMPLE_ROWS = 1_440
+
+function buildSample(): DrugRow[] {
+  const random = seededRandom(20_260_906)
+  const rows: DrugRow[] = []
+
+  for (let i = 0; i < SAMPLE_ROWS; i += 1) {
+    const therapyArea = weightedPick(therapyAreaTable, random())
+    const indication = weightedPick(childTables[therapyArea], random())
+    const stage = weightedPick(stageTable, random())
+    const region = weightedPick(regionTable, random())
+    const country = region === "Global" ? "Global" : weightedPick(childTables[region], random())
+    const moleculeType = weightedPick(moleculeTable, random())
+    const route = weightedPick(routesByMolecule[moleculeType], random())
+    const descriptor = weightedPick(descriptorsByArea[therapyArea], random())
+    const atc = weightedPick(atcByArea[therapyArea], random())
+    const target = weightedPick(targetsByArea[therapyArea], random())
+    const moa = mechanismByTarget[target]
+    const drugType = weightedPick(drugTypeTable, random())
+    const regimen = weightedPick(regimenTable, random())
+    const applicationType = weightedPick(applicationTable, random())
+    const company = companies[i % companies.length]
+
+    // Half the sample carries a coined brand name, half a development code —
+    // which is what a pipeline database actually looks like.
+    const coined = i % 2 === 0
+    const combo = ((i / 2) * 137) % 720
+    const name = coined
+      ? `${namePrefixes[combo % 48]}${nameSuffixes[Math.floor(combo / 48)]}`
+      : `${company.code}-${1_000 + i}`
+
+    // 40 stems x 18 endings walked on a coprime stride, and a salt that shifts
+    // on the second lap, so no two of the 1,440 generic names collide.
+    const genericCombo = (i * 271) % 720
+    const salt = genericSalts[(i + Math.floor(i / 720)) % 4]
+    const generic = `${genericStems[genericCombo % 40]}${genericEndings[Math.floor(genericCombo / 40)]}${salt}`
+
+    rows.push({
+      id: `d-${i}`,
+      name,
+      generic: generic.charAt(0).toUpperCase() + generic.slice(1),
+      company: company.name,
+      therapyArea,
+      indication,
+      stage,
+      region,
+      country,
+      route,
+      moleculeType,
+      target,
+      moa,
+      atc,
+      drugType,
+      regimen,
+      descriptor,
+      applicationType,
+      vector:
+        moleculeType === "Gene Therapy" ? weightedPick(vectorTable, random()) : undefined,
+    })
+  }
+
+  return rows
+}
+
+/** The sample. Built once, never mutated, never refetched. */
+export const sample: DrugRow[] = buildSample()
+
+/** What the sample stands in for on the live platform. Shown, not multiplied. */
+export const platformTotal = 285_529
+
+/* -------------------------------------------------------------------------- */
+/* Attributes                                                                  */
+/* -------------------------------------------------------------------------- */
+
+export interface AttributeDef {
+  /** How the pill bar names it: `Therapy area is Dermatology`. */
+  subject: string
+  /** Every label under this attribute a row satisfies, at any level. */
+  valuesOf: (row: DrugRow) => string[]
+  /** The top-level value, for counting how far the attribute can still split. */
+  primaryOf: (row: DrugRow) => string
+}
+
+/**
+ * The bridge between the taxonomy and the sample. An attribute with an entry
+ * here is selectable and filters for real; an attribute without one is free
+ * text and its column says so, rather than offering a tick that does nothing.
+ */
+export const attributeDefs: Record<string, AttributeDef> = {
+  "Therapy Area / Indication": {
+    subject: "Therapy area",
+    valuesOf: (row) => [row.therapyArea, row.indication],
+    primaryOf: (row) => row.therapyArea,
+  },
+  "Development Stage": {
+    subject: "Development stage",
+    valuesOf: (row) => [row.stage],
+    primaryOf: (row) => row.stage,
+  },
+  "Drug Geography": {
+    subject: "Drug geography",
+    valuesOf: (row) => [row.region, row.country],
+    primaryOf: (row) => row.region,
+  },
+  "Route of Administration": {
+    subject: "Route of administration",
+    valuesOf: (row) => [row.route],
+    primaryOf: (row) => row.route,
+  },
+  "Molecule Type": {
+    subject: "Molecule type",
+    valuesOf: (row) => [row.moleculeType],
+    primaryOf: (row) => row.moleculeType,
+  },
+  Target: {
+    subject: "Target",
+    valuesOf: (row) => [row.target],
+    primaryOf: (row) => row.target,
+  },
+  "Mechanism of Action": {
+    subject: "Mechanism of action",
+    valuesOf: (row) => [row.moa],
+    primaryOf: (row) => row.moa,
+  },
+  "ATC Classification": {
+    subject: "ATC classification",
+    valuesOf: (row) => [row.atc],
+    primaryOf: (row) => row.atc,
+  },
+  "Drug Type": {
+    subject: "Drug type",
+    valuesOf: (row) => [row.drugType],
+    primaryOf: (row) => row.drugType,
+  },
+  "Mono/Combination Drug": {
+    subject: "Mono / combination",
+    valuesOf: (row) => [row.regimen],
+    primaryOf: (row) => row.regimen,
+  },
+  "Drug Descriptor": {
+    subject: "Drug descriptor",
+    valuesOf: (row) => [row.descriptor],
+    primaryOf: (row) => row.descriptor,
+  },
+  "Gene Therapy Vector": {
+    subject: "Gene therapy vector",
+    valuesOf: (row) => (row.vector ? [row.vector] : []),
+    primaryOf: (row) => row.vector ?? "—",
+  },
+  "Application Type": {
+    subject: "Application type",
+    valuesOf: (row) => [row.applicationType],
+    primaryOf: (row) => row.applicationType,
+  },
+}
+
+/**
+ * The attributes of Drugs, ordered by how far each can actually split a set,
+ * with the two free-text ones last.
+ *
+ * This is a deliberate divergence from the product's own order, which is
+ * arbitrary and opens with `Drug Name` — a free-text field that can carry no
+ * count and splits nothing. The first column of this panel is the direction's
+ * whole argument: the data model, browsable, before you know what you want. It
+ * has to read as an inventory of what you could filter by, and an inventory
+ * opens with the things worth opening.
+ *
+ * Every label is Idea 1's, unchanged; only the order is ours.
+ */
+export const drugAttributeOrder = [
+  "Therapy Area / Indication",
+  "Development Stage",
+  "Drug Geography",
+  "Molecule Type",
+  "Route of Administration",
+  "Drug Descriptor",
+  "Mechanism of Action",
+  "Target",
+  "ATC Classification",
+  "Drug Type",
+  "Mono/Combination Drug",
+  "Application Type",
+  "Gene Therapy Vector",
+  "Drug Name",
+  "CAS Number",
+].filter((label) => drugAttributes.includes(label))
+
+export const attributeItems: ColumnItem[] = drugAttributeOrder.map((label) => ({
+  label,
+  drillable: true,
+}))
+
+/**
+ * Level 1 — the filter areas. Drugs is the sample; the other seven are scaled
+ * from their live-platform totals by the same ratio, so the column is
+ * internally consistent instead of putting a 1,440-row sample next to seven
+ * numbers from a database this prototype is not reading.
+ */
+const platformAreaTotals: Record<string, number> = {
   Companies: 12_905,
-  Drugs: baseTotal,
+  Drugs: platformTotal,
   "Licensing Opportunities": 4_318,
   "Regulatory Milestones": 61_204,
   "Sales and Forecast": 9_772,
@@ -40,361 +944,220 @@ const areaCounts: Record<string, number> = {
   "Advanced Company Watchlist": 96,
 }
 
-export const areaItems: ColumnItem[] = productAreas.map((label) => ({
+const sampleRatio = sample.length / platformTotal
+
+export const areaItems: (ColumnItem & { count: number })[] = productAreas.map((label) => ({
   label,
-  count: areaCounts[label] ?? 0,
+  count:
+    label === "Drugs"
+      ? sample.length
+      : Math.max(1, Math.round((platformAreaTotals[label] ?? 0) * sampleRatio)),
   drillable: label === "Drugs",
 }))
 
-/**
- * Attributes with no value list — free text in the real product. Their column
- * is a search field rather than a list of options.
- */
-export const searchAttributes = new Set(["Drug Name", "CAS Number"])
+/* -------------------------------------------------------------------------- */
+/* The query                                                                   */
+/* -------------------------------------------------------------------------- */
 
-/** Therapy areas keep Idea 1's counts; the two selected ones sum to 146. */
-const therapyAreaItems: ColumnItem[] = therapyAreas.map(({ label, count }) => ({
-  label,
-  count,
-  drillable: true,
-}))
-
-/**
- * Level 3 — values, by attribute. Counts answer "how many drugs would I have
- * if I picked this", which is why the unselected rows still carry one.
- */
-export const valuesByAttribute: Record<string, ColumnItem[]> = {
-  "Therapy Area / Indication": therapyAreaItems,
-  "Development Stage": [
-    { label: "Discovery", count: 41 },
-    { label: "Preclinical", count: 55 },
-    { label: "Phase 0", count: 6 },
-    { label: "Phase I", count: 33 },
-    { label: "Phase II", count: 94 },
-    { label: "Phase III", count: 52 },
-    { label: "Phase IV", count: 12 },
-    { label: "Pre-registration", count: 9 },
-    { label: "Approved", count: 18 },
-    { label: "Marketed", count: 61 },
-    { label: "Suspended", count: 4 },
-    { label: "Discontinued", count: 22 },
-    { label: "Withdrawn", count: 7 },
-  ],
-  "Drug Geography": [
-    { label: "Europe", count: 146, drillable: true },
-    { label: "North America", count: 402, drillable: true },
-    { label: "Asia-Pacific", count: 388, drillable: true },
-    { label: "Latin America", count: 96, drillable: true },
-    { label: "Middle East & Africa", count: 41, drillable: true },
-    { label: "Global", count: 512 },
-  ],
-  "Route of Administration": [
-    { label: "Oral", count: 68 },
-    { label: "Subcutaneous", count: 34 },
-    { label: "Topical", count: 29 },
-    { label: "Intravenous", count: 21 },
-    { label: "Intramuscular", count: 6 },
-    { label: "Inhaled", count: 5 },
-    { label: "Ophthalmic", count: 4 },
-    { label: "Transdermal", count: 3 },
-  ],
-  "Molecule Type": [
-    { label: "Small Molecule", count: 79 },
-    { label: "Monoclonal Antibody", count: 31 },
-    { label: "Peptide", count: 12 },
-    { label: "Recombinant Protein", count: 8 },
-    { label: "Oligonucleotide", count: 7 },
-    { label: "Cell Therapy", count: 5 },
-    { label: "Gene Therapy", count: 4 },
-  ],
-  Target: [
-    { label: "Interleukin 23", count: 14 },
-    { label: "Interleukin 17A", count: 11 },
-    { label: "Janus Kinase 1", count: 10 },
-    { label: "Tumour Necrosis Factor", count: 9 },
-    { label: "Phosphodiesterase 4", count: 8 },
-    { label: "Endothelin Receptor A", count: 5 },
-    { label: "Angiotensin II Receptor", count: 4 },
-    { label: "Sodium Glucose Cotransporter 2", count: 3 },
-  ],
-  "Mechanism of Action": [
-    { label: "Interleukin 23 Inhibitor", count: 14 },
-    { label: "Janus Kinase Inhibitor", count: 12 },
-    { label: "Tumour Necrosis Factor Alpha Inhibitor", count: 9 },
-    { label: "Phosphodiesterase 4 Inhibitor", count: 8 },
-    { label: "Endothelin Receptor Antagonist", count: 5 },
-    { label: "Beta Adrenoceptor Antagonist", count: 4 },
-    { label: "SGLT2 Inhibitor", count: 3 },
-  ],
-  "ATC Classification": [
-    { label: "D — Dermatologicals", count: 71 },
-    { label: "L — Antineoplastic & Immunomodulating", count: 33 },
-    { label: "C — Cardiovascular System", count: 20 },
-    { label: "M — Musculoskeletal System", count: 9 },
-    { label: "A — Alimentary Tract & Metabolism", count: 6 },
-  ],
-  "Drug Type": [
-    { label: "New Molecular Entity", count: 88 },
-    { label: "Generic", count: 24 },
-    { label: "Biosimilar", count: 14 },
-    { label: "Repurposed", count: 12 },
-    { label: "Fixed Dose Combination", count: 8 },
-  ],
-  "Mono/Combination Drug": [
-    { label: "Mono", count: 118 },
-    { label: "Combination", count: 28 },
-  ],
-  "Drug Descriptor": [
-    { label: "Antiinflammatory Therapy", count: 52 },
-    { label: "Immunosuppressant", count: 31 },
-    { label: "Antihypertensive", count: 14 },
-    { label: "Lipid Regulator", count: 9 },
-    { label: "Antithrombotic", count: 7 },
-  ],
-  "Gene Therapy Vector": [
-    { label: "Adeno Associated Virus (AAV)", count: 5 },
-    { label: "Lentivirus", count: 3 },
-    { label: "Adenovirus", count: 2 },
-    { label: "Lipid Nanoparticle (non-viral)", count: 1 },
-  ],
-  "Application Type": [
-    { label: "IND", count: 47 },
-    { label: "NDA", count: 34 },
-    { label: "MAA", count: 29 },
-    { label: "BLA", count: 21 },
-    { label: "ANDA", count: 15 },
-  ],
-}
-
-/**
- * Level 2 — attributes of Drugs. The number is how many distinct values the
- * attribute still has inside the current set — the same rows the next column
- * will show — so it says how far an attribute can actually split the 146
- * before a click is spent on it. A drug-count here would read 146 against
- * nearly every attribute and discriminate nothing.
- *
- * Free-text attributes have no value list, so they carry no number.
- */
-export const attributeItems: ColumnItem[] = drugAttributes.map((label) => ({
-  label,
-  count: valuesByAttribute[label]?.length ?? 0,
-  drillable: true,
-}))
-
-/**
- * Level 4 — what sits under a value. Only the values that carry `drillable`
- * have children; the fourth column is what pushes the first one into the
- * breadcrumb, which is the case this direction exists to prove.
- */
-export const childrenByValue: Record<string, ColumnItem[]> = {
-  Dermatology: [
-    { label: "Plaque Psoriasis", count: 38 },
-    { label: "Atopic Dermatitis", count: 31 },
-    { label: "Acne Vulgaris", count: 17 },
-    { label: "Hidradenitis Suppurativa", count: 12 },
-    { label: "Vitiligo", count: 9 },
-    { label: "Alopecia Areata", count: 8 },
-    { label: "Chronic Urticaria", count: 7 },
-    { label: "Rosacea", count: 6 },
-    { label: "Pemphigus Vulgaris", count: 4 },
-    { label: "Cutaneous Lupus Erythematosus", count: 3 },
-    { label: "Epidermolysis Bullosa", count: 3 },
-  ],
-  Cardiovascular: [
-    { label: "Chronic Heart Failure", count: 6 },
-    { label: "Pulmonary Arterial Hypertension", count: 4 },
-    { label: "Resistant Hypertension", count: 3 },
-    { label: "Dyslipidaemia", count: 3 },
-    { label: "Atrial Fibrillation", count: 2 },
-    { label: "Venous Thrombosis", count: 2 },
-    { label: "Cardiomyopathy", count: 1 },
-  ],
-  "Central Nervous System": [
-    { label: "Alzheimer's Disease", count: 2 },
-    { label: "Parkinson's Disease", count: 1 },
-    { label: "Epilepsy", count: 1 },
-  ],
-  "Ear Nose Throat Disorders": [
-    { label: "Chronic Rhinosinusitis", count: 12 },
-    { label: "Allergic Rhinitis", count: 9 },
-    { label: "Otitis Media", count: 6 },
-    { label: "Sensorineural Hearing Loss", count: 4 },
-    { label: "Tinnitus", count: 3 },
-  ],
-  Gastrointestinal: [
-    { label: "Ulcerative Colitis", count: 9 },
-    { label: "Crohn's Disease", count: 8 },
-    { label: "Irritable Bowel Syndrome", count: 4 },
-    { label: "Coeliac Disease", count: 3 },
-    { label: "Eosinophilic Oesophagitis", count: 2 },
-  ],
-  "Genetic Disorders": [
-    { label: "Cystic Fibrosis", count: 6 },
-    { label: "Duchenne Muscular Dystrophy", count: 4 },
-    { label: "Sickle Cell Disease", count: 3 },
-    { label: "Spinal Muscular Atrophy", count: 2 },
-    { label: "Huntington's Disease", count: 2 },
-  ],
-  "Genito Urinary System": [
-    { label: "Overactive Bladder", count: 18 },
-    { label: "Chronic Kidney Disease", count: 14 },
-    { label: "Benign Prostatic Hyperplasia", count: 9 },
-    { label: "Endometriosis", count: 8 },
-    { label: "Interstitial Cystitis", count: 5 },
-  ],
-  "Hermatological Disorders": [
-    { label: "Anaemia", count: 7 },
-    { label: "Haemophilia A", count: 5 },
-    { label: "Immune Thrombocytopenia", count: 4 },
-    { label: "Beta Thalassaemia", count: 3 },
-  ],
-  "Hormonal Disorders": [
-    { label: "Hypothyroidism", count: 6 },
-    { label: "Cushing's Syndrome", count: 4 },
-    { label: "Acromegaly", count: 3 },
-    { label: "Hypogonadism", count: 2 },
-    { label: "Primary Adrenal Insufficiency", count: 2 },
-  ],
-  Immunology: [
-    { label: "Rheumatoid Arthritis", count: 4 },
-    { label: "Systemic Lupus Erythematosus", count: 3 },
-    { label: "Sjögren's Syndrome", count: 2 },
-  ],
-  "Infectious Disease": [
-    { label: "Influenza", count: 28 },
-    { label: "COVID-19", count: 24 },
-    { label: "Hepatitis B", count: 16 },
-    { label: "HIV Infection", count: 14 },
-    { label: "Tuberculosis", count: 11 },
-    { label: "Respiratory Syncytial Virus", count: 9 },
-  ],
-  "Metabolic Disorders": [
-    { label: "Obesity", count: 21 },
-    { label: "Type 2 Diabetes", count: 18 },
-    { label: "Non-alcoholic Steatohepatitis", count: 9 },
-    { label: "Gout", count: 6 },
-    { label: "Phenylketonuria", count: 5 },
-  ],
-  "Musculoskeletal Disorders": [
-    { label: "Osteoarthritis", count: 98 },
-    { label: "Rheumatoid Arthritis", count: 71 },
-    { label: "Osteoporosis", count: 44 },
-    { label: "Ankylosing Spondylitis", count: 33 },
-    { label: "Psoriatic Arthritis", count: 21 },
-    { label: "Fibromyalgia", count: 9 },
-  ],
-  Europe: [
-    { label: "Germany", count: 41 },
-    { label: "France", count: 33 },
-    { label: "United Kingdom", count: 24 },
-    { label: "Spain", count: 18 },
-    { label: "Italy", count: 16 },
-    { label: "Switzerland", count: 9 },
-    { label: "Denmark", count: 7 },
-    { label: "Belgium", count: 6 },
-    { label: "Netherlands", count: 5 },
-    { label: "Finland", count: 5 },
-    { label: "Sweden", count: 4 },
-    { label: "Austria", count: 3 },
-    { label: "Ireland", count: 3 },
-  ],
-  "North America": [
-    { label: "United States", count: 351 },
-    { label: "Canada", count: 44 },
-    { label: "Mexico", count: 7 },
-  ],
-  "Asia-Pacific": [
-    { label: "Japan", count: 148 },
-    { label: "China", count: 121 },
-    { label: "South Korea", count: 47 },
-    { label: "Australia", count: 39 },
-    { label: "India", count: 33 },
-  ],
-  "Latin America": [
-    { label: "Brazil", count: 51 },
-    { label: "Argentina", count: 24 },
-    { label: "Chile", count: 12 },
-    { label: "Colombia", count: 9 },
-  ],
-  "Middle East & Africa": [
-    { label: "Israel", count: 18 },
-    { label: "South Africa", count: 12 },
-    { label: "United Arab Emirates", count: 7 },
-    { label: "Saudi Arabia", count: 4 },
-  ],
-}
-
-/**
- * The applied query, keyed by attribute. Drives the ticks in the columns, the
- * badges on the attribute rows, and the pills above the results — one source,
- * so the panel can never disagree with the bar.
- */
-export const selectedValues: Record<string, string[]> = {
-  "Therapy Area / Indication": ["Dermatology", "Cardiovascular"],
-  "Drug Geography": ["Europe"],
-  "Development Stage": ["Phase II", "Phase III"],
-}
-
-/** How the pills read above the results, in application order. */
-export interface PillRun {
-  /** Plain-language subject, e.g. `Therapy area`. */
-  subject: string
-  /** The attribute key this run maps back to in the panel. */
+/** One attribute's condition. The query is an ordered list of these. */
+export interface AttributeFilter {
   attribute: string
+  /** Selected labels, at any level of that attribute's taxonomy. */
   values: string[]
-  /** Word set between values inside the run. */
+  /** Word between the values. `and` is an intersection, not a union. */
   join: "or" | "and"
+  /** Whether the condition keeps or drops the rows it matches. */
+  mode: "is" | "is not"
 }
 
-export const appliedRuns: PillRun[] = [
+function rowMatches(row: DrugRow, filter: AttributeFilter) {
+  const def = attributeDefs[filter.attribute]
+  // An attribute with no definition cannot filter, so it keeps every row
+  // rather than silently emptying the set as though it had been applied.
+  if (!def || filter.values.length === 0) return true
+  const values = def.valuesOf(row)
+  const hit =
+    filter.join === "and"
+      ? filter.values.every((value) => values.includes(value))
+      : filter.values.some((value) => values.includes(value))
+  return filter.mode === "is not" ? !hit : hit
+}
+
+/** The sample, filtered in memory. The only source of every number on screen. */
+export function matchingRows(filters: AttributeFilter[], rows: DrugRow[] = sample) {
+  if (filters.length === 0) return rows
+  return rows.filter((row) => filters.every((filter) => rowMatches(row, filter)))
+}
+
+/**
+ * The set as it stands with one attribute's own condition lifted — what a
+ * faceted count has to be measured against, so the numbers beside the values
+ * of an open attribute say "what you would get if you picked this" rather than
+ * "what you have already got".
+ */
+export function rowsExcluding(filters: AttributeFilter[], attribute: string) {
+  return matchingRows(filters.filter((filter) => filter.attribute !== attribute))
+}
+
+/** How many rows each label of an attribute would yield, in current context. */
+export function facetCounts(filters: AttributeFilter[], attribute: string) {
+  const def = attributeDefs[attribute]
+  const counts: Record<string, number> = {}
+  if (!def) return counts
+  for (const row of rowsExcluding(filters, attribute)) {
+    for (const value of def.valuesOf(row)) {
+      counts[value] = (counts[value] ?? 0) + 1
+    }
+  }
+  return counts
+}
+
+/**
+ * How many distinct values an attribute still has inside the current set — the
+ * same rows its column would show. A drug count here would read the same
+ * against nearly every attribute and discriminate nothing.
+ */
+export function attributeSplit(filters: AttributeFilter[]) {
+  const counts: Record<string, number> = {}
+  for (const attribute of Object.keys(attributeDefs)) {
+    const def = attributeDefs[attribute]
+    const seen = new Set<string>()
+    for (const row of rowsExcluding(filters, attribute)) {
+      const value = def.primaryOf(row)
+      if (value !== "—") seen.add(value)
+    }
+    counts[attribute] = seen.size
+  }
+  return counts
+}
+
+/**
+ * The query the screen opens on. Four attributes, seven values.
+ *
+ * The molecule-type condition is there on purpose. The results table draws six
+ * columns and molecule type is not one of them, so the screen arrives already
+ * filtered on something the grid does not show: the pill is in the bar, the
+ * count is down, and the columns are exactly what they would have been without
+ * it. Take the pill off and the count climbs while the table's columns do not
+ * move. That is the line between this direction and one that filters from its
+ * own column headers — where an attribute has to be displayed before it can be
+ * filtered — and it is worth more demonstrated than argued.
+ *
+ * It is molecule type rather than ATC class because ATC follows the therapy
+ * area: seeding one would have left most of the therapy column reading zero on
+ * arrival, and the first thing this panel has to say is that the taxonomy is
+ * alive and worth browsing.
+ */
+export const initialFilters: AttributeFilter[] = [
   {
-    subject: "Therapy area",
     attribute: "Therapy Area / Indication",
     values: ["Dermatology", "Cardiovascular"],
     join: "or",
+    mode: "is",
   },
+  { attribute: "Drug Geography", values: ["Europe"], join: "or", mode: "is" },
   {
-    subject: "Drug geography",
-    attribute: "Drug Geography",
-    values: ["Europe"],
-    join: "or",
-  },
-  {
-    subject: "Development stage",
     attribute: "Development Stage",
     values: ["Phase II", "Phase III"],
     join: "or",
+    mode: "is",
+  },
+  {
+    attribute: "Molecule Type",
+    values: ["Small Molecule", "Monoclonal Antibody"],
+    join: "or",
+    mode: "is",
   },
 ]
 
 /** The default open path when the screen loads: area → attribute → value. */
 export const defaultPath = ["Drugs", "Therapy Area / Indication", "Dermatology"]
 
-export interface ResultRow {
-  name: string
-  generic: string
-  company: string
-  therapyArea: string
-  indication: string
-  stage: "Phase II" | "Phase III"
-  geography: string
+/* -------------------------------------------------------------------------- */
+/* The agent                                                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * One thing the agent does to the filter panel — never more than one
+ * attribute, so undoing it can be scoped to that attribute and cannot wipe a
+ * later step. `clear` is scoped the same way: it records what it removed.
+ */
+export type AgentAction =
+  | { kind: "clear" }
+  | {
+      kind: "select"
+      attribute: string
+      values: string[]
+      join: "or" | "and"
+      mode: "is" | "is not"
+    }
+
+export interface AgentStep {
+  id: string
+  /** What the panel says the step did, in the analyst's language. */
+  label: string
+  /** Where the columns move before the step acts. */
+  path: string[]
+  action: AgentAction
 }
 
-/** Fifteen of the 146. Every row satisfies all three applied filters. */
-export const resultRows: ResultRow[] = [
-  { name: "Vetraluma", generic: "vetralimab", company: "Novartis", therapyArea: "Dermatology", indication: "Plaque Psoriasis", stage: "Phase III", geography: "Germany" },
-  { name: "LEO-4471", generic: "bimeprodine", company: "LEO Pharma", therapyArea: "Dermatology", indication: "Atopic Dermatitis", stage: "Phase II", geography: "Denmark" },
-  { name: "Sorilex", generic: "sorilimab", company: "UCB", therapyArea: "Dermatology", indication: "Plaque Psoriasis", stage: "Phase III", geography: "Belgium" },
-  { name: "Kardevia", generic: "netarsentan", company: "Bayer", therapyArea: "Cardiovascular", indication: "Pulmonary Arterial Hypertension", stage: "Phase III", geography: "Germany" },
-  { name: "ALM-2209", generic: "dupratinib", company: "Almirall", therapyArea: "Dermatology", indication: "Hidradenitis Suppurativa", stage: "Phase II", geography: "Spain" },
-  { name: "Dermovance", generic: "lebrikast", company: "Sanofi", therapyArea: "Dermatology", indication: "Atopic Dermatitis", stage: "Phase III", geography: "France" },
-  { name: "IPS-3380", generic: "ipsertide", company: "Ipsen", therapyArea: "Cardiovascular", indication: "Chronic Heart Failure", stage: "Phase II", geography: "France" },
-  { name: "Psorenta", generic: "risankast", company: "Boehringer Ingelheim", therapyArea: "Dermatology", indication: "Plaque Psoriasis", stage: "Phase III", geography: "Germany" },
-  { name: "GRN-1150", generic: "granlicept", company: "Grünenthal", therapyArea: "Dermatology", indication: "Chronic Urticaria", stage: "Phase II", geography: "Germany" },
-  { name: "Cardiflex", generic: "omecantiv sodium", company: "Servier", therapyArea: "Cardiovascular", indication: "Chronic Heart Failure", stage: "Phase III", geography: "France" },
-  { name: "ORI-7702", generic: "orivastat", company: "Orion", therapyArea: "Cardiovascular", indication: "Dyslipidaemia", stage: "Phase II", geography: "Finland" },
-  { name: "Vitalume", generic: "melacantib", company: "Pierre Fabre", therapyArea: "Dermatology", indication: "Vitiligo", stage: "Phase III", geography: "France" },
-  { name: "AZ-6640", generic: "alopecitinib", company: "AstraZeneca", therapyArea: "Dermatology", indication: "Alopecia Areata", stage: "Phase II", geography: "United Kingdom" },
-  { name: "Rosaclear", generic: "rosacimod", company: "Galderma", therapyArea: "Dermatology", indication: "Rosacea", stage: "Phase III", geography: "Switzerland" },
-  { name: "Angioval", generic: "valsenpril", company: "Recordati", therapyArea: "Cardiovascular", indication: "Resistant Hypertension", stage: "Phase III", geography: "Italy" },
+/**
+ * The one wired request. There is no parser here and no model call: this plan
+ * is authored, and the panel says so on screen. What is real is everything
+ * downstream of it — the steps drive the same filter state a click drives, so
+ * the columns, the pills, the counts and the table all move for the same
+ * reason they move when a person does it.
+ */
+export const agentRequest =
+  "anti-inflammatories in phase II or later, excluding Austria and Italy"
+
+export const agentReading = [
+  "Drug descriptor is Antiinflammatory Therapy",
+  "Development stage is Phase II, Phase III or Phase IV",
+  "Drug geography is not Austria or Italy",
+]
+
+export const agentPlan: AgentStep[] = [
+  {
+    id: "clear",
+    label: "Cleared the filters already applied",
+    path: ["Drugs", "Therapy Area / Indication"],
+    action: { kind: "clear" },
+  },
+  {
+    id: "descriptor",
+    label: "Selected Antiinflammatory Therapy under Drug descriptor",
+    path: ["Drugs", "Drug Descriptor"],
+    action: {
+      kind: "select",
+      attribute: "Drug Descriptor",
+      values: ["Antiinflammatory Therapy"],
+      join: "or",
+      mode: "is",
+    },
+  },
+  {
+    id: "stage",
+    label: "Selected Phase II, Phase III and Phase IV under Development stage",
+    path: ["Drugs", "Development Stage"],
+    action: {
+      kind: "select",
+      attribute: "Development Stage",
+      values: phaseTwoOrLater,
+      join: "or",
+      mode: "is",
+    },
+  },
+  {
+    id: "geography",
+    label: "Excluded Austria and Italy under Drug geography",
+    path: ["Drugs", "Drug Geography", "Europe"],
+    action: {
+      kind: "select",
+      attribute: "Drug Geography",
+      values: ["Austria", "Italy"],
+      join: "or",
+      mode: "is not",
+    },
+  },
 ]

@@ -1,16 +1,12 @@
-import { Button } from "@/components/ui/button"
-import { ProductChrome } from "@/components/prototype/ProductChrome"
-import { ResultsTable } from "@/flows/sprint-3/idea-1/components/ResultsTable"
+import { IncumbentScreen } from "@/flows/sprint-3/idea-1/components/IncumbentScreen"
 
-/** Starting point: the unfiltered database, one button into the filter modal. */
+/**
+ * Starting point: the unfiltered database, one button into the filter modal.
+ *
+ * One of twelve entry points into the same stateful screen — the slug seeds a
+ * starting state so the deep link still lands here, and every other state is a
+ * click away.
+ */
 export function Results() {
-  return (
-    <ProductChrome activeArea="Drugs" body="scroll">
-      <div className="flex items-center justify-between px-6 py-5">
-        <p className="text-muted-foreground text-sm tabular-nums">1–15 of 285,529 Drugs</p>
-        <Button size="sm">Apply filter</Button>
-      </div>
-      <ResultsTable variant="unfiltered" />
-    </ProductChrome>
-  )
+  return <IncumbentScreen slug="results" />
 }

@@ -1,22 +1,12 @@
-import { AiPane } from "@/flows/sprint-3/idea-1/components/AiPane"
-import { FilterModal } from "@/flows/sprint-3/idea-1/components/FilterModal"
-import { Results } from "@/flows/sprint-3/idea-1/screens/Results"
-import { assistantReply, exampleQuery, parsedGroups } from "@/flows/sprint-3/idea-1/data"
+import { IncumbentScreen } from "@/flows/sprint-3/idea-1/components/IncumbentScreen"
 
 /**
- * The payload screen. The exchange becomes a transcript and the builder fills
- * with editable groups — the AI's output is the same object the manual path
- * produces.
+ * Submitted. The exchange becomes a transcript and the builder fills with editable groups.
+ *
+ * One of twelve entry points into the same stateful screen — the slug seeds a
+ * starting state so the deep link still lands here, and every other state is a
+ * click away.
  */
 export function AiParsed() {
-  return (
-    <>
-      <Results />
-      <FilterModal tab="ai" groups={parsedGroups}>
-        <AiPane
-          transcript={{ user: exampleQuery, assistant: assistantReply, time: "03:04 PM" }}
-        />
-      </FilterModal>
-    </>
-  )
+  return <IncumbentScreen slug="ai-parsed" />
 }

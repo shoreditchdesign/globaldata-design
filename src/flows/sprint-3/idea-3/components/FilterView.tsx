@@ -1,10 +1,16 @@
 "use client"
 
 import * as React from "react"
-import { XIcon } from "lucide-react"
+import { PlusIcon, XIcon } from "lucide-react"
 
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import type { Clause } from "@/flows/sprint-3/idea-3/data"
-import { OperatorWord, type SentenceHandlers } from "@/flows/sprint-3/idea-3/components/QuerySentence"
+import {
+  AddCondition,
+  OperatorWord,
+  ValueMenu,
+  type SentenceHandlers,
+} from "@/flows/sprint-3/idea-3/components/QuerySentence"
 
 /**
  * The same query, rendered the conventional way — one labelled group per
@@ -12,6 +18,12 @@ import { OperatorWord, type SentenceHandlers } from "@/flows/sprint-3/idea-3/com
  * representation held alongside the sentence: a swap, in the same slot, of the
  * same object, editable through the same handlers. Sprint 2 asked the user to
  * read a transcript and a builder at once; this asks them to pick one.
+ *
+ * Everything the sentence can do, this can do, through the identical controls:
+ * the `+` opens the same value menu a pill opens, the operator opens the same
+ * dropdown an operator word opens, and `+ condition` is the same menu. If one
+ * view could express something the other could not, they would be two screens
+ * rather than two readings, and the toggle would be lossy.
  *
  * Worth noticing when the two are compared: this rendering takes roughly twice
  * the vertical space to say the same thing.
@@ -84,10 +96,48 @@ export function FilterView({
                     </span>
                   </React.Fragment>
                 ))}
+
+              <AddValue clause={clause} handlers={handlers} />
             </div>
           </div>
         </React.Fragment>
       ))}
+
+      <div className="flex flex-col gap-1.5">
+        <span className="h-[13px]" aria-hidden />
+        <AddCondition
+          clauses={clauses}
+          onAddClause={handlers.onAddClause}
+          className="h-7 px-2"
+        />
+      </div>
     </div>
+  )
+}
+
+/** The same value menu the pills open, reached from the filter group instead. */
+function AddValue({ clause, handlers }: { clause: Clause; handlers: SentenceHandlers }) {
+  const [open, setOpen] = React.useState(false)
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label={`Add a ${clause.attribute} value`}
+          className="border-border text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/50 flex size-7 items-center justify-center rounded-md border border-dashed transition-colors outline-none focus-visible:ring-3"
+        >
+          <PlusIcon className="size-3.5" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-[320px] p-0 text-sm">
+        <ValueMenu
+          clause={clause}
+          onToggleValue={handlers.onToggleValue}
+          onRemoveClause={handlers.onRemoveClause}
+          onClose={() => setOpen(false)}
+        />
+      </PopoverContent>
+    </Popover>
   )
 }

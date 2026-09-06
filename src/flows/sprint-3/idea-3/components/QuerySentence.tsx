@@ -26,7 +26,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import type { Clause } from "@/flows/sprint-3/idea-3/data"
-import { addableClauses } from "@/flows/sprint-3/idea-3/data"
+import { clauseTemplates } from "@/flows/sprint-3/idea-3/data"
+import { clauseTerms, sentenceLayout } from "@/flows/sprint-3/idea-3/grammar"
 
 export interface SentenceHandlers {
   onToggleValue: (clauseId: string, value: string) => void
@@ -39,6 +40,80 @@ export interface SentenceHandlers {
 /* -------------------------------------------------------------------------- */
 /* Parts                                                                       */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * The value list behind a pill: every value of the attribute, ticked or not,
+ * with its count, and the way to drop the condition altogether.
+ *
+ * Exported because the `Filters` view opens the identical menu. The two views
+ * are the same query, so they have to be the same controls — a filter surface
+ * that could do something the sentence could not would make them two screens
+ * rather than two readings.
+ */
+export function ValueMenu({
+  clause,
+  onToggleValue,
+  onRemoveClause,
+  onClose,
+}: {
+  clause: Clause
+  onToggleValue: SentenceHandlers["onToggleValue"]
+  onRemoveClause: SentenceHandlers["onRemoveClause"]
+  onClose: () => void
+}) {
+  return (
+    <Command>
+      <div className="border-b px-3 py-2">
+        <p className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
+          {clause.attribute}
+        </p>
+      </div>
+      <CommandInput placeholder={`Search ${clause.attribute.toLowerCase()}…`} />
+      <CommandList className="max-h-[260px]">
+        <CommandEmpty>No values.</CommandEmpty>
+        <CommandGroup>
+          {clause.options.map((o) => {
+            const selected = clause.selected.includes(o.value)
+            return (
+              <CommandItem
+                key={o.value}
+                value={o.value}
+                onSelect={() => onToggleValue(clause.id, o.value)}
+                className="gap-2"
+              >
+                <span
+                  className={cn(
+                    "flex size-4 shrink-0 items-center justify-center rounded-[4px] border",
+                    selected ? "bg-primary border-primary text-primary-foreground" : "border-border",
+                  )}
+                >
+                  {selected ? <CheckIcon className="size-3" /> : null}
+                </span>
+                <span className="truncate">{o.value}</span>
+                <span className="text-muted-foreground ml-auto text-xs tabular-nums">
+                  {o.count.toLocaleString()}
+                </span>
+              </CommandItem>
+            )
+          })}
+        </CommandGroup>
+        <CommandSeparator />
+        <CommandGroup>
+          <CommandItem
+            onSelect={() => {
+              onClose()
+              onRemoveClause(clause.id)
+            }}
+            className="text-muted-foreground gap-2"
+          >
+            <XIcon className="size-3.5" />
+            Remove this condition
+          </CommandItem>
+        </CommandGroup>
+      </CommandList>
+    </Command>
+  )
+}
 
 /**
  * A value. Filled, so it reads as an object you can grab — principle 1, the
@@ -74,56 +149,12 @@ function ValuePill({
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[320px] p-0 text-sm">
-        <Command>
-          <div className="border-b px-3 py-2">
-            <p className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
-              {clause.attribute}
-            </p>
-          </div>
-          <CommandInput placeholder={`Search ${clause.attribute.toLowerCase()}…`} />
-          <CommandList className="max-h-[260px]">
-            <CommandEmpty>No values.</CommandEmpty>
-            <CommandGroup>
-              {clause.options.map((o) => {
-                const selected = clause.selected.includes(o.value)
-                return (
-                  <CommandItem
-                    key={o.value}
-                    value={o.value}
-                    onSelect={() => onToggleValue(clause.id, o.value)}
-                    className="gap-2"
-                  >
-                    <span
-                      className={cn(
-                        "flex size-4 shrink-0 items-center justify-center rounded-[4px] border",
-                        selected ? "bg-primary border-primary text-primary-foreground" : "border-border",
-                      )}
-                    >
-                      {selected ? <CheckIcon className="size-3" /> : null}
-                    </span>
-                    <span className="truncate">{o.value}</span>
-                    <span className="text-muted-foreground ml-auto text-xs tabular-nums">
-                      {o.count.toLocaleString()}
-                    </span>
-                  </CommandItem>
-                )
-              })}
-            </CommandGroup>
-            <CommandSeparator />
-            <CommandGroup>
-              <CommandItem
-                onSelect={() => {
-                  setOpen(false)
-                  onRemoveClause(clause.id)
-                }}
-                className="text-muted-foreground gap-2"
-              >
-                <XIcon className="size-3.5" />
-                Remove this condition
-              </CommandItem>
-            </CommandGroup>
-          </CommandList>
-        </Command>
+        <ValueMenu
+          clause={clause}
+          onToggleValue={onToggleValue}
+          onRemoveClause={onRemoveClause}
+          onClose={() => setOpen(false)}
+        />
       </PopoverContent>
     </Popover>
   )
@@ -213,7 +244,7 @@ function ClauseSpan({
   punctuation?: string
 }) {
   const operator = clause.operator
-  const selected = clause.options.filter((o) => clause.selected.includes(o.value))
+  const selected = clauseTerms(clause)
 
   return (
     <span className="group/clause hover:bg-muted hover:ring-border relative -mx-1 rounded-md px-1 whitespace-nowrap transition-colors hover:ring-1">
@@ -277,6 +308,53 @@ function ClauseSpan({
 /* Sentence                                                                    */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * `+ condition`. Shared with the `Filters` view for the same reason the value
+ * menu is: whatever one view can add, the other has to be able to add too.
+ */
+export function AddCondition({
+  clauses,
+  onAddClause,
+  className,
+}: {
+  clauses: Clause[]
+  onAddClause: SentenceHandlers["onAddClause"]
+  className?: string
+}) {
+  const used = new Set(clauses.map((c) => c.id))
+  // Every attribute the sentence can hold, not only the three the worked
+  // example left over — a typed query can land anywhere in the vocabulary, so
+  // what it can be extended with has to be the whole of it.
+  const available = clauseTemplates.filter((c) => !used.has(c.id))
+  if (available.length === 0) return null
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className={cn("text-muted-foreground gap-1 px-1.5 text-[13px]", className)}
+        >
+          <PlusIcon className="size-3.5" />
+          condition
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-[260px]">
+        <DropdownMenuLabel className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
+          Add to the query
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {available.map((clause) => (
+          <DropdownMenuItem key={clause.id} onSelect={() => onAddClause(clause.id)}>
+            {clause.attribute}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 export function QuerySentence({
   clauses,
   handlers,
@@ -284,65 +362,34 @@ export function QuerySentence({
   clauses: Clause[]
   handlers: SentenceHandlers
 }) {
-  const used = new Set(clauses.map((c) => c.id))
-  const available = addableClauses.filter((c) => !used.has(c.id))
+  // Punctuation belongs to the clause that ends, not the one that starts, and
+  // rides inside its nowrap unit — otherwise a wrap drops a comma to the head
+  // of the next line. The rules live in `grammar`, so the prose that
+  // `edit as text` hands back is built from the same ones.
+  const { prefix, pieces } = sentenceLayout(clauses)
 
   return (
     <p className="max-w-[74ch] text-[22px] leading-[2.05] font-normal tracking-[-0.01em]">
-      {clauses.map((clause, i) => {
-        const last = i === clauses.length - 1
-        // Punctuation belongs to the clause that ends, not the one that starts,
-        // and rides inside its nowrap unit — otherwise a wrap drops a comma to
-        // the head of the next line.
-        const comma = !last && clauses[i + 1]?.comma ? "," : ""
-        // "drugs" closes the run of leading adjectives, wherever that run now
-        // ends, so removing a clause never orphans the noun.
-        const noun = !last && !clause.operator && Boolean(clauses[i + 1]?.operator) ? " drugs" : ""
-        // An "and" before the final condition, once there are three or more.
-        const conjunction = last && i > 1 && clause.comma
+      {prefix ? <span>{prefix}</span> : null}
+      {pieces.map(({ clause, conjunction, punctuation }, i) => (
+        <React.Fragment key={clause.id}>
+          {i > 0 ? <span> </span> : null}
+          {conjunction ? <span>and </span> : null}
+          <ClauseSpan
+            clause={clause}
+            handlers={handlers}
+            removable={clauses.length > 1}
+            punctuation={punctuation}
+          />
+        </React.Fragment>
+      ))}
 
-        return (
-          <React.Fragment key={clause.id}>
-            {i > 0 ? <span> </span> : null}
-            {conjunction ? <span>and </span> : null}
-            <ClauseSpan
-              clause={clause}
-              handlers={handlers}
-              removable={clauses.length > 1}
-              punctuation={`${noun}${comma}`}
-            />
-          </React.Fragment>
-        )
-      })}
-
-      {available.length > 0 ? (
-        <>
-          {" "}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground -translate-y-[0.1em] gap-1 px-1.5 align-middle text-[13px]"
-              >
-                <PlusIcon className="size-3.5" />
-                condition
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-[260px]">
-              <DropdownMenuLabel className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
-                Add to the sentence
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {available.map((clause) => (
-                <DropdownMenuItem key={clause.id} onSelect={() => handlers.onAddClause(clause.id)}>
-                  {clause.attribute}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </>
-      ) : null}
+      {" "}
+      <AddCondition
+        clauses={clauses}
+        onAddClause={handlers.onAddClause}
+        className="-translate-y-[0.1em] align-middle"
+      />
     </p>
   )
 }

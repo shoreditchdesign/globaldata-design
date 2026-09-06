@@ -1,35 +1,12 @@
-import { FilterModal } from "@/flows/sprint-3/idea-1/components/FilterModal"
-import {
-  CascadePanel,
-  CascadeValueRow,
-  ManualPane,
-} from "@/flows/sprint-3/idea-1/components/ManualPane"
-import { Results } from "@/flows/sprint-3/idea-1/screens/Results"
-import { therapyAreas } from "@/flows/sprint-3/idea-1/data"
+import { IncumbentScreen } from "@/flows/sprint-3/idea-1/components/IncumbentScreen"
 
-/** Level three: values with result counts, and a breadcrumb back up. */
+/**
+ * Level three — values with result counts, and a breadcrumb back up.
+ *
+ * One of twelve entry points into the same stateful screen — the slug seeds a
+ * starting state so the deep link still lands here, and every other state is a
+ * click away.
+ */
 export function ManualValues() {
-  return (
-    <>
-      <Results />
-      <FilterModal tab="manual">
-        <ManualPane
-          openArea="Drugs"
-          dimOthers
-          breadcrumbPill="Therapy Area / Indication"
-          popover={
-            <CascadePanel
-              breadcrumb={["Drugs", "Therapy Area / Indication"]}
-              searchPlaceholder="Search Therapy Area / Indication"
-              className="top-[5rem] left-[6.5rem] max-h-[calc(100%-6.5rem)]"
-            >
-              {therapyAreas.map((area) => (
-                <CascadeValueRow key={area.label} label={area.label} count={area.count} />
-              ))}
-            </CascadePanel>
-          }
-        />
-      </FilterModal>
-    </>
-  )
+  return <IncumbentScreen slug="manual-values" />
 }

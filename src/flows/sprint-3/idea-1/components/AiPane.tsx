@@ -3,26 +3,36 @@ import { ArrowRightIcon, SearchIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PaneHeading } from "@/flows/sprint-3/idea-1/components/FilterModal"
 import { aiSuggestions } from "@/flows/sprint-3/idea-1/data"
+import type { Transcript } from "@/flows/sprint-3/idea-1/state"
 
 /**
  * Left pane of the AI tab. `transcript` swaps the suggestion chips for the
- * exchange once a query has been parsed.
+ * exchange once a query has been submitted.
+ *
+ * One canned resolution, matched to the worked example in the data — the
+ * parsing is not what is being tested here, the shape of the surface is.
  */
 export function AiPane({
   query,
   transcript,
+  onQuery,
+  onSubmit,
 }: {
   /** Text sitting in the composer. */
-  query?: string
-  transcript?: { user: string; assistant: string; time: string }
+  query: string
+  transcript?: Transcript | null
+  onQuery: (query: string) => void
+  onSubmit: () => void
 }) {
+  const filled = query.trim().length > 0
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <PaneHeading title="Drug Search" subtitle="Start typing to create a filter" />
 
       <div className="flex min-h-0 flex-1 flex-col justify-end gap-6 px-6 pb-6">
         {transcript ? (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 overflow-y-auto">
             <div className="flex flex-col items-end gap-1">
               <p className="bg-primary/10 text-primary max-w-[340px] rounded-2xl px-4 py-3 text-sm">
                 {transcript.user}
@@ -40,27 +50,52 @@ export function AiPane({
         ) : (
           <div className="flex flex-wrap gap-2">
             {aiSuggestions.map((suggestion) => (
-              <span key={suggestion} className="bg-muted rounded-full px-4 py-2 text-sm">
+              <button
+                key={suggestion}
+                type="button"
+                onClick={() => onQuery(suggestion)}
+                className="bg-muted hover:bg-accent rounded-full px-4 py-2 text-sm transition-colors"
+              >
                 {suggestion}
-              </span>
+              </button>
             ))}
           </div>
         )}
 
-        <div
+        <form
+          onSubmit={(event) => {
+            event.preventDefault()
+            if (filled) onSubmit()
+          }}
           className={cn(
-            "bg-background flex items-center gap-3 rounded-2xl border px-4 shadow-xs",
-            query ? "items-end py-3" : "py-2.5",
+            "bg-background flex gap-3 rounded-2xl border px-4 shadow-xs",
+            filled ? "items-end py-3" : "items-center py-2.5",
           )}
         >
           <SearchIcon className="text-muted-foreground mb-2 size-4 shrink-0 self-end" />
-          <p className={cn("flex-1 text-sm", query ? "" : "text-muted-foreground")}>
-            {query ?? "Ask anything to create a filter"}
-          </p>
-          <span className="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-full">
+          <textarea
+            value={query}
+            onChange={(event) => onQuery(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault()
+                if (filled) onSubmit()
+              }
+            }}
+            rows={1}
+            placeholder="Ask anything to create a filter"
+            aria-label="Ask anything to create a filter"
+            className="placeholder:text-muted-foreground field-sizing-content max-h-32 flex-1 resize-none self-end bg-transparent text-sm outline-none"
+          />
+          <button
+            type="submit"
+            aria-label="Create filters from this query"
+            disabled={!filled}
+            className="bg-primary text-primary-foreground disabled:opacity-40 flex size-8 shrink-0 items-center justify-center rounded-full"
+          >
             <ArrowRightIcon className="size-4" />
-          </span>
-        </div>
+          </button>
+        </form>
       </div>
     </div>
   )

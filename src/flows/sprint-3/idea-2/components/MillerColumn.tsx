@@ -1,18 +1,28 @@
-import { CheckIcon, ChevronRightIcon, SearchIcon } from "lucide-react"
+"use client"
 
+import { ChevronRightIcon, SearchIcon } from "lucide-react"
+
+import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
-import type { ColumnItem } from "@/flows/sprint-3/idea-2/data"
 
 /**
- * Counts above ten thousand compact so the number lane stays one width. Zero
- * is an em dash rather than a `0` — the only rows that carry it are free-text
- * attributes, which have no value list to count, and `0` would read as a dead
- * end rather than a different kind of row.
+ * Counts above ten thousand compact so the number lane stays one width. A row
+ * with no number at all — a free-text attribute, which has no value list to
+ * count — shows an em dash; a row with a real zero shows `0`, because zero is
+ * an answer and a dash is not.
  */
 export function formatCount(n: number) {
-  if (n === 0) return "—"
   if (n < 10_000) return n.toLocaleString("en-GB")
   return `${(n / 1000).toFixed(1)}k`
+}
+
+/** One row of a column: a label, what it would yield, and whether it opens. */
+export interface ColumnRow {
+  label: string
+  /** Rows this label would leave, in the context of the rest of the query. */
+  count: number | null
+  /** True when the row opens a further column rather than only being ticked. */
+  drillable?: boolean
 }
 
 export interface ColumnModel {
@@ -20,13 +30,20 @@ export interface ColumnModel {
   key: string
   /** What the rows are, e.g. `Attribute`, `Therapy area`, `Indication`. */
   level: string
-  items: ColumnItem[]
+  items: ColumnRow[]
   /** Values ticked in this column. */
   selected?: string[]
   /** The row whose children are open in the column to the right. */
   open?: string
   /** Per-row count of values applied inside that row, shown in the lead lane. */
   badges?: Record<string, number>
+  /** Whether rows carry a tick box. Areas and attributes are navigation only. */
+  selectable?: boolean
+  /**
+   * The attribute this column ticks into is excluded rather than kept, so its
+   * numbers say what a value would drop, not what it would leave.
+   */
+  negated?: boolean
   /** Free-text attributes have no list — the column is a search field. */
   search?: boolean
   placeholder?: string
@@ -37,8 +54,12 @@ export interface ColumnModel {
 }
 
 /** The number lane is sized to the widest count in the column, not globally. */
-function countLane(items: ColumnItem[]) {
-  const longest = items.reduce((n, item) => Math.max(n, formatCount(item.count).length), 0)
+function countLane(items: ColumnRow[], negated = false) {
+  const longest = items.reduce(
+    (n, item) =>
+      Math.max(n, item.count === null ? 1 : formatCount(item.count).length + (negated ? 1 : 0)),
+    0,
+  )
   if (longest <= 3) return "w-8"
   if (longest <= 5) return "w-10"
   return "w-12"
@@ -48,18 +69,25 @@ function countLane(items: ColumnItem[]) {
  * One level of the drill-down. Rows use fixed-width lanes — lead, label,
  * count, chevron — and the column header sits on the same lanes, so the
  * numbers line up down the panel and the headings line up across it.
+ *
+ * A value row is two controls in one line: the box ticks the value into the
+ * query, the rest of the row opens what is underneath it. Rows with nothing
+ * underneath tick from anywhere along the row, since there is nothing else
+ * for a click to mean.
  */
 export function MillerColumn({
   column,
   onOpen,
+  onToggle,
   className,
 }: {
   column: ColumnModel
-  onOpen: (item: ColumnItem) => void
+  onOpen: (label: string) => void
+  onToggle?: (label: string) => void
   className?: string
 }) {
   const selected = new Set(column.selected ?? [])
-  const lane = countLane(column.items)
+  const lane = countLane(column.items, column.negated)
   const hasDrill = column.items.some((item) => item.drillable)
 
   return (
@@ -80,7 +108,7 @@ export function MillerColumn({
         {column.search ? null : (
           <>
             <span className="text-muted-foreground/70 shrink-0 text-right text-[10px] font-medium tracking-[0.09em] uppercase">
-              {column.unit ?? "Drugs"}
+              {column.negated ? "Excludes" : (column.unit ?? "Drugs")}
             </span>
             {hasDrill ? <span className="w-3 shrink-0" aria-hidden /> : null}
           </>
@@ -104,36 +132,52 @@ export function MillerColumn({
             const isSelected = selected.has(item.label)
             const isOpen = column.open === item.label
             const badge = column.badges?.[item.label]
+            const empty = item.count === 0
+            // With nothing underneath it, the row body has only one job.
+            const bodyTicks = Boolean(column.selectable && onToggle && !item.drillable)
 
             return (
-              <li key={item.label}>
+              <li
+                key={item.label}
+                className={cn(
+                  "relative flex h-7 items-center rounded-md transition-colors",
+                  "hover:bg-accent",
+                  (isSelected || isOpen) && "bg-accent",
+                  isOpen &&
+                    "before:bg-foreground before:absolute before:top-1 before:bottom-1 before:left-0 before:w-[2px] before:rounded-full",
+                )}
+              >
+                {/* Lead lane: the tick box, or how many values are applied inside this row. */}
+                <span className="flex w-6 shrink-0 items-center justify-center">
+                  {column.selectable && onToggle ? (
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => onToggle(item.label)}
+                      aria-label={`${isSelected ? "Remove" : "Add"} ${item.label}`}
+                      className="size-3.5"
+                    />
+                  ) : badge ? (
+                    <span className="bg-foreground text-background flex size-4 items-center justify-center rounded-full text-[9px] font-medium tabular-nums">
+                      {badge}
+                    </span>
+                  ) : null}
+                </span>
+
                 <button
                   type="button"
-                  onClick={() => onOpen(item)}
+                  onClick={() => {
+                    if (bodyTicks) onToggle?.(item.label)
+                    else if (item.drillable) onOpen(item.label)
+                  }}
                   title={item.label}
                   aria-current={isOpen ? "true" : undefined}
-                  className={cn(
-                    "relative flex h-7 w-full items-center gap-1.5 rounded-md pr-1.5 pl-2 text-left transition-colors",
-                    "hover:bg-accent",
-                    (isSelected || isOpen) && "bg-accent",
-                    isOpen &&
-                      "before:bg-foreground before:absolute before:top-1 before:bottom-1 before:left-0 before:w-[2px] before:rounded-full",
-                  )}
+                  className="flex h-7 min-w-0 flex-1 items-center gap-1.5 pr-1.5 text-left"
                 >
-                  {/* Lead lane: how many values are applied inside this row, or a tick. */}
-                  <span className="flex w-4 shrink-0 justify-center">
-                    {badge ? (
-                      <span className="bg-foreground text-background flex size-4 items-center justify-center rounded-full text-[9px] font-medium tabular-nums">
-                        {badge}
-                      </span>
-                    ) : isSelected ? (
-                      <CheckIcon className="size-3" strokeWidth={3} />
-                    ) : null}
-                  </span>
                   <span
                     className={cn(
                       "min-w-0 flex-1 truncate text-[12px]",
                       isSelected ? "font-medium" : "text-foreground/90",
+                      empty && !isSelected && "text-muted-foreground/60",
                     )}
                   >
                     {item.label}
@@ -142,10 +186,18 @@ export function MillerColumn({
                     className={cn(
                       "shrink-0 text-right text-[11px] tabular-nums",
                       lane,
-                      isSelected ? "text-foreground" : "text-muted-foreground",
+                      isSelected
+                        ? "text-foreground"
+                        : empty
+                          ? "text-muted-foreground/50"
+                          : "text-muted-foreground",
                     )}
                   >
-                    {formatCount(item.count)}
+                    {item.count === null
+                      ? "—"
+                      : column.negated && item.count > 0
+                        ? `−${formatCount(item.count)}`
+                        : formatCount(item.count)}
                   </span>
                   {hasDrill ? (
                     <span className="flex w-3 shrink-0 justify-center">
