@@ -3,8 +3,14 @@ import { CheckIcon, ChevronRightIcon, SearchIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ColumnItem } from "@/flows/sprint-3/idea-2/data"
 
-/** Counts above ten thousand compact so the number lane stays one width. */
+/**
+ * Counts above ten thousand compact so the number lane stays one width. Zero
+ * is an em dash rather than a `0` — the only rows that carry it are free-text
+ * attributes, which have no value list to count, and `0` would read as a dead
+ * end rather than a different kind of row.
+ */
 export function formatCount(n: number) {
+  if (n === 0) return "—"
   if (n < 10_000) return n.toLocaleString("en-GB")
   return `${(n / 1000).toFixed(1)}k`
 }

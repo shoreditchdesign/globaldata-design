@@ -271,14 +271,26 @@ export const addableClauses: Clause[] = [
 /* The count                                                                   */
 /* -------------------------------------------------------------------------- */
 
+/** Whether a clause keeps or drops the rows it matches. Include by default. */
+function clauseMode(clause: Clause) {
+  const operator = clause.operator
+  if (!operator) return "include"
+  return operator.options.find((o) => o.word === operator.selected)?.mode ?? "include"
+}
+
 function clauseFactor(clause: Clause) {
-  const share = clause.options
+  const shares = clause.options
     .filter((option) => clause.selected.includes(option.value))
-    .reduce((total, option) => total + option.share, 0)
+    .map((option) => option.share)
+  // `or` is a union of the shares, `and` an intersection under independence —
+  // so flipping the joining word moves the count the same way it moves the
+  // rows, instead of leaving the two disagreeing.
+  const share =
+    clause.join === "and"
+      ? shares.reduce((total, value) => total * value, 1)
+      : shares.reduce((total, value) => total + value, 0)
   const clamped = Math.min(0.98, Math.max(0.005, share))
-  return clause.operator?.options.find((o) => o.word === clause.operator?.selected)?.mode === "exclude"
-    ? 1 - clamped
-    : clamped
+  return clauseMode(clause) === "exclude" ? 1 - clamped : clamped
 }
 
 /** Deterministic stand-in for a server count. See the note at the top. */
@@ -304,37 +316,112 @@ export const suggestedQueries = [
 /* Results                                                                     */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * One row of the sample. Beyond the four columns the table draws, every row
+ * carries the attribute each clause tests, so the set on screen can be
+ * filtered against the sentence rather than only counted against it.
+ */
 export interface ResultRow {
   name: string
   generic: string
   company: string
+  /* Attributes the sentence filters on, one per clause. */
+  drugType: string
+  descriptor: string
   target: string
+  geographies: string[]
   stage: string
-  geography: string
   route: string
+  moleculeType: string
+  regimen: string
+  atc: string
+  applicationType: string
 }
 
 /**
  * Page one of the resolved set. Every row satisfies the worked example —
- * generic, anti-inflammatory, ACTG2, Phase II/III, oral or IV, and never
- * Austria or Italy. A filtered table looks repetitive; that is the evidence
- * the sentence did what it says.
+ * generic, anti-inflammatory, ACTG2, Phase II/III, oral or IV, small molecule,
+ * and never Austria or Italy. A filtered table looks repetitive; that is the
+ * evidence the sentence did what it says.
+ *
+ * The three attributes the sentence does not name yet — regimen, ATC class and
+ * application type — vary across the sample, so adding one of those conditions
+ * visibly cuts the set rather than leaving it untouched.
  */
+const M01A = "M01A — Antiinflammatory and Antirheumatic, Non-Steroids"
+const N02B = "N02B — Other Analgesics and Antipyretics"
+const ANDA = "Abbreviated New Drug Application"
+const NDA = "New Drug Application"
+const ACTG2 = "Actin Gamma Enteric Smooth Muscle"
+
+/** Fields every row of this sample shares, because the sentence selected them. */
+const seeded = {
+  drugType: "Generic",
+  descriptor: "Antiinflammatory Therapy",
+  target: ACTG2,
+  moleculeType: "Small Molecule",
+} as const
+
 export const resultRows: ResultRow[] = [
-  { name: "Rebalzid", generic: "Nabumetone Sodium", company: "Zydus Lifesciences", target: "Actin Gamma Enteric Smooth Muscle", stage: "Phase III", geography: "United States, Canada", route: "Oral" },
-  { name: "NVR-2210", generic: "Tenoxicam Besilate", company: "Sandoz", target: "Actin Gamma Enteric Smooth Muscle", stage: "Phase II", geography: "Germany, France", route: "Oral" },
-  { name: "Aclovent", generic: "Aceclofenac", company: "Glenmark Pharmaceuticals", target: "Actin Gamma Enteric Smooth Muscle", stage: "Phase III", geography: "India, United Kingdom", route: "Oral" },
-  { name: "LRX-118", generic: "Lornoxicam Trometamol", company: "Hikma Pharmaceuticals", target: "Actin Gamma Enteric Smooth Muscle", stage: "Phase II", geography: "United States", route: "Intravenous" },
-  { name: "Nimesta", generic: "Nimesulide", company: "Alkem Laboratories", target: "Actin Gamma Enteric Smooth Muscle", stage: "Phase II", geography: "Brazil, Mexico", route: "Oral" },
-  { name: "Etodex", generic: "Etodolac", company: "Teva Pharmaceutical", target: "Actin Gamma Enteric Smooth Muscle", stage: "Phase III", geography: "United States, Japan", route: "Oral" },
-  { name: "FBP-940", generic: "Flurbiprofen Axetil", company: "Sun Pharmaceutical", target: "Actin Gamma Enteric Smooth Muscle", stage: "Phase II", geography: "Japan, South Korea", route: "Intravenous" },
-  { name: "Tolfamex", generic: "Tolfenamic Acid", company: "Krka", target: "Actin Gamma Enteric Smooth Muscle", stage: "Phase III", geography: "Poland, Sweden", route: "Oral" },
-  { name: "Dexket-IR", generic: "Dexketoprofen Trometamol", company: "Viatris", target: "Actin Gamma Enteric Smooth Muscle", stage: "Phase III", geography: "Spain, Netherlands", route: "Oral" },
-  { name: "ZLT-206", generic: "Zaltoprofen", company: "Dr. Reddy's Laboratories", target: "Actin Gamma Enteric Smooth Muscle", stage: "Phase II", geography: "Japan", route: "Oral" },
-  { name: "Loxoril", generic: "Loxoprofen Sodium", company: "Aurobindo Pharma", target: "Actin Gamma Enteric Smooth Muscle", stage: "Phase II", geography: "United States, Canada", route: "Oral" },
-  { name: "AMG-441", generic: "Amtolmetin Guacil", company: "Amneal Pharmaceuticals", target: "Actin Gamma Enteric Smooth Muscle", stage: "Phase III", geography: "United States", route: "Oral" },
-  { name: "Bromfelex", generic: "Bromfenac Sodium", company: "Cipla", target: "Actin Gamma Enteric Smooth Muscle", stage: "Phase II", geography: "India, Australia", route: "Intravenous" },
-  { name: "Oxaproz-XR", generic: "Oxaprozin Potassium", company: "Lupin", target: "Actin Gamma Enteric Smooth Muscle", stage: "Phase III", geography: "United States, Germany", route: "Oral" },
-  { name: "FNP-073", generic: "Fenoprofen Calcium", company: "Torrent Pharmaceuticals", target: "Actin Gamma Enteric Smooth Muscle", stage: "Phase II", geography: "United Kingdom, Switzerland", route: "Oral" },
-  { name: "Sulindal", generic: "Sulindac Sulfone", company: "Stada Arzneimittel", target: "Actin Gamma Enteric Smooth Muscle", stage: "Phase III", geography: "Germany, France", route: "Oral" },
+  { name: "Rebalzid", generic: "Nabumetone Sodium", company: "Zydus Lifesciences", ...seeded, stage: "Phase III", geographies: ["United States", "Canada"], route: "Oral", regimen: "Mono", atc: M01A, applicationType: ANDA },
+  { name: "NVR-2210", generic: "Tenoxicam Besilate", company: "Sandoz", ...seeded, stage: "Phase II", geographies: ["Germany", "France"], route: "Oral", regimen: "Mono", atc: M01A, applicationType: ANDA },
+  { name: "Aclovent", generic: "Aceclofenac", company: "Glenmark Pharmaceuticals", ...seeded, stage: "Phase III", geographies: ["India", "United Kingdom"], route: "Oral", regimen: "Combination", atc: M01A, applicationType: ANDA },
+  { name: "LRX-118", generic: "Lornoxicam Trometamol", company: "Hikma Pharmaceuticals", ...seeded, stage: "Phase II", geographies: ["United States"], route: "Intravenous", regimen: "Mono", atc: M01A, applicationType: NDA },
+  { name: "Nimesta", generic: "Nimesulide", company: "Alkem Laboratories", ...seeded, stage: "Phase II", geographies: ["Brazil", "Mexico"], route: "Oral", regimen: "Mono", atc: N02B, applicationType: ANDA },
+  { name: "Etodex", generic: "Etodolac", company: "Teva Pharmaceutical", ...seeded, stage: "Phase III", geographies: ["United States", "Japan"], route: "Oral", regimen: "Mono", atc: M01A, applicationType: ANDA },
+  { name: "FBP-940", generic: "Flurbiprofen Axetil", company: "Sun Pharmaceutical", ...seeded, stage: "Phase II", geographies: ["Japan", "South Korea"], route: "Intravenous", regimen: "Mono", atc: M01A, applicationType: NDA },
+  { name: "Tolfamex", generic: "Tolfenamic Acid", company: "Krka", ...seeded, stage: "Phase III", geographies: ["Poland", "Sweden"], route: "Oral", regimen: "Mono", atc: M01A, applicationType: ANDA },
+  { name: "Dexket-IR", generic: "Dexketoprofen Trometamol", company: "Viatris", ...seeded, stage: "Phase III", geographies: ["Spain", "Netherlands"], route: "Oral", regimen: "Combination", atc: N02B, applicationType: ANDA },
+  { name: "ZLT-206", generic: "Zaltoprofen", company: "Dr. Reddy's Laboratories", ...seeded, stage: "Phase II", geographies: ["Japan"], route: "Oral", regimen: "Mono", atc: M01A, applicationType: ANDA },
+  { name: "Loxoril", generic: "Loxoprofen Sodium", company: "Aurobindo Pharma", ...seeded, stage: "Phase II", geographies: ["United States", "Canada"], route: "Oral", regimen: "Mono", atc: M01A, applicationType: ANDA },
+  { name: "AMG-441", generic: "Amtolmetin Guacil", company: "Amneal Pharmaceuticals", ...seeded, stage: "Phase III", geographies: ["United States"], route: "Oral", regimen: "Mono", atc: M01A, applicationType: NDA },
+  { name: "Bromfelex", generic: "Bromfenac Sodium", company: "Cipla", ...seeded, stage: "Phase II", geographies: ["India", "Australia"], route: "Intravenous", regimen: "Mono", atc: M01A, applicationType: ANDA },
+  { name: "Oxaproz-XR", generic: "Oxaprozin Potassium", company: "Lupin", ...seeded, stage: "Phase III", geographies: ["United States", "Germany"], route: "Oral", regimen: "Mono", atc: M01A, applicationType: ANDA },
+  { name: "FNP-073", generic: "Fenoprofen Calcium", company: "Torrent Pharmaceuticals", ...seeded, stage: "Phase II", geographies: ["United Kingdom", "Switzerland"], route: "Oral", regimen: "Combination", atc: M01A, applicationType: ANDA },
+  { name: "Sulindal", generic: "Sulindac Sulfone", company: "Stada Arzneimittel", ...seeded, stage: "Phase III", geographies: ["Germany", "France"], route: "Oral", regimen: "Mono", atc: M01A, applicationType: ANDA },
 ]
+
+/* -------------------------------------------------------------------------- */
+/* Filtering the sample                                                        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The attribute each clause reads off a row, keyed by clause id. Every clause
+ * the sentence can hold has an entry, so no edit can move the count without
+ * also moving the rows — the failure this direction cannot afford.
+ */
+const clauseField: Record<string, (row: ResultRow) => string[]> = {
+  "drug-type": (row) => [row.drugType],
+  descriptor: (row) => [row.descriptor],
+  target: (row) => [row.target],
+  geography: (row) => row.geographies,
+  stage: (row) => [row.stage],
+  route: (row) => [row.route],
+  molecule: (row) => [row.moleculeType],
+  mono: (row) => [row.regimen],
+  atc: (row) => [row.atc],
+  application: (row) => [row.applicationType],
+}
+
+/**
+ * The sample, filtered against the sentence in memory. Sixteen fixed rows and
+ * a predicate — still no filter engine, still nothing fetched, but what is on
+ * screen now agrees with what the sentence says.
+ *
+ * A clause with no entry in `clauseField` is left unevaluated and its rows are
+ * kept, rather than silently dropped as though it had been applied.
+ */
+export function matchingRows(clauses: Clause[]) {
+  return resultRows.filter((row) =>
+    clauses.every((clause) => {
+      const read = clauseField[clause.id]
+      if (!read) return true
+      const values = read(row)
+      const hit =
+        clause.join === "and"
+          ? clause.selected.every((value) => values.includes(value))
+          : clause.selected.some((value) => values.includes(value))
+      return clauseMode(clause) === "exclude" ? !hit : hit
+    }),
+  )
+}

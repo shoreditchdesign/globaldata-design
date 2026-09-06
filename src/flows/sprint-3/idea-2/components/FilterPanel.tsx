@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ChevronRightIcon, ChevronsLeftIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -17,8 +17,36 @@ import {
 } from "@/flows/sprint-3/idea-2/data"
 import { MillerColumn, type ColumnModel } from "@/flows/sprint-3/idea-2/components/MillerColumn"
 
-/** How many columns are on screen at once before the rest go to the breadcrumb. */
-const MAX_COLUMNS = 3
+/**
+ * How many columns are on screen at once before the rest go to the breadcrumb.
+ *
+ * The panel is 40% of the window, so the arithmetic is fixed: three columns
+ * split it 1.25 : 1 : 1, and the attribute column needs about 240px before
+ * `Therapy Area / Indication` stops ellipsising — 625px of panel, so 1560px of
+ * window, taken to 1600 for a little headroom. Below that the panel drops to
+ * two columns, each wide enough for the longest label in the set, and the
+ * breadcrumb carries the extra depth — which is what the breadcrumb is for.
+ * Three columns of ellipses say less than two readable ones.
+ */
+const THREE_COLUMN_MIN_WIDTH = 1600
+const WIDE_COLUMNS = 3
+const NARROW_COLUMNS = 2
+
+function useMaxColumns() {
+  // Server-render the wide case, then correct on mount — the prototype is
+  // opened on a desktop, so the wide case is the right first paint.
+  const [maxColumns, setMaxColumns] = useState(WIDE_COLUMNS)
+
+  useEffect(() => {
+    const query = window.matchMedia(`(min-width: ${THREE_COLUMN_MIN_WIDTH}px)`)
+    const apply = () => setMaxColumns(query.matches ? WIDE_COLUMNS : NARROW_COLUMNS)
+    apply()
+    query.addEventListener("change", apply)
+    return () => query.removeEventListener("change", apply)
+  }, [])
+
+  return maxColumns
+}
 
 /** What the rows of a value column are called, where the attribute name is too long. */
 const valueLevel: Record<string, string> = {
@@ -46,8 +74,12 @@ const childLevel: Record<string, { level: string; placeholder: string }> = {
  * the navigation is live.
  */
 export function FilterPanel({ className }: { className?: string }) {
+  const maxColumns = useMaxColumns()
   const [path, setPath] = useState<string[]>(defaultPath)
-  const [leftIndex, setLeftIndex] = useState(1)
+  // Overshoot, clamped on render: the panel always opens on the rightmost
+  // window, so dropping to two columns folds the shallow end into the
+  // breadcrumb rather than hiding the level the user drilled to.
+  const [leftIndex, setLeftIndex] = useState(WIDE_COLUMNS)
 
   const [area, attribute, value, leaf] = path
 
@@ -69,6 +101,7 @@ export function FilterPanel({ className }: { className?: string }) {
       level: "Attribute",
       placeholder: "Search attributes",
       items: attributeItems,
+      unit: "Values",
       wide: true,
       open: attribute,
       selected: Object.keys(selectedValues),
@@ -101,9 +134,9 @@ export function FilterPanel({ className }: { className?: string }) {
     })
   }
 
-  const maxLeft = Math.max(0, columns.length - MAX_COLUMNS)
+  const maxLeft = Math.max(0, columns.length - maxColumns)
   const start = Math.min(leftIndex, maxLeft)
-  const visible = columns.slice(start, start + MAX_COLUMNS)
+  const visible = columns.slice(start, start + maxColumns)
 
   function openAt(depth: number, item: ColumnItem) {
     // The filter areas other than Drugs have no attribute set in this prototype.
@@ -112,7 +145,7 @@ export function FilterPanel({ className }: { className?: string }) {
     setPath([...path.slice(0, depth), item.label])
     // Always land on the rightmost window — clamped on render, so overshooting
     // is how "follow the drill-down" is expressed.
-    setLeftIndex(MAX_COLUMNS)
+    setLeftIndex(maxColumns)
   }
 
   const appliedAttributes = Object.keys(selectedValues).length

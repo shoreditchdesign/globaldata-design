@@ -153,26 +153,6 @@ export const rows: DrugRecord[] = [
     geographies: ["United States", "Canada", "United Kingdom", "Germany"],
   },
   {
-    id: "rocatinlimab",
-    name: "Rocatinlimab",
-    company: "Amgen",
-    therapyAreas: ["Immunology"],
-    indications: ["Atopic Dermatitis", "Prurigo Nodularis", "Asthma"],
-    stage: "Phase III",
-    moleculeType: "Monoclonal Antibody",
-    routes: ["Subcutaneous"],
-    geographies: [
-      "United States",
-      "Japan",
-      "Germany",
-      "United Kingdom",
-      "France",
-      "Italy",
-      "Canada",
-      "Australia",
-    ],
-  },
-  {
     id: "patritumab",
     name: "Patritumab Deruxtecan",
     company: "Merck & Co",
@@ -294,6 +274,31 @@ export const rows: DrugRecord[] = [
       "France",
       "Japan",
       "Netherlands",
+    ],
+  },
+  {
+    // The record expanded in the default frame. It sits this far down the set
+    // on purpose: the open column menu drops roughly ten rows deep, so a record
+    // expanded above this line opens its detail band underneath the popover,
+    // and the two things this direction argues for hide each other. Its values
+    // are also short enough that the band stays clear of the menu sideways.
+    id: "rocatinlimab",
+    name: "Rocatinlimab",
+    company: "Amgen",
+    therapyAreas: ["Immunology"],
+    indications: ["Atopic Dermatitis", "Prurigo Nodularis", "Asthma"],
+    stage: "Phase III",
+    moleculeType: "Monoclonal Antibody",
+    routes: ["Subcutaneous"],
+    geographies: [
+      "United States",
+      "Japan",
+      "Germany",
+      "United Kingdom",
+      "France",
+      "Italy",
+      "Canada",
+      "Australia",
     ],
   },
   {
