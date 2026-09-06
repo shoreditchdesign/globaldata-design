@@ -16,6 +16,8 @@ export const sprint2Idea3: Flow = {
     "Tests whether the result set updating mid-conversation is clarifying or disorienting.",
   ],
   source: "New exploration — no Paper source",
+  lastUpdated: "2026-08-29",
+  tags: ["Conversational", "Filter stack", "Multi-turn"],
   status: "placeholder",
   screens: [
     {

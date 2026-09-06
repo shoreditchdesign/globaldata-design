@@ -21,7 +21,7 @@ export function ResultsTable({ variant = "filtered" }: { variant?: "filtered" | 
   const unfiltered = variant === "unfiltered"
 
   return (
-    <div className="px-6">
+    <div className="px-6 pb-6">
       <div className="overflow-hidden rounded-lg border">
         <table className="w-full border-collapse text-sm">
           <thead>

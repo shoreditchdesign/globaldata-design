@@ -1,5 +1,6 @@
-import { SprintOverview } from "@/components/prototype/SprintOverview"
+import { redirect } from "next/navigation"
 
+/** The landing table replaced the sprint overview — send anyone here back to it. */
 export default function Page() {
-  return <SprintOverview sprintId="sprint-2" />
+  redirect("/")
 }

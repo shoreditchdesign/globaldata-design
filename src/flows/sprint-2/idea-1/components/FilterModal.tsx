@@ -19,8 +19,8 @@ export function FilterModal({
   children: React.ReactNode
 }) {
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-black/25 px-6">
-      <div className="bg-background relative flex h-[750px] w-full max-w-[1055px] overflow-hidden rounded-2xl shadow-2xl">
+    <div className="absolute inset-0 flex items-center justify-center bg-black/25 px-6 py-6">
+      <div className="bg-background relative flex h-full max-h-[750px] w-full max-w-[1055px] overflow-hidden rounded-2xl shadow-2xl">
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="px-6 pt-6">
             <div className="bg-muted inline-flex rounded-full p-1">

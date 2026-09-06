@@ -28,6 +28,8 @@ export const sprint2Idea1: Flow = {
     "Tests whether users trust a parsed query they can see and correct.",
   ],
   source: "Paper — Natural Language / Manual Filter Integration",
+  lastUpdated: "2026-09-04",
+  tags: ["Natural language", "Filter rail", "Paper port"],
   status: "in-progress",
   screens: [
     { slug: "results", title: "Results", note: "285,529 drugs, no filters yet.", component: Results },

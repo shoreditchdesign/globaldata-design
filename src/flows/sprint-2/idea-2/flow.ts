@@ -16,6 +16,8 @@ export const sprint2Idea2: Flow = {
     "Tests whether the audience will trade familiarity for expressive power.",
   ],
   source: "New exploration — no Paper source",
+  lastUpdated: "2026-08-28",
+  tags: ["Canvas", "Boolean logic", "Spatial"],
   status: "placeholder",
   screens: [
     {
