@@ -8,7 +8,7 @@ export const sprints: Sprint[] = [
   {
     id: "sprint-3",
     name: "Sprint 3",
-    goal: "Natural-language search over the GlobalData filter model — the reviewed design as a baseline, against two new directions.",
+    goal: "Natural-language search over the GlobalData filter model — the reviewed design as a baseline, against three new directions.",
     ideas: [sprint3Idea1, sprint3Idea2, sprint3Idea3, sprint3Idea4],
   },
 ]

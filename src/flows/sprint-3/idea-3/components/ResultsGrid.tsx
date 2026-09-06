@@ -1,29 +1,36 @@
 import { ArrowUpDownIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
-import { resultRows } from "@/flows/sprint-3/idea-3/data"
+import type { ResultRow } from "@/flows/sprint-3/idea-3/data"
 
 const columns = [
-  { key: "name", label: "Drug name" },
-  { key: "generic", label: "Generic name" },
+  { key: "name", label: "Drug Name" },
+  { key: "generic", label: "Generic Name" },
   { key: "company", label: "Company" },
   { key: "target", label: "Target" },
-  { key: "stage", label: "Development stage" },
-  { key: "route", label: "Route" },
-  { key: "geography", label: "Drug geography" },
+  { key: "stage", label: "Development Stage" },
+  { key: "route", label: "Route of Administration" },
+  { key: "geography", label: "Drug Geography" },
 ] as const
 
 /**
  * Results sit under the sentence on the same screen — the query and its answer
  * are never on separate pages. The header row is sticky so the columns stay
  * readable as the set is scrolled.
+ *
+ * The rows are the sample filtered against the sentence, not a fixed page: an
+ * edit that moves the count moves the table with it. When the sentence rules
+ * out every row in the sample the table says so rather than padding itself out
+ * with drugs the sentence excludes.
  */
-export function ResultsGrid({ total }: { total: number }) {
+export function ResultsGrid({ rows, total }: { rows: ResultRow[]; total: number }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="text-muted-foreground flex shrink-0 items-center justify-between px-6 py-2.5 text-xs">
         <span className="tabular-nums">
-          Showing 1–{resultRows.length} of {total.toLocaleString()}
+          {rows.length === 0
+            ? `No drugs on this page match · ${total.toLocaleString()} in the set`
+            : `Showing 1–${rows.length} of ${total.toLocaleString()}`}
         </span>
         <span>Sorted by relevance</span>
       </div>
@@ -45,21 +52,34 @@ export function ResultsGrid({ total }: { total: number }) {
             </tr>
           </thead>
           <tbody>
-            {resultRows.map((row, i) => (
-              <tr key={`${row.name}-${i}`} className="hover:bg-muted/40 border-b last:border-0">
-                <td className="px-4 py-2.5 font-medium whitespace-nowrap">{row.name}</td>
-                <td className="text-muted-foreground px-4 py-2.5 whitespace-nowrap">{row.generic}</td>
-                <td className="text-muted-foreground px-4 py-2.5 whitespace-nowrap">{row.company}</td>
-                <td className="text-muted-foreground px-4 py-2.5 whitespace-nowrap">{row.target}</td>
-                <td className="px-4 py-2.5">
-                  <Badge variant="outline" className="font-normal">
-                    {row.stage}
-                  </Badge>
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length} className="px-4 py-10 text-center">
+                  <p className="text-[13px] font-medium">No drugs on this page match the sentence</p>
+                  <p className="text-muted-foreground mt-1 text-xs">
+                    Widen a condition, or undo the last edit.
+                  </p>
                 </td>
-                <td className="text-muted-foreground px-4 py-2.5 whitespace-nowrap">{row.route}</td>
-                <td className="text-muted-foreground px-4 py-2.5 whitespace-nowrap">{row.geography}</td>
               </tr>
-            ))}
+            ) : (
+              rows.map((row, i) => (
+                <tr key={`${row.name}-${i}`} className="hover:bg-muted/40 border-b last:border-0">
+                  <td className="px-4 py-2.5 font-medium whitespace-nowrap">{row.name}</td>
+                  <td className="text-muted-foreground px-4 py-2.5 whitespace-nowrap">{row.generic}</td>
+                  <td className="text-muted-foreground px-4 py-2.5 whitespace-nowrap">{row.company}</td>
+                  <td className="text-muted-foreground px-4 py-2.5 whitespace-nowrap">{row.target}</td>
+                  <td className="px-4 py-2.5">
+                    <Badge variant="outline" className="font-normal">
+                      {row.stage}
+                    </Badge>
+                  </td>
+                  <td className="text-muted-foreground px-4 py-2.5 whitespace-nowrap">{row.route}</td>
+                  <td className="text-muted-foreground px-4 py-2.5 whitespace-nowrap">
+                    {row.geographies.join(", ")}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

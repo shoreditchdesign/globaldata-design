@@ -20,6 +20,7 @@ import {
   BASE_COUNT,
   addableClauses,
   exampleClauses,
+  matchingRows,
   originalPrompt,
   resultCount,
   suggestedQueries,
@@ -95,6 +96,9 @@ export function QueryWorkbench() {
   )
 
   const total = resultCount(clauses)
+  // The sample, filtered against the sentence — so an edit never moves the
+  // count without moving the table underneath it.
+  const rows = matchingRows(clauses)
   const empty = clauses.length === 0
 
   return (
@@ -193,7 +197,7 @@ export function QueryWorkbench() {
         </div>
       </section>
 
-      <ResultsGrid total={total} />
+      <ResultsGrid rows={rows} total={total} />
     </div>
   )
 }

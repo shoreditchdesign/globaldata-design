@@ -45,35 +45,6 @@ export const areaItems: ColumnItem[] = filterAreas.map((label) => ({
 }))
 
 /**
- * Level 2 — attributes of Drugs. The count is how many of the 146 remaining
- * drugs carry a value for that attribute, so the user can see which attributes
- * can actually discriminate before spending a click on one.
- */
-const attributeCoverage: Record<string, number> = {
-  "Drug Name": 146,
-  "Therapy Area / Indication": 146,
-  "Development Stage": 146,
-  "Drug Geography": 146,
-  "Route of Administration": 141,
-  "Molecule Type": 138,
-  Target: 119,
-  "Mechanism of Action": 127,
-  "ATC Classification": 104,
-  "Drug Type": 146,
-  "Mono/Combination Drug": 144,
-  "Drug Descriptor": 98,
-  "Gene Therapy Vector": 11,
-  "Application Type": 132,
-  "CAS Number": 87,
-}
-
-export const attributeItems: ColumnItem[] = drugAttributes.map((label) => ({
-  label,
-  count: attributeCoverage[label] ?? 0,
-  drillable: true,
-}))
-
-/**
  * Attributes with no value list — free text in the real product. Their column
  * is a search field rather than a list of options.
  */
@@ -192,6 +163,21 @@ export const valuesByAttribute: Record<string, ColumnItem[]> = {
     { label: "ANDA", count: 15 },
   ],
 }
+
+/**
+ * Level 2 — attributes of Drugs. The number is how many distinct values the
+ * attribute still has inside the current set — the same rows the next column
+ * will show — so it says how far an attribute can actually split the 146
+ * before a click is spent on it. A drug-count here would read 146 against
+ * nearly every attribute and discriminate nothing.
+ *
+ * Free-text attributes have no value list, so they carry no number.
+ */
+export const attributeItems: ColumnItem[] = drugAttributes.map((label) => ({
+  label,
+  count: valuesByAttribute[label]?.length ?? 0,
+  drillable: true,
+}))
 
 /**
  * Level 4 — what sits under a value. Only the values that carry `drillable`
