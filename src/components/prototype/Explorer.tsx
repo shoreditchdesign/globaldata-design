@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useSyncExternalStore } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon, XIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -79,7 +78,6 @@ export function Explorer({
   ideaId: string
   screenSlug: string
 }) {
-  const router = useRouter()
   const hydrated = useHydrated()
   const open = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 
@@ -160,9 +158,15 @@ export function Explorer({
       <Separator />
 
       <div className="flex items-center gap-1 px-2 py-2">
-        <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => router.back()}>
-          <ArrowLeftIcon className="size-3.5" />
-          Back
+        {/*
+          An explicit route up, not `router.back()` — a screen URL opened cold has
+          no history to go back to, and the button would do nothing visible.
+        */}
+        <Button asChild size="sm" variant="ghost" className="h-7 px-2">
+          <Link href="/">
+            <ArrowLeftIcon className="size-3.5" />
+            All sprints
+          </Link>
         </Button>
         <div className="ml-auto flex items-center gap-1">
           <Button
@@ -260,9 +264,6 @@ export function Explorer({
       <Separator />
 
       <div className="flex items-center gap-2 px-3 py-2">
-        <Link href="/" className="text-muted-foreground hover:text-foreground text-xs">
-          All sprints
-        </Link>
         <Link
           href={`/${sprintId}/compare`}
           className="text-muted-foreground hover:text-foreground text-xs"

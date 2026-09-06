@@ -21,10 +21,10 @@ pnpm lint
 | Route | What it is |
 |-------|------------|
 | `/` | The index — a table of sprints and ideas. The only navigation surface. |
-| `/sprint-2` | Redirects to `/` |
-| `/sprint-2/idea-1` | Redirects to the first screen of that idea |
-| `/sprint-2/idea-1/results` | One screen of the flow, full bleed, no harness |
-| `/sprint-2/compare` | Ideas side by side, stepped through together (Explorer only) |
+| `/sprint-3` | Redirects to `/` |
+| `/sprint-3/idea-1` | Redirects to the first screen of that idea |
+| `/sprint-3/idea-1/results` | One screen of the flow, full bleed, no harness |
+| `/sprint-3/compare` | Ideas side by side, stepped through together (Explorer only) |
 
 Prototype screens render alone, filling the viewport. Navigation lives in the **Explorer**, a
 floating panel toggled with **Cmd+Shift+E** (Ctrl+Shift+E elsewhere); Esc closes it. It is mounted
