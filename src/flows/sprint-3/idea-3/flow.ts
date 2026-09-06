@@ -23,7 +23,7 @@ export const sprint3Idea3: Flow = {
     "Tests: can AI replace the filter UI rather than sit beside it. Fewest clicks of the three, highest trust risk.",
   ],
   source: "Sprint 1, approach 3 (Search Priority) taken to its conclusion — no Paper source",
-  lastUpdated: "2026-09-06",
+  lastUpdated: "2026-09-07",
   tags: ["Natural language", "Editable sentence", "Inline Boolean", "Non-modal", "Fewest clicks"],
   status: "in-progress",
   screens: [
@@ -37,7 +37,7 @@ export const sprint3Idea3: Flow = {
     {
       slug: "sentence",
       title: "Query as a sentence",
-      note: "Seven clauses resolved, 453 drugs, results beneath. Clauses, operators and values are all editable in place.",
+      note: "Seven clauses resolved, 453 drugs, sixteen of the seventy-eight sample rows beneath. Clauses, operators and values are all editable in place, and `edit as text` runs the reading backwards.",
       viewport: "desktop",
       component: Sentence,
     },

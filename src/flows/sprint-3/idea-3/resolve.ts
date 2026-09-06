@@ -72,8 +72,8 @@ interface Matcher {
   /** Canonical values this phrase selects. More than one for `phase 2/3`. */
   values: string[]
   patterns: string[]
-  /** Guard against a phrase that means something else in context. */
-  notAfter?: string
+  /** Words that, immediately before this phrase, mean it is not this value. */
+  notAfter?: string[]
 }
 
 /**
@@ -113,6 +113,33 @@ const synonyms: Record<string, string[]> = {
     "anticancer",
     "tumour drugs",
   ],
+  "descriptor:Antiviral Therapy": [
+    "antiviral",
+    "antivirals",
+    "antiretroviral",
+    "antiretrovirals",
+    "hiv",
+  ],
+  "descriptor:Antidiabetic Therapy": ["antidiabetic", "antidiabetics", "diabetes", "diabetic"],
+  "descriptor:Antibacterial Therapy": [
+    "antibacterial",
+    "antibacterials",
+    "antibiotic",
+    "antibiotics",
+  ],
+  "descriptor:Antihypertensive Therapy": [
+    "antihypertensive",
+    "antihypertensives",
+    "hypertension",
+    "blood pressure",
+  ],
+  "descriptor:Antiasthmatic Therapy": [
+    "antiasthmatic",
+    "antiasthmatics",
+    "asthma",
+    "copd",
+    "respiratory",
+  ],
 
   "target:Actin Gamma Enteric Smooth Muscle": ["actg2", "actin gamma", "actin gamma 2"],
   "target:Cyclooxygenase 2": ["cox 2", "cox2", "ptgs2"],
@@ -120,13 +147,33 @@ const synonyms: Record<string, string[]> = {
   "target:Tumor Necrosis Factor": ["tnf", "tnf alpha", "tumour necrosis factor"],
   "target:Interleukin 6 Receptor": ["il 6", "il6", "interleukin 6", "il 6 receptor"],
   "target:Prostaglandin E Synthase": ["pges", "mpges 1", "prostaglandin e"],
+  "target:Janus Kinase 1": ["jak 1", "jak1", "jak inhibitor", "jak inhibitors"],
+  "target:Interleukin 17A": ["il 17", "il17", "il 17a", "interleukin 17"],
+  "target:Interleukin 23": ["il 23", "il23"],
+  "target:Programmed Cell Death Protein 1": [
+    "pd 1",
+    "pd1",
+    "checkpoint inhibitor",
+    "checkpoint inhibitors",
+  ],
+  "target:Human Epidermal Growth Factor Receptor 2": ["her 2", "her2", "erbb2"],
+  "target:Epidermal Growth Factor Receptor": ["egfr"],
+  "target:B-Lymphocyte Antigen CD20": ["cd20", "cd 20", "anti cd20"],
+  "target:Vascular Endothelial Growth Factor A": ["vegf", "vegf a"],
+  "target:Bruton Tyrosine Kinase": ["btk", "btk inhibitor", "btk inhibitors"],
+  "target:Glucagon Like Peptide 1 Receptor": ["glp 1", "glp1", "glp 1 receptor", "incretin"],
+  "target:Sodium Glucose Cotransporter 2": ["sglt2", "sglt 2", "sglt2 inhibitor", "gliflozin"],
+  "target:Angiotensin II Receptor Type 1": ["at1", "angiotensin receptor", "arb", "sartan"],
+  "target:Beta 2 Adrenergic Receptor": ["beta 2", "beta2", "beta 2 agonist", "beta agonist"],
+  "target:HIV 1 Reverse Transcriptase": ["reverse transcriptase", "nrti", "nnrti"],
+  "target:DNA Gyrase Subunit A": ["dna gyrase", "gyrase", "gyra"],
 
   "geography:Austria": ["austrian"],
   "geography:Italy": ["italian"],
   "geography:Germany": ["german"],
   "geography:France": ["french"],
   "geography:Spain": ["spanish"],
-  "geography:United States": ["usa", "u s", "united states", "america", "american"],
+  "geography:United States": ["us", "usa", "u s", "united states", "america", "american"],
   "geography:Japan": ["japanese"],
 
   "stage:Phase I": ["phase 1", "phase one", "ph 1"],
@@ -217,9 +264,6 @@ const unbuilt: { patterns: string[]; note: string }[] = [
       "ankylosing spondylitis",
       "psoriasis",
       "psoriatic arthritis",
-      "asthma",
-      "copd",
-      "diabetes",
       "migraine",
       "gout",
       "crohns",
@@ -328,6 +372,16 @@ const negationCues = [
   "apart from",
 ]
 
+/**
+ * Phrases that are only this value in the right company. `IV` is a route, but
+ * `phase IV` is a stage this prototype does not carry; `us` is a country, but
+ * `show us` is a pronoun. Both misreadings would be silent, so both are named.
+ */
+const guards: Record<string, string[]> = {
+  "route:Intravenous": ["phase"],
+  "geography:United States": ["give", "show", "tell", "let", "get", "send"],
+}
+
 /** Every phrase the resolver knows, longest first so `phase 2/3` beats `phase 2`. */
 const matchers: Matcher[] = buildMatchers()
 
@@ -349,9 +403,7 @@ function buildMatchers() {
         clauseId: clause.id,
         values: [option.value],
         patterns: [...patterns].filter(Boolean),
-        // `IV` is a route; `phase IV` is a stage that this prototype does not
-        // carry, and reading it as intravenous would be a silent lie.
-        notAfter: option.value === "Intravenous" ? "phase" : undefined,
+        notAfter: guards[`${clause.id}:${option.value}`],
       })
     }
   }
@@ -395,7 +447,7 @@ function pickSpans(text: string) {
       for (const { start, end } of findAll(text, pattern)) {
         if (matcher.notAfter) {
           const before = text.slice(0, start).trimEnd()
-          if (before.endsWith(matcher.notAfter)) continue
+          if (matcher.notAfter.some((word) => before.endsWith(word))) continue
         }
         candidates.push({ start, end, clauseId: matcher.clauseId, values: matcher.values })
       }
