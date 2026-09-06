@@ -1,31 +1,36 @@
 import type { Flow } from "@/flows/types"
-import { makePlaceholder } from "@/flows/placeholder"
+import { Sentence } from "@/flows/sprint-3/idea-3/screens/Sentence"
 
 /**
- * Conversational refinement: the query is built over turns, and every turn
- * leaves a reversible filter in a visible stack.
+ * One input, one representation. Natural language goes in and the query comes
+ * back as an editable sentence — values as pills, Boolean logic as the words
+ * between them. The answer to the CPO's standing question about combining
+ * natural language with structured search.
  */
 export const sprint3Idea3: Flow = {
   id: "idea-3",
-  name: "Idea 3 — Conversational refinement",
+  name: "Idea 3 — Query as a sentence",
   premise:
-    "Chat on the left, live results on the right. Each turn appends a reversible filter to a stack the user can toggle, reorder or branch from.",
+    "Natural language in, and what comes back is the query itself as one editable line of English: every value a pill with a dropdown, every operator a word you can change. Not a transcript beside a builder — one object, in one place.",
   rationale: [
-    "Treats AI as dialogue rather than a one-shot parser — the user narrows in, rather than getting one answer.",
-    "The filter stack keeps the reasoning auditable, which matters for a research product.",
-    "Tests whether the result set updating mid-conversation is clarifying or disorienting.",
+    "Answers the question Neil has asked in nearly every call and never had answered: how natural language and structured search are the same act rather than two modes.",
+    "The Boolean lives in the words. `excluding`, `or`, `in` are dropdowns, so AND/OR/NOT never appears as a radio group and the logic stays readable to a non-technical analyst.",
+    "One representation, not two. Sprint 2 put a chat thread beside a stack of filter cards and asked the user to reconcile them; the `Filters` toggle here swaps the same clauses in place rather than adding a second surface.",
+    "The platform already ships a fast cross-entity natural-language search in the global header and nothing found there can be carried into a screener. This is that search, wired to the data.",
+    "Cheap reversal is the load-bearing claim: dismiss a clause from the sentence, clear a value from its dropdown, or undo. Editing mid-query beats retyping it.",
+    "Tests: can AI replace the filter UI rather than sit beside it. Fewest clicks of the three, highest trust risk.",
   ],
-  source: "New exploration — no Paper source",
-  lastUpdated: "2026-08-29",
-  tags: ["Conversational", "Filter stack", "Multi-turn"],
-  status: "placeholder",
+  source: "Sprint 1, approach 3 (Search Priority) taken to its conclusion — no Paper source",
+  lastUpdated: "2026-09-06",
+  tags: ["Natural language", "Editable sentence", "Inline Boolean", "Non-modal", "Fewest clicks"],
+  status: "in-progress",
   screens: [
     {
-      slug: "entry",
-      title: "Entry",
-      note: "Awaiting design.",
+      slug: "sentence",
+      title: "Query as a sentence",
+      note: "Seven clauses resolved, 453 drugs, results beneath. Clauses, operators and values are all editable in place.",
       viewport: "desktop",
-      component: makePlaceholder("Entry", "Sprint 3 / Idea 3 — conversational refinement"),
+      component: Sentence,
     },
   ],
 }

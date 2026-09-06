@@ -2,13 +2,14 @@ import type { Flow, Sprint } from "@/flows/types"
 import { sprint3Idea1 } from "@/flows/sprint-3/idea-1/flow"
 import { sprint3Idea2 } from "@/flows/sprint-3/idea-2/flow"
 import { sprint3Idea3 } from "@/flows/sprint-3/idea-3/flow"
+import { sprint3Idea4 } from "@/flows/sprint-3/idea-4/flow"
 
 export const sprints: Sprint[] = [
   {
     id: "sprint-3",
     name: "Sprint 3",
     goal: "Natural-language search over the GlobalData filter model — the reviewed design as a baseline, against two new directions.",
-    ideas: [sprint3Idea1, sprint3Idea2, sprint3Idea3],
+    ideas: [sprint3Idea1, sprint3Idea2, sprint3Idea3, sprint3Idea4],
   },
 ]
 
