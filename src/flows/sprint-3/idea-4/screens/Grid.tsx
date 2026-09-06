@@ -195,11 +195,12 @@ export function Grid() {
       activeArea="Drugs"
       actions={
         <Button
-          variant={panelOpen ? "secondary" : "ghost"}
+          variant="ghost"
           size="sm"
           onClick={() => setPanelOpen((open) => !open)}
+          className={panelOpen ? "bg-brand-tint text-brand-ink hover:bg-brand-tint" : undefined}
         >
-          <SparklesIcon className="text-muted-foreground" />
+          <SparklesIcon className={panelOpen ? "text-brand" : "text-muted-foreground"} />
           Assistant
         </Button>
       }

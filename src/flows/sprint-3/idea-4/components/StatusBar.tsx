@@ -67,18 +67,18 @@ export function StatusBar({
   const applied = entries.filter((entry) => entry.status === "applied").length
 
   return (
-    <div className="bg-muted/40 flex h-8 shrink-0 items-center gap-2 border-t px-3 text-[11px]">
+    <div className="bg-surface-chrome border-edge flex h-8 shrink-0 items-center gap-2 border-t px-3 text-[11px]">
       {running ? (
         <>
-          <Loader2Icon className="text-muted-foreground size-3 shrink-0 animate-spin" />
+          <Loader2Icon className="text-brand size-3 shrink-0 animate-spin" />
           <span className="text-muted-foreground min-w-0 truncate">
-            Applying <span className="text-foreground">{running}</span>…
+            Applying <span className="text-brand-ink font-medium">{running}</span>…
           </span>
         </>
       ) : last ? (
         <>
           {last.status === "applied" ? (
-            <CheckIcon className="size-3 shrink-0" />
+            <CheckIcon className="text-brand size-3 shrink-0" />
           ) : last.status === "undone" ? (
             <RotateCcwIcon className="text-muted-foreground size-3 shrink-0" />
           ) : (
@@ -110,7 +110,7 @@ export function StatusBar({
         </>
       ) : (
         <span className="text-muted-foreground min-w-0 truncate">
-          The assistant has not changed anything yet. Every change it makes is logged here.
+          The assistant has not changed anything yet.
         </span>
       )}
 
@@ -145,18 +145,16 @@ export function StatusBar({
             <Separator />
             <div className="max-h-[320px] overflow-y-auto p-1.5">
               {entries.length === 0 ? (
-                <p className="text-muted-foreground px-2 py-3 text-[12px]">
-                  Nothing yet. Ask the assistant for a change and it will be listed here.
-                </p>
+                <p className="text-muted-foreground px-2 py-3 text-[12px]">Nothing yet.</p>
               ) : null}
               {entries.map((entry) => (
-                <div key={entry.id} className="hover:bg-muted rounded-md px-2 py-1.5">
+                <div key={entry.id} className="hover:bg-accent rounded-md px-2 py-1.5 transition-colors">
                   <div className="flex items-baseline gap-2">
                     <span
                       className={cn(
                         "shrink-0 text-[10px] font-medium tracking-[0.06em] uppercase",
                         entry.status === "applied"
-                          ? "text-foreground"
+                          ? "text-brand-ink"
                           : "text-muted-foreground/70",
                       )}
                     >
@@ -182,7 +180,7 @@ export function StatusBar({
                       <button
                         type="button"
                         onClick={() => onUndo(entry.id)}
-                        className="text-muted-foreground hover:text-foreground text-[10px] underline-offset-2 hover:underline"
+                        className="text-brand-ink text-[10px] underline-offset-2 hover:underline"
                       >
                         Undo this
                       </button>
@@ -193,8 +191,7 @@ export function StatusBar({
             </div>
             <Separator />
             <p className="text-muted-foreground px-3 py-2 text-[10.5px] leading-[1.45]">
-              Undo restores the grid to the state it was in before the most recent applied step,
-              including any column or sort changes you made by hand since.
+              Undo also reverts column and sort changes you made by hand since.
             </p>
           </PopoverContent>
         </Popover>

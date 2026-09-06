@@ -3,8 +3,9 @@
 import * as React from "react"
 import { PlusIcon, XIcon } from "lucide-react"
 
+import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import type { Clause } from "@/flows/sprint-3/idea-3/data"
+import { clauseMode, type Clause } from "@/flows/sprint-3/idea-3/data"
 import {
   AddCondition,
   OperatorWord,
@@ -60,7 +61,13 @@ export function FilterView({
                   label={clause.attribute}
                   onSelect={(word) => handlers.onSetOperator(clause.id, word)}
                   chevron
-                  className="bg-background hover:bg-muted text-foreground mx-0 inline-flex h-7 items-center gap-1 rounded-md border px-2 text-[13px] font-medium no-underline"
+                  negated={clauseMode(clause) === "exclude"}
+                  className={cn(
+                    "mx-0 inline-flex h-7 items-center gap-1 rounded-md border px-2 text-[13px] font-medium no-underline",
+                    clauseMode(clause) === "exclude"
+                      ? "bg-negative border-negative-border"
+                      : "bg-surface-panel border-border text-foreground hover:bg-accent",
+                  )}
                 />
               ) : null}
 
@@ -72,24 +79,42 @@ export function FilterView({
                       <OperatorWord
                         word={clause.join}
                         options={[
-                          { word: "or", hint: "Either value matches" },
-                          { word: "and", hint: "Both values must match" },
+                          { word: "or" }, { word: "and" },
                         ]}
                         label={`${clause.attribute} — between values`}
                         onSelect={(word) => handlers.onSetJoin(clause.id, word as "or" | "and")}
                         className="mx-0 px-1 text-[11px] font-medium tracking-[0.08em] uppercase no-underline"
                       />
                     ) : null}
-                    <span className="bg-secondary inline-flex h-7 items-center gap-1.5 rounded-md py-1 pr-1 pl-2 text-[13px]">
+                    <span
+                      className={cn(
+                        "inline-flex h-7 items-center gap-1.5 rounded-md border py-1 pr-1 pl-2 text-[13px]",
+                        clauseMode(clause) === "exclude"
+                          ? "bg-negative border-negative-border"
+                          : "bg-brand-tint border-brand-border",
+                      )}
+                    >
                       {option.value}
-                      <span className="text-muted-foreground text-[11px] tabular-nums">
+                      <span
+                        className={cn(
+                          "text-[11px] tabular-nums",
+                          clauseMode(clause) === "exclude"
+                            ? "text-negative-ink"
+                            : "text-brand-ink",
+                        )}
+                      >
                         {option.count.toLocaleString()}
                       </span>
                       <button
                         type="button"
                         aria-label={`Remove ${option.value}`}
                         onClick={() => handlers.onToggleValue(clause.id, option.value)}
-                        className="text-muted-foreground hover:text-foreground hover:bg-background flex size-4 items-center justify-center rounded-sm transition-colors"
+                        className={cn(
+                          "flex size-4 items-center justify-center rounded-sm transition-colors",
+                          clauseMode(clause) === "exclude"
+                            ? "text-negative-ink/60 hover:text-negative-ink hover:bg-negative-border"
+                            : "text-brand-ink/60 hover:text-brand-ink hover:bg-brand-border",
+                        )}
                       >
                         <XIcon className="size-3" />
                       </button>
@@ -125,7 +150,7 @@ function AddValue({ clause, handlers }: { clause: Clause; handlers: SentenceHand
         <button
           type="button"
           aria-label={`Add a ${clause.attribute} value`}
-          className="border-border text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/50 flex size-7 items-center justify-center rounded-md border border-dashed transition-colors outline-none focus-visible:ring-3"
+          className="border-border text-muted-foreground hover:border-brand-border hover:bg-brand-wash hover:text-brand-ink focus-visible:ring-ring/50 flex size-7 items-center justify-center rounded-md border border-dashed transition-colors outline-none focus-visible:ring-3"
         >
           <PlusIcon className="size-3.5" />
         </button>

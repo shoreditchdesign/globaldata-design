@@ -17,9 +17,44 @@ everything under "Design system" and "Repo shape" is specific to this one.
 ## Design system
 
 - **shadcn/ui, light mode only.** The `.dark` token block has been removed from `src/app/globals.css` and `:root` sets `color-scheme: light`. Do not add a dark theme or a theme toggle.
-- Base: shadcn `radix` / `nova` preset, neutral base colour, Geist type. Prototypes should read as stock shadcn — the uplift comes from layout, motion and interaction polish, not from re-skinning components.
-- Add components with `pnpm dlx shadcn@latest add <name>`. Do not hand-write a component that exists in the registry.
-- Prefer composing existing primitives over new bespoke CSS. Tailwind v4, tokens only (`bg-muted`, `text-muted-foreground`), never raw hex.
+- Base: shadcn `radix` / `nova` preset, Geist type, built out with an accent and a surface ladder. Add components with `pnpm dlx shadcn@latest add <name>`; do not hand-write a component that exists in the registry.
+- Prefer composing existing primitives over new bespoke CSS. Tailwind v4, tokens only, **never a raw hex outside the token definitions in `src/app/globals.css`**.
+
+### The accent — cerulean
+
+`--brand`, `oklch(0.52 0.16 253)`. GlobalData's live platform runs on a corporate navy; this is the same family a few steps lighter and more saturated, so it reads as theirs without reading as 2011. It is wired to `--primary` and `--ring`, so shadcn defaults pick it up.
+
+It carries **primary actions, active and selected states, filter chips that are on, focus rings, and the agent's own accents. Nothing else.** Black is not an active-state colour anywhere. One intense colour used deliberately beats five.
+
+`brand-strong` (hover) · `brand-ink` (accent as text) · `brand-border` · `brand-tint` (a selected chip) · `brand-wash` (a selected row).
+
+### Layering
+
+Communicate as if this were a dark-mode UI, then execute it in light mode: in dark mode you would separate an AMOLED black page from a deep-grey panel from a lighter card, and the hierarchy would be obvious. Get that same legibility of layers here. Linear's light-mode marketing site is the fidelity reference — quiet, layered, confident, not flat.
+
+Five surfaces, and they are the only backgrounds a screen may reach for:
+
+`bg-surface-sunken` a well cut into a panel · `bg-surface-page` the ground · `bg-surface-chrome` header, tabs, toolbars, rails · `bg-surface-panel` the content plane · `bg-surface-raised` popovers and dialogs, distinguished by `shadow-raised`.
+
+Three rule weights, because one was doing four jobs: `border-hairline` inside a surface · `border-border` the edge of a control or card · `border-edge` between two surfaces.
+
+Do not invent a sixth layer with `bg-muted/30`. If a screen needs a step that is not here, that is a conversation about the ladder.
+
+### Semantic colour
+
+Restrained and systematic, never a rainbow. Colour goes where it carries meaning that ordering or weight cannot.
+
+- **Development stage** is a pipeline, so `StageBadge` encodes position rather than identity — one hue deepening from Phase I to Pre-registration, green for Approved and Marketed, rose for Withdrawn and Discontinued. See `src/components/prototype/README.md`.
+- **Negation** has its own tone (`negative`, `negative-ink`, `negative-border`). An excluded filter must never look identical to an included one.
+- **Counts** are semantic: a zero recedes.
+
+### Motion
+
+The timing vocabulary lives in `src/components/prototype/motion.ts`, lifted out of Idea 3's resolve. Use it rather than picking a duration. Every transition keeps a `prefers-reduced-motion` path.
+
+### Copy
+
+Every string in the interface has to earn its place. Delete anything that explains the obvious — placeholder hints telling you that you can type, captions restating what a control plainly does, instructional microcopy a competent user does not need. Two things are not slop and must survive: honest disclosures about what is prototyped versus real (sample sizes, "one request is wired", "no data in this sample"), and messages reporting a genuine outcome, such as a failed resolution naming what it could not place. Where those are ugly or overlong, make them quieter and shorter rather than removing them.
 
 ## Repo shape
 

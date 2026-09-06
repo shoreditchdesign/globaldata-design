@@ -64,6 +64,13 @@ export function Composer({
           }
           if (event.key === "Escape" && onCancel) onCancel()
         }}
+        /*
+         * Kept, unlike the other placeholders that went. This field has no
+         * border, no label and no icon — at 22px in a card it is indis-
+         * tinguishable from empty space until something is in it. The
+         * placeholder is the only thing naming the one control the whole
+         * direction rests on.
+         */
         placeholder="Describe the drugs you're looking for"
         spellCheck={false}
         aria-label="Describe the drugs you're looking for"
@@ -74,18 +81,15 @@ export function Composer({
 
       {showSuggestions ? (
         <div className="mt-4">
-          <p className="text-muted-foreground mb-2 text-[10px] font-medium tracking-[0.08em] uppercase">
-            Or start from one of these
-          </p>
           <div className="flex flex-col items-start gap-1">
             {suggestedQueries.map((query) => (
               <button
                 key={query}
                 type="button"
                 onClick={() => onChange(query)}
-                className="text-foreground/80 hover:bg-muted hover:text-foreground -mx-1.5 flex items-center gap-2 rounded-md px-1.5 py-1 text-left text-[13px] transition-colors"
+                className="text-foreground/80 hover:bg-brand-wash hover:text-brand-ink group -mx-1.5 flex items-center gap-2 rounded-md px-1.5 py-1 text-left text-[13px] transition-colors"
               >
-                <ArrowRightIcon className="text-muted-foreground size-3.5 shrink-0" />
+                <ArrowRightIcon className="text-muted-foreground group-hover:text-brand size-3.5 shrink-0" />
                 {query}
               </button>
             ))}
@@ -103,9 +107,6 @@ export function Composer({
             Cancel
           </Button>
         ) : null}
-        <p className="text-muted-foreground ml-auto text-xs">
-          Plain English, however loose. Enter to resolve.
-        </p>
       </div>
     </div>
   )
@@ -127,9 +128,9 @@ function Failure({
   onSuggestion: (phrase: string, term: string) => void
 }) {
   return (
-    <div className="border-border bg-muted/40 mt-4 rounded-lg border p-3.5">
+    <div className="border-negative-border bg-negative mt-4 rounded-lg border p-3.5">
       <p className="flex items-center gap-2 text-[13px] font-medium">
-        <TriangleAlertIcon className="text-muted-foreground size-3.5" />
+        <TriangleAlertIcon className="text-negative-ink size-3.5" />
         Nothing in that maps to a condition, so no query was built.
       </p>
 
@@ -160,7 +161,7 @@ function Failure({
               key={suggestion.value}
               type="button"
               onClick={() => onSuggestion(suggestion.phrase, suggestion.value)}
-              className="bg-background hover:bg-accent inline-flex h-6 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors"
+              className="bg-surface-panel border-border hover:border-brand-border hover:bg-brand-wash hover:text-brand-ink inline-flex h-6 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors"
             >
               {suggestion.value}
               <span className="text-muted-foreground">{suggestion.attribute}</span>
@@ -170,9 +171,7 @@ function Failure({
       ) : null}
 
       <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
-        <span className="text-foreground/70">It can read:</span> {knownAttributes.join(" · ")} — by
-        value, abbreviation or plural, with <span className="text-foreground/70">not</span> or{" "}
-        <span className="text-foreground/70">excluding</span> in front of anything to drop it.
+        <span className="text-foreground/70">It can read:</span> {knownAttributes.join(" · ")}
       </p>
     </div>
   )

@@ -33,7 +33,7 @@ export function ManualPane({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <PaneHeading title="Manual filter" subtitle="Select an area to create a filter" />
+      <PaneHeading title="Manual filter" />
 
       <div className="relative min-h-0 flex-1 px-6 pt-6">
         <div className="flex w-fit flex-col items-start gap-2">
@@ -104,11 +104,11 @@ export function CascadePanel({
   return (
     <div
       className={cn(
-        "bg-background absolute flex w-[280px] flex-col overflow-hidden rounded-lg border shadow-lg",
+        "bg-surface-raised border-border shadow-raised absolute flex w-[280px] flex-col overflow-hidden rounded-lg border",
         className,
       )}
     >
-      <div className="bg-muted/60 text-muted-foreground flex shrink-0 items-center gap-1.5 border-b px-3 py-2.5 text-[10px] font-medium tracking-[0.08em] uppercase">
+      <div className="bg-surface-sunken border-hairline text-muted-foreground flex shrink-0 items-center gap-1.5 border-b px-3 py-2.5 text-[10px] font-medium tracking-[0.08em] uppercase">
         {breadcrumb ? (
           <button
             type="button"
@@ -140,7 +140,7 @@ export function CascadePanel({
       <div className="min-h-0 flex-auto overflow-y-auto py-1">{children}</div>
 
       <div className="text-muted-foreground flex shrink-0 items-stretch border-t text-[10px] font-medium tracking-[0.08em] uppercase">
-        <span className="bg-muted/60 flex-1 px-3 py-2.5 tabular-nums">{selectedCount} selected</span>
+        <span className="bg-surface-sunken flex-1 px-3 py-2.5 tabular-nums">{selectedCount} selected</span>
         <button
           type="button"
           onClick={onDone}
@@ -200,7 +200,7 @@ export function CascadeValueRow({
       <span
         className={cn(
           "flex size-4 shrink-0 items-center justify-center rounded-[4px] border",
-          checked && "bg-primary border-primary text-primary-foreground",
+          checked && "bg-brand border-brand text-brand-foreground",
         )}
       >
         {checked ? <CheckIcon className="size-3" /> : null}

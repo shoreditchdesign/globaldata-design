@@ -21,16 +21,19 @@ import type { Screener, StepRecord } from "@/flows/sprint-3/idea-2/use-screener"
 function StepMark({ status }: { status: StepRecord["status"] }) {
   if (status === "done") {
     return (
-      <span className="bg-foreground text-background mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full">
+      <span className="bg-brand text-brand-foreground mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full">
         <CheckIcon className="size-2.5" strokeWidth={3} />
       </span>
     )
   }
   if (status === "running" || status === "stopped") {
     return (
-      <span className="border-foreground mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border">
+      <span className="border-brand mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border">
         <span
-          className={cn("bg-foreground size-1.5 rounded-full", status === "running" && "animate-pulse")}
+          className={cn(
+            "bg-brand size-1.5 rounded-full",
+            status === "running" && "animate-pulse motion-reduce:animate-none",
+          )}
         />
       </span>
     )
@@ -72,13 +75,10 @@ export function AgentPanel({ screener }: { screener: Screener }) {
   }
 
   return (
-    <section className="bg-background flex max-h-[38%] shrink-0 flex-col border-t">
+    <section className="bg-surface-panel border-edge flex max-h-[38%] shrink-0 flex-col border-t">
       <div className="flex shrink-0 items-center gap-2 px-3 pt-2">
-        <SparklesIcon className="size-3.5" />
+        <SparklesIcon className="text-brand size-3.5" />
         <h2 className="text-[13px] font-semibold tracking-tight">Agent</h2>
-        <span className="text-muted-foreground text-[11px]">
-          {agent.status === "running" ? "Driving your filters…" : "Works the filters above"}
-        </span>
 
         {started ? (
           <Button
@@ -115,7 +115,6 @@ export function AgentPanel({ screener }: { screener: Screener }) {
         <Input
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
-          placeholder="Describe the set you want"
           aria-label="Ask the agent for a set of drugs"
           className="h-8 text-[12px]"
         />
@@ -127,11 +126,10 @@ export function AgentPanel({ screener }: { screener: Screener }) {
       <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-2 pb-2.5">
         {!started ? (
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-muted-foreground text-[11px]">Try</span>
             <button
               type="button"
               onClick={() => run(agentRequest)}
-              className="hover:bg-accent rounded-full border border-dashed px-2 py-0.5 text-left text-[11.5px]"
+              className="border-border hover:border-brand-border hover:bg-brand-wash hover:text-brand-ink rounded-full border border-dashed px-2 py-0.5 text-left text-[11.5px] transition-colors"
             >
               {agentRequest}
             </button>
@@ -153,7 +151,7 @@ export function AgentPanel({ screener }: { screener: Screener }) {
                     key={record.step.id}
                     className={cn(
                       "flex items-start gap-2 rounded-md px-1.5 py-1",
-                      record.status === "running" && "bg-accent",
+                      record.status === "running" && "bg-brand-wash",
                     )}
                   >
                     <StepMark status={record.status} />
@@ -199,10 +197,10 @@ export function AgentPanel({ screener }: { screener: Screener }) {
             <div className="mt-2 flex items-center gap-2">
               <p className="text-muted-foreground min-w-0 flex-1 text-[11px] leading-relaxed">
                 {agent.status === "running"
-                  ? `Applying step ${Math.min(agent.stepIndex + 1, total)} of ${total} — take a column and it stops.`
+                  ? `Applying step ${Math.min(agent.stepIndex + 1, total)} of ${total}`
                   : agent.status === "yielded"
                     ? `Stopped — you took over. ${done} of ${total} steps applied.`
-                    : `${done} of ${total} steps applied · ${rows.length.toLocaleString("en-GB")} drugs. Undo any of them.`}
+                    : `${done} of ${total} steps applied · ${rows.length.toLocaleString("en-GB")} drugs`}
               </p>
               {agent.status === "yielded" && done < total ? (
                 <Button

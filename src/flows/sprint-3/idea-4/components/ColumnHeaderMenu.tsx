@@ -42,11 +42,17 @@ function MenuAction({
         "flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-[12.5px] transition-colors",
         disabled
           ? "text-muted-foreground/50 cursor-not-allowed"
-          : "hover:bg-muted cursor-default",
-        active && "bg-muted font-medium",
+          : active
+            ? "bg-brand-wash text-brand-ink cursor-default font-medium"
+            : "hover:bg-accent cursor-default",
       )}
     >
-      <Icon className={cn("size-3.5", disabled ? "opacity-50" : "text-muted-foreground")} />
+      <Icon
+        className={cn(
+          "size-3.5",
+          disabled ? "opacity-50" : active ? "text-brand" : "text-muted-foreground",
+        )}
+      />
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {disabled && hint ? (
         <span className="text-muted-foreground/60 shrink-0 text-[10px]">{hint}</span>
@@ -161,7 +167,7 @@ export function ColumnHeaderMenu({
           <Separator />
 
           <div className="p-1.5">
-            <div className="border-input focus-within:border-ring flex h-7 items-center gap-2 rounded-md border px-2">
+            <div className="border-border focus-within:border-ring focus-within:ring-ring/40 flex h-7 items-center gap-2 rounded-md border px-2 transition-shadow focus-within:ring-3">
               <SearchIcon className="text-muted-foreground size-3.5 shrink-0" />
               <input
                 value={query}
@@ -196,8 +202,8 @@ export function ColumnHeaderMenu({
               <label
                 key={value.label}
                 className={cn(
-                  "hover:bg-muted flex h-7 cursor-default items-center gap-2 rounded-md px-2 text-[12.5px] transition-colors",
-                  value.checked && "bg-muted/60",
+                  "flex h-7 cursor-default items-center gap-2 rounded-md px-2 text-[12.5px] transition-colors",
+                  value.checked ? "bg-brand-wash hover:bg-brand-tint" : "hover:bg-accent",
                 )}
               >
                 <Checkbox
@@ -227,8 +233,8 @@ export function ColumnHeaderMenu({
           <Separator />
           <p className="text-muted-foreground px-3 py-2.5 text-[11.5px] leading-[1.45]">
             {column.kind === "number"
-              ? "A numeric lane. Sort it, or filter on a column that holds categories."
-              : "Every drug carries its own value here, so a value list would be one line per row. Sort or pin instead."}
+              ? "A numeric lane — nothing to pick from."
+              : "Every drug carries its own value here, so a value list would be one line per row."}
           </p>
         </>
       )}
@@ -237,7 +243,7 @@ export function ColumnHeaderMenu({
 
       <div className="flex items-center justify-between gap-2 px-3 py-2">
         <p className="text-muted-foreground text-[11px] tabular-nums">
-          <span className="text-foreground font-medium">{matchCount}</span> of {scopeCount} in scope
+          <span className="text-brand-ink font-medium">{matchCount}</span> of {scopeCount} in scope
         </p>
         <Button
           variant="ghost"

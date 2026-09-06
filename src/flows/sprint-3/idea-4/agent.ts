@@ -252,7 +252,7 @@ function structuralReply(text: string, state: GridState): AgentReply | null {
   if (/start over|start again|clear (all|everything|the filters)|reset the filters|remove all filters/.test(text)) {
     return {
       kind: "proposal",
-      message: "That drops every filter and puts the whole sample back in the grid.",
+      message: "",
       proposal: proposal("Clear all filters", [{ kind: "clearFilters" }]),
     }
   }
@@ -263,7 +263,7 @@ function structuralReply(text: string, state: GridState): AgentReply | null {
     if (state.aggregates.includes(aggregate.key)) return null
     return {
       kind: "proposal",
-      message: "I can add that to the summary strip along the bottom.",
+      message: "",
       proposal: proposal("Add an aggregate to the footer", [
         { kind: "setAggregates", keys: [...state.aggregates, aggregate.key] },
         ...(state.order.includes("npv")
@@ -287,7 +287,7 @@ function structuralReply(text: string, state: GridState): AgentReply | null {
     if (column && column.groupable) {
       return {
         kind: "proposal",
-        message: `Grouping puts a header row above each ${column.label.toLowerCase()} with its own count.`,
+        message: "",
         proposal: proposal(`Group rows by ${column.label}`, [
           { kind: "setGroup", columnKey: column.key },
           ...(state.order.includes(column.key)
@@ -314,7 +314,7 @@ function structuralReply(text: string, state: GridState): AgentReply | null {
       const direction = descending ? "desc" : "asc"
       return {
         kind: "proposal",
-        message: `Sorting by ${column.label}, ${descending ? "highest first" : "lowest first"}.`,
+        message: "",
         proposal: proposal(`Sort by ${column.label}`, [
           ...(state.order.includes(column.key)
             ? []
@@ -331,7 +331,7 @@ function structuralReply(text: string, state: GridState): AgentReply | null {
     if (key && (state.filters[key]?.length ?? 0) > 0) {
       return {
         kind: "proposal",
-        message: `That widens the set back out on ${columnByKey[key].label}.`,
+        message: "",
         proposal: proposal(`Clear the ${columnByKey[key].label} filter`, [
           { kind: "clearColumnFilter", columnKey: key },
         ]),
@@ -345,7 +345,7 @@ function structuralReply(text: string, state: GridState): AgentReply | null {
     if (key && state.order.includes(key) && key !== "drugName") {
       return {
         kind: "proposal",
-        message: "The data stays in the record — this only takes the lane out of the grid.",
+        message: "The data stays in the record; only the lane goes.",
         proposal: proposal(`Remove the ${columnByKey[key].label} column`, [
           { kind: "removeColumn", columnKey: key },
         ]),
@@ -359,7 +359,7 @@ function structuralReply(text: string, state: GridState): AgentReply | null {
     if (key && !state.order.includes(key)) {
       return {
         kind: "proposal",
-        message: `${columnByKey[key].label} goes on the right of the grid; you can move or pin it in the column manager.`,
+        message: `${columnByKey[key].label} goes on the right of the grid.`,
         proposal: proposal(`Add the ${columnByKey[key].label} column`, [
           { kind: "addColumn", columnKey: key },
         ]),
@@ -420,7 +420,7 @@ function filterReply(text: string, state: GridState): AgentReply | null {
     kind: "proposal",
     message:
       actions.length === 1
-        ? `That is one filter on ${subjects[0]}. Values inside a column are joined with "or".`
+        ? ""
         : `That is ${actions.length} filters — ${subjects.join(", ")} — joined with "and".`,
     proposal: proposal(
       actions.length === 1 ? `Filter ${subjects[0]}` : `Apply ${actions.length} filters`,
@@ -466,7 +466,7 @@ export function respond(text: string, state: GridState): AgentReply {
     return {
       kind: "miss",
       message:
-        "I only change this grid — filters, columns, sorting, grouping and the footer aggregates. Ask for one of those.",
+        "I only change this grid — filters, columns, sorting, grouping and the footer aggregates.",
       suggestions: missSuggestions.slice(0, 3),
     }
   }

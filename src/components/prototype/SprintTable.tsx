@@ -38,12 +38,12 @@ export interface SprintTableSprint {
   ideas: SprintTableIdea[]
 }
 
-/** Neutral tonal dots — the base palette has no hue, so status reads by weight. */
+/** How far along an idea is, as one dot. Deepens as it advances. */
 const statusDot: Record<Flow["status"], string> = {
   placeholder: "bg-muted-foreground/30",
   "in-progress": "bg-chart-3",
   review: "bg-chart-2",
-  final: "bg-foreground",
+  final: "bg-brand",
 }
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -122,7 +122,7 @@ export function SprintTable({
                 </Td>
                 <Td>
                   <Dot className={sprint.ideas.some((i) => i.status !== "placeholder")
-                    ? "bg-foreground"
+                    ? "bg-brand"
                     : "bg-muted-foreground/30"} />
                 </Td>
                 <Td className="font-medium">{sprint.name}</Td>
@@ -161,7 +161,11 @@ function IdeaRow({ idea }: { idea: SprintTableIdea }) {
       </Td>
       <Td className="truncate">
         {/* Real link so the row is keyboard reachable and opens in a new tab. */}
-        <Link href={idea.href} onClick={(event) => event.stopPropagation()}>
+        <Link
+          href={idea.href}
+          onClick={(event) => event.stopPropagation()}
+          className="hover:text-brand-ink underline-offset-2 hover:underline"
+        >
           {idea.name}
         </Link>
       </Td>

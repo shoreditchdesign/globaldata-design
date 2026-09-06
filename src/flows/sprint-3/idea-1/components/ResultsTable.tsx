@@ -41,7 +41,7 @@ export function ResultsTable({
       <div className="overflow-hidden rounded-lg border">
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr className="bg-muted/50">
+            <tr className="bg-surface-sunken">
               {resultColumns.map((column) => {
                 const count = filterCounts[column.field]
                 return (

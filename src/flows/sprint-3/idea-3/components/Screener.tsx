@@ -253,14 +253,14 @@ export function Screener({ start = false }: { start?: boolean }) {
     <ProductChrome activeArea="Drugs" search={<GlobalSearch onScreen={handOff} />}>
       <div className="flex min-h-0 flex-1 flex-col">
         <section className="shrink-0 px-6 pt-5 pb-4">
-          <div className="bg-card flex items-stretch rounded-xl border shadow-xs">
+          <div className="bg-surface-panel border-border shadow-raised flex items-stretch rounded-xl border">
             <div className="min-w-0 flex-1 px-5 py-4">
               <div className="mb-3 flex items-center gap-3">
                 <span className="text-muted-foreground flex items-center gap-1.5 text-[10px] font-medium tracking-[0.08em] uppercase">
-                  <SparklesIcon className="size-3.5" />
+                  <SparklesIcon className="text-brand size-3.5" />
                   Drug screener
                 </span>
-                <div className="ml-auto flex items-center gap-0.5 rounded-lg border p-0.5">
+                <div className="border-border bg-surface-sunken ml-auto flex items-center gap-0.5 rounded-lg border p-0.5">
                   <ViewTab
                     active={view === "sentence" && phase === "resolved"}
                     disabled={phase !== "resolved"}
@@ -288,11 +288,9 @@ export function Screener({ start = false }: { start?: boolean }) {
                   failure={failure}
                   showSuggestions={empty}
                   note={
-                    empty
-                      ? undefined
-                      : query.edited
-                        ? "Your query, written back as the sentence you can edit. Change it and it resolves again."
-                        : "The text this query was read from. Change it and it resolves again."
+                    // Not a caption on the field — the provenance of what is in
+                    // it, which is the one thing the field cannot say itself.
+                    empty || query.edited ? undefined : "The text this query was read from."
                   }
                 />
               ) : resolving && pending ? (
@@ -316,7 +314,6 @@ export function Screener({ start = false }: { start?: boolean }) {
                 <>
                   <FilterView clauses={clauses} handlers={handlers} />
                   <p className="text-muted-foreground mt-3.5 text-xs">
-                    The same conditions, drawn as filter groups. Editing here edits the sentence.{" "}
                     <button
                       type="button"
                       onClick={editAsText}
@@ -334,12 +331,12 @@ export function Screener({ start = false }: { start?: boolean }) {
               ) : null}
             </div>
 
-            <div className="flex w-[228px] shrink-0 flex-col gap-3 border-l px-5 py-4">
+            <div className="border-hairline flex w-[228px] shrink-0 flex-col gap-3 border-l px-5 py-4">
               <div>
                 <p
                   className={cn(
-                    "text-[34px] leading-none font-semibold tracking-tight tabular-nums transition-colors",
-                    (empty || resolving) && "text-muted-foreground",
+                    "ease-settle text-[34px] leading-none font-semibold tracking-tight tabular-nums transition-colors duration-300 motion-reduce:transition-none",
+                    empty || resolving ? "text-muted-foreground" : "text-brand-ink",
                   )}
                 >
                   {total.toLocaleString()}
@@ -412,7 +409,7 @@ function Notes({
   const suggestions = resolution?.suggestions ?? []
 
   return (
-    <div className="border-border bg-muted/40 mt-3 rounded-lg border px-3 py-2.5">
+    <div className="border-border bg-surface-sunken mt-3 rounded-lg border px-3 py-2.5">
       {notes.map((note) => (
         <p key={note} className="text-muted-foreground text-xs">
           {note}
@@ -426,7 +423,7 @@ function Notes({
               key={suggestion.value}
               type="button"
               onClick={() => onAdd(suggestion.clauseId, suggestion.value)}
-              className="bg-background hover:bg-accent inline-flex h-6 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors"
+              className="bg-surface-panel border-border hover:border-brand-border hover:bg-brand-wash hover:text-brand-ink inline-flex h-6 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors"
             >
               Add {suggestion.value}
               <span className="text-muted-foreground">{suggestion.attribute}</span>
@@ -458,7 +455,9 @@ function ViewTab({
       disabled={disabled}
       className={cn(
         "flex h-6 items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-colors disabled:opacity-40",
-        active ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground",
+        active
+          ? "bg-surface-panel text-brand-ink shadow-panel"
+          : "text-muted-foreground hover:text-foreground",
       )}
     >
       {icon}

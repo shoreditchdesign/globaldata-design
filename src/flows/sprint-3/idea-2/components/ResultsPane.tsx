@@ -31,14 +31,14 @@ export function ResultsPane({
   const page = rows.slice(0, PAGE)
 
   return (
-    <section className={cn("flex min-w-0 flex-col", className)}>
-      <div className="shrink-0 border-b px-4 py-2.5">
+    <section className={cn("bg-surface-panel flex min-w-0 flex-col", className)}>
+      <div className="border-hairline shrink-0 border-b px-4 py-2.5">
         <AppliedPills screener={screener} />
       </div>
 
-      <div className="flex shrink-0 items-center gap-3 border-b px-4 py-2">
+      <div className="border-edge flex shrink-0 items-center gap-3 border-b px-4 py-2">
         <div className="flex items-baseline gap-1.5">
-          <span className="text-[22px] leading-none font-semibold tracking-tight tabular-nums">
+          <span className="text-brand-ink text-[22px] leading-none font-semibold tracking-tight tabular-nums">
             {rows.length.toLocaleString("en-GB")}
           </span>
           <span className="text-[13px] font-medium">drugs</span>
@@ -74,11 +74,7 @@ export function ResultsPane({
           <div className="max-w-sm text-center">
             <p className="text-[14px] font-medium">No drugs match this query.</p>
             <p className="text-muted-foreground mt-1 text-[12.5px] leading-relaxed">
-              Every condition in the bar above is applied at once. Nothing in the sample satisfies
-              all of them — most often because two values of one attribute are joined with{" "}
-              <span className="text-foreground">and</span> rather than{" "}
-              <span className="text-foreground">or</span>, or because an{" "}
-              <span className="text-foreground">is not</span> has taken the rest.
+              Nothing in the sample satisfies every condition at once.
             </p>
             <Button
               variant="outline"

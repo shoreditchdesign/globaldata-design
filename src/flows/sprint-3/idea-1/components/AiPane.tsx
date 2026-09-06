@@ -28,13 +28,13 @@ export function AiPane({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <PaneHeading title="Drug Search" subtitle="Start typing to create a filter" />
+      <PaneHeading title="Drug Search" />
 
       <div className="flex min-h-0 flex-1 flex-col justify-end gap-6 px-6 pb-6">
         {transcript ? (
           <div className="flex flex-col gap-4 overflow-y-auto">
             <div className="flex flex-col items-end gap-1">
-              <p className="bg-primary/10 text-primary max-w-[340px] rounded-2xl px-4 py-3 text-sm">
+              <p className="bg-brand-tint text-brand-ink max-w-[340px] rounded-2xl px-4 py-3 text-sm">
                 {transcript.user}
               </p>
               <span className="text-muted-foreground text-xs">{transcript.time}</span>
@@ -83,7 +83,7 @@ export function AiPane({
               }
             }}
             rows={1}
-            placeholder="Ask anything to create a filter"
+            placeholder="Ask anything"
             aria-label="Ask anything to create a filter"
             className="placeholder:text-muted-foreground field-sizing-content max-h-32 flex-1 resize-none self-end bg-transparent text-sm outline-none"
           />
@@ -91,7 +91,7 @@ export function AiPane({
             type="submit"
             aria-label="Create filters from this query"
             disabled={!filled}
-            className="bg-primary text-primary-foreground disabled:opacity-40 flex size-8 shrink-0 items-center justify-center rounded-full"
+            className="bg-brand text-brand-foreground hover:bg-brand-strong disabled:opacity-40 flex size-8 shrink-0 items-center justify-center rounded-full transition-colors"
           >
             <ArrowRightIcon className="size-4" />
           </button>

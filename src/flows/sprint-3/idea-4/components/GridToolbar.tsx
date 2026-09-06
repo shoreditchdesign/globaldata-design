@@ -48,11 +48,18 @@ function ToolButton({
   active?: boolean
 }) {
   return (
-    <Button variant={active ? "secondary" : "ghost"} size="sm" {...props}>
-      <Icon className="text-muted-foreground" />
-      <span className="text-muted-foreground font-normal">{label}</span>
+    <Button
+      variant="ghost"
+      size="sm"
+      className={cn(active && "bg-brand-tint text-brand-ink hover:bg-brand-tint")}
+      {...props}
+    >
+      <Icon className={cn(active ? "text-brand" : "text-muted-foreground")} />
+      <span className={cn("font-normal", active ? "text-brand-ink/70" : "text-muted-foreground")}>
+        {label}
+      </span>
       <span className="max-w-[124px] truncate font-medium">{value}</span>
-      <ChevronDownIcon className="text-muted-foreground" />
+      <ChevronDownIcon className={cn(active ? "text-brand-ink/70" : "text-muted-foreground")} />
     </Button>
   )
 }
@@ -73,13 +80,13 @@ function MenuRow({
       type="button"
       onClick={onClick}
       className={cn(
-        "hover:bg-muted flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-[12.5px] transition-colors",
-        active && "bg-muted font-medium",
+        "flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-[12.5px] transition-colors",
+        active ? "bg-brand-wash text-brand-ink font-medium" : "hover:bg-accent",
       )}
     >
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {trailing}
-      {active ? <CheckIcon className="size-3.5 shrink-0" /> : null}
+      {active ? <CheckIcon className="text-brand size-3.5 shrink-0" /> : null}
     </button>
   )
 }
@@ -134,7 +141,7 @@ export function GridToolbar({
     shown.length + hiddenColumnKeys(state).length + unpopulatedAttributes.length
 
   return (
-    <div className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
+    <div className="bg-surface-chrome border-edge flex h-12 shrink-0 items-center gap-2 border-b px-4">
       <div className="flex items-baseline gap-2">
         <h1 className="text-[14px] font-semibold tracking-tight">Drugs</h1>
         <span className="text-muted-foreground text-[11px] tabular-nums">
@@ -213,10 +220,6 @@ export function GridToolbar({
               onClick={() => onAction({ kind: "setGroup", columnKey: column.key })}
             />
           ))}
-          <p className="text-muted-foreground/70 px-2 pt-1.5 text-[11px] leading-[1.4]">
-            Indication, Geography, Therapy Area and Route hold several values per drug, so they
-            cannot group a row into one bucket.
-          </p>
         </PopoverContent>
       </Popover>
 
@@ -235,7 +238,7 @@ export function GridToolbar({
             return (
               <label
                 key={key}
-                className="hover:bg-muted flex h-7 cursor-default items-center gap-2 rounded-md px-2 text-[12.5px]"
+                className="hover:bg-accent flex h-7 cursor-default items-center gap-2 rounded-md px-2 text-[12.5px] transition-colors"
               >
                 <Checkbox
                   checked={on}
@@ -298,9 +301,11 @@ export function AppliedFilterBar({
   const applied = Object.entries(state.filters).filter(([, values]) => values.length > 0)
 
   return (
-    <div className="bg-muted/30 flex shrink-0 items-center gap-3 border-b px-4 py-2">
+    <div className="bg-surface-sunken border-edge flex shrink-0 items-center gap-3 border-b px-4 py-2">
       <p className="flex shrink-0 items-baseline gap-1.5">
-        <span className="text-[17px] font-semibold tracking-tight tabular-nums">{matchCount}</span>
+        <span className="text-brand-ink text-[17px] font-semibold tracking-tight tabular-nums">
+          {matchCount}
+        </span>
         <span className="text-muted-foreground text-[12px]">
           {matchCount === 1 ? "drug matches" : "drugs match"}
         </span>
@@ -313,9 +318,7 @@ export function AppliedFilterBar({
 
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
         {applied.length === 0 ? (
-          <span className="text-muted-foreground text-[12px]">
-            No filters. Open any column header to narrow the set.
-          </span>
+          <span className="text-muted-foreground text-[12px]">No filters.</span>
         ) : null}
         {applied.map(([key, values]) => (
           <FilterPill key={key} removable={false}>
@@ -331,7 +334,7 @@ export function AppliedFilterBar({
               type="button"
               aria-label={`Remove ${columnByKey[key].label} filter`}
               onClick={() => onAction({ kind: "clearColumnFilter", columnKey: key })}
-              className="text-muted-foreground hover:bg-accent hover:text-foreground ml-0.5 flex size-4 shrink-0 items-center justify-center rounded-full transition-colors"
+              className="text-brand-ink/60 hover:bg-brand-border hover:text-brand-ink ml-0.5 flex size-4 shrink-0 items-center justify-center rounded-full transition-colors"
             >
               <XIcon className="size-3" />
             </button>

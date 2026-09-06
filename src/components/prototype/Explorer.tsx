@@ -124,7 +124,7 @@ export function Explorer({
         type="button"
         onClick={toggle}
         aria-label="Open the prototype explorer"
-        className="bg-background/80 text-muted-foreground hover:text-foreground fixed right-3 bottom-3 z-50 rounded-full border px-2.5 py-1 text-[11px] shadow-sm backdrop-blur-sm transition-opacity"
+        className="bg-surface-raised/80 border-border text-muted-foreground hover:text-foreground fixed right-3 bottom-3 z-50 rounded-full border px-2.5 py-1 text-[11px] shadow-sm backdrop-blur-sm transition-opacity"
       >
         <span className="font-medium tracking-wide">{shortcut}</span>
         <span className="text-muted-foreground/70"> · Explorer</span>
@@ -135,7 +135,7 @@ export function Explorer({
   return (
     <aside
       aria-label="Prototype explorer"
-      className="bg-background fixed right-4 bottom-4 z-50 flex max-h-[70svh] w-[320px] flex-col overflow-hidden rounded-xl border shadow-2xl"
+      className="bg-surface-raised border-edge fixed right-4 bottom-4 z-50 flex max-h-[70svh] w-[320px] flex-col overflow-hidden rounded-xl border shadow-2xl"
     >
       <div className="flex items-start gap-2 px-3 py-2.5">
         <div className="min-w-0 flex-1">
@@ -227,7 +227,7 @@ export function Explorer({
                   <Link
                     href={first ? `/${s.id}/${i.id}/${first.slug}` : `/${s.id}/${i.id}`}
                     className={cn(
-                      "hover:bg-muted flex items-center gap-2 rounded-md px-2 py-1.5 text-sm",
+                      "hover:bg-accent flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
                       isCurrentIdea && "font-medium",
                     )}
                   >
@@ -241,8 +241,10 @@ export function Explorer({
                           <Link
                             href={`/${s.id}/${i.id}/${sc.slug}`}
                             className={cn(
-                              "hover:bg-muted flex items-center gap-2 rounded-md px-2 py-1 text-sm",
-                              sc.slug === screenSlug && "bg-muted font-medium",
+                              "flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors",
+                              sc.slug === screenSlug
+                                ? "bg-brand-wash text-brand-ink font-medium"
+                                : "hover:bg-accent",
                             )}
                           >
                             <span className="text-muted-foreground w-4 shrink-0 text-[11px] tabular-nums">

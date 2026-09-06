@@ -26,11 +26,11 @@ export function ResultsTable({ rows }: { rows: DrugRow[] }) {
     <div className="min-h-0 flex-1 overflow-auto">
       <table className="w-full table-fixed border-collapse text-[12.5px]">
         <thead className="sticky top-0 z-10">
-          <tr className="bg-background">
+          <tr className="bg-surface-panel">
             {columns.map((column) => (
               <th
                 key={column.key}
-                className={`text-muted-foreground border-b px-3 py-2 text-left text-[10px] font-medium tracking-[0.09em] whitespace-nowrap uppercase ${column.width}`}
+                className={`text-muted-foreground border-edge border-b px-3 py-2 text-left text-[10px] font-medium tracking-[0.09em] whitespace-nowrap uppercase ${column.width}`}
               >
                 <span className="flex items-center gap-1">
                   {column.label}
@@ -42,7 +42,7 @@ export function ResultsTable({ rows }: { rows: DrugRow[] }) {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.id} className="hover:bg-muted/40 border-b last:border-0">
+            <tr key={row.id} className="hover:bg-brand-wash border-hairline border-b transition-colors last:border-0">
               <td className="px-3 py-1.5">
                 <span className="block truncate font-medium">{row.name}</span>
                 <span className="text-muted-foreground block truncate text-[11px]">

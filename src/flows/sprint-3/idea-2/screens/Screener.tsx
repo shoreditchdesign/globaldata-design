@@ -25,7 +25,7 @@ export function Screener() {
     <ProductChrome activeArea="Drugs" body="row">
       <FilterPanel
         screener={screener}
-        className="w-[40%] max-w-[760px] min-w-[580px] shrink-0 border-r"
+        className="border-edge w-[40%] max-w-[760px] min-w-[580px] shrink-0 border-r"
       />
       <ResultsPane screener={screener} className="flex-1" />
     </ProductChrome>

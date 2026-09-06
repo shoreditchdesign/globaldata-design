@@ -174,8 +174,8 @@ export function FilterPanel({
   const appliedValues = filters.reduce((n, filter) => n + filter.values.length, 0)
 
   return (
-    <aside className={cn("bg-muted/30 flex h-full min-h-0 flex-col", className)}>
-      <div className="shrink-0 border-b px-3 pt-2.5 pb-2">
+    <aside className={cn("bg-surface-page flex h-full min-h-0 flex-col", className)}>
+      <div className="bg-surface-chrome border-edge shrink-0 border-b px-3 pt-2.5 pb-2">
         <div className="flex items-center gap-2">
           <h2 className="text-[13px] font-semibold tracking-tight">Filters</h2>
           <span className="text-muted-foreground text-[11px] tabular-nums">
@@ -231,8 +231,8 @@ export function FilterPanel({
                     onClick={() => screener.setLeftIndex(Math.max(0, Math.min(i, maxLeft)))}
                     className={cn(
                       "hover:text-foreground truncate rounded px-1 py-0.5 text-[11px]",
-                      isLast ? "text-foreground font-medium" : "text-muted-foreground",
-                      hidden && "bg-accent",
+                      isLast ? "text-brand-ink font-medium" : "text-muted-foreground",
+                      hidden && "bg-surface-sunken",
                     )}
                   >
                     {crumb}
@@ -244,7 +244,7 @@ export function FilterPanel({
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 divide-x overflow-x-auto">
+      <div className="divide-hairline flex min-h-0 flex-1 divide-x overflow-x-auto">
         {visible.map((column, i) => {
           const depth = start + i
           const ticksInto = attributeAt(depth)

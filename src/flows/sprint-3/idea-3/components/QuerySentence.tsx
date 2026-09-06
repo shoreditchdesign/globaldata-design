@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import type { Clause } from "@/flows/sprint-3/idea-3/data"
-import { clauseTemplates } from "@/flows/sprint-3/idea-3/data"
+import { clauseMode, clauseTemplates } from "@/flows/sprint-3/idea-3/data"
 import { clauseTerms, sentenceLayout } from "@/flows/sprint-3/idea-3/grammar"
 
 export interface SentenceHandlers {
@@ -84,7 +84,7 @@ export function ValueMenu({
                 <span
                   className={cn(
                     "flex size-4 shrink-0 items-center justify-center rounded-[4px] border",
-                    selected ? "bg-primary border-primary text-primary-foreground" : "border-border",
+                    selected ? "bg-brand border-brand text-brand-foreground" : "border-border",
                   )}
                 >
                   {selected ? <CheckIcon className="size-3" /> : null}
@@ -133,6 +133,7 @@ function ValuePill({
 }) {
   const [open, setOpen] = React.useState(false)
   const option = clause.options.find((o) => o.value === value)
+  const excluded = clauseMode(clause) === "exclude"
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -140,12 +141,23 @@ function ValuePill({
         <button
           type="button"
           className={cn(
-            "border-border/80 bg-secondary text-foreground hover:bg-accent focus-visible:ring-ring/50 -mx-0.5 inline-flex items-center gap-1 rounded-md border px-1.5 align-baseline font-medium transition-colors outline-none focus-visible:ring-3",
-            open && "bg-accent ring-ring/40 ring-3",
+            "text-foreground focus-visible:ring-ring/50 -mx-0.5 inline-flex items-center gap-1 rounded-md border px-1.5 align-baseline font-medium transition-colors outline-none focus-visible:ring-3",
+            excluded
+              ? "bg-negative border-negative-border hover:bg-negative-border"
+              : "bg-brand-tint border-brand-border hover:bg-brand-border",
+            // The open pill was carrying a persistent `ring`, which is now the
+            // focus ring's colour — the two states would have been the same
+            // shape in the same blue. It deepens its own fill instead.
+            open && (excluded ? "bg-negative-border" : "bg-brand-border"),
           )}
         >
           {option?.term ?? value}
-          <ChevronDownIcon className="text-muted-foreground size-[0.55em] opacity-70" />
+          <ChevronDownIcon
+            className={cn(
+              "size-[0.55em] opacity-70",
+              excluded ? "text-negative-ink" : "text-brand-ink",
+            )}
+          />
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[320px] p-0 text-sm">
@@ -172,15 +184,22 @@ export function OperatorWord({
   label,
   className,
   chevron,
+  negated,
 }: {
   word: string
-  options: { word: string; hint: string }[]
+  options: { word: string }[]
   onSelect: (word: string) => void
   label: string
   /** Overrides the sentence styling when the same control is drawn as a pill. */
   className?: string
   /** Explicit affordance, for the pill rendering that has no dotted underline. */
   chevron?: boolean
+  /**
+   * This word drops rows rather than keeping them. It has to look different
+   * from one that keeps them, or the whole Boolean is carried by three
+   * characters of English in the same grey as everything around it.
+   */
+  negated?: boolean
 }) {
   return (
     <DropdownMenu>
@@ -188,7 +207,10 @@ export function OperatorWord({
         <button
           type="button"
           className={cn(
-            "text-muted-foreground hover:text-foreground decoration-muted-foreground/50 hover:decoration-foreground focus-visible:ring-ring/50 aria-expanded:text-foreground aria-expanded:bg-accent -mx-0.5 rounded-md px-0.5 underline decoration-dotted underline-offset-[5px] transition-colors outline-none focus-visible:ring-3",
+            "focus-visible:ring-ring/50 -mx-0.5 rounded-md px-0.5 underline decoration-dotted underline-offset-[5px] transition-colors outline-none focus-visible:ring-3",
+            negated
+              ? "text-negative-ink decoration-negative-ink/60 hover:bg-negative aria-expanded:bg-negative font-medium"
+              : "text-muted-foreground hover:text-foreground decoration-muted-foreground/50 hover:decoration-foreground aria-expanded:text-foreground aria-expanded:bg-accent",
             className,
           )}
         >
@@ -203,11 +225,8 @@ export function OperatorWord({
         <DropdownMenuSeparator />
         <DropdownMenuRadioGroup value={word} onValueChange={onSelect}>
           {options.map((o) => (
-            <DropdownMenuRadioItem key={o.word} value={o.word} className="items-start">
-              <span className="flex flex-col gap-0.5">
-                <span className="font-medium">{o.word}</span>
-                <span className="text-muted-foreground text-xs">{o.hint}</span>
-              </span>
+            <DropdownMenuRadioItem key={o.word} value={o.word}>
+              <span className="font-medium">{o.word}</span>
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
@@ -247,13 +266,14 @@ function ClauseSpan({
   const selected = clauseTerms(clause)
 
   return (
-    <span className="group/clause hover:bg-muted hover:ring-border relative -mx-1 rounded-md px-1 whitespace-nowrap transition-colors hover:ring-1">
+    <span className="group/clause hover:bg-accent hover:ring-border relative -mx-1 rounded-md px-1 whitespace-nowrap transition-colors hover:ring-1">
       {operator ? (
         <>
           <OperatorWord
             word={operator.selected}
             options={operator.options}
             label={clause.attribute}
+            negated={clauseMode(clause) === "exclude"}
             onSelect={(word) => handlers.onSetOperator(clause.id, word)}
           />
           {" "}
@@ -268,8 +288,7 @@ function ClauseSpan({
               <OperatorWord
                 word={clause.join}
                 options={[
-                  { word: "or", hint: "Either value matches" },
-                  { word: "and", hint: "Both values must match" },
+                  { word: "or" }, { word: "and" },
                 ]}
                 label={`${clause.attribute} — between values`}
                 onSelect={(word) => handlers.onSetJoin(clause.id, word as "or" | "and")}
@@ -295,7 +314,7 @@ function ClauseSpan({
           // Absolutely placed, in the leading above the clause: the dismiss
           // must not take inline space, or hovering a condition would reflow
           // the whole sentence under the pointer.
-          className="text-muted-foreground hover:text-foreground hover:border-foreground/30 bg-background absolute -top-2.5 -right-1 z-10 flex size-4 items-center justify-center rounded-full border opacity-0 transition-opacity group-hover/clause:opacity-100 focus-visible:opacity-100"
+          className="text-muted-foreground hover:text-foreground hover:border-edge bg-surface-raised border-border shadow-panel absolute -top-2.5 -right-1 z-10 flex size-4 items-center justify-center rounded-full border opacity-0 transition-opacity group-hover/clause:opacity-100 focus-visible:opacity-100"
         >
           <XIcon className="size-2.5" />
         </button>

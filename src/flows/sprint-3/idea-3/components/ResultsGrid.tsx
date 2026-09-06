@@ -61,14 +61,14 @@ export function ResultsGrid({ rows, total }: { rows: ResultRow[]; total: number 
         </span>
         <span>Sorted by relevance</span>
       </div>
-      <div className="min-h-0 flex-1 overflow-auto border-t">
+      <div className="bg-surface-panel border-edge min-h-0 flex-1 overflow-auto border-t">
         <table className="w-full border-collapse text-[13px] [&_td:first-child]:pl-6 [&_td:last-child]:pr-6 [&_th:first-child]:pl-6 [&_th:last-child]:pr-6">
           <thead className="sticky top-0 z-10">
-            <tr className="bg-muted/70 backdrop-blur">
+            <tr className="bg-surface-sunken backdrop-blur">
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className="text-muted-foreground border-b px-3 py-2.5 text-left text-[10px] font-medium tracking-[0.08em] whitespace-nowrap uppercase"
+                  className="text-muted-foreground border-edge border-b px-3 py-2.5 text-left text-[10px] font-medium tracking-[0.08em] whitespace-nowrap uppercase"
                 >
                   {column.label}
                 </th>
@@ -80,14 +80,11 @@ export function ResultsGrid({ rows, total }: { rows: ResultRow[]; total: number 
               <tr>
                 <td colSpan={columns.length} className="px-3 py-10 text-center">
                   <p className="text-[13px] font-medium">No drugs match the sentence</p>
-                  <p className="text-muted-foreground mt-1 text-xs">
-                    Widen a condition, or undo the last edit.
-                  </p>
                 </td>
               </tr>
             ) : (
               rows.map((row, i) => (
-                <tr key={`${row.name}-${i}`} className="hover:bg-muted/40 border-b last:border-0">
+                <tr key={`${row.name}-${i}`} className="hover:bg-brand-wash border-hairline border-b transition-colors last:border-0">
                   <td className="px-3 py-2.5 font-medium whitespace-nowrap">{row.name}</td>
                   <td className="text-muted-foreground px-3 py-2.5 whitespace-nowrap">{row.generic}</td>
                   <td className="text-muted-foreground px-3 py-2.5 whitespace-nowrap">{row.company}</td>

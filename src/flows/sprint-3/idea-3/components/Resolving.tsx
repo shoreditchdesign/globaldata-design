@@ -3,13 +3,14 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import {
+  motion,
+  resolveMarks,
+  staggerDelay,
+  useStagedSequence,
+} from "@/components/prototype/motion"
 import { QuerySentence } from "@/flows/sprint-3/idea-3/components/QuerySentence"
 import type { Resolution } from "@/flows/sprint-3/idea-3/resolve"
-
-/** Reading, structuring, done. Long enough to watch, short enough to sit through. */
-const HIGHLIGHT_AT = 180
-const STRUCTURE_AT = 760
-const DONE_AT = 1400
 
 const noop = () => {}
 const inert = {
@@ -32,6 +33,11 @@ const inert = {
  * before this component mounted. The time is spent showing structure being
  * imposed on a sentence, which is the thing a reviewer cannot see if the query
  * simply appears.
+ *
+ * The timings are no longer local. They live in
+ * `src/components/prototype/motion.ts`, because Idea 2 spends them when its
+ * agent ticks a value and Idea 4 spends them when a proposal lands, and four
+ * directions moving at three speeds read as three products.
  */
 export function Resolving({
   resolution,
@@ -40,16 +46,11 @@ export function Resolving({
   resolution: Resolution
   onDone: () => void
 }) {
-  const [stage, setStage] = React.useState(0)
-
-  React.useEffect(() => {
-    const timers = [
-      setTimeout(() => setStage(1), HIGHLIGHT_AT),
-      setTimeout(() => setStage(2), STRUCTURE_AT),
-      setTimeout(onDone, DONE_AT),
-    ]
-    return () => timers.forEach(clearTimeout)
-  }, [onDone])
+  const stage = useStagedSequence({
+    marks: [resolveMarks.highlight, resolveMarks.structure],
+    done: resolveMarks.done,
+    onDone,
+  })
 
   const segments = React.useMemo(() => split(resolution), [resolution])
 
@@ -60,7 +61,7 @@ export function Resolving({
         <p
           aria-live="polite"
           className={cn(
-            "col-start-1 row-start-1 max-w-[74ch] text-[22px] leading-[2.05] tracking-[-0.01em] transition-opacity duration-200 motion-reduce:transition-none",
+            "ease-settle col-start-1 row-start-1 max-w-[74ch] text-[22px] leading-[2.05] tracking-[-0.01em] transition-opacity duration-200 motion-reduce:transition-none",
             stage >= 2 ? "opacity-0" : "opacity-100",
           )}
         >
@@ -68,12 +69,14 @@ export function Resolving({
             segment.matched ? (
               <span
                 key={index}
-                style={{ transitionDelay: `${Math.min(segment.rank, 8) * 70}ms` }}
+                style={staggerDelay(segment.rank)}
                 className={cn(
-                  "-mx-0.5 inline-block px-0.5 align-baseline transition-all duration-300 motion-reduce:transition-none",
+                  "ease-settle -mx-0.5 inline-block px-0.5 align-baseline transition-all duration-300 motion-reduce:transition-none",
                   stage === 0 && "rounded-md",
-                  stage >= 1 && "bg-primary/10 rounded-md px-1.5",
-                  stage >= 2 && "bg-secondary border-border/80 border font-medium",
+                  // Recognised: the accent lights the phrase.
+                  stage >= 1 && "bg-brand-wash rounded-md px-1.5",
+                  // Structured: it hardens into the same chip the sentence uses.
+                  stage >= 2 && "bg-brand-tint border-brand-border border font-medium",
                 )}
               >
                 {segment.text}
@@ -82,7 +85,7 @@ export function Resolving({
               <span
                 key={index}
                 className={cn(
-                  "transition-opacity duration-300 motion-reduce:transition-none",
+                  "ease-settle transition-opacity duration-300 motion-reduce:transition-none",
                   stage >= 2 ? "text-muted-foreground/40" : "text-foreground",
                 )}
               >
@@ -95,11 +98,12 @@ export function Resolving({
         {/* The same query in the sentence's own order, fading up underneath. */}
         <div
           aria-hidden
+          style={{ transitionDelay: `${motion.handover}ms` }}
           className={cn(
             // Delayed, so the typed line has left before the sentence arrives:
             // two lines of prose at half opacity on top of each other read as a
             // rendering fault rather than a dissolve.
-            "col-start-1 row-start-1 transition-all delay-150 duration-300 motion-reduce:transition-none",
+            "ease-settle col-start-1 row-start-1 transition-all duration-300 motion-reduce:transition-none",
             stage >= 2 ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-1 opacity-0",
           )}
         >
@@ -110,7 +114,7 @@ export function Resolving({
       </div>
 
       <p className="text-muted-foreground mt-3.5 flex items-center gap-2 text-xs">
-        <span className="bg-foreground/60 size-1.5 animate-pulse rounded-full" />
+        <span className="bg-brand size-1.5 animate-pulse rounded-full motion-reduce:animate-none" />
         {stage >= 2 ? "Writing it as a sentence" : "Reading your request"}
       </p>
     </div>
