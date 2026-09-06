@@ -24,9 +24,8 @@ import {
   BASE_COUNT,
   clauseTemplates,
   exampleClauses,
-  matchingRows,
   originalPrompt,
-  resultCount,
+  screenDrugs,
   type Clause,
 } from "@/flows/sprint-3/idea-3/data"
 import { clausesToProse } from "@/flows/sprint-3/idea-3/grammar"
@@ -236,10 +235,10 @@ export function Screener({ start = false }: { start?: boolean }) {
 
   /* ------------------------------------------------------------------ */
 
-  const total = resultCount(clauses)
-  // The sample, filtered against the sentence — so an edit never moves the
-  // count without moving the table underneath it.
-  const rows = matchingRows(clauses)
+  // One call for both, so the count and the table can never disagree: the rows
+  // are the sample filtered against the sentence, and the number above them is
+  // reconciled against those rows rather than computed beside them.
+  const { rows, total } = screenDrugs(clauses)
   const composing = phase === "compose"
   const resolving = phase === "resolving"
   // What the reading missed, kept in front of the reviewer until they act on
@@ -343,7 +342,7 @@ export function Screener({ start = false }: { start?: boolean }) {
                     (empty || resolving) && "text-muted-foreground",
                   )}
                 >
-                  {(empty ? BASE_COUNT : total).toLocaleString()}
+                  {total.toLocaleString()}
                 </p>
                 <p className="text-muted-foreground mt-1.5 text-xs">
                   {resolving
@@ -388,7 +387,7 @@ export function Screener({ start = false }: { start?: boolean }) {
           </div>
         </section>
 
-        <ResultsGrid rows={rows} total={empty ? BASE_COUNT : total} />
+        <ResultsGrid rows={rows} total={total} />
       </div>
     </ProductChrome>
   )
