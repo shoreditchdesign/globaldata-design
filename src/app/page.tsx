@@ -22,7 +22,7 @@ export default function Home() {
   return (
     <div className="min-h-svh px-8 py-10">
       <h1 className="mb-6 text-sm font-medium tracking-tight">GlobalData — design sprints</h1>
-      <SprintTable sprints={rows} defaultOpen={["sprint-2"]} />
+      <SprintTable sprints={rows} defaultOpen={["sprint-3"]} />
     </div>
   )
 }

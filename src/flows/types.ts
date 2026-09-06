@@ -34,7 +34,7 @@ export interface Flow {
 }
 
 export interface Sprint {
-  /** URL segment, e.g. `sprint-2`. */
+  /** URL segment, e.g. `sprint-3`. */
   id: string
   name: string
   goal: string
