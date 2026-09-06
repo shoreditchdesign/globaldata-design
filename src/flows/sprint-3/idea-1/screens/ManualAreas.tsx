@@ -1,15 +1,12 @@
-import { FilterModal } from "@/flows/sprint-3/idea-1/components/FilterModal"
-import { ManualPane } from "@/flows/sprint-3/idea-1/components/ManualPane"
-import { Results } from "@/flows/sprint-3/idea-1/screens/Results"
+import { IncumbentScreen } from "@/flows/sprint-3/idea-1/components/IncumbentScreen"
 
-/** Manual tab: the eight filter areas, nothing selected. */
+/**
+ * Manual tab: the eight filter areas, nothing selected.
+ *
+ * One of twelve entry points into the same stateful screen — the slug seeds a
+ * starting state so the deep link still lands here, and every other state is a
+ * click away.
+ */
 export function ManualAreas() {
-  return (
-    <>
-      <Results />
-      <FilterModal tab="manual">
-        <ManualPane />
-      </FilterModal>
-    </>
-  )
+  return <IncumbentScreen slug="manual-areas" />
 }

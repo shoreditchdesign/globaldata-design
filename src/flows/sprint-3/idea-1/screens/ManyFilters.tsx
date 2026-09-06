@@ -1,24 +1,12 @@
-import { ProductChrome } from "@/components/prototype/ProductChrome"
-import { FilterBar } from "@/flows/sprint-3/idea-1/components/FilterBar"
-import { ResultsTable } from "@/flows/sprint-3/idea-1/components/ResultsTable"
-import { overflowGroups, parsedGroups } from "@/flows/sprint-3/idea-1/data"
+import { IncumbentScreen } from "@/flows/sprint-3/idea-1/components/IncumbentScreen"
 
 /**
- * Past ten filters the bar wraps and overflows into a `+2`. This is the state
- * that decides whether the pattern scales — worth putting in front of the
- * client rather than hiding.
+ * Past ten filters the bar wraps and overflows into a +2.
+ *
+ * One of twelve entry points into the same stateful screen — the slug seeds a
+ * starting state so the deep link still lands here, and every other state is a
+ * click away.
  */
 export function ManyFilters() {
-  return (
-    <ProductChrome activeArea="Drugs" body="scroll">
-      <FilterBar
-        groups={[...parsedGroups, ...overflowGroups]}
-        resultCount="245 Drugs"
-        overflowCount={2}
-      />
-      <div className="pt-6">
-        <ResultsTable />
-      </div>
-    </ProductChrome>
-  )
+  return <IncumbentScreen slug="many-filters" />
 }

@@ -1,21 +1,21 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ChevronRightIcon, ChevronsLeftIcon } from "lucide-react"
+import { ChevronRightIcon, ChevronsLeftIcon, SparklesIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import {
   areaItems,
+  attributeDefs,
   attributeItems,
   childrenByValue,
-  defaultPath,
   searchAttributes,
-  selectedValues,
   valuesByAttribute,
-  type ColumnItem,
 } from "@/flows/sprint-3/idea-2/data"
 import { MillerColumn, type ColumnModel } from "@/flows/sprint-3/idea-2/components/MillerColumn"
+import { AgentPanel } from "@/flows/sprint-3/idea-2/components/AgentPanel"
+import type { Screener } from "@/flows/sprint-3/idea-2/use-screener"
 
 /**
  * How many columns are on screen at once before the rest go to the breadcrumb.
@@ -62,7 +62,8 @@ const childLevel: Record<string, { level: string; placeholder: string }> = {
 }
 
 /**
- * The screener's left region — Miller columns, not a replacing tree.
+ * The screener's left region — Miller columns, not a replacing tree, with the
+ * agent docked under them.
  *
  * Drilling in adds a column beside the one you were on instead of wiping it,
  * so the path you took stays on screen and the branches either side of it stay
@@ -70,18 +71,28 @@ const childLevel: Record<string, { level: string; placeholder: string }> = {
  * still a live control: clicking a crumb slides that column back into view
  * without discarding anything to the right of it.
  *
- * Selection itself is fixed — this is a still frame of one applied query. Only
- * the navigation is live.
+ * Every number in here is counted off the sample against the filters currently
+ * applied, so a value's count says what picking it would leave rather than
+ * what the query already holds.
  */
-export function FilterPanel({ className }: { className?: string }) {
+export function FilterPanel({
+  screener,
+  className,
+}: {
+  screener: Screener
+  className?: string
+}) {
   const maxColumns = useMaxColumns()
-  const [path, setPath] = useState<string[]>(defaultPath)
-  // Overshoot, clamped on render: the panel always opens on the rightmost
-  // window, so dropping to two columns folds the shallow end into the
-  // breadcrumb rather than hiding the level the user drilled to.
-  const [leftIndex, setLeftIndex] = useState(WIDE_COLUMNS)
+  const { filters, path, leftIndex, splits, countsFor, agent } = screener
 
   const [area, attribute, value, leaf] = path
+  const openFilter = filters.find((filter) => filter.attribute === attribute)
+  const valuesOfAttribute = openFilter?.values ?? []
+  const negated = openFilter?.mode === "is not"
+  // One facet pass per open attribute, reused by its value column and by the
+  // column of children underneath it — indications and countries are values of
+  // the same attribute, so they are counted the same way.
+  const openCounts = attribute ? countsFor(attribute) : {}
 
   const columns: ColumnModel[] = [
     {
@@ -91,22 +102,30 @@ export function FilterPanel({ className }: { className?: string }) {
       placeholder: "Search areas",
       items: areaItems,
       open: area,
-      badges: area === "Drugs" ? { Drugs: Object.keys(selectedValues).length } : undefined,
+      badges: filters.length > 0 ? { Drugs: filters.length } : undefined,
     },
   ]
 
   if (area === "Drugs") {
     columns.push({
       key: "attributes",
-      level: "Attribute",
+      // Not "Attribute". This column is an inventory of everything the set can
+      // be cut by — 27 of them on the live platform — and saying how many
+      // there are is the difference between a menu you get past and a data
+      // model you can read.
+      level: `${attributeItems.length} attributes`,
       placeholder: "Search attributes",
-      items: attributeItems,
+      items: attributeItems.map((item) => ({
+        ...item,
+        // Free-text attributes have no value list, so they carry no number.
+        count: attributeDefs[item.label] ? (splits[item.label] ?? 0) : null,
+      })),
       unit: "Values",
       wide: true,
       open: attribute,
-      selected: Object.keys(selectedValues),
+      selected: filters.map((filter) => filter.attribute),
       badges: Object.fromEntries(
-        Object.entries(selectedValues).map(([key, values]) => [key, values.length]),
+        filters.map((filter) => [filter.attribute, filter.values.length]),
       ),
     })
   }
@@ -116,9 +135,14 @@ export function FilterPanel({ className }: { className?: string }) {
       key: `values:${attribute}`,
       level: valueLevel[attribute] ?? attribute,
       placeholder: `Search ${attribute}`,
-      items: valuesByAttribute[attribute] ?? [],
+      items: (valuesByAttribute[attribute] ?? []).map((item) => ({
+        ...item,
+        count: openCounts[item.label] ?? 0,
+      })),
       search: searchAttributes.has(attribute),
-      selected: selectedValues[attribute],
+      selectable: Boolean(attributeDefs[attribute]),
+      negated,
+      selected: valuesOfAttribute,
       open: value,
     })
   }
@@ -129,7 +153,13 @@ export function FilterPanel({ className }: { className?: string }) {
       key: `children:${value}`,
       level: child.level,
       placeholder: child.placeholder,
-      items: childrenByValue[value],
+      items: childrenByValue[value].map((item) => ({
+        ...item,
+        count: openCounts[item.label] ?? 0,
+      })),
+      selectable: Boolean(attributeDefs[attribute]),
+      negated,
+      selected: valuesOfAttribute,
       open: leaf,
     })
   }
@@ -138,18 +168,10 @@ export function FilterPanel({ className }: { className?: string }) {
   const start = Math.min(leftIndex, maxLeft)
   const visible = columns.slice(start, start + maxColumns)
 
-  function openAt(depth: number, item: ColumnItem) {
-    // The filter areas other than Drugs have no attribute set in this prototype.
-    if (depth === 0 && !item.drillable) return
+  /** The attribute a column at this depth is ticking values into. */
+  const attributeAt = (depth: number) => (depth >= 2 ? attribute : undefined)
 
-    setPath([...path.slice(0, depth), item.label])
-    // Always land on the rightmost window — clamped on render, so overshooting
-    // is how "follow the drill-down" is expressed.
-    setLeftIndex(maxColumns)
-  }
-
-  const appliedAttributes = Object.keys(selectedValues).length
-  const appliedValues = Object.values(selectedValues).reduce((n, v) => n + v.length, 0)
+  const appliedValues = filters.reduce((n, filter) => n + filter.values.length, 0)
 
   return (
     <aside className={cn("bg-muted/30 flex h-full min-h-0 flex-col", className)}>
@@ -157,12 +179,27 @@ export function FilterPanel({ className }: { className?: string }) {
         <div className="flex items-center gap-2">
           <h2 className="text-[13px] font-semibold tracking-tight">Filters</h2>
           <span className="text-muted-foreground text-[11px] tabular-nums">
-            {appliedAttributes} attributes · {appliedValues} values
+            {filters.length} attributes · {appliedValues} values
           </span>
+
+          {agent.visible ? null : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={screener.recallAgent}
+              className="ml-auto h-6 px-2 text-[11px]"
+            >
+              <SparklesIcon className="size-3" />
+              Agent
+            </Button>
+          )}
+
           <Button
             variant="ghost"
             size="sm"
-            className="text-muted-foreground ml-auto h-6 px-2 text-[11px]"
+            onClick={screener.clearAll}
+            disabled={filters.length === 0}
+            className={cn("text-muted-foreground h-6 px-2 text-[11px]", agent.visible && "ml-auto")}
           >
             Clear all
           </Button>
@@ -172,7 +209,7 @@ export function FilterPanel({ className }: { className?: string }) {
           {start > 0 ? (
             <button
               type="button"
-              onClick={() => setLeftIndex(start - 1)}
+              onClick={() => screener.setLeftIndex(start - 1)}
               aria-label="Show the previous column"
               className="text-muted-foreground hover:text-foreground hover:bg-accent -ml-1 flex size-5 shrink-0 items-center justify-center rounded"
             >
@@ -191,7 +228,7 @@ export function FilterPanel({ className }: { className?: string }) {
                   ) : null}
                   <button
                     type="button"
-                    onClick={() => setLeftIndex(Math.max(0, Math.min(i, maxLeft)))}
+                    onClick={() => screener.setLeftIndex(Math.max(0, Math.min(i, maxLeft)))}
                     className={cn(
                       "hover:text-foreground truncate rounded px-1 py-0.5 text-[11px]",
                       isLast ? "text-foreground font-medium" : "text-muted-foreground",
@@ -208,14 +245,23 @@ export function FilterPanel({ className }: { className?: string }) {
       </div>
 
       <div className="flex min-h-0 flex-1 divide-x overflow-x-auto">
-        {visible.map((column, i) => (
-          <MillerColumn
-            key={column.key}
-            column={column}
-            onOpen={(item) => openAt(start + i, item)}
-          />
-        ))}
+        {visible.map((column, i) => {
+          const depth = start + i
+          const ticksInto = attributeAt(depth)
+          return (
+            <MillerColumn
+              key={column.key}
+              column={column}
+              onOpen={(label) => screener.openAt(depth, label)}
+              onToggle={
+                ticksInto ? (label) => screener.toggleValue(ticksInto, label) : undefined
+              }
+            />
+          )
+        })}
       </div>
+
+      {agent.visible ? <AgentPanel screener={screener} /> : null}
     </aside>
   )
 }

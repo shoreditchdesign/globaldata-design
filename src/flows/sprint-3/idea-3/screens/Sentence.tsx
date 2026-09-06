@@ -1,21 +1,14 @@
-import { ProductChrome } from "@/components/prototype/ProductChrome"
-import { QueryWorkbench } from "@/flows/sprint-3/idea-3/components/QueryWorkbench"
+import { Screener } from "@/flows/sprint-3/idea-3/components/Screener"
 
 /**
- * The primary working state: a query already asked and resolved, rendered as
- * an editable sentence, with the result count and the results underneath it.
+ * The working state: a query already asked and resolved, rendered as an
+ * editable sentence, with the count and the results underneath it.
  *
- * The global search in the chrome is still the shared placeholder. This
- * direction's argument is that the platform already ships a good cross-entity
- * natural-language search up there and nothing found in it can be carried into
- * a screener — so when that argument gets made on screen, it gets made by
- * passing a real control into `ProductChrome`'s `search` slot, not by drawing a
- * second header.
+ * This is the screen to open on when the point being made is what happens
+ * *after* a query is understood. `edit as text` runs it backwards to the prose
+ * it was read from; `/sprint-3/idea-3/start` opens on the cold start instead,
+ * where the reviewer types their own.
  */
 export function Sentence() {
-  return (
-    <ProductChrome activeArea="Drugs">
-      <QueryWorkbench />
-    </ProductChrome>
-  )
+  return <Screener />
 }

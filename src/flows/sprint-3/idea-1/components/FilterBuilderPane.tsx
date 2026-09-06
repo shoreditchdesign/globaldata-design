@@ -1,12 +1,21 @@
 import { Button } from "@/components/ui/button"
-import { FilterBuilderStack } from "@/flows/sprint-3/idea-1/components/FilterChips"
+import { FilterBuilderStack, type GroupHandlers } from "@/flows/sprint-3/idea-1/components/FilterChips"
 import type { FilterGroup } from "@/flows/sprint-3/idea-1/data"
 
 /**
  * Right-hand pane of the modal. Present in every state — empty, or holding the
  * groups written by either tab.
  */
-export function FilterBuilderPane({ groups = [] }: { groups?: FilterGroup[] }) {
+export function FilterBuilderPane({
+  groups = [],
+  onClear,
+  onApply,
+  ...handlers
+}: {
+  groups?: FilterGroup[]
+  onClear: () => void
+  onApply: () => void
+} & GroupHandlers) {
   const empty = groups.length === 0
 
   return (
@@ -26,15 +35,17 @@ export function FilterBuilderPane({ groups = [] }: { groups?: FilterGroup[] }) {
             </p>
           </div>
         ) : (
-          <FilterBuilderStack groups={groups} />
+          <FilterBuilderStack groups={groups} {...handlers} />
         )}
       </div>
 
       <div className="flex justify-end gap-2 px-6 pb-6">
-        <Button variant="secondary" size="sm">
+        <Button variant="secondary" size="sm" onClick={onClear}>
           Clear filters
         </Button>
-        <Button size="sm">Apply filters</Button>
+        <Button size="sm" onClick={onApply}>
+          Apply filters
+        </Button>
       </div>
     </div>
   )
