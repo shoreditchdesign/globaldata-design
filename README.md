@@ -20,14 +20,18 @@ pnpm lint
 
 | Route | What it is |
 |-------|------------|
-| `/` | All sprints and ideas |
-| `/sprint-2` | Sprint overview, both ideas, screen lists |
-| `/sprint-2/idea-2` | Redirects to the first screen of that idea |
-| `/sprint-2/idea-2/entry` | One screen of the flow, with prototype chrome |
-| `/sprint-2/idea-2/entry?chrome=off` | The bare screen, no chrome |
-| `/sprint-2/compare` | Both ideas side by side, stepped through together |
+| `/` | The index — a table of sprints and ideas. The only navigation surface. |
+| `/sprint-2` | Redirects to `/` |
+| `/sprint-2/idea-1` | Redirects to the first screen of that idea |
+| `/sprint-2/idea-1/results` | One screen of the flow, full bleed, no harness |
+| `/sprint-2/compare` | Ideas side by side, stepped through together (Explorer only) |
 
-Each sprint carries two ideas — two independent takes on the same flow.
+Prototype screens render alone, filling the viewport. Navigation lives in the **Explorer**, a
+floating panel toggled with **Cmd+Shift+E** (Ctrl+Shift+E elsewhere); Esc closes it. It is mounted
+on the screen routes only, hides itself inside the compare view's iframes, and remembers whether it
+was open for the rest of the session.
+
+Each sprint carries independent ideas — separate takes on the same flow.
 
 ## Layout
 
@@ -36,7 +40,7 @@ src/app/<sprint>/<idea>/[screen]   route per screen
 src/flows/<sprint>/<idea>/flow.ts  screen manifest for one idea
 src/flows/<sprint>/<idea>/screens  the screen components
 src/flows/registry.ts              source of truth for sprints and ideas
-src/components/prototype           prototype chrome
+src/components/prototype           index table, Explorer, compare view
 src/components/ui                  shadcn components (generated)
 
 docs/<sprint>/{decks,scratchpad,research,exports}
@@ -49,7 +53,7 @@ sprints/<sprint>                   brief, flow notes, decision log
 1. Add the component to `src/flows/<sprint>/<idea>/screens/`.
 2. Register it in that idea's `flow.ts`.
 
-Routes, the stepper and the compare view pick it up from the manifest.
+Routes, the Explorer and the compare view pick it up from the manifest.
 
 ## Adding a sprint or idea
 

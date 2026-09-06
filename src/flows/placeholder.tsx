@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
  */
 export function PlaceholderScreen({ title, note }: { title: string; note?: string }) {
   return (
-    <div className="flex min-h-[480px] items-center justify-center p-10">
+    <div className="flex h-full min-h-[480px] items-center justify-center p-10">
       <Card className="w-full max-w-md border-dashed">
         <CardHeader>
           <Badge variant="secondary" className="mb-2 w-fit">

@@ -25,6 +25,10 @@ export interface Flow {
   rationale?: string[]
   /** Source of truth this version was derived from. */
   source?: string
+  /** ISO date (YYYY-MM-DD) this idea was last worked on. */
+  lastUpdated: string
+  /** Short labels for the modality this idea tests, shown on the index. */
+  tags?: string[]
   status: "placeholder" | "in-progress" | "review" | "final"
   screens: Screen[]
 }

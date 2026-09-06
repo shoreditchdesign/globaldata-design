@@ -16,7 +16,10 @@ interface CompareIdea {
 /**
  * Side-by-side review of two ideas at the same step of the flow.
  * Each pane is an iframe of the real route, so what the client sees in
- * review is exactly what they see when clicking through on their own.
+ * review is exactly what they see when clicking through on their own. The
+ * Explorer hides itself inside an iframe, so the panes stay bare.
+ *
+ * Reachable from the Explorer only — it is not on the index.
  */
 export function CompareView({
   sprintId,
@@ -35,9 +38,9 @@ export function CompareView({
       <header className="bg-background border-b">
         <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center gap-4 px-6 py-3">
           <Button asChild size="sm" variant="ghost" className="-ml-3">
-            <Link href={`/${sprintId}`}>← {sprintName}</Link>
+            <Link href="/">← All sprints</Link>
           </Button>
-          <Badge variant="secondary">Compare</Badge>
+          <Badge variant="secondary">{sprintName} — compare</Badge>
           <div className="ml-auto flex items-center gap-2">
             {Array.from({ length: steps }, (_, i) => (
               <Button
@@ -71,7 +74,7 @@ export function CompareView({
                 {screen ? (
                   <iframe
                     key={`${idea.id}-${screen.slug}`}
-                    src={`/${sprintId}/${idea.id}/${screen.slug}?chrome=off`}
+                    src={`/${sprintId}/${idea.id}/${screen.slug}`}
                     title={`${idea.name} — ${screen.title}`}
                     className="h-[720px] w-full"
                   />
