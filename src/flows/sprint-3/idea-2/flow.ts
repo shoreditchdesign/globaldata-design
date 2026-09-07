@@ -9,7 +9,7 @@ import { Screener } from "@/flows/sprint-3/idea-2/screens/Screener"
  */
 export const sprint3Idea2: Flow = {
   id: "idea-2",
-  name: "Idea 2 — Full-pane screener",
+  name: "Idea 2 — Miller Columns",
   premise:
     "The filter tree drills sideways, not down. Each level opens as a new column beside the previous one, so the path you took stays on screen and two branches can be open at once.",
   rationale: [

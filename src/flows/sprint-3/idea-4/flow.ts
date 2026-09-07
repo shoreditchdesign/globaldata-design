@@ -13,7 +13,7 @@ import { Grid } from "@/flows/sprint-3/idea-4/screens/Grid"
  */
 export const sprint3Idea4: Flow = {
   id: "idea-4",
-  name: "Idea 4 — Results-first",
+  name: "Idea 4 — Sidebar Agent",
   premise:
     "No filter surface at all. You land in the grid and filter from the column headers, Excel-style, with counts in every menu — and a docked assistant acts on the same grid: it proposes filters, columns, sorting and grouping, you accept, and a status bar along the bottom records what it did with an undo.",
   rationale: [
