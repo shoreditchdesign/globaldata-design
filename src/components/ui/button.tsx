@@ -8,7 +8,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
+        // `hover:bg-primary/80` is the one thing the token layer cannot
+        // reach: an alpha step over a light surface makes the accent
+        // *paler* on hover, and at 0.27 chroma that reads as the button
+        // losing interest rather than responding. `brand-strong` is the
+        // deeper step the ramp already carries for exactly this.
+        default: "bg-primary text-primary-foreground hover:bg-brand-strong",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:
