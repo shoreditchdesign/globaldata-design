@@ -24,7 +24,7 @@ import { GroupBy } from "@/flows/sprint-3/idea-1/screens/GroupBy"
  */
 export const sprint3Idea1: Flow = {
   id: "idea-1",
-  name: "Idea 1 — Prompt into filters (incumbent)",
+  name: "Idea 1 — Modal / Sidebar Takeover",
   premise:
     "The design already shown and rejected, ported as-is. It is here to be argued against — the baseline the other two ideas have to beat.",
   rationale: [

@@ -42,3 +42,13 @@ next-env.d.ts
 
 # Design tooling
 .paper/
+
+# Research, decks and sprint documentation — kept locally, not published.
+# These carry verbatim client quotes, internal account notes and screenshots of
+# the client's authenticated platform. The repo is public.
+docs/
+slides/
+sprints/
+
+# Internal drafts, not for the public repo.
+MESSAGE.md

@@ -10,7 +10,7 @@ import { Start } from "@/flows/sprint-3/idea-3/screens/Start"
  */
 export const sprint3Idea3: Flow = {
   id: "idea-3",
-  name: "Idea 3 — Query as a sentence",
+  name: "Idea 3 — Text Input Field",
   premise:
     "Natural language in, and what comes back is the query itself as one editable line of English: every value a pill with a dropdown, every operator a word you can change. Not a transcript beside a builder — one object, in one place.",
   rationale: [
