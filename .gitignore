@@ -43,12 +43,9 @@ next-env.d.ts
 # Design tooling
 .paper/
 
-# Research, decks and sprint documentation — kept locally, not published.
-# These carry verbatim client quotes, internal account notes and screenshots of
-# the client's authenticated platform. The repo is public.
-docs/
-slides/
-sprints/
+# The Sprint 1 deck is 48MB of rendered images. Its content is written up in
+# sprints/sprint-3/DESIGN-BRIEF.md, so the file itself stays local.
+*.pdf
 
 # Internal drafts, not for the public repo.
 MESSAGE.md
