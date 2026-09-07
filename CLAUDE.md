@@ -20,13 +20,28 @@ everything under "Design system" and "Repo shape" is specific to this one.
 - Base: shadcn `radix` / `nova` preset, Geist type, built out with an accent and a surface ladder. Add components with `pnpm dlx shadcn@latest add <name>`; do not hand-write a component that exists in the registry.
 - Prefer composing existing primitives over new bespoke CSS. Tailwind v4, tokens only, **never a raw hex outside the token definitions in `src/app/globals.css`**.
 
-### The accent — cerulean
+### The accent — the GlobalData brand primary
 
-`--brand`, `oklch(0.52 0.16 253)`. GlobalData's live platform runs on a corporate navy; this is the same family a few steps lighter and more saturated, so it reads as theirs without reading as 2011. It is wired to `--primary` and `--ring`, so shadcn defaults pick it up.
+`--brand`, `oklch(0.465 0.27 264)`. This is the client's `#0034ec` exactly; the OKLCH form is there so the rest of the ramp can be derived from it. Wired to `--primary` and `--ring`, so shadcn defaults pick it up.
 
 It carries **primary actions, active and selected states, filter chips that are on, focus rings, and the agent's own accents. Nothing else.** Black is not an active-state colour anywhere. One intense colour used deliberately beats five.
 
-`brand-strong` (hover) · `brand-ink` (accent as text) · `brand-border` · `brand-tint` (a selected chip) · `brand-wash` (a selected row).
+The scale, and the one fact that shapes it: `#0034ec` sits *on* the sRGB gamut wall — 0.27 is the most chroma hue 264 can hold at any lightness — so there is no headroom above it. The solids are built by walking down in lightness, the tints by walking toward white.
+
+| Token | Value | Job |
+|---|---|---|
+| `brand` | `oklch(0.465 0.27 264)` | solid fills; white sits on it at 7.5:1 |
+| `brand-strong` | `oklch(0.405 0.235 264)` | hover and pressed on a solid fill — deeper, never paler |
+| `brand-ink` | `oklch(0.43 0.18 264)` | the accent as text or an icon; 8.5:1 on white |
+| `brand-border` | `oklch(0.855 0.062 264)` | the edge of a selected chip or an active tab |
+| `brand-tint` | `oklch(0.953 0.022 264)` | the fill of a selected chip |
+| `brand-wash` | `oklch(0.973 0.012 264)` | a selected row or a hovered option |
+
+`tint` and `wash` are at their gamut ceiling for this hue. A pale blue at 264 cannot be more saturated than that in sRGB, so chips read as the new brand by **hue**, not by intensity — do not try to push them.
+
+`brand-ink` is deliberately a darker, calmer relative of the brand rather than the brand itself. The raw value clears AA as text, but 0.27 chroma at 12px shimmers and makes a coloured word look like a button.
+
+**A stronger accent means less of it.** Solid `brand` is for the thing you press, the thing that is ticked and the current tab. A count, a badge, a secondary marker takes a tint. If something was quiet enough to sit on a surface at the old cerulean and shouts now, pull it back to `brand-tint` or `brand-border` rather than reaching for opacity.
 
 ### Layering
 
@@ -44,8 +59,8 @@ Do not invent a sixth layer with `bg-muted/30`. If a screen needs a step that is
 
 Restrained and systematic, never a rainbow. Colour goes where it carries meaning that ordering or weight cannot.
 
-- **Development stage** is a pipeline, so `StageBadge` encodes position rather than identity — one hue deepening from Phase I to Pre-registration, green for Approved and Marketed, rose for Withdrawn and Discontinued. See `src/components/prototype/README.md`.
-- **Negation** has its own tone (`negative`, `negative-ink`, `negative-border`). An excluded filter must never look identical to an included one.
+- **Development stage** is a pipeline, so `StageBadge` encodes position rather than identity — one hue deepening from Phase I to Pre-registration, green for Approved and Marketed, rose for Withdrawn and Discontinued. Built on the brand hue, 264, with fills at 0.015 / 0.029 / 0.043 / 0.057 chroma. Every fill stays **under 0.06 chroma**: the badges are tints, the accent proper is solid, and a column of them must not compete with a filter chip a few pixels away. The ramp separates by lightness, not saturation — the blue gamut is narrow up here. See `src/components/prototype/README.md`.
+- **Negation** has its own tone (`negative`, `negative-ink`, `negative-border`) at hue 22. An excluded filter must never look identical to an included one. The accent leans violet, which is closer to rose than the old cerulean was, so the negation family is pitched a step up to hold its ground — check the two side by side after any change to either.
 - **Counts** are semantic: a zero recedes.
 
 ### Motion

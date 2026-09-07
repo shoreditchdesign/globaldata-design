@@ -231,7 +231,13 @@ function ColumnItem({
             )}
           />
         ) : badge ? (
-          <span className="bg-brand text-brand-foreground flex size-4 items-center justify-center rounded-full text-[9px] font-medium tabular-nums">
+          // A count, not a command. Solid accent here put a stack of four
+          // filled discs down the left of the panel, which at the old
+          // cerulean was busy and at `#0034ec` competes with the checkboxes
+          // two columns over — the one control on this screen that actually
+          // has to be solid. Tinted, it still says "this attribute is on"
+          // and stops shouting it four times.
+          <span className="bg-brand-border text-brand-ink flex size-4 items-center justify-center rounded-full text-[9px] font-medium tabular-nums">
             {badge}
           </span>
         ) : null}

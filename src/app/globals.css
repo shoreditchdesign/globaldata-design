@@ -159,33 +159,50 @@
 
   /*
    * ------------------------------------------------------------------
-   * The accent — cerulean
+   * The accent — the GlobalData brand primary
    * ------------------------------------------------------------------
-   * GlobalData's live platform runs on a corporate navy. This is the
-   * same family a few steps lighter and considerably more saturated, so
-   * it reads as theirs without reading as 2011. It carries primary
-   * actions, active and selected states, filter chips that are on,
-   * focus rings and the agent's own accents — and nothing else. Black
-   * is no longer an active-state colour anywhere.
+   * `--brand` is the client's `#0034ec`, written in OKLCH so the rest of
+   * the ramp can be derived from it: `oklch(0.465 0.27 264)` renders to
+   * exactly that hex. It is a hard blue and it sits on the sRGB gamut
+   * wall — 0.27 is the most chroma this hue can hold at any lightness —
+   * which is the single fact that shapes everything below. There is no
+   * room above it, so the scale is built by walking *down* in lightness
+   * for the solid states and *up* toward white for the tints.
    *
-   *   brand         solid fills; white sits on it at 5.6:1
-   *   brand-strong  hover and pressed
-   *   brand-ink     the accent as text or an icon on a light surface
+   * It carries primary actions, active and selected states, filter chips
+   * that are on, focus rings and the agent's own accents — and nothing
+   * else. Black is not an active-state colour anywhere.
+   *
+   * Because it is roughly seventy per cent more chromatic than the
+   * cerulean it replaces, everything downstream is *quieter* than the
+   * proportional equivalent would be. A stronger accent means less of it.
+   *
+   *   brand         solid fills; white sits on it at 7.5:1
+   *   brand-strong  hover and pressed on a solid fill — deeper, not paler
+   *   brand-ink     the accent as text or an icon on a light surface;
+   *                 8.5:1 on white, and calmer than the raw brand, which
+   *                 shimmers at 12px and would make a coloured word look
+   *                 like a button
    *   brand-border  the edge of a selected chip or an active tab
    *   brand-tint    the fill of a selected chip
    *   brand-wash    a selected row or a hovered option
+   *
+   * `tint` and `wash` are both at their gamut ceiling for this hue
+   * (0.022 at L 0.953, 0.012 at L 0.973). A pale blue at 264 simply
+   * cannot be more saturated than this in sRGB, so the chips read as the
+   * new brand by hue rather than by intensity.
    */
-  --brand: oklch(0.52 0.16 253);
-  --brand-strong: oklch(0.455 0.14 253);
-  --brand-ink: oklch(0.45 0.135 253);
-  --brand-border: oklch(0.855 0.05 253);
-  --brand-tint: oklch(0.955 0.02 253);
-  --brand-wash: oklch(0.974 0.011 253);
+  --brand: oklch(0.465 0.27 264);
+  --brand-strong: oklch(0.405 0.235 264);
+  --brand-ink: oklch(0.43 0.18 264);
+  --brand-border: oklch(0.855 0.062 264);
+  --brand-tint: oklch(0.953 0.022 264);
+  --brand-wash: oklch(0.973 0.012 264);
   --brand-foreground: oklch(0.99 0 0);
 
   --primary: var(--brand);
   --primary-foreground: var(--brand-foreground);
-  --ring: oklch(0.62 0.14 253);
+  --ring: oklch(0.6 0.205 264);
 
   --secondary: oklch(0.968 0.002 255);
   --secondary-foreground: oklch(0.26 0.01 260);
@@ -202,10 +219,18 @@
    * An excluded value must not look identical to an included one. The
    * accent says "in"; this says "out". Kept low in chroma so a row of
    * excluded chips does not read as an error state.
+   *
+   * Nudged up a step with the new accent. The brand moved from hue 253
+   * to 264, so it leans violet, which closes eleven degrees of the gap
+   * to this rose — and the accent's own chips got a stronger border and
+   * a deeper ink at the same time. Left where it was, an `is not` chip
+   * would have read as the greyer, weaker sibling of an `is` chip rather
+   * than as its opposite. Fill stays under 0.03 for the same reason it
+   * always did.
    */
-  --negative: oklch(0.95 0.024 22);
-  --negative-ink: oklch(0.48 0.14 22);
-  --negative-border: oklch(0.885 0.044 22);
+  --negative: oklch(0.947 0.026 22);
+  --negative-ink: oklch(0.475 0.155 22);
+  --negative-border: oklch(0.878 0.055 22);
 
   /*
    * ------------------------------------------------------------------
@@ -230,26 +255,35 @@
    * Chroma stays under 0.06 on every fill. The badges are tints; the
    * accent proper is solid. They are used within a few pixels of each
    * other in three of the four directions and must not compete.
+   *
+   * Rebuilt on the brand hue, 264. The sRGB blue gamut is narrower here
+   * than at the old 253 — 0.062 chroma is the ceiling at L 0.874 — so
+   * the four blue rungs carry the same chroma they always did and take
+   * their extra separation from lightness instead: the steps widened
+   * from 0.024/0.028/0.028 to a level 0.030/0.032/0.032. The ramp reads
+   * one notch further apart top to bottom and no louder side to side,
+   * which is the right trade now that a solid accent chip sits nearby at
+   * 0.27.
    */
-  --stage-pre: oklch(0.966 0.003 255);
-  --stage-pre-ink: oklch(0.535 0.012 255);
-  --stage-pre-edge: oklch(0.918 0.004 255);
+  --stage-pre: oklch(0.966 0.003 264);
+  --stage-pre-ink: oklch(0.535 0.012 264);
+  --stage-pre-edge: oklch(0.918 0.004 264);
 
-  --stage-early: oklch(0.97 0.016 253);
-  --stage-early-ink: oklch(0.51 0.125 253);
-  --stage-early-edge: oklch(0.905 0.042 253);
+  --stage-early: oklch(0.968 0.015 264);
+  --stage-early-ink: oklch(0.485 0.185 264);
+  --stage-early-edge: oklch(0.902 0.044 264);
 
-  --stage-mid: oklch(0.946 0.03 253);
-  --stage-mid-ink: oklch(0.47 0.14 253);
-  --stage-mid-edge: oklch(0.875 0.056 253);
+  --stage-mid: oklch(0.938 0.029 264);
+  --stage-mid-ink: oklch(0.45 0.175 264);
+  --stage-mid-edge: oklch(0.872 0.058 264);
 
-  --stage-late: oklch(0.918 0.045 253);
-  --stage-late-ink: oklch(0.42 0.13 253);
-  --stage-late-edge: oklch(0.845 0.07 253);
+  --stage-late: oklch(0.906 0.043 264);
+  --stage-late-ink: oklch(0.41 0.16 264);
+  --stage-late-edge: oklch(0.842 0.072 264);
 
-  --stage-final: oklch(0.89 0.058 253);
-  --stage-final-ink: oklch(0.38 0.12 253);
-  --stage-final-edge: oklch(0.815 0.082 253);
+  --stage-final: oklch(0.874 0.057 264);
+  --stage-final-ink: oklch(0.37 0.145 264);
+  --stage-final-edge: oklch(0.812 0.086 264);
 
   --stage-live: oklch(0.905 0.052 158);
   --stage-live-ink: oklch(0.395 0.09 158);
@@ -259,17 +293,21 @@
   --stage-stopped-ink: oklch(0.485 0.15 22);
   --stage-stopped-edge: oklch(0.878 0.05 22);
 
-  --stage-dormant: oklch(0.966 0.003 255);
-  --stage-dormant-ink: oklch(0.6 0.008 255);
-  --stage-dormant-edge: oklch(0.93 0.003 255);
+  /* Archived. Darkened from L 0.6 while the ramp was open: at the old
+   * value the label sat at 3.6:1 on its own fill, which is quiet on
+   * purpose but under AA for 11px text. 4.6:1 is still the faintest
+   * badge in the set. */
+  --stage-dormant: oklch(0.966 0.003 264);
+  --stage-dormant-ink: oklch(0.54 0.008 264);
+  --stage-dormant-edge: oklch(0.93 0.003 264);
 
   /* Charts follow the accent rather than a greyscale, so a bar and a
    * selected chip belong to the same product. */
-  --chart-1: oklch(0.52 0.16 253);
-  --chart-2: oklch(0.63 0.13 253);
-  --chart-3: oklch(0.74 0.095 253);
-  --chart-4: oklch(0.83 0.065 253);
-  --chart-5: oklch(0.9 0.04 253);
+  --chart-1: oklch(0.465 0.27 264);
+  --chart-2: oklch(0.58 0.215 264);
+  --chart-3: oklch(0.7 0.15 264);
+  --chart-4: oklch(0.8 0.095 264);
+  --chart-5: oklch(0.885 0.05 264);
 
   --radius: 0.625rem;
 
