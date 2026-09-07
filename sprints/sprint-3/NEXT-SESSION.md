@@ -1,6 +1,7 @@
 # Next session — pick up here
 
-State as of 2026-09-07, commit `6cc48d7`. Everything below is agreed and specified but **not built**.
+State as of the end of the 2026-09-07 session. Sections 1 to 4 are agreed and specified but **not
+built**. Section 5 records what was finished.
 
 Run `pnpm dev` and the four directions are at `/sprint-3/idea-{1,2,3,4}`. All four are clickable end
 to end. Typecheck, lint and build all pass.
@@ -103,23 +104,19 @@ while three directions still need presentation work.
 
 ---
 
-## 5. Not yet done: history purge and first push
+## 5. Done — repository is private, history purged, pushed
 
-**Nothing has been pushed.** `origin/main` is still on the initial commit `81b02e5`; twelve commits
-are local. Nothing sensitive has ever been public.
+Resolved at the end of the 2026-09-07 session. Recorded here because earlier notes said otherwise.
 
-Before the first push:
-
-1. **Purge `docs/`, `slides/`, `sprints/` and `docs/sprint-3/Sprint 1.pdf` from the twelve unpushed
-   commits.** They are gitignored going forward, but they still sit in history. The PDF is 48MB and
-   would be in every clone forever. This needs a clean working tree, which is why it has not run yet.
-2. Push. It fast-forwards from `81b02e5`, so no force is needed and nobody else is affected.
-3. Vercel picks it up at `globaldata-design.vercel.app`.
-
-The repo is **public**. Making it private is worth doing regardless — the research files are half
-the value of this sprint and they belong with the code, just not in the open.
-
----
+- The repository is **private**. It was public while the research and the client's platform
+  screenshots were on it; that is closed.
+- The 48MB Sprint 1 deck is **purged from history**, taking the repository from 50MB to 1.5MB. The
+  file is still on disk at `docs/sprint-3/Sprint 1.pdf`, now covered by a `*.pdf` ignore rule. Its
+  content is written up in `DESIGN-BRIEF.md`.
+- `docs/`, `slides/` and `sprints/` are **tracked again**, since the exposure reason went away with
+  the visibility change and the evidence belongs with the code.
+- `origin/main` is up to date. Vercel's framework preset is pinned to Next.js in `vercel.json`,
+  which fixes the "no Output Directory named public" build failure.
 
 ## 6. Known weaknesses, unfixed and honest
 
