@@ -51,6 +51,7 @@ export function FilterPill({
       {removable ? (
         <button
           type="button"
+          data-slot="filter-pill-remove"
           aria-label={removeLabel}
           className={cn(
             "ml-0.5 flex size-4 shrink-0 items-center justify-center rounded-full transition-colors",

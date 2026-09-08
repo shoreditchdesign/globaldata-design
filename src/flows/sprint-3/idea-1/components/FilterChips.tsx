@@ -21,26 +21,49 @@ import { operators } from "@/flows/sprint-3/idea-1/data"
 export function Chip({
   chip,
   className,
+  onOpen,
   onRemove,
 }: {
   chip: FilterChip
   className?: string
+  onOpen?: () => void
   onRemove?: () => void
 }) {
+  const content = (
+    <>
+      {chip.prefix ? <span className="text-muted-foreground">{chip.prefix}</span> : null}
+      {chip.label}
+      {chip.count !== undefined ? (
+        <span className="text-muted-foreground text-xs tabular-nums">{chip.count}</span>
+      ) : null}
+    </>
+  )
+
   return (
     <span
       className="contents"
       onClick={(event) => {
         if (!onRemove) return
-        if ((event.target as HTMLElement).closest("button")) onRemove()
+        if ((event.target as HTMLElement).closest('[data-slot="filter-pill-remove"]')) onRemove()
       }}
     >
-      <FilterPill variant="muted" removeLabel={`Remove ${chip.label}`} className={className}>
-        {chip.prefix ? <span className="text-muted-foreground">{chip.prefix}</span> : null}
-        {chip.label}
-        {chip.count !== undefined ? (
-          <span className="text-muted-foreground text-xs tabular-nums">{chip.count}</span>
-        ) : null}
+      <FilterPill
+        variant="muted"
+        removeLabel={`Remove ${chip.label}`}
+        className={cn(onOpen && "hover:bg-accent transition-colors", className)}
+      >
+        {onOpen ? (
+          <button
+            type="button"
+            onClick={onOpen}
+            aria-label={`Open ${chip.label} in the manual filter`}
+            className="focus-visible:ring-ring/50 inline-flex items-center gap-1 rounded-full text-left focus-visible:ring-2 focus-visible:outline-none"
+          >
+            {content}
+          </button>
+        ) : (
+          content
+        )}
       </FilterPill>
     </span>
   )
@@ -89,6 +112,7 @@ export function OperatorPill({
 }
 
 export interface GroupHandlers {
+  onOpenChip?: (groupIndex: number, chipIndex: number) => void
   onRemoveChip?: (groupIndex: number, chipIndex: number) => void
   onChipOperator?: (groupIndex: number, chipIndex: number, operator: Operator) => void
   onGroupOperator?: (groupIndex: number, operator: Operator) => void
@@ -98,6 +122,7 @@ export interface GroupHandlers {
 export function GroupChips({
   group,
   groupIndex,
+  onOpenChip,
   onRemoveChip,
   onChipOperator,
 }: { group: FilterGroup; groupIndex: number } & GroupHandlers) {
@@ -105,7 +130,15 @@ export function GroupChips({
     <>
       {group.chips.map((chip, chipIndex) => (
         <span key={chip.label} className="contents">
-          <Chip chip={chip} onRemove={onRemoveChip && (() => onRemoveChip(groupIndex, chipIndex))} />
+          <Chip
+            chip={chip}
+            onOpen={
+              onOpenChip && group.area && group.attribute
+                ? () => onOpenChip(groupIndex, chipIndex)
+                : undefined
+            }
+            onRemove={onRemoveChip && (() => onRemoveChip(groupIndex, chipIndex))}
+          />
           {chip.next ? (
             <OperatorPill
               operator={chip.next}
