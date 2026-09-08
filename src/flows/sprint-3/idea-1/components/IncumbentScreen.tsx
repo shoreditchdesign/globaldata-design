@@ -29,6 +29,7 @@ import {
   type RowField,
   type ValueOption,
 } from "@/flows/sprint-3/idea-1/data"
+import { productAreas } from "@/components/prototype/product-areas"
 import {
   initialState,
   isValueSelected,
@@ -73,10 +74,31 @@ export function IncumbentScreen({ slug }: { slug: string }) {
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setState((current) => ({ ...current, modal: null }))
+      if (event.key === "Escape") {
+        setState((current) => ({ ...current, modal: null, barPopover: null }))
+      }
     }
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
+  }, [])
+
+  useEffect(() => {
+    function onPointerDown(event: PointerEvent) {
+      const target = event.target
+      if (!(target instanceof Element)) return
+      if (
+        target.closest(
+          '[data-slot="filter-cascade-panel"], [data-slot="filter-pill-open"], [data-slot="filter-bar-group-trigger"]',
+        )
+      ) {
+        return
+      }
+      setState((current) =>
+        current.barPopover === null ? current : { ...current, barPopover: null },
+      )
+    }
+    document.addEventListener("pointerdown", onPointerDown)
+    return () => document.removeEventListener("pointerdown", onPointerDown)
   }, [])
 
   const rows = matchingRows(state.applied)
@@ -93,6 +115,12 @@ export function IncumbentScreen({ slug }: { slug: string }) {
   for (const group of state.builder) {
     if (!group.area) continue
     areaCounts[group.area] = (areaCounts[group.area] ?? 0) + group.chips.length
+  }
+
+  const appliedAreaCounts: Record<string, number> = {}
+  for (const group of state.applied) {
+    if (!group.area) continue
+    appliedAreaCounts[group.area] = (appliedAreaCounts[group.area] ?? 0) + group.chips.length
   }
 
   /* ---------------------------------------------------------------- modal */
@@ -148,6 +176,20 @@ export function IncumbentScreen({ slug }: { slug: string }) {
     }))
   }
 
+  function openBarFilter(groupIndex: number) {
+    const group = state.applied[groupIndex]
+    if (!group?.area || !group.attribute || !findAttribute(group.area, group.attribute)) return
+
+    setSearch("")
+    setState((current) => ({
+      ...current,
+      modal: null,
+      barPopover: current.barPopover === groupIndex ? null : groupIndex,
+      openArea: group.area ?? null,
+      openAttribute: group.attribute ?? null,
+    }))
+  }
+
   /* -------------------------------------------------------------- builder */
 
   const builderHandlers = {
@@ -164,11 +206,27 @@ export function IncumbentScreen({ slug }: { slug: string }) {
 
   /** The bar edits the live query, so the builder follows it rather than drifting. */
   function editApplied(groups: FilterGroup[]) {
-    update({ applied: groups, builder: groups, overflowCount: 0 })
+    setState((current) => {
+      const anchor =
+        current.barPopover === null ? null : current.applied[current.barPopover]
+      const nextAnchor = anchor
+        ? groups.findIndex(
+            (group) => group.area === anchor.area && group.attribute === anchor.attribute,
+          )
+        : -1
+
+      return {
+        ...current,
+        applied: groups,
+        builder: groups,
+        barPopover: nextAnchor >= 0 ? nextAnchor : null,
+        overflowCount: 0,
+      }
+    })
   }
 
   const barHandlers = {
-    onOpenChip: (groupIndex: number) => openFilterPath(state.applied[groupIndex]),
+    onOpenChip: (groupIndex: number) => openBarFilter(groupIndex),
     onRemoveChip: (groupIndex: number, chipIndex: number) =>
       editApplied(removeChip(state.applied, groupIndex, chipIndex)),
     onChipOperator: (groupIndex: number, chipIndex: number, operator: Operator) =>
@@ -279,33 +337,84 @@ export function IncumbentScreen({ slug }: { slug: string }) {
             groups={state.applied}
             resultCount={`${formatCount(count)} Drugs`}
             overflowCount={state.overflowCount || undefined}
-            onOpenGroup={(index) => {
-              const group = state.applied[index]
-              const spec =
-                group.area && group.attribute ? findAttribute(group.area, group.attribute) : null
-              if (!spec) return
-              setSearch("")
-              update({ barPopover: state.barPopover === index ? null : index })
-            }}
+            onOpenGroup={openBarFilter}
             onAddFilter={() => openModal("manual")}
             onClearFilters={() => update({ applied: [], builder: [], overflowCount: 0, barPopover: null })}
             onEditFilters={() => openModal(state.tab)}
             renderPopover={(index) => {
               if (state.barPopover !== index) return null
-              const group = state.applied[index]
-              const spec =
-                group.area && group.attribute ? findAttribute(group.area, group.attribute) : null
-              if (!spec || !group.area) return null
-              const area = group.area
+              if (!state.openArea) {
+                const areas = productAreas.filter((area) => matches(area))
+                return (
+                  <CascadePanel
+                    title="Filters"
+                    searchPlaceholder="Search filters"
+                    className={BAR_PANEL_CLASS}
+                    selectedCount={state.applied.reduce(
+                      (total, group) => total + group.chips.length,
+                      0,
+                    )}
+                    search={search}
+                    onSearch={setSearch}
+                    onDone={() => update({ barPopover: null })}
+                  >
+                    {areas.length === 0 ? (
+                      <CascadeRow label="No matching areas" muted />
+                    ) : (
+                      areas.map((area) => (
+                        <CascadeRow key={area} label={area} onClick={() => selectArea(area)} />
+                      ))
+                    )}
+                  </CascadePanel>
+                )
+              }
+
+              const area = state.openArea
+              const spec = state.openAttribute
+                ? findAttribute(area, state.openAttribute)
+                : null
+
+              if (!spec) {
+                const attributes = (areaAttributes[area] ?? []).filter((attribute) =>
+                  matches(attribute.label),
+                )
+                return (
+                  <CascadePanel
+                    title={area}
+                    searchPlaceholder={`Search ${area}`}
+                    className={BAR_PANEL_CLASS}
+                    selectedCount={appliedAreaCounts[area] ?? 0}
+                    search={search}
+                    onSearch={setSearch}
+                    onBack={() => selectArea(null)}
+                    backLabel="product areas"
+                    onDone={() => update({ barPopover: null })}
+                  >
+                    {attributes.length === 0 ? (
+                      <CascadeRow label="No matching attributes" muted />
+                    ) : (
+                      attributes.map((attribute) => (
+                        <CascadeRow
+                          key={attribute.label}
+                          label={attribute.label}
+                          onClick={() => selectAttribute(attribute.label)}
+                        />
+                      ))
+                    )}
+                  </CascadePanel>
+                )
+              }
+
               const values = spec.values.filter((value) => matches(value.label))
               return (
                 <CascadePanel
-                  title={group.label}
+                  breadcrumb={[area, spec.label]}
                   searchPlaceholder={`Search ${spec.label}`}
                   className={BAR_PANEL_CLASS}
-                  selectedCount={group.chips.length}
+                  selectedCount={selectedCountFor(state.applied, area, spec)}
                   search={search}
                   onSearch={setSearch}
+                  onBack={() => selectAttribute(null)}
                   onDone={() => update({ barPopover: null })}
                 >
                   {values.length === 0 ? (
