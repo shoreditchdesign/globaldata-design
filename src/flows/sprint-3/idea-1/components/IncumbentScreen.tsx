@@ -131,9 +131,27 @@ export function IncumbentScreen({ slug }: { slug: string }) {
     }))
   }
 
+  /** Reopen the manual cascade at the area and attribute that produced a pill. */
+  function openFilterPath(group: FilterGroup) {
+    if (!group.area || !group.attribute || !findAttribute(group.area, group.attribute)) return
+
+    setSearch("")
+    setState((current) => ({
+      ...current,
+      modal: "manual",
+      tab: "manual",
+      builder:
+        current.modal === null && current.applied.length > 0 ? current.applied : current.builder,
+      openArea: group.area ?? null,
+      openAttribute: group.attribute ?? null,
+      barPopover: null,
+    }))
+  }
+
   /* -------------------------------------------------------------- builder */
 
   const builderHandlers = {
+    onOpenChip: (groupIndex: number) => openFilterPath(state.builder[groupIndex]),
     onRemoveChip: (groupIndex: number, chipIndex: number) =>
       update({ builder: removeChip(state.builder, groupIndex, chipIndex) }),
     onChipOperator: (groupIndex: number, chipIndex: number, operator: Operator) =>
@@ -150,6 +168,7 @@ export function IncumbentScreen({ slug }: { slug: string }) {
   }
 
   const barHandlers = {
+    onOpenChip: (groupIndex: number) => openFilterPath(state.applied[groupIndex]),
     onRemoveChip: (groupIndex: number, chipIndex: number) =>
       editApplied(removeChip(state.applied, groupIndex, chipIndex)),
     onChipOperator: (groupIndex: number, chipIndex: number, operator: Operator) =>
