@@ -85,7 +85,7 @@ export function AiPane({
             rows={1}
             placeholder="Ask anything"
             aria-label="Ask anything to create a filter"
-            className="placeholder:text-muted-foreground field-sizing-content max-h-32 flex-1 resize-none self-end bg-transparent text-sm outline-none"
+            className="placeholder:text-muted-foreground field-sizing-content max-h-32 min-h-8 flex-1 resize-none self-end bg-transparent py-1.5 text-sm leading-5 outline-none"
           />
           <button
             type="submit"
