@@ -5,6 +5,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { DrugRow, RowField } from "@/flows/sprint-3/idea-1/data"
@@ -58,17 +59,48 @@ export function ResultsTable({
                         >
                           <EllipsisVerticalIcon className="size-3.5" />
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
+                        <DropdownMenuContent align="start" className="w-64 p-1.5">
+                          <DropdownMenuItem className="px-3 py-2.5">
+                            Sort Ascending
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="px-3 py-2.5">
+                            Sort Descending
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="-mx-1.5 my-1.5" />
+                          <DropdownMenuItem className="px-3 py-2.5">
+                            Edit filters
+                            {count ? (
+                              <Badge
+                                variant="destructive"
+                                className="ml-auto h-5 min-w-5 rounded-full px-1.5 text-[10px] tabular-nums"
+                              >
+                                {count}
+                              </Badge>
+                            ) : null}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="-mx-1.5 my-1.5" />
+                          <DropdownMenuItem className="px-3 py-2.5">
+                            Pin column
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="-mx-1.5 my-1.5" />
                           <DropdownMenuItem
+                            className="px-3 py-2.5"
                             onSelect={() => onGroupBy?.(column.field, column.label)}
                           >
                             Group by {column.label}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="-mx-1.5 my-1.5" />
+                          <DropdownMenuItem className="px-3 py-2.5">
+                            Choose columns
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="px-3 py-2.5">
+                            Reset columns
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                       {count ? (
                         <Badge
-                          variant="secondary"
+                          variant="destructive"
                           className="ml-auto h-4 min-w-4 rounded-full px-1 text-[10px] tabular-nums"
                         >
                           {count}
