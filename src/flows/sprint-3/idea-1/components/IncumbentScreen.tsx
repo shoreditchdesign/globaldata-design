@@ -29,7 +29,6 @@ import {
   type RowField,
   type ValueOption,
 } from "@/flows/sprint-3/idea-1/data"
-import { productAreas } from "@/components/prototype/product-areas"
 import {
   initialState,
   isValueSelected,
@@ -343,31 +342,7 @@ export function IncumbentScreen({ slug }: { slug: string }) {
             onEditFilters={() => openModal(state.tab)}
             renderPopover={(index) => {
               if (state.barPopover !== index) return null
-              if (!state.openArea) {
-                const areas = productAreas.filter((area) => matches(area))
-                return (
-                  <CascadePanel
-                    title="Filters"
-                    searchPlaceholder="Search filters"
-                    className={BAR_PANEL_CLASS}
-                    selectedCount={state.applied.reduce(
-                      (total, group) => total + group.chips.length,
-                      0,
-                    )}
-                    search={search}
-                    onSearch={setSearch}
-                    onDone={() => update({ barPopover: null })}
-                  >
-                    {areas.length === 0 ? (
-                      <CascadeRow label="No matching areas" muted />
-                    ) : (
-                      areas.map((area) => (
-                        <CascadeRow key={area} label={area} onClick={() => selectArea(area)} />
-                      ))
-                    )}
-                  </CascadePanel>
-                )
-              }
+              if (!state.openArea) return null
 
               const area = state.openArea
               const spec = state.openAttribute
@@ -386,8 +361,6 @@ export function IncumbentScreen({ slug }: { slug: string }) {
                     selectedCount={appliedAreaCounts[area] ?? 0}
                     search={search}
                     onSearch={setSearch}
-                    onBack={() => selectArea(null)}
-                    backLabel="product areas"
                     onDone={() => update({ barPopover: null })}
                   >
                     {attributes.length === 0 ? (
