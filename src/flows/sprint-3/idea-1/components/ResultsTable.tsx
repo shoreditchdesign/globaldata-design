@@ -21,6 +21,8 @@ export const resultColumns: { key: string; label: string; field: RowField }[] = 
   { key: "geography", label: "Drug geography", field: "geography" },
 ]
 
+const MENU_ITEM_CLASS = "h-7 px-2 py-0 text-[12.5px]"
+
 /**
  * The results table.
  *
@@ -59,41 +61,41 @@ export function ResultsTable({
                         >
                           <EllipsisVerticalIcon className="size-3.5" />
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="w-64 p-1.5">
-                          <DropdownMenuItem className="px-3 py-2.5">
+                        <DropdownMenuContent align="start" className="w-52">
+                          <DropdownMenuItem className={MENU_ITEM_CLASS}>
                             Sort Ascending
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="px-3 py-2.5">
+                          <DropdownMenuItem className={MENU_ITEM_CLASS}>
                             Sort Descending
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator className="-mx-1.5 my-1.5" />
-                          <DropdownMenuItem className="px-3 py-2.5">
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className={MENU_ITEM_CLASS}>
                             Edit filters
                             {count ? (
                               <Badge
                                 variant="destructive"
-                                className="ml-auto h-5 min-w-5 rounded-full px-1.5 text-[10px] tabular-nums"
+                                className="ml-auto h-4 min-w-4 rounded-full px-1 text-[10px] tabular-nums"
                               >
                                 {count}
                               </Badge>
                             ) : null}
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator className="-mx-1.5 my-1.5" />
-                          <DropdownMenuItem className="px-3 py-2.5">
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className={MENU_ITEM_CLASS}>
                             Pin column
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator className="-mx-1.5 my-1.5" />
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            className="px-3 py-2.5"
+                            className={MENU_ITEM_CLASS}
                             onSelect={() => onGroupBy?.(column.field, column.label)}
                           >
                             Group by {column.label}
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator className="-mx-1.5 my-1.5" />
-                          <DropdownMenuItem className="px-3 py-2.5">
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className={MENU_ITEM_CLASS}>
                             Choose columns
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="px-3 py-2.5">
+                          <DropdownMenuItem className={MENU_ITEM_CLASS}>
                             Reset columns
                           </DropdownMenuItem>
                         </DropdownMenuContent>
