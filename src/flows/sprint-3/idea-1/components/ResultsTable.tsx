@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import { EllipsisVerticalIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -8,7 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { DrugRow, RowField } from "@/flows/sprint-3/idea-1/data"
+import { cn } from "@/lib/utils"
+import { readField, type DrugRow, type RowField } from "@/flows/sprint-3/idea-1/data"
 
 /** The columns the incumbent's results table draws, and what each one filters on. */
 export const resultColumns: { key: string; label: string; field: RowField }[] = [
@@ -22,6 +26,22 @@ export const resultColumns: { key: string; label: string; field: RowField }[] = 
 ]
 
 const MENU_ITEM_CLASS = "h-7 px-2 py-0 text-[12.5px]"
+
+type SortDirection = "ascending" | "descending"
+
+const valueCollator = new Intl.Collator("en-GB", { numeric: true, sensitivity: "base" })
+
+function compareValues(left: string, right: string) {
+  const leftNumber = Number(left)
+  const rightNumber = Number(right)
+  const numeric =
+    left.trim() !== "" &&
+    right.trim() !== "" &&
+    Number.isFinite(leftNumber) &&
+    Number.isFinite(rightNumber)
+
+  return numeric ? leftNumber - rightNumber : valueCollator.compare(left, right)
+}
 
 /**
  * The results table.
@@ -39,6 +59,18 @@ export function ResultsTable({
   filterCounts: Partial<Record<RowField, number>>
   onGroupBy?: (field: RowField, label: string) => void
 }) {
+  const [sort, setSort] = useState<{ field: RowField; direction: SortDirection } | null>(null)
+
+  const displayedRows = sort
+    ? [...rows].sort((left, right) => {
+        const comparison = compareValues(
+          readField(left, sort.field).join(", "),
+          readField(right, sort.field).join(", "),
+        )
+        return sort.direction === "ascending" ? comparison : -comparison
+      })
+    : rows
+
   return (
     <div className="px-6 pb-6">
       <div className="overflow-hidden rounded-lg border">
@@ -62,10 +94,30 @@ export function ResultsTable({
                           <EllipsisVerticalIcon className="size-3.5" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="w-52">
-                          <DropdownMenuItem className={MENU_ITEM_CLASS}>
+                          <DropdownMenuItem
+                            className={cn(
+                              MENU_ITEM_CLASS,
+                              sort?.field === column.field &&
+                                sort.direction === "ascending" &&
+                                "bg-brand-wash text-brand-ink",
+                            )}
+                            onSelect={() =>
+                              setSort({ field: column.field, direction: "ascending" })
+                            }
+                          >
                             Sort Ascending
                           </DropdownMenuItem>
-                          <DropdownMenuItem className={MENU_ITEM_CLASS}>
+                          <DropdownMenuItem
+                            className={cn(
+                              MENU_ITEM_CLASS,
+                              sort?.field === column.field &&
+                                sort.direction === "descending" &&
+                                "bg-brand-wash text-brand-ink",
+                            )}
+                            onSelect={() =>
+                              setSort({ field: column.field, direction: "descending" })
+                            }
+                          >
                             Sort Descending
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
@@ -115,14 +167,14 @@ export function ResultsTable({
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 ? (
+            {displayedRows.length === 0 ? (
               <tr>
                 <td colSpan={resultColumns.length} className="text-muted-foreground px-4 py-10 text-center">
                   No drugs match these filters.
                 </td>
               </tr>
             ) : (
-              rows.map((row, i) => (
+              displayedRows.map((row, i) => (
                 <tr key={`${row.name}-${i}`} className="border-b last:border-0">
                   <td className="px-4 py-3">{row.name}</td>
                   <td className="text-muted-foreground px-4 py-3">{row.generic}</td>
