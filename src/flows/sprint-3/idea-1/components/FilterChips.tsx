@@ -55,8 +55,9 @@ export function Chip({
         {onOpen ? (
           <button
             type="button"
+            data-slot="filter-pill-open"
             onClick={onOpen}
-            aria-label={`Open ${chip.label} in the manual filter`}
+            aria-label={`Open ${chip.label} filter controls`}
             className="focus-visible:ring-ring/50 inline-flex items-center gap-1 rounded-full text-left focus-visible:ring-2 focus-visible:outline-none"
           >
             {content}

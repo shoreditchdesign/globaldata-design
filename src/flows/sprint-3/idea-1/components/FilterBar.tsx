@@ -53,6 +53,7 @@ export function FilterBar({
                 <div className="flex flex-col gap-1.5">
                   <button
                     type="button"
+                    data-slot="filter-bar-group-trigger"
                     onClick={() => onOpenGroup(i)}
                     className="text-muted-foreground hover:text-foreground w-fit text-left text-[10px] font-medium tracking-[0.08em] uppercase transition-colors"
                   >

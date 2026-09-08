@@ -88,6 +88,7 @@ export function CascadePanel({
   search = "",
   onSearch,
   onBack,
+  backLabel,
   onDone,
 }: {
   title?: string
@@ -99,10 +100,12 @@ export function CascadePanel({
   search?: string
   onSearch?: (value: string) => void
   onBack?: () => void
+  backLabel?: string
   onDone?: () => void
 }) {
   return (
     <div
+      data-slot="filter-cascade-panel"
       className={cn(
         "bg-surface-raised border-border shadow-raised absolute flex w-[280px] flex-col overflow-hidden rounded-lg border",
         className,
@@ -120,6 +123,16 @@ export function CascadePanel({
             <span>{breadcrumb[0]}</span>
             <ChevronRightIcon className="size-3" />
             <span className="text-foreground">{breadcrumb[1]}</span>
+          </button>
+        ) : onBack ? (
+          <button
+            type="button"
+            onClick={onBack}
+            aria-label={`Back to ${backLabel ?? "filters"}`}
+            className="hover:text-foreground flex items-center gap-1.5 transition-colors"
+          >
+            <ChevronLeftIcon className="size-3" />
+            <span className="text-foreground">{title}</span>
           </button>
         ) : (
           title
