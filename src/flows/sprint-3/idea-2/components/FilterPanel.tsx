@@ -18,7 +18,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { MillerColumn, type ColumnModel } from "@/flows/sprint-3/idea-2/components/MillerColumn"
-import { FilterFoot } from "@/flows/sprint-3/idea-2/components/FilterFoot"
+import { AgentFoot } from "@/flows/sprint-3/idea-2/components/AgentFoot"
 import type { Screener } from "@/flows/sprint-3/idea-2/use-screener"
 
 /**
@@ -137,7 +137,7 @@ export function FilterPanel({
       // wrong. Nothing replaces it here, because there is nothing to compare
       // against — `Drugs` is the only area you can open, the radio mark already
       // says the path is on it, and how many filters it holds is stated in
-      // words on the pills at the foot of the panel.
+      // words on the pills heading the results.
     },
   ]
 
@@ -158,8 +158,8 @@ export function FilterPanel({
       wide: true,
       open: attribute,
       // An attribute with values in the query is `selected`, and that is the
-      // whole of the signal: how many values it holds is on the pills at the
-      // foot, said once, in words.
+      // whole of the signal: how many values it holds is on the pills heading
+      // the results, said once, in words.
       selected: filters.map((filter) => filter.attribute),
     })
   }
@@ -303,7 +303,7 @@ export function FilterPanel({
         })}
       </div>
 
-      <FilterFoot screener={screener} />
+      <AgentFoot screener={screener} />
     </aside>
   )
 }
