@@ -135,7 +135,7 @@ function Buckets({
             <button
               type="button"
               onClick={() => onToggle(key)}
-              className="hover:bg-brand-wash flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm transition-colors"
+              className="hover:bg-accent flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm transition-colors"
               style={{ paddingLeft: `${16 + depth * 20}px` }}
             >
               {open ? (

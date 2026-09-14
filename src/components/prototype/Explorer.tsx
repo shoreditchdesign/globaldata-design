@@ -243,7 +243,7 @@ export function Explorer({
                             className={cn(
                               "flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors",
                               sc.slug === screenSlug
-                                ? "bg-brand-wash text-brand-ink font-medium"
+                                ? "bg-brand-tint ring-brand-border text-foreground font-medium ring-1 ring-inset"
                                 : "hover:bg-accent",
                             )}
                           >

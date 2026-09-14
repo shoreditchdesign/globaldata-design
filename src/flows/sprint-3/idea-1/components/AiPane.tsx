@@ -1,5 +1,6 @@
 import { ArrowRightIcon, SearchIcon } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { PaneHeading } from "@/flows/sprint-3/idea-1/components/FilterModal"
 import { aiSuggestions } from "@/flows/sprint-3/idea-1/data"
@@ -34,7 +35,7 @@ export function AiPane({
         {transcript ? (
           <div className="flex flex-col gap-4 overflow-y-auto">
             <div className="flex flex-col items-end gap-1">
-              <p className="bg-brand-tint text-brand-ink max-w-[340px] rounded-2xl px-4 py-3 text-sm">
+              <p className="bg-muted text-foreground max-w-[340px] rounded-2xl px-4 py-3 text-sm">
                 {transcript.user}
               </p>
               <span className="text-muted-foreground text-xs">{transcript.time}</span>
@@ -87,14 +88,15 @@ export function AiPane({
             aria-label="Ask anything to create a filter"
             className="placeholder:text-muted-foreground field-sizing-content max-h-32 flex-1 resize-none self-end bg-transparent text-sm outline-none"
           />
-          <button
+          <Button
             type="submit"
+            size="icon-sm"
             aria-label="Create filters from this query"
             disabled={!filled}
-            className="bg-brand text-brand-foreground hover:bg-brand-strong disabled:opacity-40 flex size-8 shrink-0 items-center justify-center rounded-full transition-colors"
+            className="shrink-0 rounded-full"
           >
-            <ArrowRightIcon className="size-4" />
-          </button>
+            <ArrowRightIcon />
+          </Button>
         </form>
       </div>
     </div>
