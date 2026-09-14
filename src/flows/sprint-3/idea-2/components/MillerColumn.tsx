@@ -263,6 +263,12 @@ function ColumnItem({
               // with the type it sits beside rather than staying the one thing
               // in the column still sized for the 16px round.
               "size-3.5 [&>[data-slot=checkbox-indicator]>svg]:size-3",
+              // White, not the column's grey. An unticked box on
+              // `bg-surface-page` was an outline on a fill a shade off it and
+              // all but disappeared; the client chose to light the box rather
+              // than to lift the column. Ticked is untouched — the brand fill
+              // carries its own attribute variant, so it outranks this.
+              "bg-surface-panel",
               // Ticking a value into an excluding attribute takes rows away.
               // It cannot look like ticking one into an attribute that keeps
               // them — that is the whole difference between the two filters.
