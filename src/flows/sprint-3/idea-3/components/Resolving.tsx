@@ -73,8 +73,8 @@ export function Resolving({
                 className={cn(
                   "ease-settle -mx-0.5 inline-block px-0.5 align-baseline transition-all duration-300 motion-reduce:transition-none",
                   stage === 0 && "rounded-md",
-                  // Recognised: the accent lights the phrase.
-                  stage >= 1 && "bg-brand-wash rounded-md px-1.5",
+                  // Recognised: a grey highlight marks the phrase.
+                  stage >= 1 && "bg-accent rounded-md px-1.5",
                   // Structured: it hardens into the same chip the sentence uses.
                   stage >= 2 && "bg-brand-tint border-brand-border border font-medium",
                 )}
@@ -114,7 +114,7 @@ export function Resolving({
       </div>
 
       <p className="text-muted-foreground mt-3.5 flex items-center gap-2 text-xs">
-        <span className="bg-brand size-1.5 animate-pulse rounded-full motion-reduce:animate-none" />
+        <span className="bg-muted-foreground size-1.5 animate-pulse rounded-full motion-reduce:animate-none" />
         {stage >= 2 ? "Writing it as a sentence" : "Reading your request"}
       </p>
     </div>

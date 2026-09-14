@@ -4,7 +4,7 @@ import type { Clause } from "@/flows/sprint-3/idea-3/data"
  * How a list of clauses reads as one English sentence.
  *
  * Both renderings of the query go through here — the pills in `QuerySentence`
- * and the plain prose that `edit as text` hands back — so the words a reviewer
+ * and the plain prose that `Edit` hands back — so the words a reviewer
  * reads on screen and the words they get to edit are produced by the same
  * rules. If the two drifted, the round trip would silently rewrite the query.
  */
@@ -13,7 +13,15 @@ export interface SentencePiece {
   clause: Clause
   /** `and ` before the final condition, once the sentence is long enough. */
   conjunction: boolean
-  /** Prose that closes this clause and rides inside its no-wrap unit. */
+  /** ` drugs` when the adjectival run ends on this clause, otherwise empty. */
+  noun: string
+  /** `,` when another condition follows, otherwise empty. */
+  comma: string
+  /**
+   * `noun` and `comma` together — the prose that closes this clause and rides
+   * inside its no-wrap unit. Kept for `clausesToProse`; the pill rendering
+   * uses the two parts so the comma can carry its own spacing.
+   */
   punctuation: string
 }
 
@@ -38,6 +46,8 @@ export function sentenceLayout(clauses: Clause[]): SentenceLayout {
     return {
       clause,
       conjunction: last && clauses.length > 2 && Boolean(clause.comma),
+      noun,
+      comma,
       punctuation: `${noun}${comma}`,
     }
   })
@@ -52,7 +62,7 @@ export function clauseTerms(clause: Clause) {
 
 /**
  * The query written back out as the prose it was read from. This is the other
- * half of `edit as text`: the sentence collapses to a line of English, the
+ * half of `Edit`: the sentence collapses to a line of English, the
  * reviewer edits that line, and it resolves again. Every word it emits is a
  * word the resolver can read, so the trip closes rather than losing a clause.
  */

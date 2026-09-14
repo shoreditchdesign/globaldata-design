@@ -4,6 +4,7 @@ import * as React from "react"
 import { PlusIcon, XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { liftClass } from "@/components/prototype/motion"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { clauseMode, type Clause } from "@/flows/sprint-3/idea-3/data"
 import {
@@ -88,7 +89,7 @@ export function FilterView({
                     ) : null}
                     <span
                       className={cn(
-                        "inline-flex h-7 items-center gap-1.5 rounded-md border py-1 pr-1 pl-2 text-[13px]",
+                        "group/chip inline-flex h-7 items-center gap-1.5 rounded-md border py-1 pr-1 pl-2 text-[13px]",
                         clauseMode(clause) === "exclude"
                           ? "bg-negative border-negative-border"
                           : "bg-brand-tint border-brand-border",
@@ -100,7 +101,7 @@ export function FilterView({
                           "text-[11px] tabular-nums",
                           clauseMode(clause) === "exclude"
                             ? "text-negative-ink"
-                            : "text-brand-ink",
+                            : "text-muted-foreground",
                         )}
                       >
                         {option.count.toLocaleString()}
@@ -109,11 +110,15 @@ export function FilterView({
                         type="button"
                         aria-label={`Remove ${option.value}`}
                         onClick={() => handlers.onToggleValue(clause.id, option.value)}
+                        // Hidden until the chip is hovered or focused, but kept
+                        // in flow so the chip never changes width under the
+                        // pointer. Still a tab stop; focus reveals it.
                         className={cn(
-                          "flex size-4 items-center justify-center rounded-sm transition-colors",
+                          "focus-visible:ring-ring/50 flex size-4 items-center justify-center rounded-sm opacity-0 outline-none group-focus-within/chip:opacity-100 group-hover/chip:opacity-100 focus-visible:opacity-100 focus-visible:ring-2",
+                          liftClass,
                           clauseMode(clause) === "exclude"
                             ? "text-negative-ink/60 hover:text-negative-ink hover:bg-negative-border"
-                            : "text-brand-ink/60 hover:text-brand-ink hover:bg-brand-border",
+                            : "text-muted-foreground hover:text-foreground hover:bg-surface-sunken",
                         )}
                       >
                         <XIcon className="size-3" />
@@ -150,7 +155,7 @@ function AddValue({ clause, handlers }: { clause: Clause; handlers: SentenceHand
         <button
           type="button"
           aria-label={`Add a ${clause.attribute} value`}
-          className="border-border text-muted-foreground hover:border-brand-border hover:bg-brand-wash hover:text-brand-ink focus-visible:ring-ring/50 flex size-7 items-center justify-center rounded-md border border-dashed transition-colors outline-none focus-visible:ring-3"
+          className="border-border text-muted-foreground hover:border-edge hover:bg-accent hover:text-foreground focus-visible:ring-ring/50 flex size-7 items-center justify-center rounded-md border border-dashed transition-colors outline-none focus-visible:ring-3"
         >
           <PlusIcon className="size-3.5" />
         </button>

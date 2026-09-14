@@ -1,14 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import {
-  ArrowDownAZIcon,
-  ArrowUpAZIcon,
-  LayersIcon,
-  PinIcon,
-  PinOffIcon,
-  SearchIcon,
-} from "lucide-react"
+import { ArrowDownAZIcon, ArrowUpAZIcon, LayersIcon, SearchIcon, type LucideIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -25,7 +18,7 @@ function MenuAction({
   hint,
   onClick,
 }: {
-  icon: typeof PinIcon
+  icon?: LucideIcon
   label: string
   active?: boolean
   disabled?: boolean
@@ -37,25 +30,29 @@ function MenuAction({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      title={hint}
       className={cn(
-        "flex h-7 w-full items-center gap-2 rounded-md px-2 text-left text-[12.5px] transition-colors",
+        "flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-sm transition-colors",
         disabled
-          ? "text-muted-foreground/50 cursor-not-allowed"
+          ? "text-muted-foreground/60 cursor-not-allowed"
           : active
-            ? "bg-brand-wash text-brand-ink cursor-default font-medium"
+            ? "bg-brand-tint ring-brand-border text-foreground cursor-default font-medium ring-1 ring-inset"
             : "hover:bg-accent cursor-default",
       )}
     >
-      <Icon
-        className={cn(
-          "size-3.5",
-          disabled ? "opacity-50" : active ? "text-brand" : "text-muted-foreground",
-        )}
-      />
+      {Icon ? (
+        <Icon
+          className={cn(
+            "size-4 shrink-0",
+            active ? "text-foreground" : "text-muted-foreground",
+            disabled && "opacity-50",
+          )}
+        />
+      ) : (
+        <span className="size-4 shrink-0" aria-hidden />
+      )}
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {disabled && hint ? (
-        <span className="text-muted-foreground/60 shrink-0 text-[10px]">{hint}</span>
+        <span className="text-muted-foreground/70 shrink-0 text-sm">{hint}</span>
       ) : null}
     </button>
   )
@@ -108,11 +105,11 @@ export function ColumnHeaderMenu({
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-baseline justify-between px-3 pt-2.5 pb-2">
-        <span className="text-[12.5px] font-medium">{column.label}</span>
-        <span className="text-muted-foreground text-[11px] tabular-nums">
-          {column.filterable ? `${values.length} values` : "no value list"}
-        </span>
+      <div className="flex items-baseline justify-between gap-2 px-3 pt-2.5 pb-2">
+        <span className="text-sm font-medium">{column.label}</span>
+        {column.filterable ? (
+          <span className="text-muted-foreground text-sm tabular-nums">{values.length} values</span>
+        ) : null}
       </div>
 
       <div className="px-1.5 pb-1.5">
@@ -152,9 +149,7 @@ export function ColumnHeaderMenu({
           }}
         />
         <MenuAction
-          icon={pinned ? PinOffIcon : PinIcon}
-          label={pinned ? "Unpin column" : "Pin column left"}
-          active={pinned}
+          label={pinned ? "Unpin" : "Pin to left"}
           onClick={() => {
             onAction({ kind: "togglePin", columnKey: column.key })
             onClose()
@@ -167,58 +162,52 @@ export function ColumnHeaderMenu({
           <Separator />
 
           <div className="p-1.5">
-            <div className="border-border focus-within:border-ring focus-within:ring-ring/40 flex h-7 items-center gap-2 rounded-md border px-2 transition-shadow focus-within:ring-3">
-              <SearchIcon className="text-muted-foreground size-3.5 shrink-0" />
+            <div className="border-border focus-within:border-ring focus-within:ring-ring/40 flex h-8 items-center gap-2 rounded-md border px-2 transition-shadow focus-within:ring-3">
+              <SearchIcon className="text-muted-foreground size-4 shrink-0" />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                className="placeholder:text-muted-foreground w-full bg-transparent text-[12.5px] outline-none"
-                placeholder={`Search ${values.length} values`}
+                aria-label={`Search ${column.label} values`}
+                className="w-full bg-transparent text-base outline-none"
               />
             </div>
           </div>
 
           <div className="flex items-center justify-between px-3 pb-1.5">
-            <span className="text-muted-foreground text-[11px] tabular-nums">
+            <span className="text-muted-foreground text-sm tabular-nums">
               {selected.length} of {values.length} selected
             </span>
             <button
               type="button"
               disabled={selected.length === 0}
               onClick={() => onAction({ kind: "clearColumnFilter", columnKey: column.key })}
-              className="text-muted-foreground hover:text-foreground text-[11px] underline-offset-2 hover:underline disabled:opacity-40 disabled:hover:no-underline"
+              className="text-muted-foreground hover:text-foreground text-sm underline-offset-2 hover:underline disabled:opacity-40 disabled:hover:no-underline"
             >
               Clear
             </button>
           </div>
 
-          <div className="max-h-[264px] overflow-y-auto px-1.5 pb-1.5">
+          <div className="max-h-[296px] overflow-y-auto px-1.5 pb-1.5">
             {visible.length === 0 ? (
-              <p className="text-muted-foreground px-2 py-3 text-[12px]">
-                No value matches “{query}”.
-              </p>
+              <p className="text-muted-foreground px-2 py-3 text-sm">No value matches “{query}”.</p>
             ) : null}
             {visible.map((value) => (
               <label
                 key={value.label}
-                className={cn(
-                  "flex h-7 cursor-default items-center gap-2 rounded-md px-2 text-[12.5px] transition-colors",
-                  value.checked ? "bg-brand-wash hover:bg-brand-tint" : "hover:bg-accent",
-                )}
+                className="hover:bg-accent flex h-8 cursor-default items-center gap-2 rounded-md px-2 text-sm transition-colors"
               >
                 <Checkbox
                   checked={value.checked}
                   onCheckedChange={() =>
                     onAction({ kind: "toggleValue", columnKey: column.key, value: value.label })
                   }
-                  className="size-3.5"
                 />
                 <span className={cn("min-w-0 flex-1 truncate", value.checked && "font-medium")}>
                   {value.label}
                 </span>
                 <span
                   className={cn(
-                    "text-[11px] tabular-nums",
+                    "text-sm tabular-nums",
                     value.count === 0 ? "text-muted-foreground/50" : "text-muted-foreground",
                   )}
                 >
@@ -231,23 +220,20 @@ export function ColumnHeaderMenu({
       ) : (
         <>
           <Separator />
-          <p className="text-muted-foreground px-3 py-2.5 text-[11.5px] leading-[1.45]">
-            {column.kind === "number"
-              ? "A numeric lane — nothing to pick from."
-              : "Every drug carries its own value here, so a value list would be one line per row."}
-          </p>
+          <p className="text-muted-foreground px-3 py-2.5 text-sm">No value list for this column.</p>
         </>
       )}
 
       <Separator />
 
       <div className="flex items-center justify-between gap-2 px-3 py-2">
-        <p className="text-muted-foreground text-[11px] tabular-nums">
-          <span className="text-brand-ink font-medium">{matchCount}</span> of {scopeCount} in scope
+        <p className="text-muted-foreground text-sm tabular-nums">
+          <span className="text-foreground font-medium">{matchCount}</span> of {scopeCount} in scope
         </p>
         <Button
           variant="ghost"
           size="xs"
+          className="text-sm"
           disabled={selected.length === 0 && !sorted && !pinned && !grouped}
           onClick={() => {
             onAction({ kind: "clearColumnFilter", columnKey: column.key })

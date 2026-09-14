@@ -76,7 +76,9 @@ Stated plainly, as the brief does: this is the fewest clicks and the highest tru
 **What responds to a click:**
 
 - **Every value pill.** Opening one shows that attribute's values with counts and ticks. Ticking or
-  unticking changes the sentence and moves the big number.
+  unticking changes the sentence and moves the big number. A pill also carries its own close `×`,
+  revealed on hover or focus, for removing that one value without opening the dropdown at all —
+  removing a clause's last value drops the clause.
 - **Every logic word.** `excluding` ⇄ `only in`, `targeting` ⇄ `not targeting`, `in` ⇄ `not in` —
   each with its plain-English gloss. Flipping one from include to exclude changes the count.
 - The `or` between two values, which can become `and`.
@@ -84,20 +86,26 @@ Stated plainly, as the brief does: this is the fewest clicks and the highest tru
   dropdown, which drops one.
 - `Undo`, which steps back one edit at a time, and `Clear all`, which empties the sentence and
   reveals the cold start — the same box, now showing four suggested queries.
-- The `Sentence` / `Filters` toggle, top right of the box. The filters view is fully editable and
-  edits there flow back into the sentence. It is also noticeably taller for the same query, which is
-  part of the argument.
+- The `Sentence` / `Filters` toggle, top right of the box, available from the moment you start
+  typing rather than only once a query resolves. The filters view is fully editable and edits there
+  flow back into the sentence. It is also noticeably taller for the same query, which is part of the
+  argument.
+- **Typing your own request**, at the cold start or from `Edit`. This is keyword matching against a
+  fixed map, not a real parser: it says which words it could not place, offers the nearest value it
+  does know rather than guessing at one, and names the real GlobalData attributes — Therapy Area, a
+  company, a filing date — this sample does not carry. The claim being tested is what happens *after*
+  a query is understood, not the understanding itself, so the map only needs to be good enough that a
+  reviewer can type their own words instead of clicking a suggestion.
+- **The results table**, which sorts by column: click a header to cycle ascending, descending, off.
 
 **What does not:**
 
-- **You cannot type your own prompt.** The parse is not real. `edit as text` is presentational, and
-  all four suggested queries return the same authored sentence. The claim being tested is what
-  happens *after* a query is understood, not the understanding itself.
-- **The result rows never change.** The count is deterministic arithmetic on fixed numbers — each
-  value carries an authored share of the corpus — so it moves honestly with every edit, but the
-  table under it is a fixed page of 16 rows. Remove `Phase III` and the count drops from 453 to 280
-  while the table still shows Phase III drugs. Worth saying out loud before anyone clicks.
-- `Export to Excel` and the column sort arrows do nothing.
+- **The result rows are a fixed 78-row sample, not the real 285,529-drug corpus.** Every value in the
+  sample is a canonical option, so everything the table shows is also something the sentence can ask
+  for, and the count above it is reconciled against whatever rows actually match — it never claims
+  more than the sample can back up, and drops to zero rather than showing a number the table
+  contradicts. Still not a filter engine: a fixed array and a predicate.
+- `Export to Excel` does nothing.
 
 ## The bet
 

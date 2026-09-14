@@ -1,27 +1,23 @@
 "use client"
 
 import { useState } from "react"
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
-  FunnelIcon,
-  PinIcon,
-} from "lucide-react"
+import { ArrowDownIcon, ArrowUpIcon, ChevronDownIcon, ChevronRightIcon } from "lucide-react"
 
 import { StageBadge } from "@/components/prototype/StageBadge"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import { ColumnHeaderMenu } from "@/flows/sprint-3/idea-4/components/ColumnHeaderMenu"
 import { ValuePills } from "@/flows/sprint-3/idea-4/components/ValuePills"
 import {
+  aggregateColumn,
   aggregateLabels,
   aggregateValue,
   columnByKey,
+  columnTrack,
+  rows,
   type ColumnDef,
   type DrugRecord,
   type RowGroup,
@@ -32,11 +28,44 @@ import {
   type GridState,
 } from "@/flows/sprint-3/idea-4/grid-state"
 
+/** Frozen lanes: the select lane and anything pinned, with their left offsets. */
+interface Frozen {
+  left: Record<string, number>
+  last: string | null
+}
+
+function frozenLanes(keys: string[], pinned: string[]): Frozen {
+  const left: Record<string, number> = {}
+  let offset = 0
+  let last: string | null = null
+  for (const key of keys) {
+    if (key !== "select" && !pinned.includes(key)) continue
+    left[key] = offset
+    offset += columnByKey[key].minPx
+    last = key
+  }
+  return { left, last }
+}
+
+/**
+ * Class and style for a cell in a frozen lane. It needs a fill of its own, or
+ * the lanes scrolling underneath would show through, so the row's hover and
+ * checked fills are repeated on it.
+ */
+function frozen(key: string, lanes: Frozen, fill: string) {
+  if (!(key in lanes.left)) return { className: undefined, style: undefined }
+  return {
+    className: cn("sticky z-[1]", fill, key === lanes.last && "border-edge border-r"),
+    style: { left: lanes.left[key] },
+  }
+}
+
 function HeaderCell({
   column,
   state,
   matchCount,
   open,
+  lanes,
   onOpenChange,
   onAction,
 }: {
@@ -44,58 +73,48 @@ function HeaderCell({
   state: GridState
   matchCount: number
   open: boolean
+  lanes: Frozen
   onOpenChange: (open: boolean) => void
   onAction: (action: GridAction) => void
 }) {
   const filtered = state.filters[column.key]?.length ?? 0
   const sorted = state.sort?.columnKey === column.key ? state.sort.direction : null
-  const pinned = state.pinned.includes(column.key)
-  /*
-   * Whether this lane is currently doing something the analyst asked for.
-   * Pinning is not in it: the first column is pinned out of the box, and a
-   * permanently tinted header would spend the accent on the one state nobody
-   * chose.
-   */
   const active = filtered > 0 || sorted !== null
-
-  // The state icons float inside the label rather than sitting beside it, so a
-  // long column name wraps around them and still gets the full second line.
-  const trigger = (
-    <button
-      type="button"
-      className={cn(
-        "group flex h-full w-full items-center px-2.5 py-2 text-left transition-colors",
-        open ? "bg-brand-tint" : active ? "bg-brand-wash hover:bg-brand-tint" : "hover:bg-accent",
-      )}
-    >
-      <span
-        className={cn(
-          "block w-full text-[10px] leading-[1.3] font-medium tracking-[0.07em] uppercase",
-          active ? "text-brand-ink" : "text-muted-foreground",
-        )}
-      >
-        <span className="float-right ml-1 flex items-center gap-1 pt-px">
-          {pinned ? <PinIcon className="fill-brand text-brand size-3" /> : null}
-          {sorted === "asc" ? <ArrowDownIcon className="text-brand size-3" /> : null}
-          {sorted === "desc" ? <ArrowUpIcon className="text-brand size-3" /> : null}
-          {filtered ? <FunnelIcon className="fill-brand text-brand size-2.5" /> : null}
-          <ChevronDownIcon
-            className={cn(
-              "size-3 transition-opacity",
-              open ? "opacity-100" : "opacity-30 group-hover:opacity-100",
-            )}
-          />
-        </span>
-        {column.label}
-      </span>
-    </button>
-  )
+  const lane = frozen(column.key, lanes, "bg-surface-panel z-[2]")
 
   return (
-    <div className={cn("border-hairline border-r last:border-r-0", pinned && "border-edge")}>
+    <div className={cn("border-hairline border-r last:border-r-0", lane.className)} style={lane.style}>
       <Popover open={open} onOpenChange={onOpenChange}>
-        <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-        <PopoverContent align="start" sideOffset={1} className="w-[272px] gap-0 p-0">
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "group flex h-full w-full items-center gap-1.5 px-3 text-left text-[10px] font-medium tracking-[0.08em] whitespace-nowrap uppercase transition-colors",
+              open ? "bg-muted" : "hover:bg-accent",
+              active || open ? "text-foreground" : "text-muted-foreground",
+            )}
+          >
+            <span>{column.label}</span>
+            {sorted === "asc" ? <ArrowDownIcon className="size-3 shrink-0" aria-label="Sorted ascending" /> : null}
+            {sorted === "desc" ? <ArrowUpIcon className="size-3 shrink-0" aria-label="Sorted descending" /> : null}
+            {filtered ? (
+              <Badge
+                variant="secondary"
+                className="h-5 rounded-md px-1.5 text-xs tabular-nums"
+                aria-label={`${filtered} values filtered`}
+              >
+                {filtered}
+              </Badge>
+            ) : null}
+            <ChevronDownIcon
+              className={cn(
+                "text-muted-foreground ml-auto size-3 shrink-0 transition-opacity",
+                open ? "opacity-100" : "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100",
+              )}
+            />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="start" sideOffset={1} className="w-[288px] gap-0 p-0">
           <ColumnHeaderMenu
             column={column}
             state={state}
@@ -112,149 +131,75 @@ function HeaderCell({
 function Cell({
   column,
   row,
-  pinned,
-  expanded,
   selected,
-  onExpand,
   onSelect,
 }: {
   column: ColumnDef
   row: DrugRecord
-  /** Pinned lanes keep a divider so the frozen block reads as a block. */
-  pinned: boolean
-  expanded: boolean
   selected: boolean
-  onExpand: () => void
   onSelect: () => void
 }) {
-  const base = cn("min-w-0 px-2.5 py-2", pinned && "border-hairline border-r")
-
   switch (column.kind) {
     case "select":
       return (
-        <div className={cn(base, "flex items-start gap-1 px-1.5")}>
-          <Checkbox
-            checked={selected}
-            onCheckedChange={onSelect}
-            aria-label={`Select ${row.name}`}
-            className="mt-0.5 size-3.5"
-          />
-          <button
-            type="button"
-            onClick={onExpand}
-            aria-label={expanded ? "Collapse record" : "Expand record"}
-            className="text-muted-foreground hover:text-foreground -mt-0.5 flex size-4 items-center justify-center transition-colors"
-          >
-            {expanded ? (
-              <ChevronDownIcon className="size-3.5" />
-            ) : (
-              <ChevronRightIcon className="size-3.5" />
-            )}
-          </button>
+        <div className="flex h-full items-center justify-center">
+          <Checkbox checked={selected} onCheckedChange={onSelect} aria-label={`Select ${row.name}`} />
         </div>
       )
     case "primary":
       return (
-        <div className={base}>
-          <span className="block text-[12.5px] leading-[16px] font-medium">{row.name}</span>
-        </div>
+        <span title={row.name} className="block truncate font-medium">
+          {row.name}
+        </span>
       )
     case "badge":
-      return (
-        <div className={base}>
-          <StageBadge stage={row.stage} className="h-[18px] px-1.5" />
-        </div>
-      )
+      return <StageBadge stage={row.stage} />
     case "number":
       return (
-        <div className={cn(base, "text-right")}>
-          <span className="block text-[12.5px] leading-[16px] tabular-nums">
-            {row.npv > 0 ? row.npv.toLocaleString() : <span className="text-muted-foreground">—</span>}
-          </span>
-        </div>
+        <span className="block text-right tabular-nums">
+          {row.npv > 0 ? row.npv.toLocaleString() : <span className="text-muted-foreground">—</span>}
+        </span>
       )
     case "pills":
       return (
-        <div className={base}>
-          <ValuePills
-            values={column.values(row)}
-            limit={column.pillLimit ?? 2}
-            expanded={expanded}
-            onExpand={onExpand}
-            muted={column.muted}
-          />
-        </div>
+        <ValuePills
+          label={column.label}
+          values={column.values(row)}
+          limit={column.pillLimit ?? 2}
+          muted={column.muted}
+        />
       )
     case "text":
     default: {
       const value = column.key === "brand" ? row.brand : column.values(row)[0]
-      return (
-        <div className={base}>
-          <span
-            className={cn(
-              "block text-[12.5px] leading-[16px]",
-              column.key === "brand" ? "" : "text-muted-foreground",
-            )}
-          >
-            {value ?? <span className="text-muted-foreground">—</span>}
-          </span>
-        </div>
+      return value ? (
+        <span
+          title={value}
+          className={cn(
+            "block truncate",
+            column.muted ? "text-muted-foreground" : "text-foreground",
+          )}
+        >
+          {value}
+        </span>
+      ) : (
+        <span className="text-muted-foreground block">—</span>
       )
     }
   }
 }
 
 /**
- * The expanded record. Rather than growing a 132px lane to nine lines, the
- * detail opens as a band across the full width of the row — the reason one drug
- * never takes more than a few lines however many values it carries.
- */
-function ExpandedDetail({ row, keys }: { row: DrugRecord; keys: string[] }) {
-  const groups = keys
-    .map((key) => columnByKey[key])
-    .filter((column) => column && column.kind === "pills")
-    .map((column) => ({ label: column.label, values: column.values(row) }))
-    .filter((group) => group.values.length > 1)
-
-  if (groups.length === 0) {
-    return (
-      <div className="border-hairline text-muted-foreground border-t py-2.5 pr-2.5 pl-12 text-[11.5px]">
-        One value in every lane — this record is already shown in full.
-      </div>
-    )
-  }
-
-  return (
-    <div className="border-hairline border-t py-2.5 pr-2.5 pl-12">
-      <div className="flex flex-col gap-2">
-        {groups.map((group) => (
-          <div key={group.label} className="flex gap-3">
-            <span className="text-muted-foreground w-[142px] shrink-0 pt-1 text-[10px] leading-[1.25] font-medium tracking-[0.07em] uppercase">
-              {group.label} <span className="tabular-nums">{group.values.length}</span>
-            </span>
-            <div className="flex min-w-0 flex-wrap items-center gap-1">
-              {group.values.map((value) => (
-                <span
-                  key={value}
-                  className="bg-surface-panel border-border rounded-md border px-1.5 py-0.5 text-[11px] leading-[16px]"
-                >
-                  {value}
-                </span>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/**
- * One reusable grid, not a bespoke table. Fixed lanes so every row lines up,
- * multi-valued lanes taking the slack, and the ten default lanes summing to
- * 866px of minimum width — so the grid compresses beside the agent panel
- * rather than running off the side of the screen, which is what the live
- * results view does at 1600px.
+ * One reusable grid, not a bespoke table. Every lane has a minimum wide enough
+ * for its header on one line and a 13px value; spare width is shared out by
+ * `grow`. Past the sum of the minimums the grid scrolls sideways, with the
+ * select lane and any pinned lane frozen on the left and the header frozen on
+ * top. Legibility beats fitting.
+ *
+ * Type is Idea 3's table verbatim — 13px cells, 10px uppercase headers, 12px
+ * tags — so the two directions read as one product rather than two prototypes.
+ * The body sets 13px once and the cells inherit it; only the header row, the
+ * summary row and the count rail name a size of their own.
  */
 export function ResultsGrid({
   state,
@@ -263,8 +208,6 @@ export function ResultsGrid({
   visibleRows,
   openColumn,
   onOpenColumnChange,
-  expandedRows,
-  onToggleRow,
   selectedRows,
   onToggleSelect,
   onToggleSelectAll,
@@ -276,8 +219,6 @@ export function ResultsGrid({
   visibleRows: DrugRecord[]
   openColumn: string | null
   onOpenColumnChange: (key: string | null) => void
-  expandedRows: string[]
-  onToggleRow: (id: string) => void
   selectedRows: string[]
   onToggleSelect: (id: string) => void
   onToggleSelectAll: () => void
@@ -285,137 +226,189 @@ export function ResultsGrid({
 }) {
   const [collapsed, setCollapsed] = useState<string[]>([])
   const keys = visibleColumnKeys(state)
-  const template = keys.map((key) => columnByKey[key].width).join(" ")
+  const lanes = frozenLanes(keys, state.pinned)
+  const template = keys
+    .map((key) => columnTrack(columnByKey[key], key in lanes.left))
+    .join(" ")
+  const minWidth = keys.reduce((total, key) => total + columnByKey[key].minPx, 0)
   const allSelected = visibleRows.length > 0 && selectedRows.length === visibleRows.length
+  const someSelected = selectedRows.length > 0 && !allSelected
+
+  const summary = state.aggregates.length > 0 && matchCount > 0
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="bg-surface-panel flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 overflow-auto">
-        <div
-          className="bg-surface-panel border-edge sticky top-0 z-10 grid border-b"
-          style={{ gridTemplateColumns: template }}
-        >
-          <div className="border-hairline border-r px-1.5 py-2">
-            <Checkbox
-              checked={allSelected}
-              onCheckedChange={onToggleSelectAll}
-              aria-label="Select all rows"
-              className="size-3.5"
-            />
+        <div className="relative w-full text-[13px]" style={{ minWidth }}>
+          <div
+            className="bg-surface-panel border-edge sticky top-0 z-20 grid h-10 border-b"
+            style={{ gridTemplateColumns: template }}
+          >
+            {keys.map((key) => {
+              if (key === "select") {
+                const lane = frozen(key, lanes, "bg-surface-panel z-[2]")
+                return (
+                  <div
+                    key={key}
+                    className={cn("flex items-center justify-center", lane.className)}
+                    style={lane.style}
+                  >
+                    <Checkbox
+                      checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                      onCheckedChange={onToggleSelectAll}
+                      aria-label="Select all rows"
+                    />
+                  </div>
+                )
+              }
+              return (
+                <HeaderCell
+                  key={key}
+                  column={columnByKey[key]}
+                  state={state}
+                  matchCount={matchCount}
+                  open={openColumn === key}
+                  lanes={lanes}
+                  onOpenChange={(open) => onOpenColumnChange(open ? key : null)}
+                  onAction={onAction}
+                />
+              )
+            })}
           </div>
-          {keys.slice(1).map((key) => (
-            <HeaderCell
-              key={key}
-              column={columnByKey[key]}
-              state={state}
-              matchCount={matchCount}
-              open={openColumn === key}
-              onOpenChange={(open) => onOpenColumnChange(open ? key : null)}
-              onAction={onAction}
-            />
-          ))}
-        </div>
 
-        {matchCount === 0 ? (
-          <div className="flex flex-col items-start gap-2 px-4 py-10">
-            <p className="text-[13px] font-medium">No drug in this sample matches all of it.</p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-1"
-              onClick={() => onAction({ kind: "clearFilters" })}
-            >
-              Clear all filters
-            </Button>
-          </div>
-        ) : null}
+          {matchCount === 0 ? (
+            <div className="sticky left-0 flex w-fit flex-col items-start gap-3 px-4 py-10">
+              <p className="text-base font-medium">No drug in this sample matches all of it.</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-sm"
+                onClick={() => onAction({ kind: "clearFilters" })}
+              >
+                Clear all filters
+              </Button>
+            </div>
+          ) : null}
 
-        {groups.map((group) => {
-          const isCollapsed = collapsed.includes(group.key)
-          return (
-            <div key={group.key}>
-              {state.group ? (
-                <button
-                  type="button"
-                  onClick={() =>
-                    setCollapsed((current) =>
-                      current.includes(group.key)
-                        ? current.filter((key) => key !== group.key)
-                        : [...current, group.key],
-                    )
-                  }
-                  className="bg-surface-sunken hover:bg-brand-wash border-hairline sticky top-[33px] z-[5] flex w-full items-center gap-2 border-b px-2.5 py-1.5 text-left transition-colors"
-                >
-                  {isCollapsed ? (
-                    <ChevronRightIcon className="text-muted-foreground size-3.5" />
-                  ) : (
-                    <ChevronDownIcon className="text-muted-foreground size-3.5" />
-                  )}
-                  <span className="text-[12px] font-medium">{group.label}</span>
-                  <span className="text-muted-foreground text-[11px] tabular-nums">
-                    {group.rows.length}
-                  </span>
-                </button>
-              ) : null}
+          {groups.map((group) => {
+            const isCollapsed = collapsed.includes(group.key)
+            return (
+              <div key={group.key}>
+                {state.group ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCollapsed((current) =>
+                        current.includes(group.key)
+                          ? current.filter((key) => key !== group.key)
+                          : [...current, group.key],
+                      )
+                    }
+                    className="bg-surface-sunken hover:bg-accent border-hairline sticky top-10 z-10 flex h-9 w-full items-center border-b text-left transition-colors"
+                  >
+                    <span className="sticky left-0 flex items-center gap-2 px-3">
+                      {isCollapsed ? (
+                        <ChevronRightIcon className="text-muted-foreground size-4" />
+                      ) : (
+                        <ChevronDownIcon className="text-muted-foreground size-4" />
+                      )}
+                      <span className="font-medium">{group.label}</span>
+                      <span className="text-muted-foreground tabular-nums">
+                        {group.rows.length}
+                      </span>
+                    </span>
+                  </button>
+                ) : null}
 
-              {isCollapsed
-                ? null
-                : group.rows.map((row) => {
-                    const expanded = expandedRows.includes(row.id)
-                    return (
-                      <div
-                        key={row.id}
-                        className={cn("border-hairline border-b", expanded && "bg-surface-sunken")}
-                      >
+                {isCollapsed
+                  ? null
+                  : group.rows.map((row) => {
+                      const selected = selectedRows.includes(row.id)
+                      const fill = selected
+                        ? "bg-accent"
+                        : "bg-surface-panel group-hover/row:bg-accent"
+                      return (
                         <div
-                          className="hover:bg-brand-wash grid transition-colors"
+                          key={row.id}
+                          className={cn(
+                            "group/row border-hairline grid border-b transition-colors",
+                            selected ? "bg-accent" : "hover:bg-accent",
+                          )}
                           style={{ gridTemplateColumns: template }}
                         >
-                          {keys.map((key) => (
-                            <Cell
-                              key={key}
-                              column={columnByKey[key]}
-                              row={row}
-                              pinned={state.pinned.includes(key)}
-                              expanded={expanded}
-                              selected={selectedRows.includes(row.id)}
-                              onExpand={() => onToggleRow(row.id)}
-                              onSelect={() => onToggleSelect(row.id)}
-                            />
-                          ))}
+                          {keys.map((key) => {
+                            const lane = frozen(key, lanes, fill)
+                            return (
+                              <div
+                                key={key}
+                                className={cn(
+                                  "flex h-10 min-w-0 items-center transition-colors",
+                                  key === "select" ? "justify-center" : "px-3",
+                                  columnByKey[key].kind === "number" && "justify-end",
+                                  lane.className,
+                                )}
+                                style={lane.style}
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <Cell
+                                    column={columnByKey[key]}
+                                    row={row}
+                                    selected={selected}
+                                    onSelect={() => onToggleSelect(row.id)}
+                                  />
+                                </div>
+                              </div>
+                            )
+                          })}
                         </div>
-                        {expanded ? <ExpandedDetail row={row} keys={keys} /> : null}
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+              </div>
+            )
+          })}
+
+          {summary ? (
+            <div
+              className="bg-surface-chrome border-edge sticky bottom-0 z-20 grid border-t"
+              style={{ gridTemplateColumns: template }}
+            >
+              {keys.map((key) => {
+                const figures = state.aggregates.filter((aggregate) => aggregateColumn[aggregate] === key)
+                const lane = frozen(key, lanes, "bg-surface-chrome z-[2]")
+                return (
+                  <div
+                    key={key}
+                    className={cn(
+                      "flex min-h-10 min-w-0 flex-col justify-center gap-0.5 px-3 py-1.5 text-xs",
+                      columnByKey[key].kind === "number" && "items-end",
+                      lane.className,
+                    )}
+                    style={lane.style}
+                  >
+                    {figures.map((aggregate) => (
+                      <span key={aggregate} className="truncate whitespace-nowrap">
+                        <span className="text-muted-foreground">{aggregateLabels[aggregate]} </span>
+                        <span className="font-medium tabular-nums">
+                          {aggregateValue(aggregate, visibleRows)}
+                        </span>
+                      </span>
+                    ))}
+                    {key === "drugName" && figures.length === 0 ? (
+                      <span className="text-muted-foreground">Summary</span>
+                    ) : null}
+                  </div>
+                )
+              })}
             </div>
-          )
-        })}
+          ) : null}
+        </div>
       </div>
 
-      <div className="bg-surface-chrome border-edge flex h-9 shrink-0 items-center gap-4 overflow-x-auto border-t px-4">
-        <span className="text-muted-foreground shrink-0 text-[11px] tabular-nums">
-          {matchCount === 0 ? "0 drugs" : `1–${matchCount} of ${matchCount} drugs`}
+      <div className="bg-surface-chrome border-edge flex h-10 shrink-0 items-center justify-end gap-1.5 border-t px-4">
+        <span className="text-xs font-medium tabular-nums">{matchCount}</span>
+        <span className="text-muted-foreground text-xs tabular-nums">
+          {matchCount === 1 ? "drug matches" : "drugs match"} · of {rows.length} in sample
         </span>
-        {selectedRows.length > 0 ? (
-          <>
-            <Separator orientation="vertical" className="h-3.5" />
-            <span className="text-[11px] tabular-nums">
-              <span className="font-medium">{selectedRows.length}</span>
-              <span className="text-muted-foreground"> selected</span>
-            </span>
-          </>
-        ) : null}
-        <Separator orientation="vertical" className="h-3.5" />
-        {state.aggregates.map((key) => (
-          <span key={key} className="shrink-0 text-[11px] whitespace-nowrap">
-            <span className="text-muted-foreground">{aggregateLabels[key]} </span>
-            <span className="font-medium tabular-nums">{aggregateValue(key, visibleRows)}</span>
-          </span>
-        ))}
-        {state.aggregates.length === 0 ? (
-          <span className="text-muted-foreground text-[11px]">No aggregates</span>
-        ) : null}
       </div>
     </div>
   )

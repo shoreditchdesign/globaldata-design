@@ -9,7 +9,7 @@ import { suggestedQueries } from "@/flows/sprint-3/idea-3/data"
 import { knownAttributes, type Resolution } from "@/flows/sprint-3/idea-3/resolve"
 
 /**
- * Where the query is typed — the cold start, and the far end of `edit as text`.
+ * Where the query is typed — the cold start, and the far end of `Edit`.
  *
  * It is the same slot, at the same size, in the same box as the sentence it
  * becomes. That is the argument: the reviewer is not moving between a search
@@ -87,9 +87,9 @@ export function Composer({
                 key={query}
                 type="button"
                 onClick={() => onChange(query)}
-                className="text-foreground/80 hover:bg-brand-wash hover:text-brand-ink group -mx-1.5 flex items-center gap-2 rounded-md px-1.5 py-1 text-left text-[13px] transition-colors"
+                className="text-foreground/80 hover:bg-accent hover:text-foreground group -mx-1.5 flex items-center gap-2 rounded-md px-1.5 py-1 text-left text-[13px] transition-colors"
               >
-                <ArrowRightIcon className="text-muted-foreground group-hover:text-brand size-3.5 shrink-0" />
+                <ArrowRightIcon className="text-muted-foreground group-hover:text-foreground size-3.5 shrink-0" />
                 {query}
               </button>
             ))}
@@ -161,7 +161,7 @@ function Failure({
               key={suggestion.value}
               type="button"
               onClick={() => onSuggestion(suggestion.phrase, suggestion.value)}
-              className="bg-surface-panel border-border hover:border-brand-border hover:bg-brand-wash hover:text-brand-ink inline-flex h-6 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors"
+              className="bg-surface-panel border-border hover:border-edge hover:bg-accent hover:text-foreground inline-flex h-6 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors"
             >
               {suggestion.value}
               <span className="text-muted-foreground">{suggestion.attribute}</span>

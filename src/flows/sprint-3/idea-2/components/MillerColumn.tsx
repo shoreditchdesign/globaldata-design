@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronRightIcon, SearchIcon } from "lucide-react"
+import { ChevronRightIcon } from "lucide-react"
 
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
@@ -36,8 +36,6 @@ export interface ColumnModel {
   selected?: string[]
   /** The row whose children are open in the column to the right. */
   open?: string
-  /** Per-row count of values applied inside that row, shown in the lead lane. */
-  badges?: Record<string, number>
   /** Whether rows carry a tick box. Areas and attributes are navigation only. */
   selectable?: boolean
   /**
@@ -45,9 +43,8 @@ export interface ColumnModel {
    * numbers say what a value would drop, not what it would leave.
    */
   negated?: boolean
-  /** Free-text attributes have no list — the column is a search field. */
+  /** Free-text attributes have no value list, so the column has no rows. */
   search?: boolean
-  placeholder?: string
   /** What the number lane counts. The filter areas are whole records, not drugs. */
   unit?: string
   /** Columns carrying the long labels take a larger share of the panel. */
@@ -61,15 +58,20 @@ function countLane(items: ColumnRow[], negated = false) {
       Math.max(n, item.count === null ? 1 : formatCount(item.count).length + (negated ? 1 : 0)),
     0,
   )
-  if (longest <= 3) return "w-8"
-  if (longest <= 5) return "w-10"
-  return "w-12"
+  if (longest <= 3) return "w-10"
+  if (longest <= 5) return "w-14"
+  return "w-16"
 }
 
 /**
  * One level of the drill-down. Rows use fixed-width lanes — lead, label,
  * count, chevron — and the column header sits on the same lanes, so the
  * numbers line up down the panel and the headings line up across it.
+ *
+ * Every row in every column reads the same way: control, label, count. The lead
+ * lane holds exactly one thing and is never empty — a tick box where the column
+ * ticks values into the query, a radio mark where it only navigates — so a
+ * number appears once per row, on the right, and never on both sides of a label.
  *
  * A value row is two controls in one line: the box ticks the value into the
  * query, the rest of the row opens what is underneath it. Rows with nothing
@@ -95,48 +97,62 @@ export function MillerColumn({
     <div
       className={cn(
         // A floor on the column width — below it the labels stop being
-        // readable, and the strip scrolls the way Finder's does instead.
-        "flex min-w-[176px] flex-col",
+        // readable, and the strip scrolls the way Finder's does instead. At
+        // 260px a leaf column has 174px of label lane and a drillable one
+        // 152px, which is a two-word indication and no more; the panel is sized
+        // so the floor is only reached on a window narrower than any desk.
+        "flex min-w-[260px] flex-col",
+        // Every column body is the same grey. The split that used to put the
+        // navigation columns on chrome and the value columns on the panel plane
+        // read as arbitrary from across the screen — some columns grey, some
+        // white, for a reason no one could see — so the white is now the header
+        // block above and the colour is the columns, uniformly.
+        "bg-surface-page",
         column.wide ? "flex-[1.25]" : "flex-1",
         className,
       )}
     >
-      <div className="border-hairline flex h-7 shrink-0 items-center gap-1.5 border-b pr-1.5 pl-2">
+      {/* The captions close the white block the breadcrumb and the search field
+          start, so the header of the panel is one plane whatever column sits
+          under it, and the only rule on it is the `border-edge` closing the
+          block off. */}
+      <div className="bg-surface-panel border-edge flex h-9 shrink-0 items-center gap-1.5 border-b pr-1.5 pl-2">
         <span className="w-4 shrink-0" aria-hidden />
-        <span className="text-muted-foreground min-w-0 flex-1 truncate text-[10px] font-medium tracking-[0.09em] uppercase">
+        {/* One ink for every caption. Which column you are ticking into is said
+            by the tick boxes in it, not by a heading two shades darker than its
+            neighbour's. */}
+        <span className="text-muted-foreground min-w-0 flex-1 truncate text-[12px] font-medium tracking-[0.09em] uppercase">
           {column.level}
         </span>
         {column.search ? null : (
           <>
             <span
               className={cn(
-                "shrink-0 text-right text-[10px] font-medium tracking-[0.09em] uppercase",
+                "shrink-0 text-right text-[12px] font-medium tracking-[0.09em] uppercase",
                 // An excluding column counts what a value would take away, so
                 // it says so in the tone that means "out" rather than in the
                 // same grey as a column that adds.
-                column.negated ? "text-negative-ink" : "text-muted-foreground/70",
+                column.negated ? "text-negative-ink" : "text-muted-foreground",
               )}
             >
               {column.negated ? "Excludes" : (column.unit ?? "Drugs")}
             </span>
-            {hasDrill ? <span className="w-3 shrink-0" aria-hidden /> : null}
+            {hasDrill ? <span className="w-4 shrink-0" aria-hidden /> : null}
           </>
         )}
       </div>
 
-      <div className="shrink-0 px-2 py-1.5">
-        <div className="bg-surface-panel text-muted-foreground border-border flex h-7 items-center gap-1.5 rounded-md border px-2">
-          <SearchIcon className="size-3 shrink-0" />
-          <span className="truncate text-[11px]">{column.placeholder ?? "Search"}</span>
-        </div>
-      </div>
-
       {column.search ? (
-        <p className="text-muted-foreground px-3 py-1 text-[11px] leading-relaxed">
+        <p className="text-muted-foreground px-3 py-1 text-[14px] leading-relaxed">
           Free text — no value list.
         </p>
       ) : (
-        <ul className="min-h-0 flex-1 overflow-y-auto px-1 pb-2">
+        <ul className="min-h-0 flex-1 overflow-y-auto px-1 pt-1 pb-2">
+          {/* Only reachable from the panel search: every column has rows of its
+              own, so an empty list means the query matched none of them. */}
+          {column.items.length === 0 ? (
+            <li className="text-muted-foreground px-2 py-1 text-[14px]">No matches</li>
+          ) : null}
           {column.items.map((item) => (
             <ColumnItem
               key={item.label}
@@ -186,7 +202,6 @@ function ColumnItem({
   onToggle?: (label: string) => void
 }) {
   const isOpen = column.open === item.label
-  const badge = column.badges?.[item.label]
   const empty = item.count === 0
   // With nothing underneath it, the row body has only one job.
   const bodyTicks = Boolean(column.selectable && onToggle && !item.drillable)
@@ -198,23 +213,44 @@ function ColumnItem({
   return (
     <li
       className={cn(
-        "relative flex h-7 items-center rounded-md",
+        // The transparent edge is carried by every row so that the open row can
+        // colour one in without insetting its lanes a pixel further than its
+        // neighbours' — the count lane has to stay plumb down the column.
+        "relative flex h-9 items-center rounded-md border border-transparent",
         tintClass,
-        // Three rungs, not two: hovered, ticked into the query, drilled into.
-        // A `hover:` class outranks a flat one, so each state names its own
-        // hover rather than leaving the row dead under the cursor.
-        !isSelected && !isOpen && "hover:bg-accent",
-        isSelected && !isOpen && (negated ? "bg-negative/60 hover:bg-negative" : "bg-brand-wash hover:bg-brand-tint"),
-        // Just taken into the query: sits at the drilled-into weight for a beat,
-        // then falls back to the rung above.
-        justTicked && !isOpen && (negated ? "bg-negative" : "bg-brand-tint"),
-        isOpen && (negated ? "bg-negative" : "bg-brand-tint"),
+        // Hover is grey on every row you can still move to, a ticked one
+        // included — a `hover:` class outranks a flat one, so no row is left
+        // dead under the cursor. An excluding column hovers in its own tone,
+        // because grey there would read as the row stepping out of the
+        // exclusion it is part of.
+        !isOpen && (negated && isSelected ? "hover:bg-negative" : "hover:bg-accent"),
+        // Ticked into the query, not drilled into: an including row carries no
+        // fill at all. The tick box is solid brand the moment it is checked and
+        // that is the whole signal — a pale wash under it said the same thing a
+        // second time, more faintly. An excluding row keeps its rose fill,
+        // because the tone is the only thing separating a value being dropped
+        // from one being kept, and that distinction outranks the tidying.
+        isSelected && !isOpen && negated && "bg-negative/60",
+        // Just taken into the query: a grey beat, then it settles. The flash
+        // says *something moved here*, which is a position rather than a state,
+        // so it does not spend the accent.
+        justTicked && !isOpen && (negated ? "bg-negative" : "bg-accent"),
+        // Drilled into: the washed brand with an edge of its own. The edge is
+        // what the 2px brand rail used to do, and it draws the whole row rather
+        // than one side of it, so the open column reads as open from across the
+        // panel without a second, louder blue on screen.
+        isOpen && (negated ? "bg-negative" : "bg-brand-tint border-brand-border"),
+        // The rail survives on an excluding row only: rose at 0.026 chroma is a
+        // paler fill than the brand tint, so the exclusion keeps the harder
+        // marker it already had.
         isOpen &&
-          "before:absolute before:top-1 before:bottom-1 before:left-0 before:w-[2px] before:rounded-full",
-        isOpen && (negated ? "before:bg-negative-ink" : "before:bg-brand"),
+          negated &&
+          "before:bg-negative-ink before:absolute before:top-1 before:bottom-1 before:left-0 before:w-[2px] before:rounded-full",
       )}
     >
-      {/* Lead lane: the tick box, or how many values are applied inside this row. */}
+      {/* Lead lane: one control, always. A tick box where the column ticks, a
+          radio mark where it only navigates. Never a number — the count lane on
+          the right is the only place a number belongs. */}
       <span className="flex w-6 shrink-0 items-center justify-center">
         {column.selectable && onToggle ? (
           <Checkbox
@@ -222,7 +258,7 @@ function ColumnItem({
             onCheckedChange={() => onToggle(item.label)}
             aria-label={`${isSelected ? "Remove" : "Add"} ${item.label}`}
             className={cn(
-              "size-3.5",
+              "size-4",
               // Ticking a value into an excluding attribute takes rows away.
               // It cannot look like ticking one into an attribute that keeps
               // them — that is the whole difference between the two filters.
@@ -230,17 +266,31 @@ function ColumnItem({
                 "data-checked:border-negative-ink data-checked:bg-negative-ink data-checked:text-background",
             )}
           />
-        ) : badge ? (
-          // A count, not a command. Solid accent here put a stack of four
-          // filled discs down the left of the panel, which at the old
-          // cerulean was busy and at `#0034ec` competes with the checkboxes
-          // two columns over — the one control on this screen that actually
-          // has to be solid. Tinted, it still says "this attribute is on"
-          // and stops shouting it four times.
-          <span className="bg-brand-border text-brand-ink flex size-4 items-center justify-center rounded-full text-[9px] font-medium tabular-nums">
-            {badge}
+        ) : (
+          // A navigation column ticks nothing, so the lane says where the path
+          // is instead: one mark per row, filled on the row whose children are
+          // open to the right. Its core is `selected`, the same token the tick
+          // boxes one column over resolve to, so the two lead lanes read as one
+          // family of controls rather than a blue box beside a black dot.
+          //
+          // Not a `RadioGroup`. The row already has two click targets, the box
+          // and the label, and a real radio input would compete with the label
+          // button for the same gesture to say the same thing.
+          //
+          // Decorative: the row's `aria-current` below is what a screen reader
+          // hears, so the mark is hidden from it rather than announced twice.
+          <span
+            aria-hidden
+            className={cn(
+              "border-border flex size-4 items-center justify-center rounded-full border",
+              tintClass,
+            )}
+          >
+            {isOpen ? (
+              <span className={cn("bg-selected size-2 rounded-full", tintClass)} />
+            ) : null}
           </span>
-        ) : null}
+        )}
       </span>
 
       <button
@@ -251,30 +301,42 @@ function ColumnItem({
         }}
         title={item.label}
         aria-current={isOpen ? "true" : undefined}
-        className="flex h-7 min-w-0 flex-1 items-center gap-1.5 pr-1.5 text-left"
+        // `h-full`, not `h-9`: the row owns the 36px now that it carries a
+        // border, and a second fixed 36px inside a 34px content box would
+        // overflow it.
+        className="flex h-full min-w-0 flex-1 items-center gap-1.5 pr-1.5 text-left"
       >
         <span
           className={cn(
-            "min-w-0 flex-1 truncate text-[12px]",
-            isSelected ? "font-medium" : "text-foreground/90",
+            "min-w-0 flex-1 truncate text-[16px] text-foreground",
+            // Weight is what `selected` means in both kinds of column: in a
+            // value column the value is in the query, in a navigation column
+            // the branch under the row holds values. That second reading is the
+            // job the lead-lane count badge used to do, and weight does it
+            // without putting a second number on the row or spending a colour.
+            isSelected && "font-medium",
             // A zero is an answer: this value would leave nothing, so the row
-            // recedes rather than reading as an equal option.
-            empty && !isSelected && "text-muted-foreground/60",
+            // recedes rather than reading as an equal option. It recedes by a
+            // whole named rung, not a fraction of one — the label is where the
+            // zero is read, so it is the label that steps back.
+            empty && !isSelected && "text-muted-foreground",
           )}
         >
           {item.label}
         </span>
         <span
           className={cn(
-            "shrink-0 text-right text-[11px] tabular-nums",
+            "shrink-0 text-right text-[14px] tabular-nums",
             lane,
+            // The number is read, not pressed, so it is not the accent's to
+            // spend: a value in the query states its count in full ink, an
+            // excluded one in the tone that says what it drops, and everything
+            // else sits at `muted-foreground`.
             isSelected
               ? negated
                 ? "text-negative-ink"
-                : "text-brand-ink"
-              : empty
-                ? "text-muted-foreground/50"
-                : "text-muted-foreground",
+                : "text-foreground"
+              : "text-muted-foreground",
           )}
         >
           {item.count === null
@@ -284,10 +346,12 @@ function ColumnItem({
               : formatCount(item.count)}
         </span>
         {hasDrill ? (
-          <span className="flex w-3 shrink-0 justify-center">
+          <span className="flex w-4 shrink-0 justify-center">
             {item.drillable ? (
               <ChevronRightIcon
-                className={cn("size-3", isOpen ? "text-brand" : "text-muted-foreground/50")}
+                // Full ink on the row that is open, muted on the rest. Two
+                // named rungs rather than the accent and a fraction of grey.
+                className={cn("size-4", isOpen ? "text-foreground" : "text-muted-foreground")}
               />
             ) : null}
           </span>

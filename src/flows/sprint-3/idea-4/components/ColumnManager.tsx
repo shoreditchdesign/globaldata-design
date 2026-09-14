@@ -1,12 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDownIcon, ChevronUpIcon, PinIcon, PlusIcon, SearchIcon } from "lucide-react"
+import { ChevronDownIcon, ChevronUpIcon, PlusIcon, SearchIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
-import { cn } from "@/lib/utils"
 import { columnByKey, unpopulatedAttributes } from "@/flows/sprint-3/idea-4/data"
 import {
   hiddenColumnKeys,
@@ -15,17 +14,14 @@ import {
 } from "@/flows/sprint-3/idea-4/grid-state"
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-muted-foreground px-3 pt-2.5 pb-1 text-[10px] font-medium tracking-[0.08em] uppercase">
-      {children}
-    </p>
-  )
+  return <p className="text-muted-foreground px-3 pt-2.5 pb-1 text-sm font-medium">{children}</p>
 }
 
 /**
  * Column management, which the live product does not have: eight locked
  * columns and twenty-eight more you cannot reach. Here every column can be
- * hidden, moved or pinned, and the change lands in the grid immediately.
+ * hidden or moved, and the change lands in the grid immediately. Pinning lives
+ * in the column's own header menu.
  *
  * Reordering is two buttons rather than a drag handle. A handle that does not
  * drag is a worse lie than a pair of chevrons that plainly work, and in a
@@ -52,31 +48,30 @@ export function ColumnManager({
   return (
     <div className="flex flex-col">
       <div className="p-1.5">
-        <div className="border-border focus-within:border-ring focus-within:ring-ring/40 flex h-7 items-center gap-2 rounded-md border px-2 transition-shadow focus-within:ring-3">
-          <SearchIcon className="text-muted-foreground size-3.5 shrink-0" />
+        <div className="border-border focus-within:border-ring focus-within:ring-ring/40 flex h-8 items-center gap-2 rounded-md border px-2 transition-shadow focus-within:ring-3">
+          <SearchIcon className="text-muted-foreground size-4 shrink-0" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            className="placeholder:text-muted-foreground w-full bg-transparent text-[12.5px] outline-none"
-            placeholder="Find a column"
+            aria-label="Find a column"
+            className="w-full bg-transparent text-base outline-none"
           />
         </div>
       </div>
 
       <Separator />
 
-      <div className="max-h-[380px] overflow-y-auto pb-1.5">
+      <div className="max-h-[400px] overflow-y-auto pb-1.5">
         <SectionLabel>In the grid — {shown.length}</SectionLabel>
         <div className="px-1.5">
           {shownVisible.map((key) => {
             const column = columnByKey[key]
             const index = state.order.indexOf(key)
             const locked = key === "drugName"
-            const pinned = state.pinned.includes(key)
             return (
               <div
                 key={key}
-                className="hover:bg-accent group/row flex h-7 items-center gap-1.5 rounded-md pr-1 pl-1 text-[12.5px] transition-colors"
+                className="hover:bg-accent flex h-8 items-center gap-2 rounded-md px-1 text-sm transition-colors"
               >
                 <span className="flex shrink-0 flex-col leading-none">
                   <button
@@ -86,7 +81,7 @@ export function ColumnManager({
                     onClick={() => onAction({ kind: "moveColumn", columnKey: key, by: -1 })}
                     className="text-muted-foreground/70 hover:text-foreground -mb-px disabled:opacity-25"
                   >
-                    <ChevronUpIcon className="size-3" />
+                    <ChevronUpIcon className="size-3.5" />
                   </button>
                   <button
                     type="button"
@@ -95,7 +90,7 @@ export function ColumnManager({
                     onClick={() => onAction({ kind: "moveColumn", columnKey: key, by: 1 })}
                     className="text-muted-foreground/70 hover:text-foreground -mt-px disabled:opacity-25"
                   >
-                    <ChevronDownIcon className="size-3" />
+                    <ChevronDownIcon className="size-3.5" />
                   </button>
                 </span>
                 <Checkbox
@@ -103,24 +98,8 @@ export function ColumnManager({
                   disabled={locked}
                   aria-label={`Hide ${column.label}`}
                   onCheckedChange={() => onAction({ kind: "removeColumn", columnKey: key })}
-                  className="size-3.5"
                 />
                 <span className="min-w-0 flex-1 truncate">{column.label}</span>
-                <button
-                  type="button"
-                  aria-label={pinned ? `Unpin ${column.label}` : `Pin ${column.label} left`}
-                  onClick={() => onAction({ kind: "togglePin", columnKey: key })}
-                  className="shrink-0 p-0.5"
-                >
-                  <PinIcon
-                    className={cn(
-                      "size-3.5",
-                      pinned
-                        ? "fill-brand text-brand"
-                        : "text-muted-foreground/50 opacity-0 group-hover/row:opacity-100",
-                    )}
-                  />
-                </button>
               </div>
             )
           })}
@@ -133,36 +112,35 @@ export function ColumnManager({
             return (
               <div
                 key={key}
-                className="hover:bg-accent group/row text-muted-foreground flex h-7 items-center gap-1.5 rounded-md pr-1 pl-1 text-[12.5px] transition-colors"
+                className="hover:bg-accent group/row flex h-8 items-center gap-2 rounded-md px-1 text-sm transition-colors"
               >
-                <span className="size-3 shrink-0" />
+                <span className="w-3.5 shrink-0" />
                 <Checkbox
                   checked={false}
                   aria-label={`Add ${column.label}`}
                   onCheckedChange={() => onAction({ kind: "addColumn", columnKey: key })}
-                  className="size-3.5"
                 />
                 <span className="min-w-0 flex-1 truncate">{column.label}</span>
-                <PlusIcon className="size-3.5 shrink-0 opacity-0 group-hover/row:opacity-100" />
+                <PlusIcon className="text-muted-foreground size-4 shrink-0 opacity-0 group-hover/row:opacity-100" />
               </div>
             )
           })}
           {hiddenVisible.length === 0 ? (
-            <p className="text-muted-foreground/70 px-2 py-1 text-[11.5px]">
+            <p className="text-muted-foreground px-2 py-1 text-sm">
               {query ? "Nothing here matches." : "Every available column is in the grid."}
             </p>
           ) : null}
         </div>
 
-        <SectionLabel>In the product, no data in this sample — {unpopulatedAttributes.length}</SectionLabel>
+        <SectionLabel>No data in this sample — {unpopulatedAttributes.length}</SectionLabel>
         <div className="px-1.5">
           {unpopulatedVisible.map((label) => (
             <div
               key={label}
-              className="text-muted-foreground/50 flex h-7 items-center gap-1.5 rounded-md pr-1 pl-1 text-[12.5px]"
+              className="text-muted-foreground/60 flex h-8 items-center gap-2 rounded-md px-1 text-sm"
             >
-              <span className="size-3 shrink-0" />
-              <Checkbox checked={false} disabled className="size-3.5" />
+              <span className="w-3.5 shrink-0" />
+              <Checkbox checked={false} disabled />
               <span className="min-w-0 flex-1 truncate">{label}</span>
             </div>
           ))}
@@ -172,10 +150,15 @@ export function ColumnManager({
       <Separator />
 
       <div className="flex items-center justify-between gap-2 px-3 py-2">
-        <p className="text-muted-foreground text-[11px] tabular-nums">
+        <p className="text-muted-foreground text-sm tabular-nums">
           {shown.length} of {total} columns shown
         </p>
-        <Button variant="ghost" size="xs" onClick={() => onAction({ kind: "resetColumns" })}>
+        <Button
+          variant="ghost"
+          size="xs"
+          className="text-sm"
+          onClick={() => onAction({ kind: "resetColumns" })}
+        >
           Reset
         </Button>
       </div>

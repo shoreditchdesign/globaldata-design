@@ -1,14 +1,18 @@
 # Next session — pick up here
 
-State as of the end of the 2026-09-07 session. Sections 1 to 4 are agreed and specified but **not
-built**. Section 5 records what was finished.
+State as of the end of the 2026-09-13 session. Sections 1 to 4 are agreed and specified but **not
+built**. Section 5 records what was finished on 2026-09-07; section 8 records what was decided by
+default on 2026-09-13 and what that leaves open.
 
 Run `pnpm dev` and the four directions are at `/sprint-3/idea-{1,2,3,4}`. All four are clickable end
 to end. Typecheck, lint and build all pass.
 
 ---
 
-## 1. Idea 2 — Miller Columns: replace the agent panel with a spotlight
+## 1. Idea 2 — Miller Columns: replace the agent panel with a spotlight — done, 2026-09-14
+
+Done, along with the two fixes below and rather more besides — see `DECISIONS.md`, 2026-09-14, and
+§9 for what the pass left open. The specification is kept as written for the record.
 
 The persistent agent panel docked at the bottom of the filter rail is the weakest thing on the
 screen. It reads as a box rather than as a way in, and it competes with the Miller columns for
@@ -40,30 +44,33 @@ entry point, not of mechanic.
 
 ---
 
-## 2. Idea 4 — Sidebar Agent: remove the status bar, move context into the thread
+## 2. Idea 4 — Sidebar Agent: done, 2026-09-14
 
-The thin status bar along the bottom is being read as a second, competing surface. Remove it.
+Done. The status bar (`StatusBar.tsx`) is gone, and everything it carried — thinking time,
+what happened, the undo — now lives **inside the agent thread**, the way this section asked:
+a thinking row that collapses to "Thought for Xs", step rows in three tenses as they land, and a
+receipt closing the turn. The docked right-hand panel stays, at `w-[380px]`; the context lives in
+the thread rather than in chrome around it, per the Zed reference below.
 
-The information it carries belongs **inside the agent thread**, expressed the way Claude and ChatGPT
-express reasoning inline:
-
-- Thinking time on the turn that caused it.
-- A collapsible summary of what happened, in the thread rather than in a separate bar.
-- The activity log as thread history rather than as a strip.
-- Possibly checkpoints, so a reviewer can step back to a known state.
-
-Keep the docked right-hand panel — the reference is the Zed screenshot: a sidebar, with the context
-living in the thread rather than in chrome around it.
-
-The propose-and-accept cycle stays as built: the agent proposes, the change previews as
+The propose-and-accept cycle is unchanged: the agent proposes, the change previews as
 `15 → 4 drugs`, nothing moves until accepted.
 
-### Known bugs to fix at the same time
+**Amended 2026-09-14, round 2.** The grid's own 16/14 type scale is gone: on the client's
+correction the grid, its chips and its count rail take Idea 3's table type — 13px cells, 10px
+uppercase headers, 12px tags — so the directions read as one product. `StageBadge` drops its
+`h-6 px-2 text-sm` override back to the shared size. The lane minimums were re-measured against
+Geist rather than scaled, and the default nine columns now sum to 1,749px of scroll instead of
+1,928px. The agent panel keeps every size it had; this was about the table, not the interface.
 
-- **The transcript and the receipt disagree.** An old proposal card stays accept-able against a grid
-  that has since moved on, and a card saying "Applied to the grid" keeps saying it after you undo.
-- **Undo is a whole-state snapshot**, so undoing an agent step also discards the column and sort
-  changes you made by hand since.
+### Known bugs — one fixed, one still open
+
+- **Fixed.** The transcript and the receipt no longer disagree. A `proposed` turn now carries the
+  grid's `stateVersion` at the time it was made; if the grid has moved on since, the turn goes
+  stale — Accept disables, "Run again" replaces it, and the turn says the grid changed since it was
+  proposed — rather than staying accept-able against a state it no longer describes.
+- **Still open.** Undo is still a whole-state snapshot, so undoing an agent step also discards any
+  column or sort changes made by hand since. This is now disclosed rather than hidden: the Undo
+  control's tooltip reads "Also reverts hand edits made since."
 
 ---
 
@@ -143,3 +150,62 @@ Worth knowing before anyone shows these to a client.
   memory only, so they will not apply in other repos. Worth creating one.
 - `MESSAGE.md` in the repo root is the internal Slack update, gitignored. Its links are correct —
   the rename changed display names, not routes.
+
+## 8. Open from the 2026-09-13 refinement pass — updated 2026-09-14
+
+Two of the three questions below are settled; `StageBadge` is still open.
+
+- **Does the links-and-buttons-only colour rule spread to ideas 1, 2 and 4?** Settled: yes. It's now
+  a repo-wide mid-fidelity wireframe colour rule rather than an Idea 3 special case — see `CLAUDE.md`
+  for the full rule and `DECISIONS.md` for what changed where. Idea 3 has been brought onto it.
+- **Should chips go neutral at rest?** Settled: no. Chips keep `brand-tint` — ticking or opening one
+  is still read as a button press, so they stay blue under the repo-wide rule too. What changed is
+  their hover: they no longer shift fill on hover or open, only lift with `shadow-panel`.
+- **Does `StageBadge`'s blue ramp conflict with a narrower accent rule?** Still open. It's unchanged,
+  still reading pipeline position with fills under 0.06 chroma, and it's still the one place blue
+  carries information rather than an action on every direction that shows it. Worth checking side by
+  side with the settled wireframe rule above, and against the calmer brand value logged in
+  `DECISIONS.md`, 2026-09-14 — the badges were tuned against the old, louder `brand`.
+
+Separately: the brand accent itself was toned down on 2026-09-14 (`CLAUDE.md`, `DECISIONS.md`) but
+hasn't been looked at in a running browser yet. Worth a pass before calling it final — the contrast
+numbers check out on paper, but paper isn't a screen.
+
+Also from 2026-09-14: Idea 3's value-pill hover-reveal `×` hasn't been seen in a browser yet either —
+worth checking the fade-in/fade-out timing against the chevron it replaces, and that the chip width
+genuinely never shifts. On touch it only appears on focus, which is a known compromise rather than a
+bug.
+
+Also from 2026-09-14: Idea 4's refinement pass settles the colour law referenced throughout this
+section — see `CLAUDE.md`'s accent section and the matching `DECISIONS.md` rows for the final
+rule (solid brand on primary actions, checked controls, chips and links; washed brand on every
+other selected state; grey hover; neutral focus). Ideas 2 and 3 are being swept onto it by their
+own sessions in parallel with this one, so a Miller row, a segmented toggle or a menu option that
+still reads old-rule blue in either of those ideas belongs to that work, not to this pass.
+
+Two verification gaps left open at the end of the Idea 4 session: `pnpm build` was not run (only
+`pnpm typecheck` and `pnpm lint`, both green), and the 1280px breakpoint was not properly confirmed
+— the visual check was done at 1440px. Worth both before calling the grid final.
+
+---
+
+## 9. Open from the 2026-09-14 Idea 2 pass
+
+The spotlight, the 80/20 split, the panel foot, the record drawer and the 16px baseline all landed
+(see `DECISIONS.md`, 2026-09-14). What is left open:
+
+- **`StageBadge` is still `text-[11px]`**, which now makes it the most visible sub-12px element on
+  the screen — it sits in a 16px table cell and again in the drawer header. All four directions share
+  it, so raising it is a cross-direction decision rather than Idea 2's to take.
+- **The open Miller row is `brand-tint`**, a very pale blue, against a client complaint that the
+  colours are washed out. Needs their eye on an open row beside a hovered one and a ticked one before
+  it is called settled.
+- **`bg-negative/60` on a ticked excluding row** is the last alpha step left in the idea. Removing it
+  needs a `negative-wash` token rather than a call-site edit.
+- **Bare `opacity-50` disabled steps** in `src/components/ui/dropdown-menu.tsx` and `checkbox.tsx` —
+  the pattern CLAUDE.md's disabled rule rejects, though neither is a `Button`, so the rule does not
+  literally reach them. For whoever owns `src/components/ui`.
+- **Two for the client.** Whether ⌘K should toggle the spotlight or only open it, and whether the
+  agent run strip should keep echoing the request and its `Read as …` line — it reports how the
+  authored plan read the request, so it is arguably a disclosure rather than fluff, but the foot is
+  already carrying the count, the steps, the pills, `Ask` and `Clear all`.
