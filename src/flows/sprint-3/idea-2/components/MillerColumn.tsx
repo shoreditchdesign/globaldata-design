@@ -113,11 +113,12 @@ export function MillerColumn({
         className,
       )}
     >
-      {/* The captions close the white block the breadcrumb and the search field
-          start, so the header of the panel is one plane whatever column sits
-          under it, and the only rule on it is the `border-edge` closing the
-          block off. */}
-      <div className="bg-surface-panel border-edge flex h-8 shrink-0 items-center gap-1.5 border-b pr-1.5 pl-2">
+      {/* The caption band is the head of the columns, not the last line of the
+          search block, so it is ruled off on both sides: `border-edge` above it
+          separates it from the breadcrumb and the field, and `border-edge`
+          below closes the white header block off against the column grey.
+          Without the top rule it floated between the two. */}
+      <div className="bg-surface-panel border-edge flex h-8 shrink-0 items-center gap-1.5 border-y pr-1.5 pl-2">
         <span className="w-3 shrink-0" aria-hidden />
         {/* One ink for every caption. Which column you are ticking into is said
             by the tick boxes in it, not by a heading two shades darker than its
