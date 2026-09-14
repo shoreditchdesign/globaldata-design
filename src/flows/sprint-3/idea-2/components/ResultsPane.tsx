@@ -34,9 +34,11 @@ const PAGE = 40
  * matches nothing the table says so rather than showing the last set that
  * worked.
  *
- * At a fifth of the window the toolbar cannot spell its own controls, so
  * `Group by`, `Columns` and `Export` are icons with tooltips and only the count
- * keeps its words. The rest of a record is a drawer away, not a column away.
+ * keeps its words — the toolbar was sized for a pane a fifth of the window and
+ * kept its shape when the pane grew to half, which is a question for the next
+ * round rather than something this one changed. The rest of a record is a
+ * drawer away, not a column away.
  */
 export function ResultsPane({
   screener,
@@ -52,7 +54,7 @@ export function ResultsPane({
     <section className={cn("bg-surface-panel flex min-w-0 flex-col", className)}>
       <TooltipProvider>
         <div className="border-edge flex shrink-0 items-center gap-1.5 border-b px-3 py-2">
-          <span className="text-muted-foreground mr-auto text-[16px] tabular-nums">
+          <span className="text-muted-foreground mr-auto text-xs tabular-nums">
             {rows.length === 0 ? "Nothing to show" : `Showing 1–${page.length}`}
           </span>
 

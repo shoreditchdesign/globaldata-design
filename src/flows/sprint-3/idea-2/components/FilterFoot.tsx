@@ -1,7 +1,5 @@
 "use client"
 
-import { SparklesIcon } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { AgentRun } from "@/flows/sprint-3/idea-2/components/AgentRun"
 import { AppliedPills } from "@/flows/sprint-3/idea-2/components/AppliedPills"
@@ -60,7 +58,6 @@ export function FilterFoot({ screener }: { screener: Screener }) {
           onClick={screener.openSpotlight}
           className="h-8 shrink-0 px-2.5 text-[14px]"
         >
-          <SparklesIcon className="size-4" />
           Ask
           <span className="text-muted-foreground" aria-hidden="true">
             ⌘K

@@ -264,10 +264,10 @@ export function useScreener() {
   }
 
   /**
-   * The columns the table shows. Three by default — the pane is a fifth of the
-   * window — and never fewer than two, because a one-column table of drug names
-   * is a list, and the `Columns` menu should not be able to make one by
-   * accident. Order is the table's, not the order they were ticked in.
+   * The columns the table shows. Three by default — the two or three the client
+   * asked for up front — and never fewer than two, because a one-column table
+   * of drug names is a list, and the `Columns` menu should not be able to make
+   * one by accident. Order is the table's, not the order they were ticked in.
    */
   const [visibleColumns, setVisibleColumns] = useState<ResultColumnKey[]>([
     "name",

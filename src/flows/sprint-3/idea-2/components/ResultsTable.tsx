@@ -33,11 +33,14 @@ export type ResultColumnKey = (typeof resultColumns)[number]["key"]
  * The result set. Hand-rolled rather than the shadcn table so the header can
  * stick inside a single scroll container.
  *
- * Three columns by default, because the pane is a fifth of the window and a
- * six-column grid at that width is six ellipses. The rest of the record is not
- * cut, it is moved: hovering a name surfaces `Open`, which is the whole row in
- * a drawer. Generic name rides under the brand for the same reason — it is
+ * Three columns by default, because that is what the client asked for — two or
+ * three up front and everything else behind a panel. The rest of the record is
+ * not cut, it is moved: hovering a name surfaces `Open`, which is the whole row
+ * in a drawer. Generic name rides under the brand for the same reason — it is
  * identification, not a field worth a column.
+ *
+ * Type is Idea 3's table verbatim — 13px cells, 10px uppercase headers, `py-2.5`
+ * rows — so the two directions read as one product rather than two prototypes.
  */
 export function ResultsTable({
   rows,
@@ -52,13 +55,13 @@ export function ResultsTable({
 
   return (
     <div className="min-h-0 flex-1 overflow-auto">
-      <table className="w-full table-fixed border-collapse text-[16px]">
+      <table className="w-full table-fixed border-collapse text-[13px]">
         <thead className="sticky top-0 z-10">
           <tr className="bg-surface-panel">
             {shown.map((column) => (
               <th
                 key={column.key}
-                className={`text-muted-foreground border-edge border-b px-3 py-2 text-left text-[12px] font-medium tracking-[0.09em] whitespace-nowrap uppercase ${column.width}`}
+                className={`text-muted-foreground border-edge border-b px-3 py-2.5 text-left text-[10px] font-medium tracking-[0.08em] whitespace-nowrap uppercase ${column.width}`}
               >
                 <span className="flex items-center gap-1">
                   {column.label}
@@ -78,16 +81,18 @@ export function ResultsTable({
                 column.key === "name" ? (
                   <td key={column.key} className="relative px-3 py-2.5">
                     {/*
-                      The pane is a fifth of the window, so `Open` cannot simply
-                      sit on top of the name — it would cover the last third of
-                      a string that is already truncating. The text yields to it
+                      `Open` cannot simply sit on top of the name — the name
+                      column is the widest thing here and still truncates, and
+                      the button would cover its last third. The text yields to it
                       instead: on hover the name reserves the button's width and
                       truncates earlier, so nothing is ever hidden behind it.
                     */}
                     <span className="block truncate pr-0 font-medium transition-[padding] group-hover/row:pr-16">
                       {row.name}
                     </span>
-                    <span className="text-muted-foreground block truncate pr-0 text-[14px] transition-[padding] group-hover/row:pr-16">
+                    {/* The generic rides under the brand name, so it takes the
+                        step below the cell rather than a size of its own. */}
+                    <span className="text-muted-foreground block truncate pr-0 text-xs transition-[padding] group-hover/row:pr-16">
                       {row.generic}
                     </span>
                     {/*

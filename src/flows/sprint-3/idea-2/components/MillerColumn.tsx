@@ -36,14 +36,6 @@ export interface ColumnModel {
   selected?: string[]
   /** The row whose children are open in the column to the right. */
   open?: string
-  /**
-   * Which surface the column sits on, and with it what the column is for.
-   * `chrome` is a rail you move through — the filter areas, the attributes;
-   * `panel` is the content plane, the values you tick into the query. The split
-   * lands exactly where the control grammar changes, so the surface says which
-   * kind of column this is before a single row has been read.
-   */
-  tone: "chrome" | "panel"
   /** Whether rows carry a tick box. Areas and attributes are navigation only. */
   selectable?: boolean
   /**
@@ -105,29 +97,31 @@ export function MillerColumn({
     <div
       className={cn(
         // A floor on the column width — below it the labels stop being
-        // readable, and the strip scrolls the way Finder's does instead. It
-        // moved with the type: at 16px a label wants half again the room it
-        // needed at 12px, so 260px is where a column stops saying anything.
+        // readable, and the strip scrolls the way Finder's does instead. At
+        // 260px a leaf column has 174px of label lane and a drillable one
+        // 152px, which is a two-word indication and no more; the panel is sized
+        // so the floor is only reached on a window narrower than any desk.
         "flex min-w-[260px] flex-col",
-        column.tone === "chrome" ? "bg-surface-chrome" : "bg-surface-panel",
+        // Every column body is the same grey. The split that used to put the
+        // navigation columns on chrome and the value columns on the panel plane
+        // read as arbitrary from across the screen — some columns grey, some
+        // white, for a reason no one could see — so the white is now the header
+        // block above and the colour is the columns, uniformly.
+        "bg-surface-page",
         column.wide ? "flex-[1.25]" : "flex-1",
         className,
       )}
     >
-      {/* The captions continue the plate the panel-wide search field starts, so
-          the header carries chrome whatever the column body is, and the only
-          rule on it is the `border-edge` closing the plate off. */}
-      <div className="bg-surface-chrome border-edge flex h-9 shrink-0 items-center gap-1.5 border-b pr-1.5 pl-2">
+      {/* The captions close the white block the breadcrumb and the search field
+          start, so the header of the panel is one plane whatever column sits
+          under it, and the only rule on it is the `border-edge` closing the
+          block off. */}
+      <div className="bg-surface-panel border-edge flex h-9 shrink-0 items-center gap-1.5 border-b pr-1.5 pl-2">
         <span className="w-4 shrink-0" aria-hidden />
-        <span
-          className={cn(
-            "min-w-0 flex-1 truncate text-[12px] font-medium tracking-[0.09em] uppercase",
-            // The caption says what the surface says: a column you only travel
-            // through recedes, and the column you are ticking into names its
-            // attribute in full ink.
-            column.tone === "panel" ? "text-foreground" : "text-muted-foreground",
-          )}
-        >
+        {/* One ink for every caption. Which column you are ticking into is said
+            by the tick boxes in it, not by a heading two shades darker than its
+            neighbour's. */}
+        <span className="text-muted-foreground min-w-0 flex-1 truncate text-[12px] font-medium tracking-[0.09em] uppercase">
           {column.level}
         </span>
         {column.search ? null : (
