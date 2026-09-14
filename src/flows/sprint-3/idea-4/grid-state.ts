@@ -172,7 +172,7 @@ export function filterPhrase(columnKey: string, values: string[]) {
   return `${label(columnKey)} is ${values.slice(0, 2).join(" or ")} or ${values.length - 2} more`
 }
 
-/** One line per action, used by the status bar, the history and the proposals. */
+/** One line per action, in the past tense. The thread's steps use `describeStep`. */
 export function describeAction(action: GridAction): string {
   switch (action.kind) {
     case "setFilter":
@@ -198,7 +198,9 @@ export function describeAction(action: GridAction): string {
     case "setGroup":
       return action.columnKey ? `Grouped by ${label(action.columnKey)}` : "Grouping removed"
     case "setAggregates":
-      return `Footer shows ${action.keys.map((key) => aggregateLabels[key]).join(", ")}`
+      return action.keys.length
+        ? `Summary row shows ${action.keys.map((key) => aggregateLabels[key]).join(", ")}`
+        : "Summary row hidden"
     case "resetColumns":
       return "Columns reset to the default nine"
   }
