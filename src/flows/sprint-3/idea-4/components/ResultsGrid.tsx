@@ -89,18 +89,18 @@ function HeaderCell({
           <button
             type="button"
             className={cn(
-              "group flex h-full w-full items-center gap-1.5 px-3 text-left text-sm font-medium whitespace-nowrap transition-colors",
+              "group flex h-full w-full items-center gap-1.5 px-3 text-left text-[10px] font-medium tracking-[0.08em] whitespace-nowrap uppercase transition-colors",
               open ? "bg-muted" : "hover:bg-accent",
               active || open ? "text-foreground" : "text-muted-foreground",
             )}
           >
             <span>{column.label}</span>
-            {sorted === "asc" ? <ArrowDownIcon className="size-3.5 shrink-0" aria-label="Sorted ascending" /> : null}
-            {sorted === "desc" ? <ArrowUpIcon className="size-3.5 shrink-0" aria-label="Sorted descending" /> : null}
+            {sorted === "asc" ? <ArrowDownIcon className="size-3 shrink-0" aria-label="Sorted ascending" /> : null}
+            {sorted === "desc" ? <ArrowUpIcon className="size-3 shrink-0" aria-label="Sorted descending" /> : null}
             {filtered ? (
               <Badge
                 variant="secondary"
-                className="h-5 rounded-md px-1.5 text-sm tabular-nums"
+                className="h-5 rounded-md px-1.5 text-xs tabular-nums"
                 aria-label={`${filtered} values filtered`}
               >
                 {filtered}
@@ -108,7 +108,7 @@ function HeaderCell({
             ) : null}
             <ChevronDownIcon
               className={cn(
-                "text-muted-foreground ml-auto size-3.5 shrink-0 transition-opacity",
+                "text-muted-foreground ml-auto size-3 shrink-0 transition-opacity",
                 open ? "opacity-100" : "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100",
               )}
             />
@@ -148,15 +148,15 @@ function Cell({
       )
     case "primary":
       return (
-        <span title={row.name} className="block truncate text-base leading-6 font-medium">
+        <span title={row.name} className="block truncate font-medium">
           {row.name}
         </span>
       )
     case "badge":
-      return <StageBadge stage={row.stage} className="h-6 px-2 text-sm" />
+      return <StageBadge stage={row.stage} />
     case "number":
       return (
-        <span className="block text-right text-base leading-6 tabular-nums">
+        <span className="block text-right tabular-nums">
           {row.npv > 0 ? row.npv.toLocaleString() : <span className="text-muted-foreground">—</span>}
         </span>
       )
@@ -176,14 +176,14 @@ function Cell({
         <span
           title={value}
           className={cn(
-            "block truncate text-base leading-6",
+            "block truncate",
             column.muted ? "text-muted-foreground" : "text-foreground",
           )}
         >
           {value}
         </span>
       ) : (
-        <span className="text-muted-foreground block text-base leading-6">—</span>
+        <span className="text-muted-foreground block">—</span>
       )
     }
   }
@@ -191,10 +191,15 @@ function Cell({
 
 /**
  * One reusable grid, not a bespoke table. Every lane has a minimum wide enough
- * for its header on one line and a 16px value; spare width is shared out by
+ * for its header on one line and a 13px value; spare width is shared out by
  * `grow`. Past the sum of the minimums the grid scrolls sideways, with the
  * select lane and any pinned lane frozen on the left and the header frozen on
  * top. Legibility beats fitting.
+ *
+ * Type is Idea 3's table verbatim — 13px cells, 10px uppercase headers, 12px
+ * tags — so the two directions read as one product rather than two prototypes.
+ * The body sets 13px once and the cells inherit it; only the header row, the
+ * summary row and the count rail name a size of their own.
  */
 export function ResultsGrid({
   state,
@@ -234,7 +239,7 @@ export function ResultsGrid({
   return (
     <div className="bg-surface-panel flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 overflow-auto">
-        <div className="relative w-full" style={{ minWidth }}>
+        <div className="relative w-full text-[13px]" style={{ minWidth }}>
           <div
             className="bg-surface-panel border-edge sticky top-0 z-20 grid h-10 border-b"
             style={{ gridTemplateColumns: template }}
@@ -307,8 +312,8 @@ export function ResultsGrid({
                       ) : (
                         <ChevronDownIcon className="text-muted-foreground size-4" />
                       )}
-                      <span className="text-sm font-medium">{group.label}</span>
-                      <span className="text-muted-foreground text-sm tabular-nums">
+                      <span className="font-medium">{group.label}</span>
+                      <span className="text-muted-foreground tabular-nums">
                         {group.rows.length}
                       </span>
                     </span>
@@ -374,7 +379,7 @@ export function ResultsGrid({
                   <div
                     key={key}
                     className={cn(
-                      "flex min-h-10 min-w-0 flex-col justify-center gap-0.5 px-3 py-1.5 text-sm",
+                      "flex min-h-10 min-w-0 flex-col justify-center gap-0.5 px-3 py-1.5 text-xs",
                       columnByKey[key].kind === "number" && "items-end",
                       lane.className,
                     )}
@@ -400,8 +405,8 @@ export function ResultsGrid({
       </div>
 
       <div className="bg-surface-chrome border-edge flex h-10 shrink-0 items-center justify-end gap-1.5 border-t px-4">
-        <span className="text-base font-medium tabular-nums">{matchCount}</span>
-        <span className="text-muted-foreground text-sm tabular-nums">
+        <span className="text-xs font-medium tabular-nums">{matchCount}</span>
+        <span className="text-muted-foreground text-xs tabular-nums">
           {matchCount === 1 ? "drug matches" : "drugs match"} · of {rows.length} in sample
         </span>
       </div>

@@ -8,7 +8,7 @@ function Tag({ value, muted }: { value: string; muted?: boolean }) {
     <span
       title={value}
       className={cn(
-        "bg-muted min-w-0 truncate rounded-md px-1.5 text-sm leading-6",
+        "bg-muted min-w-0 truncate rounded-md px-1.5 text-xs leading-5",
         muted ? "text-muted-foreground" : "text-foreground",
       )}
     >
@@ -51,7 +51,7 @@ export function ValuePills({
             <button
               type="button"
               aria-label={`All ${values.length} values for ${label}`}
-              className="text-muted-foreground hover:text-foreground hover:bg-accent border-border data-[state=open]:bg-accent data-[state=open]:text-foreground shrink-0 rounded-md border border-dashed px-1.5 text-sm leading-[22px] tabular-nums transition-colors"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent border-border data-[state=open]:bg-accent data-[state=open]:text-foreground shrink-0 rounded-md border border-dashed px-1.5 text-xs leading-[18px] tabular-nums transition-colors"
             >
               +{values.length - limit}
             </button>
