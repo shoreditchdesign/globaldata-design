@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { EllipsisVerticalIcon } from "lucide-react"
 
+import { StageBadge } from "@/components/prototype/StageBadge"
 import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
@@ -73,16 +74,16 @@ export function ResultsTable({
 
   return (
     <div className="px-6 pb-6">
-      <div className="overflow-hidden rounded-lg border">
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="bg-surface-sunken">
+      <div className="bg-surface-panel border-edge overflow-auto rounded-lg border">
+        <table className="w-full border-collapse text-[13px]">
+          <thead className="sticky top-0 z-10">
+            <tr className="bg-surface-panel">
               {resultColumns.map((column) => {
                 const count = filterCounts[column.field]
                 return (
                   <th
                     key={column.key}
-                    className="text-muted-foreground border-b px-4 py-3 text-left text-[11px] font-medium tracking-[0.08em] uppercase"
+                    className="text-muted-foreground border-edge border-b px-3 py-2.5 text-left text-[10px] font-medium tracking-[0.08em] whitespace-nowrap uppercase"
                   >
                     <span className="flex items-center gap-1.5">
                       {column.label}
@@ -169,20 +170,22 @@ export function ResultsTable({
           <tbody>
             {displayedRows.length === 0 ? (
               <tr>
-                <td colSpan={resultColumns.length} className="text-muted-foreground px-4 py-10 text-center">
+                <td colSpan={resultColumns.length} className="text-muted-foreground px-3 py-10 text-center">
                   No drugs in this 16-row sample match these filters.
                 </td>
               </tr>
             ) : (
               displayedRows.map((row, i) => (
-                <tr key={`${row.name}-${i}`} className="border-b last:border-0">
-                  <td className="px-4 py-3">{row.name}</td>
-                  <td className="text-muted-foreground px-4 py-3">{row.generic}</td>
-                  <td className="text-muted-foreground px-4 py-3">{row.company}</td>
-                  <td className="text-muted-foreground px-4 py-3">{row.therapyArea}</td>
-                  <td className="text-muted-foreground px-4 py-3">{row.indication}</td>
-                  <td className="text-muted-foreground px-4 py-3">{row.stage}</td>
-                  <td className="text-muted-foreground px-4 py-3">{row.geographies.join(", ")}</td>
+                <tr key={`${row.name}-${i}`} className="hover:bg-surface-page border-hairline border-b transition-colors last:border-0">
+                  <td className="px-3 py-2.5 font-medium whitespace-nowrap">{row.name}</td>
+                  <td className="text-muted-foreground px-3 py-2.5 whitespace-nowrap">{row.generic}</td>
+                  <td className="text-muted-foreground px-3 py-2.5 whitespace-nowrap">{row.company}</td>
+                  <td className="text-muted-foreground px-3 py-2.5">{row.therapyArea}</td>
+                  <td className="text-muted-foreground px-3 py-2.5">{row.indication}</td>
+                  <td className="px-3 py-2.5">
+                    <StageBadge stage={row.stage} />
+                  </td>
+                  <td className="text-muted-foreground px-3 py-2.5">{row.geographies.join(", ")}</td>
                 </tr>
               ))
             )}
