@@ -55,6 +55,13 @@ the thread rather than in chrome around it, per the Zed reference below.
 The propose-and-accept cycle is unchanged: the agent proposes, the change previews as
 `15 → 4 drugs`, nothing moves until accepted.
 
+**Amended 2026-09-14, round 2.** The grid's own 16/14 type scale is gone: on the client's
+correction the grid, its chips and its count rail take Idea 3's table type — 13px cells, 10px
+uppercase headers, 12px tags — so the directions read as one product. `StageBadge` drops its
+`h-6 px-2 text-sm` override back to the shared size. The lane minimums were re-measured against
+Geist rather than scaled, and the default nine columns now sum to 1,749px of scroll instead of
+1,928px. The agent panel keeps every size it had; this was about the table, not the interface.
+
 ### Known bugs — one fixed, one still open
 
 - **Fixed.** The transcript and the receipt no longer disagree. A `proposed` turn now carries the

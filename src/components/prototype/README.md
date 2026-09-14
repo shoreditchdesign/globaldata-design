@@ -108,7 +108,6 @@ constant.
 
 ```tsx
 <StageBadge stage={row.stage} />
-<StageBadge stage={row.stage} className="h-6 px-2 text-sm" />  // Idea 4's grid, at its 16/14 type scale
 ```
 
 A development stage. Used by the results grids in Ideas 2, 3 and 4.

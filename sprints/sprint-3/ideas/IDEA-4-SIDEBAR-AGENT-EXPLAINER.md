@@ -30,7 +30,8 @@ occupy an entire viewport: "1–10 of 1,091" renders as thirty-five lines. Here:
 - **One drug is one row, and the row never grows.** Multi-valued attributes render as tags capped
   with a `+N`; opening it lists every value in a popover rather than stretching the row underneath
   it, so the grid keeps a fixed row height instead of producing the thirty-five-line record.
-- **Legibility over fitting.** Cells sit at 16px and headers never wrap; past each column's minimum
+- **Legibility over fitting.** Cells sit at 13px under 10px uppercase headers — Idea 3's table type,
+  so the directions read as one product — and headers never wrap; past each column's minimum
   width the grid scrolls sideways, with the row checkbox and Drug Name pinned on the left. An
   earlier pass at this direction tried to compress every column into one viewport with no scroll at
   all — that traded away readable text for a screen the wide record wouldn't fall off, and it lost
@@ -165,7 +166,7 @@ are not on screen, is untested.
    first, or does the grid come first with filtering layered on top? A straight answer here decides
    whether this direction continues at all.
 2. Separately, and regardless of that answer — is the grid right? One fixed-height row per drug,
-   `+N` to open overflow values in a popover, a sideways scroll past 16px text rather than a
+   `+N` to open overflow values in a popover, a sideways scroll rather than a
    viewport-fitting squeeze, 9 of 37 columns under your control. Does it need to be the multi-row
    card you described, or is this dense version better for the work?
 3. `or` inside a column and `and` between columns is all the logic this model offers. Is that enough
