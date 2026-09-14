@@ -1,14 +1,7 @@
 "use client"
 
 import * as React from "react"
-import {
-  DownloadIcon,
-  ListFilterIcon,
-  PencilLineIcon,
-  RotateCcwIcon,
-  SparklesIcon,
-  TextIcon,
-} from "lucide-react"
+import { DownloadIcon, ListFilterIcon, RotateCcwIcon, TextIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -68,8 +61,8 @@ const inOrder = (clauses: Clause[]) =>
  * text as typed, the sentence it resolves to, and that sentence drawn as
  * conventional filters. There is never more than one on screen at a time. The
  * rejected Sprint 2 design put a chat transcript beside a builder panel and
- * asked the user to reconcile them; this swaps in place, and `edit as text`
- * runs the trip backwards.
+ * asked the user to reconcile them; this swaps in place, and `Edit` runs
+ * the trip backwards.
  */
 export function Screener({ start = false }: { start?: boolean }) {
   // Query and history in one atom, so every edit pushes exactly one undo step.
@@ -193,7 +186,7 @@ export function Screener({ start = false }: { start?: boolean }) {
       if (!resolution) return state
       return {
         query: { clauses: resolution.clauses, raw: resolution.raw, resolution, edited: false },
-        // A re-resolve is undoable too: `edit as text` that reads badly should
+        // A re-resolve is undoable too: an `Edit` that reads badly should
         // cost one click to reverse, not a retyped query.
         past: state.query.clauses.length > 0 ? [...state.past, state.query] : state.past,
       }
@@ -210,6 +203,19 @@ export function Screener({ start = false }: { start?: boolean }) {
     setDraft(query.edited ? clausesToProse(clauses) : query.raw)
     setFailure(null)
     setPhase("compose")
+  }
+
+  // The toggle is always offered, even before anything is typed. While a query
+  // is being edited, picking a view abandons the edit and shows the query as it
+  // stands; with nothing to show, or mid-resolve, the click does nothing.
+  const selectView = (next: View) => {
+    if (phase === "resolving") return
+    if (phase === "compose") {
+      if (clauses.length === 0) return
+      setFailure(null)
+      setPhase("resolved")
+    }
+    setView(next)
   }
 
   const handOff = (text: string) => {
@@ -256,22 +262,19 @@ export function Screener({ start = false }: { start?: boolean }) {
           <div className="bg-surface-panel border-border shadow-raised flex items-stretch rounded-xl border">
             <div className="min-w-0 flex-1 px-5 py-4">
               <div className="mb-3 flex items-center gap-3">
-                <span className="text-muted-foreground flex items-center gap-1.5 text-[10px] font-medium tracking-[0.08em] uppercase">
-                  <SparklesIcon className="text-brand size-3.5" />
+                <span className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
                   Drug screener
                 </span>
                 <div className="border-border bg-surface-sunken ml-auto flex items-center gap-0.5 rounded-lg border p-0.5">
                   <ViewTab
-                    active={view === "sentence" && phase === "resolved"}
-                    disabled={phase !== "resolved"}
-                    onClick={() => setView("sentence")}
+                    active={view === "sentence"}
+                    onClick={() => selectView("sentence")}
                     icon={<TextIcon className="size-3.5" />}
                     label="Sentence"
                   />
                   <ViewTab
-                    active={view === "filters" && phase === "resolved"}
-                    disabled={phase !== "resolved"}
-                    onClick={() => setView("filters")}
+                    active={view === "filters"}
+                    onClick={() => selectView("filters")}
                     icon={<ListFilterIcon className="size-3.5" />}
                     label="Filters"
                   />
@@ -296,47 +299,41 @@ export function Screener({ start = false }: { start?: boolean }) {
               ) : resolving && pending ? (
                 <Resolving resolution={pending} onDone={settle} />
               ) : view === "sentence" ? (
-                <>
-                  <QuerySentence clauses={clauses} handlers={handlers} />
-                  <p className="text-muted-foreground mt-3.5 text-xs">
-                    Read from <span className="text-foreground/70">&ldquo;{query.raw}&rdquo;</span>{" "}
-                    <button
-                      type="button"
-                      onClick={editAsText}
-                      className="text-foreground/70 hover:text-foreground -mx-0.5 inline-flex items-center gap-1 rounded-md px-0.5 underline underline-offset-2"
-                    >
-                      <PencilLineIcon className="size-3" />
-                      edit as text
-                    </button>
-                  </p>
-                </>
+                <QuerySentence clauses={clauses} handlers={handlers} />
               ) : (
-                <>
-                  <FilterView clauses={clauses} handlers={handlers} />
-                  <p className="text-muted-foreground mt-3.5 text-xs">
-                    <button
-                      type="button"
-                      onClick={editAsText}
-                      className="text-foreground/70 hover:text-foreground -mx-0.5 inline-flex items-center gap-1 rounded-md px-0.5 underline underline-offset-2"
-                    >
-                      <PencilLineIcon className="size-3" />
-                      edit as text
-                    </button>
-                  </p>
-                </>
+                <FilterView clauses={clauses} handlers={handlers} />
               )}
 
               {!composing && !resolving && notes.length > 0 ? (
                 <Notes notes={notes} resolution={query.resolution} onAdd={addValue} />
               ) : null}
+
+              {!composing && !resolving ? (
+                <div className="mt-3.5 flex items-baseline justify-between gap-4">
+                  {view === "sentence" ? (
+                    <p className="text-muted-foreground min-w-0 text-xs">
+                      Read from <span className="text-foreground/70">&ldquo;{query.raw}&rdquo;</span>
+                    </p>
+                  ) : (
+                    <span />
+                  )}
+                  <button
+                    type="button"
+                    onClick={editAsText}
+                    className="text-brand hover:text-brand-strong shrink-0 text-xs font-medium underline-offset-2 hover:underline"
+                  >
+                    Edit
+                  </button>
+                </div>
+              ) : null}
             </div>
 
-            <div className="border-hairline flex w-[228px] shrink-0 flex-col gap-3 border-l px-5 py-4">
+            <div className="border-edge flex w-[228px] shrink-0 flex-col gap-3 border-l px-5 py-4">
               <div>
                 <p
                   className={cn(
                     "ease-settle text-[34px] leading-none font-semibold tracking-tight tabular-nums transition-colors duration-300 motion-reduce:transition-none",
-                    empty || resolving ? "text-muted-foreground" : "text-brand-ink",
+                    empty || resolving ? "text-muted-foreground" : "text-foreground",
                   )}
                 >
                   {total.toLocaleString()}
@@ -365,7 +362,7 @@ export function Screener({ start = false }: { start?: boolean }) {
                   size="sm"
                   onClick={undo}
                   disabled={past.length === 0}
-                  className="text-muted-foreground"
+                  className="text-muted-foreground hover:bg-accent"
                 >
                   <RotateCcwIcon />
                   Undo
@@ -375,7 +372,7 @@ export function Screener({ start = false }: { start?: boolean }) {
                   size="sm"
                   onClick={clearAll}
                   disabled={empty}
-                  className="text-muted-foreground"
+                  className="text-muted-foreground hover:bg-accent"
                 >
                   Clear all
                 </Button>
@@ -423,7 +420,7 @@ function Notes({
               key={suggestion.value}
               type="button"
               onClick={() => onAdd(suggestion.clauseId, suggestion.value)}
-              className="bg-surface-panel border-border hover:border-brand-border hover:bg-brand-wash hover:text-brand-ink inline-flex h-6 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors"
+              className="bg-surface-panel border-border hover:border-edge hover:bg-accent hover:text-foreground inline-flex h-6 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors"
             >
               Add {suggestion.value}
               <span className="text-muted-foreground">{suggestion.attribute}</span>
@@ -437,13 +434,11 @@ function Notes({
 
 function ViewTab({
   active,
-  disabled,
   onClick,
   icon,
   label,
 }: {
   active: boolean
-  disabled?: boolean
   onClick: () => void
   icon: React.ReactNode
   label: string
@@ -452,12 +447,12 @@ function ViewTab({
     <button
       type="button"
       onClick={onClick}
-      disabled={disabled}
+      aria-pressed={active}
       className={cn(
-        "flex h-6 items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-colors disabled:opacity-40",
+        "flex h-6 items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-colors",
         active
-          ? "bg-surface-panel text-brand-ink shadow-panel"
-          : "text-muted-foreground hover:text-foreground",
+          ? "bg-surface-panel text-foreground shadow-panel"
+          : "text-muted-foreground hover:bg-accent hover:text-foreground",
       )}
     >
       {icon}
