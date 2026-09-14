@@ -99,7 +99,7 @@ export function ResultsTable({
                               MENU_ITEM_CLASS,
                               sort?.field === column.field &&
                                 sort.direction === "ascending" &&
-                                "bg-brand-wash text-brand-ink",
+                                "bg-brand-tint ring-brand-border text-foreground ring-1 ring-inset",
                             )}
                             onSelect={() =>
                               setSort({ field: column.field, direction: "ascending" })
@@ -112,7 +112,7 @@ export function ResultsTable({
                               MENU_ITEM_CLASS,
                               sort?.field === column.field &&
                                 sort.direction === "descending" &&
-                                "bg-brand-wash text-brand-ink",
+                                "bg-brand-tint ring-brand-border text-foreground ring-1 ring-inset",
                             )}
                             onSelect={() =>
                               setSort({ field: column.field, direction: "descending" })
