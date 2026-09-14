@@ -27,16 +27,19 @@ spreadsheet list. On the live product the results view scrolls sideways at 1600p
 columns you cannot change, and because sub-values are rendered as merged rows, a single drug can
 occupy an entire viewport: "1–10 of 1,091" renders as thirty-five lines. Here:
 
-- **One drug is one row.** Multi-valued attributes render as pills that wrap inside their lane,
-  capped with a `+N` that opens a detail band under the row. The widest record in this set —
-  Zanidatamab, with 9 indications, 2 routes and 12 geographies — is five lines, not thirty-five.
-- **No horizontal scroll.** Fixed lanes for single-valued columns, flexible lanes for the
-  multi-valued ones, so the grid compresses instead of running off the screen.
+- **One drug is one row, and the row never grows.** Multi-valued attributes render as tags capped
+  with a `+N`; opening it lists every value in a popover rather than stretching the row underneath
+  it, so the grid keeps a fixed row height instead of producing the thirty-five-line record.
+- **Legibility over fitting.** Cells sit at 16px and headers never wrap; past each column's minimum
+  width the grid scrolls sideways, with the row checkbox and Drug Name pinned on the left. An
+  earlier pass at this direction tried to compress every column into one viewport with no scroll at
+  all — that traded away readable text for a screen the wide record wouldn't fall off, and it lost
+  that trade.
 - **Column management the product does not have:** 9 columns shown of 37, each of them hideable,
   reorderable and pinnable, against eight locked columns today.
 - **Sort, group and aggregate at the top level**, where an Excel-habituated user looks for them,
-  with a summary strip along the bottom — 61 companies, 84 indications, 42 geographies, median stage
-  Phase II.
+  with an optional per-column summary row a reviewer turns on rather than fixed figures shown
+  whether or not they're wanted.
 
 ## How it differs from the other three
 
@@ -67,38 +70,74 @@ without adopting the filtering model.
 
 ## What is built, and what is not
 
-**One screen, at `/sprint-3/idea-4/grid`.** It opens mid-task: Therapy Area is Oncology or
-Immunology, Route of Administration is Intravenous or Subcutaneous, the Development Stage menu is
-open on the third filter, and the widest record in the set is expanded so the multi-value case is
-visible rather than described. 248 drugs match, from 1,091 in scope before the stage filter, out of
-285,529 in the database.
+**One screen, at `/sprint-3/idea-4/grid`.** It opens mid-task, the way a returning user would find
+it: the assistant's opening turn has already run and applied three filters — oncology or
+immunology, phase 2 or 3, given IV or subcutaneously — narrowing the 46-drug sample from 46 to 15.
+The grid is real, in-memory filtering over that sample, not authored frames: every menu, count and
+pill tracks the actual rows on screen.
 
-**What responds to a click:**
+**What responds to a click, in the grid:**
 
-- **The Development Stage column menu** — sort ascending/descending, group by this column, pin
-  column left, a searchable list of all 14 values with counts, and a footer reading "248 of 1,091
-  match".
-- **The Columns manager**, top right: 9 columns in the grid, 28 more available, each with a drag
-  handle, a checkbox and a pin.
-- **The expand control on any row**, which opens the detail band listing every value the collapsed
-  pills hid.
-- The row-selection checkboxes tick and untick.
+- **Every column's header menu** — sort ascending or descending, group by this column, pin it to
+  the left or unpin it, and, where the attribute has one, a searchable list of its values with
+  counts and a footer showing how many of the current set match. A column with a filter applied
+  shows a count badge instead of a funnel icon.
+- **A multi-valued cell's `+N`**, which opens every value the tag ran out of room for in a popover
+  headed with the attribute and its count.
+- **Aggregate**, top right, which turns on a summary row — off by default — that sits pinned to the
+  bottom of the grid and puts one figure (company count, indication count, geography count, median
+  or mean stage, NPV) under each column it applies to.
+- **The Columns manager**: 9 columns shown, more available, each hideable, reorderable and
+  pinnable; a column with nothing to show in this sample says so plainly rather than rendering
+  blank.
+- Row-selection checkboxes tick and untick; the checkbox column and Drug Name stay pinned left as
+  the grid scrolls sideways past them.
 
-**What does not:**
+**What does not, and what to say before handing over the mouse:**
 
-- **Only Development Stage has a working menu.** The chevrons on the other eight headers open
-  nothing. Say so before handing over the mouse.
-- **The checkboxes inside that menu do not filter.** Ticking Phase I does not change the count, the
-  grid, or the pills. The menu is there to be read, not driven.
-- Sort, Group and Aggregate in the toolbar; the crosses on the filter pills; `Clear all`;
-  `Reset column`; the search boxes in both menus; `Export to Excel` — all presentational.
-- Every number is authored to hang together for this one moment — the 14 stage counts sum to the
-  1,091 in scope — but nothing recomputes.
+- **It is a 46-drug sample, not the database.** Every count on screen is honest about that — the
+  rail reads "N drugs match · of 46 in sample" — but it is a fixed array, not a live index.
+- **The assistant runs on keyword rules, not a model.** Its composer says so directly: "Keyword
+  rules over the 46-drug sample — no model." A request it has no rule for gets an honest miss, not
+  a wrong answer.
+- **Undo is whole-grid, not per-field.** Undoing an agent turn reverts every change made since,
+  including anything done by hand in the column menus in between — disclosed in the Undo control's
+  own tooltip rather than hidden.
+- `Export`, the global search and the account menu are presentational, as everywhere in this set.
 
-One deliberate divergence to flag: the brief asked for a **multi-row, card-like entry per drug**.
-What is built is one row per drug with wrapping pills and an expandable detail band. It solves the
-same problem — the thirty-five-line record and the sideways scroll — but it is a denser answer than
-a card, and it is a fair thing to push back on.
+One deliberate divergence from the original brief to flag: it asked for a **multi-row, card-like
+entry per drug**. What is built is one row per drug, fixed-height, with tags and a `+N` popover for
+overflow. It solves the same problem — the sprawling record and the sideways scroll the live
+product produces — with a denser answer than a card, and it is a fair thing to push back on.
+
+## The assistant
+
+The panel docked on the right is the other half of this direction: an agent that acts on the grid
+itself — its filters, its columns, its sort and grouping — rather than on a query object sitting
+apart from it, and shows its work rather than just its result.
+
+Each request becomes one turn, read top to bottom:
+
+1. **You**, the prompt as typed, in its own card.
+2. **Thinking** — a spinner while the rules run, collapsing to "Thought for 0.8s" once they land; a
+   thin progress bar under the panel header tracks the same beat. Opening the row lists what
+   actually matched, or, on a miss, what it tried and came up empty against.
+3. **Response** — a plan card listing each step it wants to take, one row per change, worded in
+   three tenses as it moves through them: "Add filter" before, "Adding filter" while it lands,
+   "Added filter" once it has. Nothing touches the grid yet.
+4. Accepting runs the plan and replaces the card with a **receipt** — "Applied · 15 → 4 drugs ·
+   1.2s" — with its own Undo, tooltipped with what Undo actually reverts. Dismissing instead leaves
+   a plain "Dismissed · nothing changed". If the grid has moved on since the plan was made, Accept
+   disables and the card says so — "The grid changed since this was proposed" — with "Run again" in
+   its place, rather than applying a stale plan over a grid that no longer matches it.
+
+Between turns, an empty composer shows up to three **Suggestions** pulled from the drugs and
+columns actually on screen, and the composer itself carries a context badge — "Drugs grid · N
+rows" — so a request is legible against what it would act on before it's even sent.
+
+This is the thing the direction is testing as much as the grid is: whether showing the working,
+turn by turn, with an honest miss and a reversible undo, is what makes an AI that edits your data
+trustworthy rather than a black box you have to double-check by hand.
 
 ## The bet
 
@@ -125,8 +164,9 @@ are not on screen, is untested.
 1. The unresolved question in the record, with this as the test case: does the user set criteria
    first, or does the grid come first with filtering layered on top? A straight answer here decides
    whether this direction continues at all.
-2. Separately, and regardless of that answer — is the grid right? One row per drug, pills that wrap,
-   `+N` to expand, no sideways scroll, 9 of 37 columns under your control. Does it need to be the
-   multi-row card you described, or is this dense version better for the work?
+2. Separately, and regardless of that answer — is the grid right? One fixed-height row per drug,
+   `+N` to open overflow values in a popover, a sideways scroll past 16px text rather than a
+   viewport-fitting squeeze, 9 of 37 columns under your control. Does it need to be the multi-row
+   card you described, or is this dense version better for the work?
 3. `or` inside a column and `and` between columns is all the logic this model offers. Is that enough
    for a real screen, or is there a query you build regularly that it could not express?

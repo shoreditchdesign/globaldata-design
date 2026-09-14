@@ -22,26 +22,31 @@ everything under "Design system" and "Repo shape" is specific to this one.
 
 ### The accent — the GlobalData brand primary
 
-`--brand`, `oklch(0.465 0.27 264)`. This is the client's `#0034ec` exactly; the OKLCH form is there so the rest of the ramp can be derived from it. Wired to `--primary` and `--ring`, so shadcn defaults pick it up.
+`--brand`, `oklch(0.49 0.205 264)` (`#2052d2`). A calmer derivative of the client's `#0034ec`, not the raw value — same hue, pulled back in chroma so it can carry more of the interface without shouting. Wired to `--primary`, not `--ring` any more — focus stays neutral so a ring never competes with the one blue a screen is allowed.
 
-It carries **primary actions, active and selected states, filter chips that are on, focus rings, and the agent's own accents. Nothing else.** Black is not an active-state colour anywhere. One intense colour used deliberately beats five.
+It carries **primary actions, checked controls, filter chips that are on, and links. Nothing else.** `--selected`, `--selected-foreground` and `--selected-hover` alias `brand`, `--primary-foreground` and `brand-strong` directly, so a checkbox, radio, switch or progress fill is a brand decision, not a separate one. Every other selected state — tabs, toggles, segmented options, a selected menu option, the Explorer's current screen, the assistant's own toggle — takes the washed brand instead: `bg-brand-tint`, a `brand-border` edge, `text-foreground`. An underline tab keeps foreground text and puts the brand only in the underline itself. Hover is grey (`bg-accent` / `bg-muted`); brand text and icons revert to foreground on hover. Black is not used as a selected fill anywhere in this rule — it was tried mid-sprint for exactly that job and reversed once it sat next to the blue and read as busy. One intense colour used deliberately beats five.
 
-The scale, and the one fact that shapes it: `#0034ec` sits *on* the sRGB gamut wall — 0.27 is the most chroma hue 264 can hold at any lightness — so there is no headroom above it. The solids are built by walking down in lightness, the tints by walking toward white.
+The client's `#0034ec` sits *on* the sRGB gamut wall — 0.27 is the most chroma hue 264 can hold at any lightness — which is exactly why `brand` no longer sits there: at full chroma it read as louder than a repeated UI colour should, so it was pulled away from the wall, down in chroma, leaving headroom the raw value never had. The solids are still built by walking down in lightness, the tints by walking toward white.
 
 | Token | Value | Job |
 |---|---|---|
-| `brand` | `oklch(0.465 0.27 264)` | solid fills; white sits on it at 7.5:1 |
-| `brand-strong` | `oklch(0.405 0.235 264)` | hover and pressed on a solid fill — deeper, never paler |
-| `brand-ink` | `oklch(0.43 0.18 264)` | the accent as text or an icon; 8.5:1 on white |
-| `brand-border` | `oklch(0.855 0.062 264)` | the edge of a selected chip or an active tab |
-| `brand-tint` | `oklch(0.953 0.022 264)` | the fill of a selected chip |
-| `brand-wash` | `oklch(0.973 0.012 264)` | a selected row or a hovered option |
+| `brand` | `oklch(0.49 0.205 264)` | solid fills; white sits on it at 6.6:1 |
+| `brand-strong` | `oklch(0.455 0.19 264)` | hover on a solid fill — one step in, reads as response rather than a new colour |
+| `brand-pressed` | `oklch(0.42 0.175 264)` | pressed on a solid fill — the same step again |
+| `brand-ink` | `oklch(0.445 0.15 264)` | the accent as text or an icon; 7.8:1 on white |
+| `brand-border` | `oklch(0.86 0.052 264)` | the edge of a selected chip or an active tab |
+| `brand-tint` | `oklch(0.955 0.02 264)` | the fill of a selected chip |
+| `brand-wash` | `oklch(0.975 0.011 264)` | the palest step, kept for the ramp — hover is grey now, not this |
 
-`tint` and `wash` are at their gamut ceiling for this hue. A pale blue at 264 cannot be more saturated than that in sRGB, so chips read as the new brand by **hue**, not by intensity — do not try to push them.
+`tint` and `wash` sit at or near their gamut ceiling for this hue, pulled in a touch along with the rest of the ramp. A pale blue at 264 cannot be pushed much more saturated than that in sRGB, so chips still read as the new brand by **hue**, not by intensity — do not try to push them.
 
-`brand-ink` is deliberately a darker, calmer relative of the brand rather than the brand itself. The raw value clears AA as text, but 0.27 chroma at 12px shimmers and makes a coloured word look like a button.
+`brand-ink` is deliberately a darker, calmer relative of the brand rather than the brand itself. The raw value clears AA as text, but 0.205 chroma at 12px still shimmers and makes a coloured word look like a button.
+
+`--selected`, `--selected-foreground` and `--selected-hover` are not brand-namespaced tokens but resolve straight to `brand`, `--primary-foreground` and `brand-strong` — a checked control asks for "selected", never for "brand", so the two never drift apart. Everything else that used to fill with brand on selection now takes the wash (`bg-brand-tint` / `brand-border` / `text-foreground`) instead.
 
 **A stronger accent means less of it.** Solid `brand` is for the thing you press, the thing that is ticked and the current tab. A count, a badge, a secondary marker takes a tint. If something was quiet enough to sit on a surface at the old cerulean and shouts now, pull it back to `brand-tint` or `brand-border` rather than reaching for opacity.
+
+A disabled primary button is not the accent, dimmed, and it is not flat neutral grey either — it stays in the brand's own family, just pushed pale: `brand-disabled` (`oklch(0.915 0.03 264)`) for the fill, `brand-disabled-foreground` (`oklch(0.57 0.08 264)`) for the label, no shadow, no press nudge, cursor `not-allowed`. `disabled:opacity-50` over a solid `brand` fill read as the button still trying to work rather than one that had stopped; a flat grey swap read as a different, greyed-out control losing the label against it. A pale brand blue reads as the same button, switched off. Outline, ghost and secondary variants have no solid fill to lose its hue against, so they disable more simply — resting fill kept, label dropped to a neutral `control-disabled-foreground` (`oklch(0.63 0.01 258)`).
 
 ### Layering
 
@@ -49,7 +54,9 @@ Communicate as if this were a dark-mode UI, then execute it in light mode: in da
 
 Five surfaces, and they are the only backgrounds a screen may reach for:
 
-`bg-surface-sunken` a well cut into a panel · `bg-surface-page` the ground · `bg-surface-chrome` header, tabs, toolbars, rails · `bg-surface-panel` the content plane · `bg-surface-raised` popovers and dialogs, distinguished by `shadow-raised`.
+`bg-surface-sunken` a well cut into a panel — inputs, empty states, a disabled row · `bg-surface-page` the ground · `bg-surface-chrome` header, tabs, toolbars, rails · `bg-surface-panel` the content plane · `bg-surface-raised` popovers and dialogs, distinguished by `shadow-raised`.
+
+A sticky table head is not automatically `sunken`: Idea 3's went back to opaque `panel` inside a `chrome` body when the frosted sunken head started reading as a separate, grubby surface rather than the table's own head. Reach for `sunken` when something is recessed, not just fixed in place.
 
 Three rule weights, because one was doing four jobs: `border-hairline` inside a surface · `border-border` the edge of a control or card · `border-edge` between two surfaces.
 
@@ -59,9 +66,13 @@ Do not invent a sixth layer with `bg-muted/30`. If a screen needs a step that is
 
 Restrained and systematic, never a rainbow. Colour goes where it carries meaning that ordering or weight cannot.
 
-- **Development stage** is a pipeline, so `StageBadge` encodes position rather than identity — one hue deepening from Phase I to Pre-registration, green for Approved and Marketed, rose for Withdrawn and Discontinued. Built on the brand hue, 264, with fills at 0.015 / 0.029 / 0.043 / 0.057 chroma. Every fill stays **under 0.06 chroma**: the badges are tints, the accent proper is solid, and a column of them must not compete with a filter chip a few pixels away. The ramp separates by lightness, not saturation — the blue gamut is narrow up here. See `src/components/prototype/README.md`.
+- **Development stage** is a pipeline, so `StageBadge` encodes position rather than identity — one hue deepening from Phase I to Pre-registration, green for Approved and Marketed, rose for Withdrawn and Discontinued. Built on the brand hue, 264, with fills at 0.015 / 0.029 / 0.043 / 0.057 chroma. Every fill stays **under 0.06 chroma**: the badges are tints, the accent proper is solid, and a column of them must not compete with a filter chip a few pixels away. The ramp separates by lightness, not saturation — the blue gamut is narrow up here. See `src/components/prototype/README.md`. It sits outside the selected-state rule above: this is data encoding, not a selection, so it keeps its own tinted ladder regardless of what colour a checked control or a selected tab is using that sprint.
 - **Negation** has its own tone (`negative`, `negative-ink`, `negative-border`) at hue 22. An excluded filter must never look identical to an included one. The accent leans violet, which is closer to rose than the old cerulean was, so the negation family is pitched a step up to hold its ground — check the two side by side after any change to either.
 - **Counts** are semantic: a zero recedes.
+
+### Data grids
+
+A dense grid works to its own type scale, set on Idea 4's working grid: 16px for cell data and any typed input over the grid (the assistant's composer included), 14px for labels, tags, header text and menu rows, and nothing smaller than that. Header labels never wrap — a column's minimum width is set so its label, sort arrow and filter badge fit on one line — so past that width the grid scrolls horizontally rather than wrapping, with the identity column (the row's checkbox and name) pinned to the left.
 
 ### Motion
 

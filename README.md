@@ -31,7 +31,7 @@ for the project history behind it — read that file rather than expecting a sum
 | `/sprint-3/idea-1/results` (and others) | Modal / Sidebar Takeover | The incumbent — a faithful port of the design already shown and rejected, kept as the baseline the other three have to beat. |
 | `/sprint-3/idea-2/screener` | Miller Columns | Whether horizontal depth (Finder-style columns) beats the vertical nesting that made the live product and Idea 1 lose context. |
 | `/sprint-3/idea-3/start`, `/sprint-3/idea-3/sentence` | Text Input Field | Whether natural language can replace the filter UI outright — one input resolving into an editable sentence — rather than sit beside it. Fewest clicks, highest trust risk. |
-| `/sprint-3/idea-4/grid` | Sidebar Agent | Whether the results grid itself can be the interface, filtered Excel-style from the column headers, with a docked agent that proposes changes rather than a separate filter surface. |
+| `/sprint-3/idea-4/grid` | Sidebar Agent | Whether the results grid itself can be the interface, filtered Excel-style from the column headers, with a docked agent that proposes changes and shows its thinking, its steps and an undo in the thread rather than acting silently. |
 
 `/sprint-3/compare` steps through any two ideas side by side. `/` is the index of every sprint and
 idea in the registry; it is the only conventional navigation surface in the app.
