@@ -62,15 +62,16 @@ export function ResultsPane({
         <div className="border-edge flex shrink-0 flex-col gap-2 border-b px-3 py-2.5">
           <div className="flex items-center gap-1.5">
             <div className="mr-auto flex min-w-0 items-baseline gap-1.5">
-              {/* The count is the answer, not a control: it earns its
-                  prominence from thirty pixels and a weight, and leaves the
-                  accent to the things on this row that are actually a press. */}
-              <span className="text-[30px] leading-none font-semibold tracking-tight tabular-nums">
+              {/* The count is a count, not a headline. Thirty pixels was a
+                  size for a foot rail two rounds ago; at the head of the table
+                  it reads on the table's own scale, and the weight on the
+                  number is the whole of the prominence it needs. */}
+              <span className="text-[13px] leading-none font-semibold tabular-nums">
                 {rows.length.toLocaleString("en-GB")}
               </span>
-              <span className="text-[17px] font-medium">drugs</span>
+              <span className="text-[13px]">drugs</span>
               <span
-                className="text-muted-foreground text-[16px] tabular-nums"
+                className="text-muted-foreground text-xs tabular-nums"
                 title={`This prototype filters a fixed sample of ${sample.length.toLocaleString("en-GB")} rows in memory. The live platform holds ${platformTotal.toLocaleString("en-GB")}.`}
               >
                 of {sample.length.toLocaleString("en-GB")} in the sample
@@ -78,7 +79,7 @@ export function ResultsPane({
               {/* Said only when it is true, and it is a fact the count cannot
                   carry: the set is longer than the page the table draws. */}
               {rows.length > PAGE ? (
-                <span className="text-muted-foreground text-[16px] tabular-nums">
+                <span className="text-muted-foreground text-xs tabular-nums">
                   · first {PAGE} shown
                 </span>
               ) : null}
@@ -143,15 +144,17 @@ export function ResultsPane({
               <AppliedPills screener={screener} />
             </div>
 
-            <Button
-              variant="ghost"
-              size="sm"
+            {/* A link, not a button. It undoes the sentence beside it rather
+                than doing anything to the set, and a bordered control at the
+                end of a row of pills read as one more thing to press. */}
+            <button
+              type="button"
               onClick={screener.clearAll}
               disabled={filters.length === 0}
-              className="text-muted-foreground h-8 shrink-0 px-2.5 text-[14px]"
+              className="text-muted-foreground hover:text-foreground mt-0.5 shrink-0 text-xs underline-offset-4 hover:underline disabled:pointer-events-none disabled:opacity-50"
             >
               Clear all
-            </Button>
+            </button>
           </div>
         </div>
       </TooltipProvider>

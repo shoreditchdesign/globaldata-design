@@ -40,7 +40,7 @@ function WordButton({
           : "hover:bg-accent hover:text-foreground",
       )}
     >
-      <OperatorWord className={cn("text-[16px]", negated && "text-negative-ink font-medium")}>
+      <OperatorWord className={cn(negated && "text-negative-ink font-medium")}>
         {children}
       </OperatorWord>
     </DropdownMenuTrigger>
@@ -68,14 +68,14 @@ export function AppliedPills({ screener }: { screener: Screener }) {
   return (
     <div className="flex flex-wrap items-center gap-x-1 gap-y-1.5">
       {filters.length === 0 ? (
-        <OperatorWord className="py-0.5 text-[16px]">No filters applied.</OperatorWord>
+        <OperatorWord className="py-0.5">No filters applied.</OperatorWord>
       ) : null}
 
       {filters.map((filter, i) => {
         const def = attributeDefs[filter.attribute]
         return (
           <Fragment key={filter.attribute}>
-            {i > 0 ? <OperatorWord className="px-1 text-[16px]">and</OperatorWord> : null}
+            {i > 0 ? <OperatorWord className="px-1">and</OperatorWord> : null}
 
             <DropdownMenu>
               <WordButton
@@ -137,10 +137,12 @@ export function AppliedPills({ screener }: { screener: Screener }) {
                     }
                   }}
                 >
+                  {/* No size override: the pill's own `h-6 text-[12px]` is
+                      the table's chip scale, which is what this rail now sits
+                      on. */}
                   <FilterPill
                     variant={filter.mode === "is not" ? "excluded" : "applied"}
                     removeLabel={`Remove ${value}`}
-                    className="h-7 text-[16px]"
                   >
                     {value}
                   </FilterPill>
@@ -152,8 +154,8 @@ export function AppliedPills({ screener }: { screener: Screener }) {
       })}
 
       <DropdownMenu>
-        <DropdownMenuTrigger className="text-muted-foreground hover:text-foreground hover:bg-accent border-border ml-0.5 inline-flex h-7 items-center gap-1 rounded-full border border-dashed px-2.5 text-[16px] transition-colors">
-          <PlusIcon className="size-3.5" />
+        <DropdownMenuTrigger className="text-muted-foreground hover:text-foreground hover:bg-accent border-border ml-0.5 inline-flex h-6 items-center gap-1 rounded-full border border-dashed px-2.5 text-[12px] font-medium transition-colors">
+          <PlusIcon className="size-3" />
           Add filter
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="max-h-80 w-64 overflow-y-auto">
