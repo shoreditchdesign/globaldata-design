@@ -7,11 +7,25 @@
  * analyst has to accept before anything moves. Anything that matches nothing
  * comes back as a miss with suggestions, rather than a shrug or a guess.
  *
+ * Every rule that fires leaves a line in `trace`, which is what the thread's
+ * "Thought for …" row lists. It is the real match, not decoration.
+ *
  * The actions are the same ones the column menus and the column manager
  * produce. That is the point of this direction: the agent works the grid, not a
  * query object of its own.
  */
 import {
+  ArrowDownUpIcon,
+  Columns3Icon,
+  LayersIcon,
+  ListFilterIcon,
+  SigmaIcon,
+  XIcon,
+  type LucideIcon,
+} from "lucide-react"
+
+import {
+  aggregateLabels,
   columnByKey,
   europeanGeographies,
   rows,
@@ -19,7 +33,7 @@ import {
 } from "@/flows/sprint-3/idea-4/data"
 import {
   applyActions,
-  describeAction,
+  filterPhrase,
   type GridAction,
   type GridState,
 } from "@/flows/sprint-3/idea-4/grid-state"
@@ -29,55 +43,62 @@ export interface Proposal {
   /** What the agent says it is about to do, in one line. */
   headline: string
   actions: GridAction[]
-  /** One line per action, for the proposal card. */
-  changes: string[]
-}
-
-/** One turn in the panel. A proposal is resolved once, then frozen. */
-export interface AgentMessage {
-  id: string
-  role: "analyst" | "agent"
-  text: string
-  proposal?: Proposal
-  suggestions?: string[]
-  outcome?: "accepted" | "rejected"
 }
 
 /**
- * The receipt. Every agent action leaves one of these, whether it was applied,
- * rejected or undone — that is this direction's answer to AI-editability: the
- * panel proposes, the grid changes, and the bar along the bottom is the record.
- *
- * `before` is the whole grid state as it stood a moment before the change, which
- * is what makes undo one click rather than an inverse operation per action kind.
+ * Where one agent turn is. `stale` is not stored: a `proposed` turn whose
+ * `stateVersion` is behind the grid's is stale, derived at render.
  */
-export interface AgentLogEntry {
+export type AgentPhase =
+  | "thinking"
+  | "proposed"
+  | "missed"
+  | "applying"
+  | "applied"
+  | "dismissed"
+  | "undone"
+
+export interface AnalystMessage {
   id: string
-  status: "applied" | "rejected" | "undone"
-  headline: string
-  changes: string[]
-  /** Rows on screen after the change. */
-  resultCount: number
-  /** Measured across the staged apply — a real number over a simulated wait. */
-  durationMs: number
-  /** Wall-clock time, formatted on the client so nothing renders on the server. */
-  at: string
-  before: GridState | null
+  role: "analyst"
+  text: string
 }
 
+/** One agent turn in the thread: thinking, then a plan, then a receipt. */
+export interface AgentMessage {
+  id: string
+  role: "agent"
+  /** The request this turn answers, kept so a stale proposal can run again. */
+  prompt: string
+  phase: AgentPhase
+  message: string
+  proposal?: Proposal
+  suggestions?: string[]
+  /** One line per rule that matched. */
+  trace: string[]
+  thoughtMs: number
+  /** Measured across the staged apply — a real number over a simulated wait. */
+  appliedMs: number
+  /** Steps applied so far, while `applying`. */
+  stepsDone: number
+  countBefore: number
+  countAfter: number
+  /** The whole grid as it stood before the accept, which is what undo restores. */
+  before: GridState | null
+  /** The grid version the proposal was computed against. */
+  stateVersion: number
+}
+
+export type ThreadMessage = AnalystMessage | AgentMessage
+
 export type AgentReply =
-  | { kind: "proposal"; message: string; proposal: Proposal }
-  | { kind: "miss"; message: string; suggestions: string[] }
+  | { kind: "proposal"; message: string; proposal: Proposal; trace: string[] }
+  | { kind: "miss"; message: string; suggestions: string[]; trace: string[] }
 
 let proposalCounter = 0
 function proposal(headline: string, actions: GridAction[]): Proposal {
   proposalCounter += 1
-  return {
-    id: `proposal-${proposalCounter}`,
-    headline,
-    actions,
-    changes: actions.map(describeAction),
-  }
+  return { id: `proposal-${proposalCounter}`, headline, actions }
 }
 
 function normalise(text: string) {
@@ -88,6 +109,16 @@ function normalise(text: string) {
 
 function has(text: string, ...words: string[]) {
   return words.some((word) => text.includes(` ${word} `))
+}
+
+/** The words a rule actually matched, for the trace. */
+function phrase(test: RegExp, text: string) {
+  return text.match(test)?.[0].trim() ?? ""
+}
+
+function listValues(values: string[]) {
+  if (values.length <= 3) return values.join(", ")
+  return `${values.slice(0, 2).join(", ")} and ${values.length - 2} more`
 }
 
 /* -------------------------------------------------------------------------- */
@@ -112,7 +143,8 @@ const columnPhrases: { key: string; test: RegExp }[] = [
 ]
 
 function resolveColumn(text: string) {
-  return columnPhrases.find((phrase) => phrase.test.test(text))?.key ?? null
+  const hit = columnPhrases.find((entry) => entry.test.test(text))
+  return hit ? { key: hit.key, phrase: phrase(hit.test, text) } : null
 }
 
 /* -------------------------------------------------------------------------- */
@@ -183,8 +215,9 @@ const stageWords: { test: RegExp; values: string[] }[] = [
 /**
  * `phase ii`, `phase 2 or 3`, `phase II/III` — the run after one `phase` is
  * read as a list, because nobody writing their own words repeats the word.
+ * `runs` collects the matched text for the trace.
  */
-function phasesIn(text: string) {
+function phasesIn(text: string, runs: string[]) {
   const map: Record<string, string> = {
     i: "Phase I",
     ii: "Phase II",
@@ -204,6 +237,7 @@ function phasesIn(text: string) {
   const found: string[] = []
   let hit = run.exec(text)
   while (hit) {
+    runs.push(hit[0].trim())
     for (const token of hit[1].split(/\s*(?:or|and|to|,|\/|\+)\s*|\s+/)) {
       const value = map[token.trim()]
       if (value && !found.includes(value)) found.push(value)
@@ -231,10 +265,20 @@ const companyAliases: { test: RegExp; value: string }[] = [
   { test: /bristol|\bbms\b/, value: "Bristol Myers Squibb" },
 ]
 
-function companiesIn(text: string) {
+function companiesIn(text: string, phrases: string[]) {
   const found = new Set<string>()
-  for (const alias of companyAliases) if (alias.test.test(text)) found.add(alias.value)
-  for (const name of companyNames) if (text.includes(name.toLowerCase())) found.add(name)
+  for (const alias of companyAliases) {
+    if (alias.test.test(text)) {
+      found.add(alias.value)
+      phrases.push(phrase(alias.test, text))
+    }
+  }
+  for (const name of companyNames) {
+    if (text.includes(name.toLowerCase()) && !found.has(name)) {
+      found.add(name)
+      phrases.push(name.toLowerCase())
+    }
+  }
   return [...found]
 }
 
@@ -247,69 +291,89 @@ const aggregateWords: { test: RegExp; key: AggregateKey }[] = [
   { test: /total npv|sum of npv|combined npv|portfolio value/, key: "totalNpv" },
 ]
 
+function trace(said: string, meaning: string) {
+  return `"${said}" → ${meaning}`
+}
+
 function structuralReply(text: string, state: GridState): AgentReply | null {
   /* Clear everything ---------------------------------------------------- */
-  if (/start over|start again|clear (all|everything|the filters)|reset the filters|remove all filters/.test(text)) {
+  const clearAll =
+    /start over|start again|clear (all|everything|the filters)|reset the filters|remove all filters/
+  if (clearAll.test(text)) {
     return {
       kind: "proposal",
       message: "",
       proposal: proposal("Clear all filters", [{ kind: "clearFilters" }]),
+      trace: [trace(phrase(clearAll, text), "Clear all filters")],
     }
   }
 
-  /* Aggregates ---------------------------------------------------------- */
+  /* Summary row --------------------------------------------------------- */
   const aggregate = aggregateWords.find((word) => word.test.test(text))
   if (aggregate) {
     if (state.aggregates.includes(aggregate.key)) return null
     return {
       kind: "proposal",
       message: "",
-      proposal: proposal("Add an aggregate to the footer", [
-        { kind: "setAggregates", keys: [...state.aggregates, aggregate.key] },
+      proposal: proposal(`Show ${aggregateLabels[aggregate.key]} in the summary row`, [
         ...(state.order.includes("npv")
           ? []
           : ([{ kind: "addColumn", columnKey: "npv" }] as GridAction[])),
+        { kind: "setAggregates", keys: [...state.aggregates, aggregate.key] },
       ]),
+      trace: [trace(phrase(aggregate.test, text), `Summary row: ${aggregateLabels[aggregate.key]}`)],
     }
   }
 
   /* Group --------------------------------------------------------------- */
-  if (/\bgroup\b|\bgrouped\b|\bgrouping\b|break (it )?down by|split by/.test(text)) {
-    if (/no group|ungroup|remove group|flat/.test(text)) {
+  const groupWord = /\bgroup\b|\bgrouped\b|\bgrouping\b|break (it )?down by|split by/
+  if (groupWord.test(text)) {
+    const ungroup = /no group|ungroup|remove group|flat/
+    if (ungroup.test(text)) {
       return {
         kind: "proposal",
-        message: "I'll flatten the grid back to one list.",
+        message: "",
         proposal: proposal("Remove grouping", [{ kind: "setGroup", columnKey: null }]),
+        trace: [trace(phrase(ungroup, text), "Remove grouping")],
       }
     }
-    const key = resolveColumn(text)
-    const column = key ? columnByKey[key] : null
-    if (column && column.groupable) {
+    const hit = resolveColumn(text)
+    const column = hit ? columnByKey[hit.key] : null
+    if (hit && column && column.groupable) {
       return {
         kind: "proposal",
         message: "",
         proposal: proposal(`Group rows by ${column.label}`, [
-          { kind: "setGroup", columnKey: column.key },
           ...(state.order.includes(column.key)
             ? []
             : ([{ kind: "addColumn", columnKey: column.key }] as GridAction[])),
+          { kind: "setGroup", columnKey: column.key },
         ]),
+        trace: [trace(phrase(groupWord, text), "Group rows"), trace(hit.phrase, column.label)],
       }
     }
-    if (column) {
+    if (hit && column) {
       return {
         kind: "miss",
-        message: `${column.label} holds more than one value per drug, so grouping on it would put the same drug in several groups. Group by Company, Development Stage, Molecule Type, Drug Type or Marketing Status instead.`,
+        message: `${column.label} holds more than one value per drug, so a drug would land in several groups. Group by Company, Development Stage, Molecule Type, Drug Type or Marketing Status instead.`,
         suggestions: ["Group by company", "Group by development stage"],
+        trace: [
+          trace(phrase(groupWord, text), "Group rows"),
+          trace(hit.phrase, `${column.label} — multi-valued, cannot group`),
+        ],
       }
     }
   }
 
   /* Sort ---------------------------------------------------------------- */
-  if (/\bsort\b|order by|rank|highest|lowest|biggest|largest|smallest|most valuable|alphabetical/.test(text)) {
-    const key = resolveColumn(text) ?? (/valuable|worth/.test(text) ? "npv" : null)
-    const column = key ? columnByKey[key] : null
-    if (column) {
+  const sortWord =
+    /\bsort\b|order by|rank|highest|lowest|biggest|largest|smallest|most valuable|alphabetical/
+  if (sortWord.test(text)) {
+    const hit =
+      resolveColumn(text) ??
+      (/valuable|worth/.test(text) ? { key: "npv", phrase: phrase(/valuable|worth/, text) } : null)
+    const column = hit ? columnByKey[hit.key] : null
+    if (hit && column) {
       const descending = /highest|biggest|largest|most valuable|descending|desc|worth most|top/.test(text)
       const direction = descending ? "desc" : "asc"
       return {
@@ -321,48 +385,64 @@ function structuralReply(text: string, state: GridState): AgentReply | null {
             : ([{ kind: "addColumn", columnKey: column.key }] as GridAction[])),
           { kind: "setSort", sort: { columnKey: column.key, direction } },
         ]),
+        trace: [
+          trace(phrase(sortWord, text), descending ? "Sort, descending" : "Sort, ascending"),
+          trace(hit.phrase, column.label),
+        ],
       }
     }
   }
 
   /* Remove a filter ----------------------------------------------------- */
-  if (/(remove|drop|clear|get rid of|take off).*(filter|restriction)/.test(text)) {
-    const key = resolveColumn(text)
-    if (key && (state.filters[key]?.length ?? 0) > 0) {
+  const removeFilter = /(remove|drop|clear|get rid of|take off).*(filter|restriction)/
+  if (removeFilter.test(text)) {
+    const hit = resolveColumn(text)
+    if (hit && (state.filters[hit.key]?.length ?? 0) > 0) {
       return {
         kind: "proposal",
         message: "",
-        proposal: proposal(`Clear the ${columnByKey[key].label} filter`, [
-          { kind: "clearColumnFilter", columnKey: key },
+        proposal: proposal(`Clear the ${columnByKey[hit.key].label} filter`, [
+          { kind: "clearColumnFilter", columnKey: hit.key },
         ]),
+        trace: [trace(hit.phrase, `${columnByKey[hit.key].label} filter`)],
       }
     }
   }
 
   /* Remove a column ----------------------------------------------------- */
-  if (/\b(remove|hide|drop|get rid of|take out|lose|without)\b/.test(text)) {
-    const key = resolveColumn(text)
-    if (key && state.order.includes(key) && key !== "drugName") {
+  const removeWord = /\b(remove|hide|drop|get rid of|take out|lose|without)\b/
+  if (removeWord.test(text)) {
+    const hit = resolveColumn(text)
+    if (hit && state.order.includes(hit.key) && hit.key !== "drugName") {
       return {
         kind: "proposal",
-        message: "The data stays in the record; only the lane goes.",
-        proposal: proposal(`Remove the ${columnByKey[key].label} column`, [
-          { kind: "removeColumn", columnKey: key },
+        message: "",
+        proposal: proposal(`Remove the ${columnByKey[hit.key].label} column`, [
+          { kind: "removeColumn", columnKey: hit.key },
         ]),
+        trace: [
+          trace(phrase(removeWord, text), "Remove a column"),
+          trace(hit.phrase, columnByKey[hit.key].label),
+        ],
       }
     }
   }
 
   /* Add a column -------------------------------------------------------- */
-  if (/\badd\b|\binclude\b|bring in|\bcolumn\b|\bshow me the\b/.test(text)) {
-    const key = resolveColumn(text)
-    if (key && !state.order.includes(key)) {
+  const addWord = /\badd\b|\binclude\b|bring in|\bcolumn\b|\bshow me the\b/
+  if (addWord.test(text)) {
+    const hit = resolveColumn(text)
+    if (hit && !state.order.includes(hit.key)) {
       return {
         kind: "proposal",
-        message: `${columnByKey[key].label} goes on the right of the grid.`,
-        proposal: proposal(`Add the ${columnByKey[key].label} column`, [
-          { kind: "addColumn", columnKey: key },
+        message: "",
+        proposal: proposal(`Add the ${columnByKey[hit.key].label} column`, [
+          { kind: "addColumn", columnKey: hit.key },
         ]),
+        trace: [
+          trace(phrase(addWord, text), "Add a column"),
+          trace(hit.phrase, columnByKey[hit.key].label),
+        ],
       }
     }
   }
@@ -378,8 +458,10 @@ function structuralReply(text: string, state: GridState): AgentReply | null {
 function filterReply(text: string, state: GridState): AgentReply | null {
   const additive = /\balso\b|as well|on top of|keep the|in addition/.test(text)
   const actions: GridAction[] = []
+  const lines: string[] = []
 
-  const push = (columnKey: string, values: string[]) => {
+  const push = (columnKey: string, values: string[], said: string[]) => {
+    lines.push(trace(said.join(", "), `${columnByKey[columnKey].label}: ${listValues(values)}`))
     const existing = additive ? (state.filters[columnKey] ?? []) : []
     const merged = [...new Set([...existing, ...values])]
     const current = state.filters[columnKey] ?? []
@@ -388,28 +470,33 @@ function filterReply(text: string, state: GridState): AgentReply | null {
     if (!unchanged) actions.push({ kind: "setFilter", columnKey, values: merged })
   }
 
-  const therapies = therapyWords.filter((word) => word.test.test(text)).map((word) => word.value)
-  if (therapies.length) push("therapyArea", therapies)
+  const pick = <T extends { test: RegExp }>(words: T[]) => words.filter((word) => word.test.test(text))
+  const said = (words: { test: RegExp }[]) => words.map((word) => phrase(word.test, text))
 
-  const phases = phasesIn(text)
-  const stages = stageWords.filter((word) => word.test.test(text)).flatMap((word) => word.values)
-  const allStages = [...new Set([...phases, ...stages])]
-  if (allStages.length) push("stage", allStages)
+  const therapies = pick(therapyWords)
+  if (therapies.length) push("therapyArea", therapies.map((word) => word.value), said(therapies))
+
+  const runs: string[] = []
+  const phases = phasesIn(text, runs)
+  const stages = pick(stageWords)
+  const allStages = [...new Set([...phases, ...stages.flatMap((word) => word.values)])]
+  if (allStages.length) push("stage", allStages, [...runs, ...said(stages)])
 
   const geographyHit = geographyWords.find((word) => word.test.test(text))
-  if (geographyHit) push("geography", geographyHit.values)
+  if (geographyHit) push("geography", geographyHit.values, said([geographyHit]))
 
-  const molecules = moleculeWords.filter((word) => word.test.test(text)).map((word) => word.value)
-  if (molecules.length) push("moleculeType", molecules)
+  const molecules = pick(moleculeWords)
+  if (molecules.length) push("moleculeType", molecules.map((word) => word.value), said(molecules))
 
-  const routes = routeWords.filter((word) => word.test.test(text)).map((word) => word.value)
-  if (routes.length) push("route", routes)
+  const routes = pick(routeWords)
+  if (routes.length) push("route", routes.map((word) => word.value), said(routes))
 
-  const drugTypes = drugTypeWords.filter((word) => word.test.test(text)).map((word) => word.value)
-  if (drugTypes.length) push("drugType", drugTypes)
+  const drugTypes = pick(drugTypeWords)
+  if (drugTypes.length) push("drugType", drugTypes.map((word) => word.value), said(drugTypes))
 
-  const companies = companiesIn(text)
-  if (companies.length) push("company", companies)
+  const companyPhrases: string[] = []
+  const companies = companiesIn(text, companyPhrases)
+  if (companies.length) push("company", companies, companyPhrases)
 
   if (actions.length === 0) return null
 
@@ -418,14 +505,12 @@ function filterReply(text: string, state: GridState): AgentReply | null {
   )
   return {
     kind: "proposal",
-    message:
-      actions.length === 1
-        ? ""
-        : `That is ${actions.length} filters — ${subjects.join(", ")} — joined with "and".`,
+    message: actions.length === 1 ? "" : `${actions.length} filters, joined with "and".`,
     proposal: proposal(
       actions.length === 1 ? `Filter ${subjects[0]}` : `Apply ${actions.length} filters`,
       actions,
     ),
+    trace: lines,
   }
 }
 
@@ -438,13 +523,20 @@ export const missSuggestions = [
   "Remove the brand column",
 ]
 
-/** The prompts offered in the empty panel. Each one is a rule that exists. */
+/** The prompts offered above the composer. Each one is a rule that exists. */
 export const examplePrompts = [
   "Show me only the ones in Europe",
   "Add the NPV column",
   "Group by company",
   "Sort by highest NPV",
+  "Only phase III",
+  "Show the average NPV",
 ]
+
+/** The request behind the grid's opening filters, shown as the thread's first turn. */
+export const seedPrompt = "Oncology or immunology, phase 2 or 3, given IV or subcutaneously"
+
+const tried = "Tried filters, columns, sorting, grouping and the summary row"
 
 export function respond(text: string, state: GridState): AgentReply {
   const normalised = normalise(text)
@@ -453,6 +545,7 @@ export function respond(text: string, state: GridState): AgentReply {
       kind: "miss",
       message: "Type what you want the grid to do.",
       suggestions: missSuggestions.slice(0, 3),
+      trace: [],
     }
   }
 
@@ -465,21 +558,21 @@ export function respond(text: string, state: GridState): AgentReply {
   if (has(normalised, "hello", "hi", "hey", "thanks")) {
     return {
       kind: "miss",
-      message:
-        "I only change this grid — filters, columns, sorting, grouping and the footer aggregates.",
+      message: "I only change this grid — filters, columns, sorting, grouping and the summary row.",
       suggestions: missSuggestions.slice(0, 3),
+      trace: [tried],
     }
   }
 
   return {
     kind: "miss",
-    message:
-      "I could not map that to anything on this grid. I can filter a column, add or remove a column, sort, group, or add an aggregate to the footer — nothing else.",
-    suggestions: missSuggestions,
+    message: "I could not map that to anything on this grid.",
+    suggestions: missSuggestions.slice(0, 3),
+    trace: [tried],
   }
 }
 
-/** Rows a proposal would leave on screen, for the count on the proposal card. */
+/** Rows a proposal would leave on screen, for the count on the plan card. */
 export function previewCount(state: GridState, actions: GridAction[]) {
   const next = applyActions(state, actions)
   const entries = Object.entries(next.filters).filter(([, values]) => values.length > 0)
@@ -492,4 +585,93 @@ export function previewCount(state: GridState, actions: GridAction[]) {
       return values.some((value) => rowValues.includes(value))
     }),
   ).length
+}
+
+/* -------------------------------------------------------------------------- */
+/* Steps                                                                       */
+/* -------------------------------------------------------------------------- */
+
+/** A step not yet run, running, or run — the label changes tense with it. */
+export type StepTense = "todo" | "doing" | "done"
+
+const verbs = {
+  add: ["Add", "Adding", "Added"],
+  clear: ["Clear", "Clearing", "Cleared"],
+  remove: ["Remove", "Removing", "Removed"],
+  sort: ["Sort", "Sorting", "Sorted"],
+  group: ["Group", "Grouping", "Grouped"],
+  move: ["Move", "Moving", "Moved"],
+  pin: ["Toggle pin", "Toggling pin", "Toggled pin"],
+  show: ["Show", "Showing", "Showed"],
+  reset: ["Reset", "Resetting", "Reset"],
+  toggle: ["Toggle", "Toggling", "Toggled"],
+} as const
+
+const tenseIndex: Record<StepTense, 0 | 1 | 2> = { todo: 0, doing: 1, done: 2 }
+
+function label(columnKey: string) {
+  return columnByKey[columnKey]?.label ?? columnKey
+}
+
+/** `Adding filter: Development Stage is Phase III`, `Added column: NPV (US$m)`. */
+export function describeStep(action: GridAction, tense: StepTense): string {
+  const v = (verb: keyof typeof verbs) => verbs[verb][tenseIndex[tense]]
+  switch (action.kind) {
+    case "setFilter":
+      return action.values.length
+        ? `${v("add")} filter: ${filterPhrase(action.columnKey, action.values)}`
+        : `${v("clear")} filter: ${label(action.columnKey)}`
+    case "toggleValue":
+      return `${v("toggle")} ${label(action.columnKey)}: ${action.value}`
+    case "clearColumnFilter":
+      return `${v("clear")} filter: ${label(action.columnKey)}`
+    case "clearFilters":
+      return `${v("clear")} all filters`
+    case "addColumn":
+      return `${v("add")} column: ${label(action.columnKey)}`
+    case "removeColumn":
+      return `${v("remove")} column: ${label(action.columnKey)}`
+    case "moveColumn":
+      return `${v("move")} column ${action.by < 0 ? "left" : "right"}: ${label(action.columnKey)}`
+    case "togglePin":
+      return `${v("pin")}: ${label(action.columnKey)}`
+    case "setSort":
+      return action.sort
+        ? `${v("sort")} by ${label(action.sort.columnKey)}, ${action.sort.direction === "asc" ? "ascending" : "descending"}`
+        : `${v("clear")} sort`
+    case "setGroup":
+      return action.columnKey
+        ? `${v("group")} by ${label(action.columnKey)}`
+        : `${v("remove")} grouping`
+    case "setAggregates":
+      return action.keys.length
+        ? `${v("show")} summary: ${action.keys.map((key) => aggregateLabels[key]).join(", ")}`
+        : `${v("clear")} summary row`
+    case "resetColumns":
+      return `${v("reset")} columns`
+  }
+}
+
+export function stepIcon(action: GridAction): LucideIcon {
+  switch (action.kind) {
+    case "setFilter":
+      return action.values.length ? ListFilterIcon : XIcon
+    case "toggleValue":
+      return ListFilterIcon
+    case "clearColumnFilter":
+    case "clearFilters":
+      return XIcon
+    case "setSort":
+      return ArrowDownUpIcon
+    case "setGroup":
+      return LayersIcon
+    case "setAggregates":
+      return SigmaIcon
+    case "addColumn":
+    case "removeColumn":
+    case "moveColumn":
+    case "togglePin":
+    case "resetColumns":
+      return Columns3Icon
+  }
 }

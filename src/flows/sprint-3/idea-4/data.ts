@@ -4,12 +4,12 @@
  * There is no filter engine and nothing is fetched. What there is: a fixed
  * sample of 44 drug records held in memory, and predicates that narrow it. Every
  * number on screen — the match count, the counts beside each value in a column
- * menu, the footer aggregates — is derived from that sample by the helpers at
- * the bottom of this file, so the grid and the numbers describing it cannot
+ * menu, the summary row — is derived from that sample by the helpers at the
+ * bottom of this file, so the grid and the numbers describing it cannot
  * disagree.
  *
  * The one authored number left is `DATABASE_RECORDS`, the size of the live
- * Drugs database. It is labelled as scale on screen and never used in a
+ * Drugs database. It is not shown on screen at present and never used in a
  * calculation.
  *
  * `src/flows/sprint-3/idea-1/data.ts` is imported read-only for the attribute
@@ -1012,12 +1012,13 @@ export interface ColumnDef {
   key: string
   label: string
   /**
-   * Lane width, used verbatim in the grid template. The minimums are the
-   * no-horizontal-scroll promise: the ten default lanes sum to 866px, so the
-   * grid still fits beside the 312px agent panel at a 1190px window and
-   * compresses rather than running off the side of the screen.
+   * The narrowest this lane may get: wide enough for its 14px header label,
+   * a sort arrow and a filter count on one line, and for a 16px value. Past
+   * the sum of these the grid scrolls sideways rather than wrapping.
    */
-  width: string
+  minPx: number
+  /** Share of spare width. `0` holds the lane at `minPx`. */
+  grow: number
   kind: ColumnKind
   /** Values this column filters and groups on. Empty means neither. */
   values: (row: DrugRecord) => string[]
@@ -1059,7 +1060,8 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "select",
     label: "",
-    width: "48px",
+    minPx: 44,
+    grow: 0,
     kind: "select",
     values: none,
     sortValue: () => "",
@@ -1069,7 +1071,8 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "drugName",
     label: "Drug Name",
-    width: "minmax(120px,180px)",
+    minPx: 200,
+    grow: 1,
     kind: "primary",
     values: none,
     sortValue: (row) => row.name,
@@ -1079,7 +1082,8 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "brand",
     label: "Brand",
-    width: "minmax(52px,96px)",
+    minPx: 140,
+    grow: 0.6,
     kind: "text",
     values: (row) => (row.brand ? [row.brand] : []),
     sortValue: (row) => row.brand ?? "￿",
@@ -1089,7 +1093,8 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "company",
     label: "Company",
-    width: "minmax(88px,144px)",
+    minPx: 200,
+    grow: 1,
     kind: "text",
     values: (row) => [row.company],
     sortValue: (row) => row.company,
@@ -1099,7 +1104,8 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "therapyArea",
     label: "Therapy Area",
-    width: "minmax(84px,116px)",
+    minPx: 190,
+    grow: 1,
     kind: "pills",
     values: (row) => row.therapyAreas,
     sortValue: (row) => row.therapyAreas[0] ?? "",
@@ -1110,7 +1116,8 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "indication",
     label: "Indication",
-    width: "minmax(118px,1.6fr)",
+    minPx: 240,
+    grow: 2,
     kind: "pills",
     values: (row) => row.indications,
     sortValue: (row) => row.indications[0] ?? "",
@@ -1121,7 +1128,8 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "stage",
     label: "Development Stage",
-    width: "minmax(100px,132px)",
+    minPx: 220,
+    grow: 0,
     kind: "badge",
     values: (row) => [row.stage],
     sortValue: (row) => stageOrder.indexOf(row.stage as (typeof stageOrder)[number]),
@@ -1132,7 +1140,8 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "moleculeType",
     label: "Molecule Type",
-    width: "minmax(82px,144px)",
+    minPx: 200,
+    grow: 1,
     kind: "text",
     values: (row) => [row.moleculeType],
     sortValue: (row) => row.moleculeType,
@@ -1142,7 +1151,8 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "route",
     label: "Route of Administration",
-    width: "minmax(74px,124px)",
+    minPx: 264,
+    grow: 0,
     kind: "pills",
     values: (row) => row.routes,
     sortValue: (row) => row.routes[0] ?? "",
@@ -1154,7 +1164,8 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "geography",
     label: "Drug Geography",
-    width: "minmax(100px,1.3fr)",
+    minPx: 230,
+    grow: 1.5,
     kind: "pills",
     values: (row) => row.geographies,
     sortValue: (row) => row.geographies[0] ?? "",
@@ -1167,7 +1178,8 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "target",
     label: "Target",
-    width: "minmax(96px,150px)",
+    minPx: 180,
+    grow: 1,
     kind: "pills",
     values: (row) => row.targets,
     sortValue: (row) => row.targets[0] ?? "",
@@ -1178,7 +1190,8 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "mechanism",
     label: "Mechanism of Action",
-    width: "minmax(110px,180px)",
+    minPx: 240,
+    grow: 1.5,
     kind: "text",
     values: (row) => [row.mechanism],
     sortValue: (row) => row.mechanism,
@@ -1189,7 +1202,8 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "drugType",
     label: "Drug Type",
-    width: "minmax(78px,110px)",
+    minPx: 150,
+    grow: 0.5,
     kind: "text",
     values: (row) => [row.drugType],
     sortValue: (row) => row.drugType,
@@ -1199,7 +1213,8 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "marketingStatus",
     label: "Marketing Status",
-    width: "minmax(90px,124px)",
+    minPx: 200,
+    grow: 0.5,
     kind: "text",
     values: (row) => [row.marketingStatus],
     sortValue: (row) => row.marketingStatus,
@@ -1209,7 +1224,8 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "npv",
     label: "NPV (US$m)",
-    width: "minmax(72px,100px)",
+    minPx: 150,
+    grow: 0,
     kind: "number",
     values: none,
     sortValue: (row) => row.npv,
@@ -1415,12 +1431,25 @@ export const aggregateLabels: Record<AggregateKey, string> = {
   totalNpv: "Total NPV",
 }
 
-export const defaultAggregates: AggregateKey[] = [
-  "companies",
-  "indications",
-  "geographies",
-  "medianStage",
-]
+/** Off by default: the summary row is opt-in. */
+export const defaultAggregates: AggregateKey[] = []
+
+/** The column each summary figure sits under. */
+export const aggregateColumn: Record<AggregateKey, string> = {
+  companies: "company",
+  indications: "indication",
+  geographies: "geography",
+  medianStage: "stage",
+  meanNpv: "npv",
+  totalNpv: "npv",
+}
+
+/** Grid template track for one lane. */
+export function columnTrack(column: ColumnDef, pinned = false) {
+  return column.grow > 0 && !pinned
+    ? `minmax(${column.minPx}px, ${column.grow}fr)`
+    : `${column.minPx}px`
+}
 
 function distinct(list: DrugRecord[], read: (row: DrugRecord) => string[]) {
   const set = new Set<string>()
@@ -1432,7 +1461,7 @@ function money(value: number) {
   return `$${Math.round(value).toLocaleString()}m`
 }
 
-/** Every footer figure, computed from the rows currently on screen. */
+/** Every summary figure, computed from the rows currently on screen. */
 export function aggregateValue(key: AggregateKey, list: DrugRecord[]): string {
   if (list.length === 0) return "—"
   switch (key) {
