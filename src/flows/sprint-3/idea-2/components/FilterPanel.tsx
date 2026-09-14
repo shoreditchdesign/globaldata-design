@@ -216,7 +216,10 @@ export function FilterPanel({
       {/* The breadcrumb, the search field and the column captions are one white
           block with no rule between them: the panel has a header, and under it
           the columns are the only coloured thing in the region. */}
-      <div className="bg-surface-panel shrink-0 px-3 pt-2.5 pb-2">
+      {/* The rail takes its own room top and bottom. Crammed against the
+          search field under it, the path read as a label on the field rather
+          than as the thing the columns are currently showing. */}
+      <div className="bg-surface-panel shrink-0 px-3 pt-3 pb-3">
         <div className="flex items-center gap-1">
           {start > 0 ? (
             <button
