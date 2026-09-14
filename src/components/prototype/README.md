@@ -81,7 +81,9 @@ length. All eight fit above roughly 1000px; below that the row scrolls sideways 
 hidden.
 
 The tabs are not links. Every screen is one fixed state, so `activeArea` is the only thing that
-changes.
+changes. The active tab is `text-foreground` with a `brand` underline, not a filled or coloured
+label — an underline tab is one of the selected states the repo-wide colour law washes rather than
+fills solid; see `CLAUDE.md`.
 
 ## `product-areas`
 
@@ -106,7 +108,7 @@ constant.
 
 ```tsx
 <StageBadge stage={row.stage} />
-<StageBadge stage={row.stage} className="h-[18px] px-1.5" />  // Idea 4's dense grid
+<StageBadge stage={row.stage} className="h-6 px-2 text-sm" />  // Idea 4's grid, at its 16/14 type scale
 ```
 
 A development stage. Used by the results grids in Ideas 2, 3 and 4.
@@ -133,6 +135,10 @@ to `pre` rather than to an error state.
 Every fill is under 0.06 chroma. The badges are tints; the accent proper is solid. They appear
 within a few pixels of each other in three directions and must not compete.
 
+This ramp sits outside the repo-wide selected-state colour law in `CLAUDE.md`: it is data
+encoding, not a selection, so it keeps its own tinted rungs at the brand hue regardless of whether
+a checked control or a selected tab nearby is filled solid or washed that sprint.
+
 `stageTone(stage)` is exported for anything that has to match a badge without being one — a legend,
 a count, a group header.
 
@@ -140,6 +146,18 @@ Deliberately one size. If your grid needs it tighter, pass spacing through `clas
 variant. Idea 1's incumbent table shows the stage as a plain cell rather than a badge, which is
 correct — it is a faithful port of the design being argued against, and the live product has no
 status colour at all.
+
+## Disabled buttons
+
+`button.tsx`'s disabled state is a pale step of the brand itself, not flat grey and not the accent at
+reduced opacity: `brand-disabled` (`oklch(0.915 0.03 264)`) for the fill, `brand-disabled-foreground`
+(`oklch(0.57 0.08 264)`) for the label, no shadow, no press nudge, cursor `not-allowed`. Outline,
+ghost and secondary variants keep their resting fill and only drop the label, to neutral
+`control-disabled-foreground` (`oklch(0.63 0.01 258)`) — there's no solid fill on those for a grey
+label to clash with. Every direction inherits both from the one component rather than picking its
+own opacity value. Idea 1's hand-rolled send button in `AiPane.tsx` matches it locally for the same
+reason `FilterPill` variants exist here: a control that looks different between two directions reads
+as inconsistency, not variety.
 
 ## `FilterPill` and `OperatorWord`
 
@@ -166,8 +184,10 @@ subject–operator–value phrase in Idea 4, a value and its count in Idea 1.
 
 The variants say what the pill *means*, not what it looks like.
 
-- `applied` — a condition that is on. Carries the accent, because that is what "on" looks like
-  everywhere in this product.
+- `applied` — a condition that is on. Carries the accent — `brand-tint` fill, `brand-border` edge,
+  `brand-ink` text — because that is what "on" looks like everywhere in this product, chips
+  included: the repo-wide colour law spends solid brand on primary buttons, checked controls and
+  links, but a chip stays the tinted, bordered shape it always was.
 - `excluded` — a condition that takes rows away. It cannot look identical to one that keeps them; a
   bar of grey chips where half are `is not` is a bar you have to read word by word.
 - `muted` — the incumbent's plainer chip, filled, no border, larger type. Idea 1 uses it so it can
@@ -213,7 +233,9 @@ three products. So the numbers live here and the directions spend them.
 Two curves, `ease-settle` and `ease-lift`, are Tailwind utilities defined in `globals.css`.
 
 Spent so far: Idea 3's resolve (the source), Idea 2's Miller rows lighting as the agent ticks them,
-Idea 4's proposal card lighting as it lands on the grid.
+Idea 4's proposal card lighting as it lands on the grid, Idea 4's thinking progress bar climbing on
+`resolveMarks`' own timings as a turn runs, and the stagger across a plan card's step rows as they
+tick from pending to done.
 
 **Reduced motion.** The three class fragments all carry `motion-reduce:transition-none`, so a reader
 who has asked for less motion gets the end state with no interpolation and never a half-drawn one.
