@@ -1,8 +1,12 @@
 "use client"
 
+import { usePathname } from "next/navigation"
+
 import { ProductChrome } from "@/components/prototype/ProductChrome"
+import { useDeepLink } from "@/hooks/use-deep-link"
 import { FilterPanel } from "@/flows/sprint-3/idea-2/components/FilterPanel"
 import { ResultsPane } from "@/flows/sprint-3/idea-2/components/ResultsPane"
+import { initialState } from "@/flows/sprint-3/idea-2/state"
 import { useScreener } from "@/flows/sprint-3/idea-2/use-screener"
 
 /**
@@ -21,9 +25,17 @@ import { useScreener } from "@/flows/sprint-3/idea-2/use-screener"
  * All of the screen's state lives in one hook, because the columns, the pills,
  * the count and the table have to be derived from the same filters — and the
  * agent has to drive that state rather than a copy of it.
+ *
+ * That one state is also what the URL names. The slug seeds the screener on
+ * arrival — a cold start, a run mid-flight, a finished run with its steps
+ * still undoable — and from then on the state leads and the address follows it,
+ * so a link opens on a frame rather than only at the beginning of the flow.
  */
 export function Screener() {
-  const screener = useScreener()
+  const pathname = usePathname()
+  const screener = useScreener(initialState(pathname.slice(pathname.lastIndexOf("/") + 1)))
+
+  useDeepLink(screener.liveSlug, (slug) => screener.reseed(initialState(slug)))
 
   return (
     <ProductChrome activeArea="Drugs" body="row">

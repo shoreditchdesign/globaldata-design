@@ -1,9 +1,11 @@
 "use client"
 
 import * as React from "react"
+import { usePathname } from "next/navigation"
 import { DownloadIcon, ListFilterIcon, RotateCcwIcon, TextIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { useDeepLink } from "@/hooks/use-deep-link"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ProductChrome } from "@/components/prototype/ProductChrome"
@@ -16,39 +18,19 @@ import { ResultsGrid } from "@/flows/sprint-3/idea-3/components/ResultsGrid"
 import {
   BASE_COUNT,
   clauseTemplates,
-  exampleClauses,
-  originalPrompt,
   screenDrugs,
   type Clause,
 } from "@/flows/sprint-3/idea-3/data"
 import { clausesToProse } from "@/flows/sprint-3/idea-3/grammar"
 import { resolveQuery, type Resolution } from "@/flows/sprint-3/idea-3/resolve"
-
-type View = "sentence" | "filters"
-type Phase = "compose" | "resolving" | "resolved"
-
-/** One query and everything known about where it came from. */
-interface Query {
-  clauses: Clause[]
-  /** The text it was read from, as typed. */
-  raw: string
-  /** What the resolver made of that text — kept for the honesty notes. */
-  resolution: Resolution | null
-  /** Whether pills have been edited since it resolved. */
-  edited: boolean
-}
-
-/**
- * The worked example, produced by the resolver rather than authored beside it,
- * so the screen a reviewer opens on is the same object typing would have made.
- */
-const seeded = resolveQuery(originalPrompt)
-const seed: Query = {
-  clauses: seeded.ok ? seeded.clauses : exampleClauses,
-  raw: originalPrompt,
-  resolution: seeded.ok ? seeded : null,
-  edited: false,
-}
+import {
+  blankQuery,
+  initialState,
+  slugFor,
+  type Idea3State,
+  type OpenPill,
+  type View,
+} from "@/flows/sprint-3/idea-3/state"
 
 const order = new Map(clauseTemplates.map((clause, index) => [clause.id, index]))
 const inOrder = (clauses: Clause[]) =>
@@ -63,18 +45,41 @@ const inOrder = (clauses: Clause[]) =>
  * rejected Sprint 2 design put a chat transcript beside a builder panel and
  * asked the user to reconcile them; this swaps in place, and `Edit` runs
  * the trip backwards.
+ *
+ * The ten frames the direction was reviewed as are states of this one screen.
+ * The slug in the URL seeds the state on arrival; from then on the state leads
+ * and the address bar follows it, so a link can open on the failure or on a
+ * sentence nothing matches without anyone being walked there.
  */
-export function Screener({ start = false }: { start?: boolean }) {
-  // Query and history in one atom, so every edit pushes exactly one undo step.
-  const [{ query, past }, setState] = React.useState<{ query: Query; past: Query[] }>({
-    query: start ? { clauses: [], raw: "", resolution: null, edited: false } : seed,
-    past: [],
-  })
-  const [phase, setPhase] = React.useState<Phase>(start ? "compose" : "resolved")
-  const [draft, setDraft] = React.useState("")
-  const [failure, setFailure] = React.useState<Resolution | null>(null)
-  const [pending, setPending] = React.useState<Resolution | null>(null)
-  const [view, setView] = React.useState<View>("sentence")
+export function Screener() {
+  const slug = usePathname().split("/").pop() ?? ""
+
+  // One atom, so every edit pushes exactly one undo step and a link seeds the
+  // whole screen rather than half of it.
+  const [state, setState] = React.useState<Idea3State>(() => initialState(slug))
+  const { query, past, phase, draft, failure, pending, view, openPill } = state
+
+  // Held in a ref as well as state: `settle` must keep the same identity for
+  // the whole transition, or the animation would restart under the reviewer.
+  // Seeded from the state, so a link that opens mid-resolve settles on the
+  // query it was reading rather than on nothing.
+  const resolvedRef = React.useRef<Resolution | null>(state.pending)
+
+  const reseed = React.useCallback((next: string) => {
+    const seeded = initialState(next)
+    resolvedRef.current = seeded.pending
+    setState(seeded)
+  }, [])
+
+  const setDraft = React.useCallback(
+    (value: string) => setState((current) => ({ ...current, draft: value })),
+    [],
+  )
+
+  const setOpenPill = React.useCallback(
+    (pill: OpenPill | null) => setState((current) => ({ ...current, openPill: pill })),
+    [],
+  )
 
   const { clauses } = query
   const empty = clauses.length === 0
@@ -84,19 +89,38 @@ export function Screener({ start = false }: { start?: boolean }) {
   /* ------------------------------------------------------------------ */
 
   const commit = React.useCallback((edit: (current: Clause[]) => Clause[]) => {
-    setState((state) => ({
-      query: { ...state.query, clauses: edit(state.query.clauses), edited: true },
-      past: [...state.past, state.query],
-    }))
+    setState((state) => {
+      const clauses = edit(state.query.clauses)
+      const pill = state.openPill
+      return {
+        ...state,
+        query: { ...state.query, clauses, edited: true },
+        past: [...state.past, state.query],
+        // A pill whose value has just gone takes its dropdown with it, and the
+        // URL must not go on naming it.
+        openPill:
+          pill &&
+          clauses.some(
+            (clause) => clause.id === pill.clauseId && clause.selected.includes(pill.value),
+          )
+            ? pill
+            : null,
+      }
+    })
   }, [])
 
   const undo = React.useCallback(() => {
     setState((state) =>
       state.past.length === 0
         ? state
-        : { query: state.past[state.past.length - 1], past: state.past.slice(0, -1) },
+        : {
+            ...state,
+            query: state.past[state.past.length - 1],
+            past: state.past.slice(0, -1),
+            phase: "resolved",
+            openPill: null,
+          },
     )
-    setPhase("resolved")
   }, [])
 
   const addValue = React.useCallback(
@@ -161,61 +185,68 @@ export function Screener({ start = false }: { start?: boolean }) {
   /* Typing, resolving, and back again                                   */
   /* ------------------------------------------------------------------ */
 
-  // Held in a ref as well as state: `settle` must keep the same identity for
-  // the whole transition, or the animation would restart under the reviewer.
-  const resolvedRef = React.useRef<Resolution | null>(null)
-
   const submit = React.useCallback((text: string) => {
     const resolution = resolveQuery(text)
     if (!resolution.ok) {
       // Nothing understood, so nothing is built. Staying in the composer with
       // the words intact is the honest outcome; guessing is the failure this
       // direction cannot afford.
-      setFailure(resolution)
+      setState((state) => ({ ...state, failure: resolution }))
       return
     }
-    setFailure(null)
     resolvedRef.current = resolution
-    setPending(resolution)
-    setPhase("resolving")
+    setState((state) => ({
+      ...state,
+      failure: null,
+      pending: resolution,
+      phase: "resolving",
+    }))
   }, [])
 
   const settle = React.useCallback(() => {
     setState((state) => {
       const resolution = resolvedRef.current
-      if (!resolution) return state
       return {
-        query: { clauses: resolution.clauses, raw: resolution.raw, resolution, edited: false },
+        ...state,
+        query: resolution
+          ? { clauses: resolution.clauses, raw: resolution.raw, resolution, edited: false }
+          : state.query,
         // A re-resolve is undoable too: an `Edit` that reads badly should
         // cost one click to reverse, not a retyped query.
         past: state.query.clauses.length > 0 ? [...state.past, state.query] : state.past,
+        pending: null,
+        phase: "resolved",
+        view: "sentence",
+        openPill: null,
       }
     })
-    setPending(null)
-    setPhase("resolved")
-    setView("sentence")
   }, [])
 
   const editAsText = () => {
     // What comes back is the query as it stands. Untouched, that is the text
     // they typed; after pill edits, it is those edits written back as prose —
     // which resolves again to exactly the same clauses.
-    setDraft(query.edited ? clausesToProse(clauses) : query.raw)
-    setFailure(null)
-    setPhase("compose")
+    setState((state) => ({
+      ...state,
+      draft: state.query.edited ? clausesToProse(state.query.clauses) : state.query.raw,
+      failure: null,
+      phase: "compose",
+      openPill: null,
+    }))
   }
 
   // The toggle is always offered, even before anything is typed. While a query
   // is being edited, picking a view abandons the edit and shows the query as it
   // stands; with nothing to show, or mid-resolve, the click does nothing.
   const selectView = (next: View) => {
-    if (phase === "resolving") return
-    if (phase === "compose") {
-      if (clauses.length === 0) return
-      setFailure(null)
-      setPhase("resolved")
-    }
-    setView(next)
+    setState((state) => {
+      if (state.phase === "resolving") return state
+      if (state.phase === "compose") {
+        if (state.query.clauses.length === 0) return state
+        return { ...state, failure: null, phase: "resolved", view: next }
+      }
+      return { ...state, view: next }
+    })
   }
 
   const handOff = (text: string) => {
@@ -225,18 +256,25 @@ export function Screener({ start = false }: { start?: boolean }) {
 
   const clearAll = () => {
     setState((state) => ({
-      query: { clauses: [], raw: "", resolution: null, edited: false },
+      ...state,
+      query: blankQuery,
       past: [...state.past, state.query],
+      draft: "",
+      failure: null,
+      phase: "compose",
+      openPill: null,
     }))
-    setDraft("")
-    setFailure(null)
-    setPhase("compose")
   }
 
   const applySuggestion = (phrase: string, value: string) => {
     const pattern = new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i")
-    setDraft((text) => (pattern.test(text) ? text.replace(pattern, value) : `${text} ${value}`))
-    setFailure(null)
+    setState((state) => ({
+      ...state,
+      draft: pattern.test(state.draft)
+        ? state.draft.replace(pattern, value)
+        : `${state.draft} ${value}`,
+      failure: null,
+    }))
   }
 
   /* ------------------------------------------------------------------ */
@@ -245,6 +283,12 @@ export function Screener({ start = false }: { start?: boolean }) {
   // are the sample filtered against the sentence, and the number above them is
   // reconciled against those rows rather than computed beside them.
   const { rows, total } = screenDrugs(clauses)
+
+  // The frame this state is nearest to, and the URL walking after it. The row
+  // count goes in because it is the only thing separating a sentence that
+  // works from one nothing in the sample satisfies.
+  useDeepLink(slugFor(state, rows.length), reseed)
+
   const composing = phase === "compose"
   const resolving = phase === "resolving"
   // What the reading missed, kept in front of the reviewer until they act on
@@ -286,7 +330,11 @@ export function Screener({ start = false }: { start?: boolean }) {
                   value={draft}
                   onChange={setDraft}
                   onSubmit={() => submit(draft)}
-                  onCancel={empty ? undefined : () => setPhase("resolved")}
+                  onCancel={
+                    empty
+                      ? undefined
+                      : () => setState((current) => ({ ...current, phase: "resolved" }))
+                  }
                   onSuggestion={applySuggestion}
                   failure={failure}
                   showSuggestions={empty}
@@ -299,7 +347,12 @@ export function Screener({ start = false }: { start?: boolean }) {
               ) : resolving && pending ? (
                 <Resolving resolution={pending} onDone={settle} />
               ) : view === "sentence" ? (
-                <QuerySentence clauses={clauses} handlers={handlers} />
+                <QuerySentence
+                  clauses={clauses}
+                  handlers={handlers}
+                  openPill={openPill}
+                  onPillOpenChange={setOpenPill}
+                />
               ) : (
                 <FilterView clauses={clauses} handlers={handlers} />
               )}
