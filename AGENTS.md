@@ -1,33 +1,42 @@
 ## Project context
 
-- This repository is a design exercise exploring new approaches to natural-language search for GlobalData's database platform.
-- Alex Gibson is collaborating with another designer on the work.
-- This is an exploratory prototype repository. Each idea should remain a hands-on, independent variant; do not introduce a shared core package or React component library unless Alex explicitly asks for one.
+This repository is a design exercise exploring approaches to natural-language search for
+GlobalData's drug database. Every idea is a hands-on, independent variant — do not extract a
+shared core package or a cross-variant React component library.
 
-## Branch, commit, and pull-request workflow
+## Branch and commit workflow
 
-- Work on a dedicated branch. The current working branch is `S3E1`; continue on it for the current piece of work unless Alex directs otherwise.
-- Before starting a subsequent release, a new idea, or an independent split, confirm with Alex whether to resume the current branch or create a new branch.
-- Keep changes scoped to the active branch. Stage only the intended files and inspect the staged diff before committing.
-- Make routine, focused commits as changes are completed. Use relevant conventional labels such as `feat:`, `fix:`, `docs:`, `refactor:`, or `chore:` and do not mix unrelated work in one commit.
-- Push the completed branch and open a GitHub pull request when an idea or coherent body of work is finished. Do this only after Alex has confirmed the result is satisfactory on the local development server when a visual or runtime check applies.
+- **Work on `main` and push there.** Do not create or switch branches unless you are explicitly
+  asked to for that piece of work. A named branch belongs to whoever asked for it.
+- **The repository has a single working tree, shared by every concurrent session.** A `git
+  checkout` in one session switches the branch for all of them, so check `git branch
+  --show-current` before you commit — it may have moved since you last looked. If work lands on
+  the wrong branch, cherry-pick your own commits across rather than merging, since the branch
+  will carry other sessions' work too.
+- Stage only the files you intended to change and read the staged diff before committing. Other
+  sessions' uncommitted work is usually in the tree alongside yours; committing it is not yours
+  to do. If a shared file has to go in, say whose work it was.
+- Make focused commits with conventional labels (`feat:`, `fix:`, `docs:`, `refactor:`,
+  `chore:`). Do not mix unrelated work in one commit.
+- Open a pull request only when asked. Otherwise a coherent, verified body of work goes straight
+  to `main`.
 
-## Local development and review
+## Review
 
-- Alex is not familiar with local development. Whenever a change benefits from browser review, start or identify the appropriate local development command, then explicitly prompt Alex to open the relevant `localhost` URL and explain what to check.
-- Use the local development server as the source of truth during iteration. Do not rely on Vercel or another hosted deployment for interim review.
-- When adding or splitting an idea, wire it into the appropriate routes and folder structure. Point Alex to the relevant route and, when useful, the corresponding location in the file explorer.
-
-## Design system
-
-- Follow the repository's existing shadcn/ui component system and core colour palette. Reuse the established tokens, primitives, patterns, and components rather than creating a competing visual language.
-- Preserve the exploratory structure: variants may implement their ideas independently, without extracting shared core packages or a cross-variant React component library.
+- `pnpm typecheck`, `pnpm lint` and `pnpm build` must all pass before anything is pushed. The
+  production build catches what the other two do not — a route that typechecks can still fail to
+  prerender.
+- For anything visual, run the local dev server and point to the exact route to look at, saying
+  what changed there. Do not rely on a hosted deployment for interim review.
+- When adding or splitting an idea, wire it into the routes and the registry, and name the route
+  it now lives at.
 
 ## Project material and privacy
 
-- Existing material under `docs/`, `slides/`, and `sprints/` is project context and may be used as a private scratchpad while working.
-- Preserve that material in this private repository. Do not publish it, copy it to public services, or expose it through a public deployment.
-- Do not add credentials, personal data, or other sensitive information about the client relationship to the scratchpad or repository.
+`docs/`, `slides/` and `sprints/` are project context and a working scratchpad. This repository is
+private: do not publish that material, copy it to external services, or expose it through a public
+deployment. Keep credentials, personal data and commercial detail about the client relationship
+out of it entirely.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

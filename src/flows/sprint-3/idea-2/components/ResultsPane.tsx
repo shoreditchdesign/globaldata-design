@@ -15,8 +15,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { AppliedPills } from "@/flows/sprint-3/idea-2/components/AppliedPills"
 import { RecordDrawer } from "@/flows/sprint-3/idea-2/components/RecordDrawer"
 import { ResultsTable, resultColumns } from "@/flows/sprint-3/idea-2/components/ResultsTable"
+import { platformTotal, sample } from "@/flows/sprint-3/idea-2/data"
 import type { Screener } from "@/flows/sprint-3/idea-2/use-screener"
 import { cn } from "@/lib/utils"
 
@@ -24,21 +26,25 @@ import { cn } from "@/lib/utils"
 const PAGE = 40
 
 /**
- * The right region: the rows, and nothing about the query.
+ * The right region: the answer, and the rows it is an answer about.
  *
- * The count and the sentence live at the foot of the filter panel, beside the
- * controls that move them, so this pane carries only what is on screen and the
- * handles for reading it. There is no Search button and no commit — the rows
- * are read off the sample against the filters as they stand, so they move in
- * the same tick as the tick box that changed them, and when a combination
- * matches nothing the table says so rather than showing the last set that
- * worked.
+ * The count and the applied-filter sentence head this pane rather than footing
+ * the filter panel. They are what the query left, and the client asked for them
+ * at the top of the thing they describe — so the header states the count, says
+ * the whole query in one line of removable objects, and carries the handles for
+ * reading the set. There is no Search button and no commit: the rows are read
+ * off the sample against the filters as they stand, so they move in the same
+ * tick as the tick box that changed them, and when a combination matches
+ * nothing the table says so rather than showing the last set that worked.
  *
- * `Group by`, `Columns` and `Export` are icons with tooltips and only the count
- * keeps its words — the toolbar was sized for a pane a fifth of the window and
- * kept its shape when the pane grew to half, which is a question for the next
- * round rather than something this one changed. The rest of a record is a
- * drawer away, not a column away.
+ * `Showing 1–N` is gone. Beside a real count it said the same thing twice, and
+ * the one fact it carried that the count does not — that the table draws the
+ * top of a longer set — is now a clause on the count itself, and only on the
+ * queries where it is true.
+ *
+ * `Group by`, `Columns` and `Export` are icons with tooltips; the words on this
+ * row belong to the count and the query. The rest of a record is a drawer away,
+ * not a column away.
  */
 export function ResultsPane({
   screener,
@@ -47,69 +53,109 @@ export function ResultsPane({
   screener: Screener
   className?: string
 }) {
-  const { rows, visibleColumns, toggleColumn } = screener
+  const { filters, rows, visibleColumns, toggleColumn } = screener
   const page = rows.slice(0, PAGE)
 
   return (
     <section className={cn("bg-surface-panel flex min-w-0 flex-col", className)}>
       <TooltipProvider>
-        <div className="border-edge flex shrink-0 items-center gap-1.5 border-b px-3 py-2">
-          <span className="text-muted-foreground mr-auto text-xs tabular-nums">
-            {rows.length === 0 ? "Nothing to show" : `Showing 1–${page.length}`}
-          </span>
+        <div className="border-edge flex shrink-0 flex-col gap-2 border-b px-3 py-2.5">
+          <div className="flex items-center gap-1.5">
+            <div className="mr-auto flex min-w-0 items-baseline gap-1.5">
+              {/* The count is a count, not a headline. Thirty pixels was a
+                  size for a foot rail two rounds ago; at the head of the table
+                  it reads on the table's own scale, and the weight on the
+                  number is the whole of the prominence it needs. */}
+              <span className="text-[13px] leading-none font-semibold tabular-nums">
+                {rows.length.toLocaleString("en-GB")}
+              </span>
+              <span className="text-[13px]">drugs</span>
+              <span
+                className="text-muted-foreground text-xs tabular-nums"
+                title={`This prototype filters a fixed sample of ${sample.length.toLocaleString("en-GB")} rows in memory. The live platform holds ${platformTotal.toLocaleString("en-GB")}.`}
+              >
+                of {sample.length.toLocaleString("en-GB")} in the sample
+              </span>
+              {/* Said only when it is true, and it is a fact the count cannot
+                  carry: the set is longer than the page the table draws. */}
+              {rows.length > PAGE ? (
+                <span className="text-muted-foreground text-xs tabular-nums">
+                  · first {PAGE} shown
+                </span>
+              ) : null}
+            </div>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
-                <LayersIcon className="size-4" />
-                <span className="sr-only">Group by</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Group by</TooltipContent>
-          </Tooltip>
-
-          <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
-                    <Columns3Icon className="size-4" />
-                    <span className="sr-only">Columns</span>
-                  </Button>
-                </DropdownMenuTrigger>
+                <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
+                  <LayersIcon className="size-4" />
+                  <span className="sr-only">Group by</span>
+                </Button>
               </TooltipTrigger>
-              <TooltipContent>Columns</TooltipContent>
+              <TooltipContent>Group by</TooltipContent>
             </Tooltip>
-            <DropdownMenuContent align="end" className="w-auto min-w-44">
-              {resultColumns.map((column) => {
-                const shown = visibleColumns.includes(column.key)
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.key}
-                    checked={shown}
-                    // Two columns is the floor, and the name is never one of
-                    // the two that go: it carries `Open`, so unticking it would
-                    // shut the only door to the fields the table dropped.
-                    disabled={column.key === "name" || (shown && visibleColumns.length <= 2)}
-                    onSelect={(event) => event.preventDefault()}
-                    onCheckedChange={() => toggleColumn(column.key)}
-                  >
-                    {column.label}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button size="icon-sm" disabled={rows.length === 0}>
-                <DownloadIcon className="size-4" />
-                <span className="sr-only">Export</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Export</TooltipContent>
-          </Tooltip>
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
+                      <Columns3Icon className="size-4" />
+                      <span className="sr-only">Columns</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Columns</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end" className="w-auto min-w-44">
+                {resultColumns.map((column) => {
+                  const shown = visibleColumns.includes(column.key)
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.key}
+                      checked={shown}
+                      // Two columns is the floor, and the name is never one of
+                      // the two that go: it carries `Open`, so unticking it would
+                      // shut the only door to the fields the table dropped.
+                      disabled={column.key === "name" || (shown && visibleColumns.length <= 2)}
+                      onSelect={(event) => event.preventDefault()}
+                      onCheckedChange={() => toggleColumn(column.key)}
+                    >
+                      {column.label}
+                    </DropdownMenuCheckboxItem>
+                  )
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="icon-sm" disabled={rows.length === 0}>
+                  <DownloadIcon className="size-4" />
+                  <span className="sr-only">Export</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Export</TooltipContent>
+            </Tooltip>
+          </div>
+
+          <div className="flex items-start gap-2">
+            <div className="min-w-0 flex-1">
+              <AppliedPills screener={screener} />
+            </div>
+
+            {/* A link, not a button. It undoes the sentence beside it rather
+                than doing anything to the set, and a bordered control at the
+                end of a row of pills read as one more thing to press. */}
+            <button
+              type="button"
+              onClick={screener.clearAll}
+              disabled={filters.length === 0}
+              className="text-muted-foreground hover:text-foreground mt-0.5 shrink-0 text-xs underline-offset-4 hover:underline disabled:pointer-events-none disabled:opacity-50"
+            >
+              Clear all
+            </button>
+          </div>
         </div>
       </TooltipProvider>
 
@@ -118,7 +164,7 @@ export function ResultsPane({
           <div className="max-w-sm text-center">
             <p className="text-[17px] font-medium">No drugs match this query.</p>
             {/*
-              No `Clear all` here: it is permanently on the panel foot, beside
+              No `Clear all` here: it is in the header directly above, beside
               the query it would clear. A second one in the empty state put the
               same control in two places and moved it away from the rail the
               client asked to carry it.

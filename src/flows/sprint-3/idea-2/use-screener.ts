@@ -291,29 +291,11 @@ export function useScreener() {
   /* ---------------------------------------------------------------------- */
 
   /**
-   * The agent has no resident surface, so the overlay is the only way in — and
-   * the shortcut and the `Ask` button both come through this one piece of
-   * state rather than each holding a copy, which is how they stay one door.
-   * ⌘⇧E belongs to the Explorer; plain ⌘K is free.
+   * One door in, and it is on the canvas: the composer at the foot of the
+   * filter panel. Nothing is summoned and nothing is covered, so the first step
+   * moves the columns the request was typed in front of.
    */
-  const [spotlightOpen, setSpotlightOpen] = useState(false)
-  const openSpotlight = useCallback(() => setSpotlightOpen(true), [])
-  const closeSpotlight = useCallback(() => setSpotlightOpen(false), [])
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (!(event.metaKey || event.ctrlKey) || event.key !== "k") return
-      event.preventDefault()
-      setSpotlightOpen((current) => !current)
-    }
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [])
-
   const submitRequest = useCallback((request: string) => {
-    // The overlay closes in the same tick the run starts, so the first step
-    // moves the columns the request was asked of rather than a dimmed copy.
-    setSpotlightOpen(false)
     setAgent({
       status: "running",
       request,
@@ -562,9 +544,6 @@ export function useScreener() {
     closeRecord,
     visibleColumns,
     toggleColumn,
-    spotlightOpen,
-    openSpotlight,
-    closeSpotlight,
     submitRequest,
     resumeAgent,
     undoStep,
