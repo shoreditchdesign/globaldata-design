@@ -51,9 +51,8 @@ function StepMark({ status }: { status: StepRecord["status"] }) {
  * What the agent did, in the foot of the panel it did it to.
  *
  * There is no run until there is a request, so this is absent from the screen
- * until ⌘K puts something in it — the steps are the only trace the agent
- * leaves, and they sit directly above the query they wrote and the count that
- * query produced.
+ * until the composer below it sends one — the steps are the only trace the
+ * agent leaves, and they sit directly above the line that asked for them.
  *
  * It is not a transcript. It shows the request, what the plan read it as, and
  * then the list of things it did to the columns above, each one a discrete
