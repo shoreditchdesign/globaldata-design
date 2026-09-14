@@ -6,7 +6,7 @@ import {
   OperatorPill,
   type GroupHandlers,
 } from "@/flows/sprint-3/idea-1/components/FilterChips"
-import { barVisibleCount, type FilterGroup } from "@/flows/sprint-3/idea-1/data"
+import { barVisibleCount, groupNegated, type FilterGroup } from "@/flows/sprint-3/idea-1/data"
 
 /**
  * The applied-filter bar above the table. Same chips and operators as the
@@ -59,7 +59,7 @@ export function FilterBar({
                   >
                     {group.label}
                   </button>
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     {leading ? (
                       <OperatorPill
                         operator={leading}
@@ -68,7 +68,12 @@ export function FilterBar({
                         }
                       />
                     ) : null}
-                    <GroupChips group={group} groupIndex={i} {...handlers} />
+                    <GroupChips
+                      group={group}
+                      groupIndex={i}
+                      negated={groupNegated(groups, i)}
+                      {...handlers}
+                    />
                   </div>
                 </div>
                 {renderPopover?.(i)}
@@ -82,7 +87,7 @@ export function FilterBar({
                 type="button"
                 onClick={onEditFilters}
                 aria-label={`${overflowCount} more filters`}
-                className="bg-muted hover:bg-accent rounded-full px-3 py-1 text-sm tabular-nums transition-colors"
+                className="bg-surface-panel border-border hover:bg-accent flex h-6 items-center rounded-full border px-2.5 text-[12px] font-medium tabular-nums transition-colors"
               >
                 +{overflowCount}
               </button>
@@ -91,7 +96,7 @@ export function FilterBar({
               type="button"
               onClick={onAddFilter}
               aria-label="Add a filter"
-              className="bg-muted hover:bg-accent flex size-7 items-center justify-center rounded-full transition-colors"
+              className="bg-surface-panel border-border text-muted-foreground hover:bg-accent hover:text-foreground flex size-6 items-center justify-center rounded-full border transition-colors"
             >
               <PlusIcon className="size-3.5" />
             </button>

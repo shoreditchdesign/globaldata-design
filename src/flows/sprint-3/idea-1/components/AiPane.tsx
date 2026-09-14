@@ -56,8 +56,8 @@ export function AiPane({
           <div className="flex flex-col gap-4 overflow-y-auto">
             <UserBubble text={transcript.user} time={transcript.time} />
             <div className="flex flex-col items-start gap-1">
-              <p className="max-w-[380px] text-sm">{transcript.assistant}</p>
-              <p className="text-muted-foreground flex items-center gap-1.5 text-sm">
+              <p className="max-w-[380px] text-[13px]">{transcript.assistant}</p>
+              <p className="text-muted-foreground flex items-center gap-1.5 text-[12px]">
                 <CheckMark /> Filters updated
               </p>
               <span className="text-muted-foreground text-xs">{transcript.time}</span>
@@ -70,7 +70,7 @@ export function AiPane({
                 key={parse.id}
                 type="button"
                 onClick={() => onQuery(parse.query)}
-                className="bg-muted hover:bg-accent rounded-full px-4 py-2 text-sm transition-colors"
+                className="bg-surface-panel border-border hover:bg-accent flex h-7 items-center rounded-full border px-3 text-[13px] transition-colors"
               >
                 {parse.suggestion}
               </button>
@@ -84,7 +84,7 @@ export function AiPane({
             if (filled && !busy) onSubmit()
           }}
           className={cn(
-            "bg-background flex gap-3 rounded-2xl border px-4",
+            "bg-surface-panel border-border focus-within:border-ring flex gap-3 rounded-xl border px-4 transition-colors",
             filled ? "items-end py-3" : "items-center py-2.5",
           )}
         >
@@ -121,7 +121,7 @@ export function AiPane({
 function UserBubble({ text, time }: { text: string; time?: string }) {
   return (
     <div className="flex flex-col items-end gap-1">
-      <p className="bg-muted text-foreground max-w-[340px] rounded-2xl px-4 py-3 text-sm">{text}</p>
+      <p className="bg-surface-sunken border-hairline text-foreground max-w-[340px] rounded-xl border px-3.5 py-2.5 text-[13px]">{text}</p>
       {time ? <span className="text-muted-foreground text-xs">{time}</span> : null}
     </div>
   )

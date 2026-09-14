@@ -21,7 +21,7 @@ export function FilterBuilderPane({
   return (
     <div className="bg-surface-page border-edge flex w-[420px] shrink-0 flex-col border-l">
       {empty ? null : (
-        <p className="text-muted-foreground px-6 pt-6 text-[11px] font-medium tracking-[0.08em] uppercase">
+        <p className="text-muted-foreground px-6 pt-6 text-[10px] font-medium tracking-[0.08em] uppercase">
           Filter builder
         </p>
       )}
@@ -29,7 +29,7 @@ export function FilterBuilderPane({
       <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
         {empty ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <p className="text-muted-foreground text-sm">No filters yet.</p>
+            <p className="text-muted-foreground text-[13px]">No filters yet.</p>
           </div>
         ) : (
           <FilterBuilderStack groups={groups} {...handlers} />
