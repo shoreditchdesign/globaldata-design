@@ -43,6 +43,7 @@ export type RowField =
   | "vector"
   | "application"
   | "cas"
+  | "marketingStatus"
 
 export interface DrugRow {
   name: string
@@ -251,6 +252,20 @@ const fieldReaders: Record<RowField, (row: DrugRow) => string[]> = {
   vector: (row) => [row.vector],
   application: (row) => [row.application],
   cas: (row) => [row.cas],
+  marketingStatus: (row) => [marketingStatusFor(row)],
+}
+
+/**
+ * Marketing status has no column of its own in the sample, so it is read off
+ * the stage the row already carries. It is a coarser view of the same fact,
+ * which is why it can filter honestly without new data being invented.
+ */
+function marketingStatusFor(row: DrugRow) {
+  if (row.stageValues.includes("Marketed")) return "Marketed"
+  if (row.stageValues.includes("Withdrawn (Marketed)")) return "Withdrawn"
+  if (row.stageValues.includes("Archived (Marketed)")) return "Discontinued"
+  if (row.stageValues.includes("Pre-registration")) return "Filed"
+  return "Not Marketed"
 }
 
 /* -------------------------------------------------------------------------- */
@@ -318,8 +333,8 @@ function groupMatches(group: FilterGroup, row: DrugRow) {
 }
 
 /**
- * The sample, filtered in memory. A group with no `field` — the three overflow
- * filters, which have no counterpart in the sample — is left unevaluated and
+ * The sample, filtered in memory. A group with no `field` — Expiry date, and the
+ * attributes of the areas the sample does not cover — is left unevaluated and
  * its rows are kept, rather than silently dropped as though it had applied.
  */
 export function matchingRows(groups: FilterGroup[]) {
@@ -383,10 +398,17 @@ export interface ValueOption {
   count: number
   /** Fraction of the corpus, derived from the count the picker promises. */
   share: number
+  /** Static word the chip reads before the value, e.g. `between` on a date range. */
+  prefix?: string
 }
 
-function values(entries: [string, number][]): ValueOption[] {
-  return entries.map(([label, count]) => ({ label, count, share: count / BASE_COUNT }))
+function values(entries: [string, number, string?][]): ValueOption[] {
+  return entries.map(([label, count, prefix]) => ({
+    label,
+    count,
+    share: count / BASE_COUNT,
+    ...(prefix ? { prefix } : {}),
+  }))
 }
 
 export interface AttributeSpec {
@@ -529,6 +551,35 @@ const drugAttributeSpecs: AttributeSpec[] = [
 ]
 
 /**
+ * Two attributes the reviewed ten-plus-filters frame draws in the bar but the
+ * picker never offered, added so that frame can be built by hand.
+ *
+ * Kept out of `drugAttributeSpecs` so Ideas 2 and 4, which read that list, do
+ * not grow them. Marketing status filters for real, off the stage. Expiry date
+ * has no counterpart in the sample, so like the other areas' attributes it is
+ * selectable but not evaluated — it moves neither the count nor the rows.
+ */
+const drugAttributeAdditions: AttributeSpec[] = [
+  {
+    label: "Expiry Date", groupLabel: "Expiry date",
+    values: values([
+      ["Before 2025", 41_212],
+      ["9 Mar 2025 and 10 Apr 2025", 1_284, "between"],
+      ["Rest of 2025", 9_637],
+      ["2026", 12_408],
+      ["2027 or later", 88_207],
+    ]),
+  },
+  {
+    label: "Marketing Status", groupLabel: "Marketing status", field: "marketingStatus",
+    values: values([
+      ["Marketed", 98_410], ["Not Marketed", 171_318], ["Filed", 6_852],
+      ["Withdrawn", 5_139], ["Discontinued", 3_810],
+    ]),
+  },
+]
+
+/**
  * Attribute lists for the other seven areas.
  *
  * The reviewed design only ever drew the Drugs pill open, but it draws all
@@ -558,7 +609,9 @@ const otherAreaSpecs: Record<string, AttributeSpec[]> = {
     { label: "Revenue Band", groupLabel: "Revenue band", values: values([["Under $50M", 14_220], ["$50M–$500M", 9_118], ["$500M–$1Bn", 3_404], ["Over $1Bn", 1_866]]) },
   ],
   "Drugs by Manufacturer": [
-    { label: "Manufacturer", groupLabel: "Manufacturer", values: values([["Pfizer", 2_204], ["Teva Pharmaceutical", 3_118], ["Sun Pharmaceutical", 2_440], ["Sandoz", 1_890]]) },
+    // The one attribute outside Drugs the sample can answer: every drug row
+    // carries its company, so the AI's manufacturer parse filters for real.
+    { label: "Manufacturer", groupLabel: "Manufacturer", field: "company", values: values([["Pfizer", 2_204], ["Teva Pharmaceutical", 3_118], ["Sun Pharmaceutical", 2_440], ["Sandoz", 1_890]]) },
     { label: "Manufacturing Site Country", groupLabel: "Manufacturing site country", values: values([["United States", 8_112], ["India", 11_204], ["Ireland", 2_118], ["China", 6_440]]) },
     { label: "Production Stage", groupLabel: "Production stage", values: values([["API", 9_118], ["Formulation", 12_204], ["Packaging", 7_330], ["Distribution", 5_112]]) },
   ],
@@ -576,7 +629,10 @@ const otherAreaSpecs: Record<string, AttributeSpec[]> = {
 
 /** Every area's attribute list, keyed by the area names in the shared chrome. */
 export const areaAttributes: Record<string, AttributeSpec[]> = Object.fromEntries(
-  productAreas.map((area) => [area, area === "Drugs" ? drugAttributeSpecs : otherAreaSpecs[area] ?? []]),
+  productAreas.map((area) => [
+    area,
+    area === "Drugs" ? [...drugAttributeSpecs, ...drugAttributeAdditions] : otherAreaSpecs[area] ?? [],
+  ]),
 )
 
 /** The Drugs attribute labels, in order. Imported read-only by Ideas 2 and 4. */
@@ -625,28 +681,157 @@ export const parsedGroups: FilterGroup[] = [
 ]
 
 /**
- * Three extra groups that push the applied bar past ten filters. They have no
- * counterpart in the sample, so they are drawn but not evaluated — the bar
- * strains without the table lying about it.
+ * The worked example with five more groups on the end — enough that the bar
+ * runs out of room and collapses the last two into `+2`. Every group is one the
+ * manual picker can build, so nothing here is reachable only by jumping.
+ *
+ * Expiry date has no counterpart in the sample and is left unevaluated; the
+ * rest filter for real, and the query still leaves six rows standing.
  */
-export const overflowGroups: FilterGroup[] = [
-  { label: "Expiry date", chips: [{ label: "9 Mar 2025 and 10 Apr 2025", prefix: "between" }] },
-  { label: "Gene therapy vector", chips: [{ label: "Adeno Associated Virus (AAV)" }] },
-  { label: "Marketing status", chips: [{ label: "Tentative Approval" }] },
+export const manyFilterGroups: FilterGroup[] = [
+  ...parsedGroups.slice(0, -1),
+  { ...parsedGroups[parsedGroups.length - 1], next: "AND" },
+  {
+    label: "Expiry date", area: "Drugs", attribute: "Expiry Date",
+    chips: [{ label: "9 Mar 2025 and 10 Apr 2025", prefix: "between", share: 1_284 / BASE_COUNT }],
+    next: "AND",
+  },
+  {
+    label: "Marketing status", field: "marketingStatus", area: "Drugs", attribute: "Marketing Status",
+    chips: [{ label: "Not Marketed", share: 171_318 / BASE_COUNT }],
+    next: "AND",
+  },
+  {
+    label: "Molecule type", field: "molecule", area: "Drugs", attribute: "Molecule Type",
+    chips: [{ label: "Small Molecule", share: 211_291 / BASE_COUNT }],
+    next: "AND",
+  },
+  {
+    label: "Gene therapy vector", field: "vector", area: "Drugs", attribute: "Gene Therapy Vector",
+    chips: [{ label: "None", share: 279_819 / BASE_COUNT }],
+    next: "AND",
+  },
+  {
+    label: "Mono/combination drug", field: "mono", area: "Drugs", attribute: "Mono/Combination Drug",
+    chips: [{ label: "Mono", share: 259_831 / BASE_COUNT }],
+  },
 ]
 
-export const aiSuggestions = [
-  "Phase II drugs",
-  "Phase III drugs",
-  "Drugs produced by Northvale Theraputics",
-  "Oncology drugs with an NPV over $55M",
-]
+/**
+ * How many filter values the applied bar draws before it gives up.
+ *
+ * The rule, rather than a measurement: groups are laid out in order until the
+ * values in them pass ten, and every group from that one on collapses into the
+ * `+N`. Ten is the number the reviewed frame is named for, and a rule keeps the
+ * overflow the same on every window the review is opened in.
+ */
+export const BAR_FILTER_LIMIT = 10
+
+/** How many of `groups` the bar has room for. Always at least one. */
+export function barVisibleCount(groups: FilterGroup[]) {
+  let values = 0
+  for (let i = 0; i < groups.length; i++) {
+    values += groups[i].chips.length
+    if (values > BAR_FILTER_LIMIT && i > 0) return i
+  }
+  return groups.length
+}
 
 export const exampleQuery =
   "Find generic anti-inflammatory therapies targeting Actin Gamma Enteric Smooth Muscle, but exclude drugs available in Austria or Italy, as well as marketed drugs that are withdrawn or archived"
 
-export const assistantReply =
-  "The filters and groups on the left will show you generic anti-inflammatory therapies targeting Actin Gamma Enteric Smooth Muscle, but exclude drugs available in Austria or Italy, as well as marketed drugs that are withdrawn or archived."
+/**
+ * One pre-written resolution per suggestion chip.
+ *
+ * Nothing is parsed. A chip fills the composer with its query, and whatever is
+ * submitted is matched to one of these by keyword — the example is the
+ * fallback, so free text always lands somewhere the table can show. Every group
+ * is built from the manual picker's vocabulary, so a pill the AI wrote reopens
+ * the same path a hand-built one would.
+ *
+ * The phases are the one exception, and it is the incumbent's: its picker
+ * offers `Marketed` and `Pipeline` while its AI writes phases.
+ */
+export interface CannedParse {
+  id: string
+  /** Label on the chip. */
+  suggestion: string
+  /** Text the chip puts in the composer. */
+  query: string
+  reply: string
+  groups: FilterGroup[]
+  /** Free text that should land on this parse. The example has none; it is the fallback. */
+  matches?: RegExp
+}
+
+export const aiParses: CannedParse[] = [
+  {
+    id: "phase-2",
+    suggestion: "Phase II drugs",
+    query: "Phase II drugs",
+    reply: "Filtered to drugs in Phase II, across every therapy area and geography.",
+    matches: /phase\s*(ii|2)\b/,
+    groups: [
+      {
+        label: "Developmental stage", field: "stage", area: "Drugs", attribute: "Development Stage",
+        chips: [{ label: "Phase II", share: 0.041 }],
+      },
+    ],
+  },
+  {
+    id: "phase-3",
+    suggestion: "Phase III drugs",
+    query: "Phase III drugs",
+    reply: "Filtered to drugs in Phase III, across every therapy area and geography.",
+    matches: /phase\s*(iii|3)\b/,
+    groups: [
+      {
+        label: "Developmental stage", field: "stage", area: "Drugs", attribute: "Development Stage",
+        chips: [{ label: "Phase III", share: 0.032 }],
+      },
+    ],
+  },
+  {
+    id: "sandoz",
+    suggestion: "Drugs manufactured by Sandoz",
+    query: "Drugs manufactured by Sandoz",
+    reply: "Filtered to drugs manufactured by Sandoz, at every stage of development.",
+    matches: /sandoz/,
+    groups: [
+      {
+        label: "Manufacturer", field: "company", area: "Drugs by Manufacturer", attribute: "Manufacturer",
+        chips: [{ label: "Sandoz", share: 1_890 / BASE_COUNT }],
+      },
+    ],
+  },
+  {
+    id: "example",
+    suggestion: "Generic anti-inflammatories outside Austria and Italy",
+    query: exampleQuery,
+    reply:
+      "The filters and groups on the left will show you generic anti-inflammatory therapies targeting Actin Gamma Enteric Smooth Muscle, but exclude drugs available in Austria or Italy, as well as marketed drugs that are withdrawn or archived.",
+    groups: parsedGroups,
+  },
+]
+
+const fallbackParse = aiParses[aiParses.length - 1]
+
+export function findParse(id: string) {
+  return aiParses.find((parse) => parse.id === id) ?? fallbackParse
+}
+
+/**
+ * The canned parse a query lands on. An exact chip query wins; otherwise the
+ * first keyword match, checked Phase III before Phase II so `phase iii` is not
+ * read as `phase ii`; otherwise the worked example.
+ */
+export function resolveQuery(text: string): CannedParse {
+  const query = text.trim().toLowerCase()
+  const exact = aiParses.find((parse) => parse.query.toLowerCase() === query)
+  if (exact) return exact
+  const ordered = [...aiParses].sort((a, b) => (b.id === "phase-3" ? 1 : 0) - (a.id === "phase-3" ? 1 : 0))
+  return ordered.find((parse) => parse.matches?.test(query)) ?? fallbackParse
+}
 
 /** Every value a row answers to for one attribute. */
 export function readField(row: DrugRow, field: RowField) {

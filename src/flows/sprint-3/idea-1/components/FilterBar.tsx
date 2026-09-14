@@ -6,7 +6,7 @@ import {
   OperatorPill,
   type GroupHandlers,
 } from "@/flows/sprint-3/idea-1/components/FilterChips"
-import type { FilterGroup } from "@/flows/sprint-3/idea-1/data"
+import { barVisibleCount, type FilterGroup } from "@/flows/sprint-3/idea-1/data"
 
 /**
  * The applied-filter bar above the table. Same chips and operators as the
@@ -18,7 +18,6 @@ import type { FilterGroup } from "@/flows/sprint-3/idea-1/data"
 export function FilterBar({
   groups,
   resultCount,
-  overflowCount,
   onOpenGroup,
   onAddFilter,
   onClearFilters,
@@ -28,8 +27,6 @@ export function FilterBar({
 }: {
   groups: FilterGroup[]
   resultCount: string
-  /** Rendered as a `+N` pill when the bar runs out of room. */
-  overflowCount?: number
   onOpenGroup: (index: number) => void
   onAddFilter: () => void
   onClearFilters: () => void
@@ -38,12 +35,15 @@ export function FilterBar({
   renderPopover?: (index: number) => React.ReactNode
 } & GroupHandlers) {
   const { onGroupOperator } = handlers
+  // Groups past the bar's limit collapse into `+N`, counted rather than authored.
+  const visible = barVisibleCount(groups)
+  const overflowCount = groups.length - visible
 
   return (
     <div className="bg-surface-chrome border-edge sticky top-0 z-20 border-b px-6 py-4">
       <div className="flex items-start gap-6">
         <div className="flex min-w-0 flex-1 flex-wrap items-start gap-x-6 gap-y-4">
-          {groups.map((group, i) => {
+          {groups.slice(0, visible).map((group, i) => {
             // The operator between two groups renders as the leading pill of the
             // second one, the way the source bar reads left to right.
             const leading = groups[i - 1]?.next
@@ -77,10 +77,15 @@ export function FilterBar({
           })}
 
           <div className="flex items-center gap-2 self-end">
-            {overflowCount ? (
-              <span className="bg-muted rounded-full px-3 py-1 text-sm tabular-nums">
+            {overflowCount > 0 ? (
+              <button
+                type="button"
+                onClick={onEditFilters}
+                aria-label={`${overflowCount} more filters`}
+                className="bg-muted hover:bg-accent rounded-full px-3 py-1 text-sm tabular-nums transition-colors"
+              >
                 +{overflowCount}
-              </span>
+              </button>
             ) : null}
             <button
               type="button"

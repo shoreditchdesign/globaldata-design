@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useSyncExternalStore } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon, XIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -71,13 +72,22 @@ export function Explorer({
   nav,
   sprintId,
   ideaId,
-  screenSlug,
+  screenSlug: routeSlug,
 }: {
   nav: NavSprint[]
   sprintId: string
   ideaId: string
   screenSlug: string
 }) {
+  // A screen may move its own URL on to another step with `history.replaceState`
+  // (Idea 1 does, as its one live state is clicked through). The route does not
+  // re-render for that, but `usePathname` follows it, so the stepper reads the
+  // step from the address rather than from the prop the route was rendered with.
+  const pathname = usePathname()
+  const [, pathSprint, pathIdea, pathScreen] = pathname.split("/")
+  const screenSlug =
+    pathSprint === sprintId && pathIdea === ideaId && pathScreen ? pathScreen : routeSlug
+
   const hydrated = useHydrated()
   const open = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 

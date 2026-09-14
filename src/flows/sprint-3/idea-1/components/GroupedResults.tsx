@@ -89,7 +89,7 @@ export function GroupedResults({
         <div className="overflow-hidden rounded-lg border">
           {rows.length === 0 ? (
             <p className="text-muted-foreground px-4 py-10 text-center text-sm">
-              No drugs match these filters.
+              No drugs in this 16-row sample match these filters.
             </p>
           ) : (
             <Buckets

@@ -1,9 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { ProductChrome } from "@/components/prototype/ProductChrome"
+import { motion, usePrefersReducedMotion } from "@/components/prototype/motion"
 import { AiPane } from "@/flows/sprint-3/idea-1/components/AiPane"
 import { FilterBar } from "@/flows/sprint-3/idea-1/components/FilterBar"
 import { FilterModal } from "@/flows/sprint-3/idea-1/components/FilterModal"
@@ -17,11 +19,10 @@ import {
 import { ResultsTable, resultColumns } from "@/flows/sprint-3/idea-1/components/ResultsTable"
 import {
   areaAttributes,
-  assistantReply,
   findAttribute,
   formatCount,
   matchingRows,
-  parsedGroups,
+  resolveQuery,
   resultCount,
   type AttributeSpec,
   type FilterGroup,
@@ -30,13 +31,14 @@ import {
   type ValueOption,
 } from "@/flows/sprint-3/idea-1/data"
 import {
+  finishResolving,
   initialState,
   isValueSelected,
-  mergeGroups,
   removeChip,
   selectedCountFor,
   setChipOperator,
   setGroupOperator,
+  slugFor,
   toggleValue,
   type Idea1State,
   type Tab,
@@ -45,12 +47,26 @@ import {
 const PANEL_CLASS = "top-0 left-full z-20 ml-2 max-h-[min(26rem,46svh)]"
 const BAR_PANEL_CLASS = "top-full left-0 z-30 mt-2 max-h-[min(26rem,50svh)]"
 
-function timestamp() {
-  return new Date().toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  })
+/** Quiet disclosure for an attribute the sample cannot evaluate. */
+const UNEVALUATED_NOTE = "Not in this sample; the table ignores it"
+
+/**
+ * The slug this screen last wrote into the URL itself.
+ *
+ * A URL change that matches it is the screen's own echo coming back through
+ * the router, not a jump, so it must not reseed. Module scope rather than a
+ * ref because it is read during render, and it only ever describes this one
+ * window's history.
+ */
+let lastWrittenSlug: string | null = null
+
+function splitPath(pathname: string) {
+  const cut = pathname.lastIndexOf("/")
+  return { base: pathname.slice(0, cut), slug: pathname.slice(cut + 1) }
+}
+
+function valueLabel(value: ValueOption) {
+  return value.prefix ? `${value.prefix} ${value.label}` : value.label
 }
 
 /**
@@ -62,12 +78,52 @@ function timestamp() {
  * separate `Apply filters` commit and the modal that hides the table are all
  * still here, because they are the evidence.
  *
- * Every original slug seeds a starting state, so the deep links and the
- * Explorer's stepper still land where they used to.
+ * The slug in the URL seeds the state on arrival. From then on the state leads
+ * and the URL follows it with `replaceState`, which the App Router folds into
+ * `usePathname` without re-rendering the route — so the screen keeps its state
+ * while the address bar and the Explorer name the frame it is nearest to. A
+ * URL change the screen did not write is a jump, and reseeds.
  */
-export function IncumbentScreen({ slug }: { slug: string }) {
+export function IncumbentScreen() {
+  const pathname = usePathname()
+  const { base, slug } = splitPath(pathname)
+
   const [state, setState] = useState<Idea1State>(() => initialState(slug))
   const [search, setSearch] = useState("")
+  const reducedMotion = usePrefersReducedMotion()
+
+  const liveSlug = slugFor(state)
+
+  // A jump to another frame that React did not remount for — the Explorer
+  // linking to the slug this route was first rendered with — arrives only as a
+  // new pathname. Adjusted during render so the old state never paints first.
+  const [seenSlug, setSeenSlug] = useState(slug)
+  if (seenSlug !== slug) {
+    setSeenSlug(slug)
+    if (slug !== liveSlug && slug !== lastWrittenSlug) {
+      setState(initialState(slug))
+      setSearch("")
+    }
+  }
+
+  // Replace, not push. The state cannot be rebuilt from history, so a pushed
+  // entry per click would make Back change the address and nothing else. Back
+  // leaves the flow for wherever you were before it, which is what it did when
+  // these were twelve separate pages.
+  useEffect(() => {
+    const target = `${base}/${liveSlug}`
+    if (window.location.pathname === target) return
+    lastWrittenSlug = liveSlug
+    window.history.replaceState(null, "", target)
+  }, [base, liveSlug])
+
+  // The resolving beat. A pause, not a computation — the parse is already
+  // chosen; this is only how long it takes to become visible.
+  useEffect(() => {
+    if (!state.resolving) return
+    const timer = window.setTimeout(() => setState(finishResolving), motion.hold)
+    return () => window.clearTimeout(timer)
+  }, [state.resolving])
 
   const update = (patch: Partial<Idea1State>) => setState((current) => ({ ...current, ...patch }))
 
@@ -141,21 +197,19 @@ export function IncumbentScreen({ slug }: { slug: string }) {
       modal: null,
       openArea: null,
       openAttribute: null,
-      overflowCount: 0,
     }))
   }
 
   function submitQuery() {
-    setState((current) => ({
-      ...current,
-      transcript: {
-        user: current.composer.trim(),
-        assistant: assistantReply,
-        time: timestamp(),
-      },
-      builder: mergeGroups(current.builder, parsedGroups),
-      composer: "",
-    }))
+    const query = state.composer.trim()
+    if (!query || state.resolving) return
+    const parseId = resolveQuery(query).id
+
+    setState((current) => {
+      const pending: Idea1State = { ...current, composer: "", resolving: { query, parseId } }
+      // Reduced motion skips the beat rather than holding a still frame.
+      return reducedMotion ? finishResolving(pending) : pending
+    })
   }
 
   /** Reopen the manual cascade at the area and attribute that produced a pill. */
@@ -219,7 +273,6 @@ export function IncumbentScreen({ slug }: { slug: string }) {
         applied: groups,
         builder: groups,
         barPopover: nextAnchor >= 0 ? nextAnchor : null,
-        overflowCount: 0,
       }
     })
   }
@@ -260,7 +313,7 @@ export function IncumbentScreen({ slug }: { slug: string }) {
     const area = state.openArea
 
     if (openSpec) {
-      const values = openSpec.values.filter((value) => matches(value.label))
+      const values = openSpec.values.filter((value) => matches(valueLabel(value)))
       return (
         <CascadePanel
           breadcrumb={[area, openSpec.label]}
@@ -272,13 +325,14 @@ export function IncumbentScreen({ slug }: { slug: string }) {
           onBack={() => selectAttribute(null)}
           onDone={() => selectArea(null)}
         >
+          {openSpec.field ? null : <CascadeRow label={UNEVALUATED_NOTE} muted />}
           {values.length === 0 ? (
             <CascadeRow label="No matching values" muted />
           ) : (
             values.map((value) => (
               <CascadeValueRow
                 key={value.label}
-                label={value.label}
+                label={valueLabel(value)}
                 count={value.count}
                 checked={isValueSelected(state.builder, area, openSpec, value.label)}
                 onClick={() => tickValue(area, openSpec, value)}
@@ -335,10 +389,9 @@ export function IncumbentScreen({ slug }: { slug: string }) {
           <FilterBar
             groups={state.applied}
             resultCount={`${formatCount(count)} Drugs`}
-            overflowCount={state.overflowCount || undefined}
             onOpenGroup={openBarFilter}
             onAddFilter={() => openModal("manual")}
-            onClearFilters={() => update({ applied: [], builder: [], overflowCount: 0, barPopover: null })}
+            onClearFilters={() => update({ applied: [], builder: [], barPopover: null })}
             onEditFilters={() => openModal(state.tab)}
             renderPopover={(index) => {
               if (state.barPopover !== index) return null
@@ -378,7 +431,7 @@ export function IncumbentScreen({ slug }: { slug: string }) {
                 )
               }
 
-              const values = spec.values.filter((value) => matches(value.label))
+              const values = spec.values.filter((value) => matches(valueLabel(value)))
               return (
                 <CascadePanel
                   breadcrumb={[area, spec.label]}
@@ -390,13 +443,14 @@ export function IncumbentScreen({ slug }: { slug: string }) {
                   onBack={() => selectAttribute(null)}
                   onDone={() => update({ barPopover: null })}
                 >
+                  {spec.field ? null : <CascadeRow label={UNEVALUATED_NOTE} muted />}
                   {values.length === 0 ? (
                     <CascadeRow label="No matching values" muted />
                   ) : (
                     values.map((value) => (
                       <CascadeValueRow
                         key={value.label}
-                        label={value.label}
+                        label={valueLabel(value)}
                         count={value.count}
                         checked={isValueSelected(state.applied, area, spec, value.label)}
                         onClick={() => editApplied(toggleValue(state.applied, area, spec, value))}
@@ -466,6 +520,7 @@ export function IncumbentScreen({ slug }: { slug: string }) {
             <AiPane
               query={state.composer}
               transcript={state.transcript}
+              pending={state.resolving?.query}
               onQuery={(composer) => update({ composer })}
               onSubmit={submitQuery}
             />

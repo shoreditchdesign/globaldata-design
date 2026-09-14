@@ -2,16 +2,17 @@
  * The one state the twelve Idea 1 frames turned out to be.
  *
  * Each of the original slugs is kept as an entry point — the review may want to
- * jump straight to a state — so every screen is the same component seeded with
- * a different starting state, and every state is reachable from `results` by
- * clicking.
+ * jump straight to a state — so a slug seeds a starting state, and from there
+ * every click moves the same live state. The URL follows it the other way:
+ * `slugFor` names the frame the live state is nearest to.
  */
 
 import type { AttributeSpec, FilterGroup, Operator, RowField } from "@/flows/sprint-3/idea-1/data"
 import {
-  assistantReply,
-  exampleQuery,
-  overflowGroups,
+  aiParses,
+  barVisibleCount,
+  findParse,
+  manyFilterGroups,
   parsedGroups,
 } from "@/flows/sprint-3/idea-1/data"
 
@@ -34,6 +35,8 @@ export interface Idea1State {
   applied: FilterGroup[]
   composer: string
   transcript: Transcript | null
+  /** A submitted query waiting out the resolving beat, and the parse it matched. */
+  resolving: { query: string; parseId: string } | null
   /** Area pill the cascade is anchored to. */
   openArea: string | null
   /** Attribute inside that area whose values are showing. */
@@ -44,11 +47,6 @@ export interface Idea1State {
   grouping: { field: RowField; label: string }[]
   /** Keys of the expanded rows in the grouped view. */
   openGroups: string[]
-  /**
-   * The authored `+N` on the ten-plus-filters frame. It stands for filters the
-   * bar has no room for, so it is dropped as soon as the bar's contents change.
-   */
-  overflowCount: number
 }
 
 const base: Idea1State = {
@@ -58,17 +56,19 @@ const base: Idea1State = {
   applied: [],
   composer: "",
   transcript: null,
+  resolving: null,
   openArea: null,
   openAttribute: null,
   barPopover: null,
   grouping: [],
   openGroups: [],
-  overflowCount: 0,
 }
 
+const example = aiParses.find((parse) => parse.groups === parsedGroups) ?? aiParses[0]
+
 const transcript: Transcript = {
-  user: exampleQuery,
-  assistant: assistantReply,
+  user: example.query,
+  assistant: example.reply,
   time: "03:04 PM",
 }
 
@@ -84,7 +84,7 @@ const cardiovascular: FilterGroup = {
 export const initialStates: Record<string, Idea1State> = {
   results: base,
   "ai-empty": { ...base, modal: "ai", tab: "ai" },
-  "ai-typed": { ...base, modal: "ai", tab: "ai", composer: exampleQuery },
+  "ai-typed": { ...base, modal: "ai", tab: "ai", composer: example.query },
   "ai-parsed": { ...base, modal: "ai", tab: "ai", transcript, builder: parsedGroups },
   "manual-areas": { ...base, modal: "manual", tab: "manual" },
   "manual-attributes": { ...base, modal: "manual", tab: "manual", openArea: "Drugs" },
@@ -111,14 +111,15 @@ export const initialStates: Record<string, Idea1State> = {
     transcript,
     tab: "ai",
     barPopover: 0,
+    openArea: "Drugs",
+    openAttribute: "Development Stage",
   },
   "many-filters": {
     ...base,
-    applied: [...parsedGroups, ...overflowGroups],
-    builder: [...parsedGroups, ...overflowGroups],
+    applied: manyFilterGroups,
+    builder: manyFilterGroups,
     transcript,
     tab: "ai",
-    overflowCount: 2,
   },
   "group-by": {
     ...base,
@@ -132,6 +133,64 @@ export const initialStates: Record<string, Idea1State> = {
 
 export function initialState(slug: string): Idea1State {
   return initialStates[slug] ?? base
+}
+
+/**
+ * The frame a live state is nearest to, so the URL can follow the click-through.
+ *
+ * Every seed maps back to its own slug, so landing on a deep link never
+ * rewrites it. Anything between two frames names the one it is on the way to.
+ */
+export function slugFor(state: Idea1State): string {
+  if (state.modal === "ai") {
+    if (state.resolving) return "ai-typed"
+    if (state.transcript) return "ai-parsed"
+    return state.composer.trim() ? "ai-typed" : "ai-empty"
+  }
+
+  if (state.modal === "manual") {
+    if (state.openArea && state.openAttribute) {
+      return state.builder.length > 0 ? "manual-selected" : "manual-values"
+    }
+    return state.openArea ? "manual-attributes" : "manual-areas"
+  }
+
+  if (state.barPopover !== null && state.applied.length > 0) return "filter-bar-dropdown"
+  if (state.grouping.length > 0) return "group-by"
+  if (state.applied.length === 0) return "results"
+  if (barVisibleCount(state.applied) < state.applied.length) return "many-filters"
+  return "applied"
+}
+
+/* -------------------------------------------------------------------------- */
+/* Resolving a query                                                           */
+/* -------------------------------------------------------------------------- */
+
+function timestamp() {
+  return new Date().toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  })
+}
+
+/**
+ * Land a resolved query: the exchange goes into the transcript and the parse
+ * becomes the builder.
+ *
+ * A new question replaces the builder rather than folding into it. Merging a
+ * `Phase II` stage group into a query whose stage group carries a `NOT` would
+ * silently invert it, and the table would answer a question nobody asked.
+ */
+export function finishResolving(state: Idea1State): Idea1State {
+  if (!state.resolving) return state
+  const parse = findParse(state.resolving.parseId)
+  return {
+    ...state,
+    resolving: null,
+    transcript: { user: state.resolving.query, assistant: parse.reply, time: timestamp() },
+    builder: normalise(parse.groups),
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -189,9 +248,15 @@ export function toggleValue(
   groups: FilterGroup[],
   area: string,
   spec: AttributeSpec,
-  value: { label: string; count: number; share: number },
+  value: { label: string; count: number; share: number; prefix?: string },
 ): FilterGroup[] {
   const index = groupIndexFor(groups, area, spec)
+  const chip = {
+    label: value.label,
+    count: value.count,
+    share: value.share,
+    ...(value.prefix ? { prefix: value.prefix } : {}),
+  }
 
   if (index < 0) {
     const next = groups.map((group, i) =>
@@ -204,22 +269,24 @@ export function toggleValue(
         field: spec.field,
         area,
         attribute: spec.label,
-        chips: [{ label: value.label, count: value.count, share: value.share }],
+        chips: [chip],
       },
     ])
   }
 
   const group = groups[index]
-  const chipIndex = group.chips.findIndex((chip) => chip.label === value.label)
+  const chipIndex = group.chips.findIndex((candidate) => candidate.label === value.label)
 
   const chips =
     chipIndex >= 0
       ? group.chips.filter((_, i) => i !== chipIndex)
       : [
-          ...group.chips.map((chip, i) =>
-            i === group.chips.length - 1 ? { ...chip, next: chip.next ?? ("OR" as Operator) } : chip,
+          ...group.chips.map((candidate, i) =>
+            i === group.chips.length - 1
+              ? { ...candidate, next: candidate.next ?? ("OR" as Operator) }
+              : candidate,
           ),
-          { label: value.label, count: value.count, share: value.share },
+          chip,
         ]
 
   return normalise(groups.map((g, i) => (i === index ? { ...g, chips } : g)))
@@ -253,40 +320,4 @@ export function setChipOperator(
 
 export function setGroupOperator(groups: FilterGroup[], groupIndex: number, operator: Operator) {
   return groups.map((group, i) => (i === groupIndex ? { ...group, next: operator } : group))
-}
-
-/**
- * Fold the groups the AI wrote into whatever the manual pane already built.
- *
- * The two tabs share one builder, and that is the incumbent's one unambiguously
- * good idea — so submitting a prompt replaces the groups it has an opinion
- * about and leaves the rest of the hand-built query standing.
- */
-export function mergeGroups(existing: FilterGroup[], incoming: FilterGroup[]): FilterGroup[] {
-  // Into an empty builder the AI's groups land exactly as authored, dividers
-  // and all — the source draws no operator between Target and Drug type, and
-  // filling one in would be a redesign.
-  if (existing.length === 0) return normalise(incoming)
-
-  let merged = [...existing]
-
-  for (const group of incoming) {
-    const index = merged.findIndex((candidate) =>
-      group.field ? candidate.field === group.field : candidate.label === group.label,
-    )
-    if (index >= 0) {
-      merged[index] = { ...group, next: merged[index].next ?? group.next }
-    } else {
-      merged = [
-        ...merged.map((candidate, i) =>
-          i === merged.length - 1
-            ? { ...candidate, next: candidate.next ?? ("AND" as Operator) }
-            : candidate,
-        ),
-        group,
-      ]
-    }
-  }
-
-  return normalise(merged)
 }
