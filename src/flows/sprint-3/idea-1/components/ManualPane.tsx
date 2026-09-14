@@ -45,19 +45,22 @@ export function ManualPane({
                   type="button"
                   onClick={() => onSelectArea(isOpen ? null : area)}
                   className={cn(
-                    "bg-muted hover:bg-accent inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm transition-opacity",
-                    dimOthers && !isOpen && "opacity-20",
+                    "inline-flex h-8 items-center gap-2 rounded-full border px-3.5 text-[13px] transition-[opacity,background-color]",
+                    isOpen
+                      ? "bg-brand-tint border-brand-border text-foreground"
+                      : "bg-surface-panel border-border hover:bg-accent",
+                    dimOthers && !isOpen && "opacity-40",
                   )}
                 >
                   {area}
                   {areaCounts[area] ? (
-                    <Badge className="size-4 rounded-full p-0 text-[10px] tabular-nums">
+                    <Badge className="bg-brand-tint text-brand-ink border-brand-border h-4 min-w-4 rounded-full border px-1 text-[10px] tabular-nums">
                       {areaCounts[area]}
                     </Badge>
                   ) : null}
                 </button>
                 {isOpen && breadcrumbPill ? (
-                  <span className="bg-muted inline-flex items-center rounded-full px-4 py-2 text-sm">
+                  <span className="bg-surface-panel border-border inline-flex h-8 items-center rounded-full border px-3.5 text-[13px]">
                     {breadcrumbPill}
                   </span>
                 ) : null}
@@ -127,7 +130,7 @@ export function CascadePanel({
         )}
       </div>
 
-      <label className="text-muted-foreground flex shrink-0 items-center gap-2 border-b px-3 py-2.5 text-sm">
+      <label className="text-muted-foreground border-hairline flex shrink-0 items-center gap-2 border-b px-3 py-2.5 text-[13px]">
         <SearchIcon className="size-3.5 shrink-0" />
         <input
           value={search}
@@ -140,12 +143,12 @@ export function CascadePanel({
 
       <div className="min-h-0 flex-auto overflow-y-auto py-1">{children}</div>
 
-      <div className="text-muted-foreground flex shrink-0 items-stretch border-t text-[10px] font-medium tracking-[0.08em] uppercase">
+      <div className="text-muted-foreground border-hairline flex shrink-0 items-stretch border-t text-[10px] font-medium tracking-[0.08em] uppercase">
         <span className="bg-surface-sunken flex-1 px-3 py-2.5 tabular-nums">{selectedCount} selected</span>
         <button
           type="button"
           onClick={onDone}
-          className="hover:text-foreground flex items-center gap-1.5 border-l px-3 py-2.5 transition-colors"
+          className="hover:text-foreground border-hairline flex items-center gap-1.5 border-l px-3 py-2.5 transition-colors"
         >
           Done <CheckIcon className="size-3" />
         </button>
@@ -171,7 +174,7 @@ export function CascadeRow({
     <button
       type="button"
       onClick={onClick}
-      className="hover:bg-muted flex w-full items-center justify-between px-3 py-1.5 text-left text-sm"
+      className="hover:bg-accent flex h-8 w-full items-center justify-between px-3 text-left text-[13px] transition-colors"
     >
       {label}
       <ChevronRightIcon className="text-muted-foreground size-3.5 shrink-0" />
@@ -196,18 +199,18 @@ export function CascadeValueRow({
       type="button"
       onClick={onClick}
       aria-pressed={checked}
-      className="hover:bg-muted flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm"
+      className="hover:bg-accent flex h-8 w-full items-center gap-2.5 px-3 text-left text-[13px] transition-colors"
     >
       <span
         className={cn(
-          "flex size-4 shrink-0 items-center justify-center rounded-[4px] border",
-          checked && "bg-brand border-brand text-brand-foreground",
+          "border-border bg-surface-panel flex size-4 shrink-0 items-center justify-center rounded-[4px] border",
+          checked && "bg-selected border-selected text-selected-foreground",
         )}
       >
         {checked ? <CheckIcon className="size-3" /> : null}
       </span>
       <span className="flex-1 truncate">{label}</span>
-      <span className="text-muted-foreground text-xs tabular-nums">
+      <span className="text-muted-foreground text-[12px] tabular-nums">
         {count.toLocaleString("en-GB")}
       </span>
       <ChevronRightIcon className="text-muted-foreground size-3.5 shrink-0" />

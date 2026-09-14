@@ -37,7 +37,7 @@ export function FilterModal({
       <div className="bg-surface-raised border-edge relative flex h-full max-h-[750px] w-full max-w-[1055px] overflow-hidden rounded-2xl border shadow-2xl">
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="px-6 pt-6">
-            <div className="bg-surface-sunken border-border inline-flex rounded-full border p-1">
+            <div className="bg-surface-sunken border-border inline-flex items-center gap-0.5 rounded-lg border p-0.5">
               <Tab active={tab === "ai"} onClick={() => onTab("ai")}>
                 AI filter
               </Tab>
@@ -79,10 +79,10 @@ function Tab({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "rounded-full border px-4 py-1.5 text-sm transition-colors",
+        "flex h-7 items-center rounded-md px-3 text-[13px] font-medium transition-colors",
         active
-          ? "bg-brand-tint border-brand-border text-foreground"
-          : "text-muted-foreground hover:text-foreground",
+          ? "bg-surface-panel text-foreground shadow-panel"
+          : "text-muted-foreground hover:bg-accent hover:text-foreground",
       )}
     >
       {children}

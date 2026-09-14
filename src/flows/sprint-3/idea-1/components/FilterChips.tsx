@@ -9,32 +9,35 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { FilterChip, FilterGroup, Operator } from "@/flows/sprint-3/idea-1/data"
-import { operators } from "@/flows/sprint-3/idea-1/data"
+import { groupNegated, operators } from "@/flows/sprint-3/idea-1/data"
 
 /**
- * A removable filter value. The shared pill in its plainer `muted` skin — this
- * is the incumbent's chip, and it should look like the incumbent's chip.
+ * A removable filter value, in the shared pill's tinted `applied` skin — the
+ * same chip the other directions draw — or `excluded` when a NOT negates its
+ * group, so an exclusion never reads like an inclusion.
  *
  * The shared pill owns its own remove button and takes no handler, so the
  * removal is caught on the way up rather than by forking the component.
  */
 export function Chip({
   chip,
+  negated = false,
   className,
   onOpen,
   onRemove,
 }: {
   chip: FilterChip
+  negated?: boolean
   className?: string
   onOpen?: () => void
   onRemove?: () => void
 }) {
   const content = (
     <>
-      {chip.prefix ? <span className="text-muted-foreground">{chip.prefix}</span> : null}
-      {chip.label}
+      {chip.prefix ? <span className="font-normal opacity-70">{chip.prefix}</span> : null}
+      <span className="max-w-[260px] truncate">{chip.label}</span>
       {chip.count !== undefined ? (
-        <span className="text-muted-foreground text-xs tabular-nums">{chip.count}</span>
+        <span className="text-[11px] font-normal tabular-nums opacity-70">{chip.count}</span>
       ) : null}
     </>
   )
@@ -48,9 +51,9 @@ export function Chip({
       }}
     >
       <FilterPill
-        variant="muted"
+        variant={negated ? "excluded" : "applied"}
         removeLabel={`Remove ${chip.label}`}
-        className={cn(onOpen && "hover:bg-accent transition-colors", className)}
+        className={className}
       >
         {onOpen ? (
           <button
@@ -58,7 +61,7 @@ export function Chip({
             data-slot="filter-pill-open"
             onClick={onOpen}
             aria-label={`Open ${chip.label} filter controls`}
-            className="focus-visible:ring-ring/50 inline-flex items-center gap-1 rounded-full text-left focus-visible:ring-2 focus-visible:outline-none"
+            className="focus-visible:ring-ring/50 inline-flex min-w-0 items-center gap-1 rounded-full text-left hover:underline focus-visible:ring-2 focus-visible:outline-none"
           >
             {content}
           </button>
@@ -81,7 +84,7 @@ export function OperatorPill({
   onChange?: (operator: Operator) => void
 }) {
   const classes = cn(
-    "text-muted-foreground inline-flex items-center gap-1 rounded-full border bg-transparent px-2.5 py-1 text-xs font-medium",
+    "text-muted-foreground bg-surface-panel border-border inline-flex h-6 items-center gap-1 rounded-full border px-2 text-[11px] font-medium tracking-[0.08em]",
     onChange && "hover:text-foreground hover:bg-accent transition-colors",
     className,
   )
@@ -123,16 +126,18 @@ export interface GroupHandlers {
 export function GroupChips({
   group,
   groupIndex,
+  negated = false,
   onOpenChip,
   onRemoveChip,
   onChipOperator,
-}: { group: FilterGroup; groupIndex: number } & GroupHandlers) {
+}: { group: FilterGroup; groupIndex: number; negated?: boolean } & GroupHandlers) {
   return (
     <>
       {group.chips.map((chip, chipIndex) => (
         <span key={chip.label} className="contents">
           <Chip
             chip={chip}
+            negated={negated}
             onOpen={
               onOpenChip && group.area && group.attribute
                 ? () => onOpenChip(groupIndex, chipIndex)
@@ -158,15 +163,16 @@ export function GroupChips({
 export function FilterGroupCard({
   group,
   groupIndex,
+  negated = false,
   ...handlers
-}: { group: FilterGroup; groupIndex: number } & GroupHandlers) {
+}: { group: FilterGroup; groupIndex: number; negated?: boolean } & GroupHandlers) {
   return (
-    <div className="bg-background w-fit max-w-full rounded-xl border p-3 shadow-xs">
+    <div className="bg-surface-panel border-border w-fit max-w-full rounded-lg border p-3">
       <p className="text-muted-foreground mb-2 text-[10px] font-medium tracking-[0.08em] uppercase">
         {group.label}
       </p>
-      <div className="flex flex-wrap items-center gap-2">
-        <GroupChips group={group} groupIndex={groupIndex} {...handlers} />
+      <div className="flex flex-wrap items-center gap-1.5">
+        <GroupChips group={group} groupIndex={groupIndex} negated={negated} {...handlers} />
       </div>
     </div>
   )
@@ -184,7 +190,12 @@ export function FilterBuilderStack({
       {groups.map((group, groupIndex) => (
         <div key={group.label} className="flex w-full flex-col items-center gap-3">
           <div className="w-full">
-            <FilterGroupCard group={group} groupIndex={groupIndex} {...handlers} />
+            <FilterGroupCard
+              group={group}
+              groupIndex={groupIndex}
+              negated={groupNegated(groups, groupIndex)}
+              {...handlers}
+            />
           </div>
           {group.next ? (
             <OperatorPill

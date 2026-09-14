@@ -56,7 +56,7 @@ export function GroupedResults({
               if ((event.target as HTMLElement).closest("button")) onRemove(i)
             }}
           >
-            <FilterPill variant="muted" removeLabel={`Remove ${level.label} grouping`}>
+            <FilterPill removeLabel={`Remove ${level.label} grouping`}>
               {level.label}
             </FilterPill>
           </span>
@@ -66,7 +66,7 @@ export function GroupedResults({
           <DropdownMenu>
             <DropdownMenuTrigger
               aria-label="Add a grouping"
-              className="bg-muted hover:bg-accent flex size-7 items-center justify-center rounded-full transition-colors"
+              className="bg-surface-panel border-border text-muted-foreground hover:bg-accent hover:text-foreground flex size-6 items-center justify-center rounded-full border transition-colors"
             >
               <PlusIcon className="size-3.5" />
             </DropdownMenuTrigger>
@@ -86,9 +86,9 @@ export function GroupedResults({
       </div>
 
       <div className="px-6 pb-6">
-        <div className="overflow-hidden rounded-lg border">
+        <div className="bg-surface-panel border-edge overflow-hidden rounded-lg border">
           {rows.length === 0 ? (
-            <p className="text-muted-foreground px-4 py-10 text-center text-sm">
+            <p className="text-muted-foreground px-3 py-10 text-center text-[13px]">
               No drugs in this 16-row sample match these filters.
             </p>
           ) : (
@@ -131,11 +131,11 @@ function Buckets({
         const key = `${path}/${bucket.label}`
         const open = openGroups.includes(key)
         return (
-          <div key={key} className="border-b last:border-0">
+          <div key={key} className="border-hairline border-b last:border-0">
             <button
               type="button"
               onClick={() => onToggle(key)}
-              className="hover:bg-accent flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm transition-colors"
+              className="hover:bg-surface-page flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] font-medium transition-colors"
               style={{ paddingLeft: `${16 + depth * 20}px` }}
             >
               {open ? (
@@ -144,14 +144,14 @@ function Buckets({
                 <ChevronRightIcon className="text-muted-foreground size-3.5 shrink-0" />
               )}
               <span className="flex-1 truncate">{bucket.label}</span>
-              <span className="text-muted-foreground text-xs tabular-nums">
+              <span className="text-muted-foreground text-[12px] font-normal tabular-nums">
                 {bucket.rows.length} {bucket.rows.length === 1 ? "drug" : "drugs"}
               </span>
             </button>
 
             {open ? (
               grouping[depth + 1] ? (
-                <div className="border-t">
+                <div className="border-hairline border-t">
                   <Buckets
                     rows={bucket.rows}
                     grouping={grouping}
@@ -162,17 +162,17 @@ function Buckets({
                   />
                 </div>
               ) : (
-                <div className="border-t">
+                <div className="border-hairline bg-surface-page/60 border-t">
                   {bucket.rows.map((row, i) => (
                     <div
                       key={`${row.name}-${i}`}
                       className={cn(
-                        "text-muted-foreground flex items-center gap-4 py-2 pr-4 text-sm",
-                        "border-b last:border-0",
+                        "text-muted-foreground flex items-center gap-4 py-2.5 pr-3 text-[13px]",
+                        "border-hairline border-b last:border-0",
                       )}
                       style={{ paddingLeft: `${44 + depth * 20}px` }}
                     >
-                      <span className="text-foreground w-40 shrink-0 truncate">{row.name}</span>
+                      <span className="text-foreground w-40 shrink-0 truncate font-medium">{row.name}</span>
                       <span className="w-48 shrink-0 truncate">{row.generic}</span>
                       <span className="flex-1 truncate">{row.company}</span>
                       <span className="shrink-0 truncate">{row.geographies.join(", ")}</span>

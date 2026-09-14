@@ -391,7 +391,17 @@ export function IncumbentScreen() {
             resultCount={`${formatCount(count)} Drugs`}
             onOpenGroup={openBarFilter}
             onAddFilter={() => openModal("manual")}
-            onClearFilters={() => update({ applied: [], builder: [], barPopover: null })}
+            onClearFilters={() =>
+              update({
+                applied: [],
+                builder: [],
+                barPopover: null,
+                grouping: [],
+                openGroups: [],
+                transcript: null,
+                composer: "",
+              })
+            }
             onEditFilters={() => openModal(state.tab)}
             renderPopover={(index) => {
               if (state.barPopover !== index) return null
@@ -464,7 +474,7 @@ export function IncumbentScreen() {
           />
         ) : (
           <div className="flex items-center justify-between px-6 py-5">
-            <p className="text-muted-foreground text-sm tabular-nums">
+            <p className="text-muted-foreground text-[13px] tabular-nums">
               1–{rows.length} of {formatCount(count)} Drugs
             </p>
             <Button size="sm" onClick={() => openModal("ai")}>
@@ -512,7 +522,7 @@ export function IncumbentScreen() {
           groups={state.builder}
           onTab={(tab) => update({ modal: tab, tab })}
           onClose={() => update({ modal: null })}
-          onClear={() => update({ builder: [] })}
+          onClear={() => update({ builder: [], transcript: null, composer: "" })}
           onApply={applyFilters}
           {...builderHandlers}
         >

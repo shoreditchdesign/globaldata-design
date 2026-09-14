@@ -112,7 +112,7 @@ export const initialStates: Record<string, Idea1State> = {
     tab: "ai",
     barPopover: 0,
     openArea: "Drugs",
-    openAttribute: "Development Stage",
+    openAttribute: "Target",
   },
   "many-filters": {
     ...base,

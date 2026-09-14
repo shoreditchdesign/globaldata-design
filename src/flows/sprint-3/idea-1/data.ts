@@ -302,15 +302,12 @@ export interface FilterGroup {
 }
 
 /**
- * Whether a group is negated.
- *
- * The source draws one NOT between the Developmental stage and Drug geography
- * groups, and its own transcript says both are exclusions — so a NOT negates
- * the group on either side of it. That ambiguity is the incumbent's; it is
- * reproduced rather than resolved.
+ * Whether a group is negated. A NOT reads left to right, as `A NOT B`: it
+ * negates the group after it and nothing else, so the bar says what the table
+ * does.
  */
 export function groupNegated(groups: FilterGroup[], index: number) {
-  return groups[index]?.next === "NOT" || groups[index - 1]?.next === "NOT"
+  return groups[index - 1]?.next === "NOT"
 }
 
 function evaluable(group: FilterGroup) {
@@ -437,10 +434,19 @@ export const therapyAreas: ValueOption[] = values([
   ["Musculoskeletal Disorders", 276],
 ])
 
-/** The two buckets the incumbent's stage picker offers, at its authored counts. */
+/**
+ * The incumbent's two buckets, then every stage the AI can write, so a pill
+ * the AI produced reopens a list that contains its own value.
+ */
 export const developmentalStages: ValueOption[] = values([
   ["Marketed", 3],
   ["Pipeline", 12],
+  ["Phase I", 14_210],
+  ["Phase II", 11_707],
+  ["Phase III", 9_137],
+  ["Pre-registration", 1_104],
+  ["Withdrawn (Marketed)", 857],
+  ["Archived (Marketed)", 571],
 ])
 
 const drugAttributeSpecs: AttributeSpec[] = [
@@ -653,21 +659,9 @@ export function findAttribute(area: string, label: string) {
  */
 export const parsedGroups: FilterGroup[] = [
   {
-    label: "Developmental stage", field: "stage", area: "Drugs", attribute: "Development Stage",
-    chips: [
-      { label: "Withdrawn (Marketed)", share: 0.03, next: "AND" },
-      { label: "Archived (Marketed)", share: 0.02 },
-    ],
-    next: "NOT",
-  },
-  {
-    label: "Drug geography", field: "geography", area: "Drugs", attribute: "Drug Geography",
-    chips: [{ label: "Austria", share: 0.09, next: "OR" }, { label: "Italy", share: 0.05 }],
-    next: "AND",
-  },
-  {
     label: "Target", field: "target", area: "Drugs", attribute: "Target",
     chips: [{ label: ACTG2, share: 8_066 / BASE_COUNT }],
+    next: "AND",
   },
   {
     label: "Drug type", field: "drugType", area: "Drugs", attribute: "Drug Type",
@@ -677,6 +671,20 @@ export const parsedGroups: FilterGroup[] = [
   {
     label: "Drug descriptor", field: "descriptor", area: "Drugs", attribute: "Drug Descriptor",
     chips: [{ label: ANTIINFLAMMATORY, share: 32_550 / BASE_COUNT }],
+    next: "NOT",
+  },
+  {
+    // Withdrawn or archived, excluded: the values are alternatives, so OR.
+    label: "Developmental stage", field: "stage", area: "Drugs", attribute: "Development Stage",
+    chips: [
+      { label: "Withdrawn (Marketed)", share: 0.003, next: "OR" },
+      { label: "Archived (Marketed)", share: 0.002 },
+    ],
+    next: "NOT",
+  },
+  {
+    label: "Drug geography", field: "geography", area: "Drugs", attribute: "Drug Geography",
+    chips: [{ label: "Austria", share: 0.09, next: "OR" }, { label: "Italy", share: 0.05 }],
   },
 ]
 
