@@ -1012,9 +1012,12 @@ export interface ColumnDef {
   key: string
   label: string
   /**
-   * The narrowest this lane may get: wide enough for its 14px header label,
-   * a sort arrow and a filter count on one line, and for a 16px value. Past
-   * the sum of these the grid scrolls sideways rather than wrapping.
+   * The narrowest this lane may get: wide enough for its 10px uppercase header
+   * label, a sort arrow and a filter count on one line, and for a 13px value.
+   * Past the sum of these the grid scrolls sideways rather than wrapping.
+   * Measured against Geist's own advance widths, not scaled by the type ratio —
+   * uppercase at 10px with `0.08em` tracking is barely narrower than 14px
+   * sentence case, so the saving comes from the values, not the labels.
    */
   minPx: number
   /** Share of spare width. `0` holds the lane at `minPx`. */
@@ -1071,7 +1074,7 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "drugName",
     label: "Drug Name",
-    minPx: 200,
+    minPx: 170,
     grow: 1,
     kind: "primary",
     values: none,
@@ -1082,7 +1085,7 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "brand",
     label: "Brand",
-    minPx: 140,
+    minPx: 120,
     grow: 0.6,
     kind: "text",
     values: (row) => (row.brand ? [row.brand] : []),
@@ -1093,7 +1096,7 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "company",
     label: "Company",
-    minPx: 200,
+    minPx: 170,
     grow: 1,
     kind: "text",
     values: (row) => [row.company],
@@ -1104,7 +1107,7 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "therapyArea",
     label: "Therapy Area",
-    minPx: 190,
+    minPx: 180,
     grow: 1,
     kind: "pills",
     values: (row) => row.therapyAreas,
@@ -1116,7 +1119,7 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "indication",
     label: "Indication",
-    minPx: 240,
+    minPx: 210,
     grow: 2,
     kind: "pills",
     values: (row) => row.indications,
@@ -1128,7 +1131,7 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "stage",
     label: "Development Stage",
-    minPx: 220,
+    minPx: 215,
     grow: 0,
     kind: "badge",
     values: (row) => [row.stage],
@@ -1140,7 +1143,7 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "moleculeType",
     label: "Molecule Type",
-    minPx: 200,
+    minPx: 185,
     grow: 1,
     kind: "text",
     values: (row) => [row.moleculeType],
@@ -1151,7 +1154,7 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "route",
     label: "Route of Administration",
-    minPx: 264,
+    minPx: 250,
     grow: 0,
     kind: "pills",
     values: (row) => row.routes,
@@ -1164,7 +1167,7 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "geography",
     label: "Drug Geography",
-    minPx: 230,
+    minPx: 205,
     grow: 1.5,
     kind: "pills",
     values: (row) => row.geographies,
@@ -1178,7 +1181,7 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "target",
     label: "Target",
-    minPx: 180,
+    minPx: 160,
     grow: 1,
     kind: "pills",
     values: (row) => row.targets,
@@ -1190,7 +1193,7 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "mechanism",
     label: "Mechanism of Action",
-    minPx: 240,
+    minPx: 225,
     grow: 1.5,
     kind: "text",
     values: (row) => [row.mechanism],
@@ -1202,7 +1205,7 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "drugType",
     label: "Drug Type",
-    minPx: 150,
+    minPx: 155,
     grow: 0.5,
     kind: "text",
     values: (row) => [row.drugType],
@@ -1213,7 +1216,7 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "marketingStatus",
     label: "Marketing Status",
-    minPx: 200,
+    minPx: 205,
     grow: 0.5,
     kind: "text",
     values: (row) => [row.marketingStatus],
@@ -1224,7 +1227,7 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "npv",
     label: "NPV (US$m)",
-    minPx: 150,
+    minPx: 130,
     grow: 0,
     kind: "number",
     values: none,

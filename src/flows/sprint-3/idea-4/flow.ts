@@ -22,7 +22,7 @@ export const sprint3Idea4: Flow = {
     "Takes the second, unanswered complaint too. The results view is the part nobody has redesigned, and it is where the CPO's 'falls off the side of the screen' objection actually lives.",
     "The table's header is two rows: the title with Aggregate, Group, Sort, Columns and Export on the right, then the applied filters. The only other chrome is the match count at the bottom right.",
     "One drug is one row. Multi-valued attributes render as tags capped with a +N that opens every value in a popover, so a row never grows and the lanes stay aligned — replacing the merged rows that let a single drug fill a viewport.",
-    "Legibility beats fitting. Cells are 16px and headers never wrap; past the lanes' minimum widths the grid scrolls sideways with the checkbox and drug name frozen on the left.",
+    "Legibility beats fitting. The grid carries Idea 3's table type — 13px cells under 10px uppercase headers — and headers never wrap; past the lanes' minimum widths the grid scrolls sideways with the checkbox and drug name frozen on the left.",
     "Column management the live product does not have: nine columns shown, more available, each hideable, movable and pinnable, against eight locked columns today.",
     "The AI acts on the data and its presentation, not on a query object — 'show me only the ones in Europe', 'add the NPV column', 'group by company' — which is what separates it from the chat tab in Idea 1, the filter-tree driver in Idea 2 and the sentence in Idea 3.",
     "Staged, not immediate: the agent proposes a plan with a preview of the row count, one click accepts, and a dismiss is always offered. A proposal the grid has moved past goes stale rather than applying over the change.",
