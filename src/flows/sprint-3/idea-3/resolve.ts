@@ -19,7 +19,7 @@ import { clauseTemplates, operatorWord, type Clause } from "@/flows/sprint-3/ide
  *    indication, a company, a date — get their own message, because "we do not
  *    do that yet" and "we did not understand you" are different answers.
  * 3. Every canonical value and every word the sentence itself uses is a
- *    pattern, so the prose `edit as text` hands back always reads again.
+ *    pattern, so the prose `Edit` hands back always reads again.
  */
 
 /* -------------------------------------------------------------------------- */

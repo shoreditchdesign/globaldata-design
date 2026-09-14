@@ -4,6 +4,7 @@ import * as React from "react"
 import { CheckIcon, ChevronDownIcon, PlusIcon, XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { liftClass } from "@/components/prototype/motion"
 import { Button } from "@/components/ui/button"
 import {
   Command,
@@ -136,39 +137,62 @@ function ValuePill({
   const excluded = clauseMode(clause) === "exclude"
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className={cn(
-            "text-foreground focus-visible:ring-ring/50 -mx-0.5 inline-flex items-center gap-1 rounded-md border px-1.5 align-baseline font-medium transition-colors outline-none focus-visible:ring-3",
-            excluded
-              ? "bg-negative border-negative-border hover:bg-negative-border"
-              : "bg-brand-tint border-brand-border hover:bg-brand-border",
-            // The open pill was carrying a persistent `ring`, which is now the
-            // focus ring's colour — the two states would have been the same
-            // shape in the same blue. It deepens its own fill instead.
-            open && (excluded ? "bg-negative-border" : "bg-brand-border"),
-          )}
-        >
-          {option?.term ?? value}
-          <ChevronDownIcon
+    // The group, so the dismiss can sit beside the trigger rather than inside
+    // it — a button cannot hold a button.
+    <span className="group/pill relative mr-1 -ml-0.5 inline-flex align-baseline">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
             className={cn(
-              "size-[0.55em] opacity-70",
-              excluded ? "text-negative-ink" : "text-brand-ink",
+              "text-foreground focus-visible:ring-ring/50 inline-flex items-center gap-1 rounded-md border px-1.5 font-medium transition-[background-color,box-shadow] outline-none focus-visible:ring-3",
+              // Hover lifts the chip rather than deepening it: a darker blue
+              // under the pointer shouted louder than the chip at rest. Keyed
+              // to the group so hovering the dismiss keeps the lift.
+              excluded
+                ? "bg-negative border-negative-border group-hover/pill:shadow-panel"
+                : "bg-brand-tint border-brand-border group-hover/pill:shadow-panel",
+              // The open pill takes the hover lift rather than a ring, so it
+              // cannot be mistaken for focus.
+              open && "shadow-panel",
             )}
+          >
+            {option?.term ?? value}
+            <ChevronDownIcon
+              className={cn(
+                "size-[0.55em] opacity-70 group-focus-within/pill:opacity-0 group-hover/pill:opacity-0",
+                liftClass,
+                excluded ? "text-negative-ink" : "text-brand-ink",
+              )}
+            />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-[320px] p-0 text-sm">
+          <ValueMenu
+            clause={clause}
+            onToggleValue={onToggleValue}
+            onRemoveClause={onRemoveClause}
+            onClose={() => setOpen(false)}
           />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-[320px] p-0 text-sm">
-        <ValueMenu
-          clause={clause}
-          onToggleValue={onToggleValue}
-          onRemoveClause={onRemoveClause}
-          onClose={() => setOpen(false)}
-        />
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+      {/* Laid over the chevron, which fades as this appears: no inline space
+          taken, so hovering a value never reflows the sentence. */}
+      <button
+        type="button"
+        aria-label={`Remove ${value}`}
+        onClick={() => onToggleValue(clause.id, value)}
+        className={cn(
+          "focus-visible:ring-ring/50 absolute top-1/2 right-[3px] flex size-[0.8em] -translate-y-1/2 items-center justify-center rounded-sm opacity-0 outline-none group-focus-within/pill:opacity-100 group-hover/pill:opacity-100 focus-visible:opacity-100 focus-visible:ring-2",
+          liftClass,
+          excluded
+            ? "text-negative-ink hover:bg-negative-border"
+            : "text-brand-ink hover:bg-brand-border",
+        )}
+      >
+        <XIcon className="size-[0.55em]" />
+      </button>
+    </span>
   )
 }
 
@@ -254,13 +278,16 @@ function ClauseSpan({
   clause,
   handlers,
   removable,
-  punctuation,
+  noun,
+  comma,
 }: {
   clause: Clause
   handlers: SentenceHandlers
   removable: boolean
-  /** Trailing prose kept inside the nowrap unit, e.g. `drugs` or a comma. */
-  punctuation?: string
+  /** ` drugs`, when the adjectival run ends here. Kept inside the nowrap unit. */
+  noun?: string
+  /** A trailing comma, also kept inside the nowrap unit. */
+  comma?: string
 }) {
   const operator = clause.operator
   const selected = clauseTerms(clause)
@@ -304,7 +331,9 @@ function ClauseSpan({
         </React.Fragment>
       ))}
 
-      {punctuation ? <span>{punctuation}</span> : null}
+      {noun ? <span>{noun}</span> : null}
+      {/* Its own margin, so a comma after a chip is not jammed against the next condition. */}
+      {comma ? <span className="mr-1">{comma}</span> : null}
 
       {removable ? (
         <button
@@ -384,13 +413,13 @@ export function QuerySentence({
   // Punctuation belongs to the clause that ends, not the one that starts, and
   // rides inside its nowrap unit — otherwise a wrap drops a comma to the head
   // of the next line. The rules live in `grammar`, so the prose that
-  // `edit as text` hands back is built from the same ones.
+  // `Edit` hands back is built from the same ones.
   const { prefix, pieces } = sentenceLayout(clauses)
 
   return (
     <p className="max-w-[74ch] text-[22px] leading-[2.05] font-normal tracking-[-0.01em]">
       {prefix ? <span>{prefix}</span> : null}
-      {pieces.map(({ clause, conjunction, punctuation }, i) => (
+      {pieces.map(({ clause, conjunction, noun, comma }, i) => (
         <React.Fragment key={clause.id}>
           {i > 0 ? <span> </span> : null}
           {conjunction ? <span>and </span> : null}
@@ -398,7 +427,8 @@ export function QuerySentence({
             clause={clause}
             handlers={handlers}
             removable={clauses.length > 1}
-            punctuation={punctuation}
+            noun={noun}
+            comma={comma}
           />
         </React.Fragment>
       ))}

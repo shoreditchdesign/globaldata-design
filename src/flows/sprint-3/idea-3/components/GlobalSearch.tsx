@@ -100,9 +100,9 @@ export function GlobalSearch({ onScreen }: { onScreen: (query: string) => void }
           type="button"
           onMouseDown={(event) => event.preventDefault()}
           onClick={hand}
-          className="hover:bg-brand-wash border-edge flex w-full items-start gap-2.5 border-t px-3 py-2.5 text-left transition-colors"
+          className="hover:bg-accent border-edge flex w-full items-start gap-2.5 border-t px-3 py-2.5 text-left transition-colors"
         >
-          <ArrowRightIcon className="text-brand mt-0.5 size-3.5 shrink-0" />
+          <ArrowRightIcon className="text-muted-foreground mt-0.5 size-3.5 shrink-0" />
           <span className="min-w-0">
             <span className="block truncate text-[13px] font-medium">
               Screen drugs matching &ldquo;{value.trim()}&rdquo;
