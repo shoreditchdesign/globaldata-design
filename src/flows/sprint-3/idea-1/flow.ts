@@ -1,16 +1,5 @@
 import type { Flow } from "@/flows/types"
-import { Results } from "@/flows/sprint-3/idea-1/screens/Results"
-import { AiEmpty } from "@/flows/sprint-3/idea-1/screens/AiEmpty"
-import { AiTyped } from "@/flows/sprint-3/idea-1/screens/AiTyped"
-import { AiParsed } from "@/flows/sprint-3/idea-1/screens/AiParsed"
-import { ManualAreas } from "@/flows/sprint-3/idea-1/screens/ManualAreas"
-import { ManualAttributes } from "@/flows/sprint-3/idea-1/screens/ManualAttributes"
-import { ManualValues } from "@/flows/sprint-3/idea-1/screens/ManualValues"
-import { ManualSelected } from "@/flows/sprint-3/idea-1/screens/ManualSelected"
-import { Applied } from "@/flows/sprint-3/idea-1/screens/Applied"
-import { FilterBarDropdown } from "@/flows/sprint-3/idea-1/screens/FilterBarDropdown"
-import { ManyFilters } from "@/flows/sprint-3/idea-1/screens/ManyFilters"
-import { GroupBy } from "@/flows/sprint-3/idea-1/screens/GroupBy"
+import { Incumbent } from "@/flows/sprint-3/idea-1/screens/Incumbent"
 
 /**
  * The incumbent. A faithful port of the filter-builder modal the client
@@ -18,9 +7,9 @@ import { GroupBy } from "@/flows/sprint-3/idea-1/screens/GroupBy"
  * directions are measured against, not as a contender in its own right.
  *
  * The design is unchanged from the source; what changed is that it now runs.
- * The twelve frames are one stateful screen, and each slug seeds a starting
- * state, so the deep links and the Explorer's stepper still land where they
- * used to while every state is also reachable by clicking.
+ * The twelve frames are states of one living screen: every entry below shares
+ * one component, a slug seeds where the flow starts, and the URL follows the
+ * state as it is clicked through.
  */
 export const sprint3Idea1: Flow = {
   id: "idea-1",
@@ -31,25 +20,25 @@ export const sprint3Idea1: Flow = {
     "This is the incumbent, not a proposal. It is in the sprint so the alternatives have something concrete to be compared against.",
     "A natural-language prompt resolves into the existing filter rail: the AI writes the filters, the user still owns them.",
     "Ported faithfully from the reviewed design — no fixes applied, so the objections raised against it are still visible in the flow.",
-    "Clickable end to end, so the click cost is something the client can feel rather than take on trust: six interactions to reach one hand-built value, and the total is still only known after Apply.",
-    "The screens that draw the criticism are kept in: ten-plus filters in the bar, and three levels of cascading popovers to reach one value.",
+    "One flow, clickable end to end, so the click cost is something the client can feel rather than take on trust: six interactions to reach one hand-built value, and the total is still only known after Apply.",
+    "The states that draw the criticism are kept in: ten-plus filters in the bar, and three levels of cascading popovers to reach one value.",
   ],
   source: "Paper — Natural Language / Manual Filter Integration (the reviewed design)",
-  lastUpdated: "2026-09-07",
+  lastUpdated: "2026-09-14",
   tags: ["Incumbent", "Rejected", "Natural language", "Filter rail", "Paper port"],
   status: "in-progress",
   screens: [
-    { slug: "results", title: "Results", note: "285,529 drugs, no filters yet. Start here.", component: Results },
-    { slug: "ai-empty", title: "AI filter", note: "Suggestions and an empty filter builder.", component: AiEmpty },
-    { slug: "ai-typed", title: "Query typed", note: "The composer grows with the query; submit resolves it.", component: AiTyped },
-    { slug: "ai-parsed", title: "Parsed", note: "Transcript on the left, editable groups on the right.", component: AiParsed },
-    { slug: "manual-areas", title: "Manual areas", note: "The same builder, authored by hand.", component: ManualAreas },
-    { slug: "manual-attributes", title: "Attributes", note: "Level two — attributes inside Drugs.", component: ManualAttributes },
-    { slug: "manual-values", title: "Values", note: "Level three — values with result counts, tickable.", component: ManualValues },
-    { slug: "manual-selected", title: "Value selected", note: "Selection writes straight into the builder.", component: ManualSelected },
-    { slug: "applied", title: "Applied", note: "Filters move to the bar; 245 drugs, seven rows.", component: Applied },
-    { slug: "filter-bar-dropdown", title: "Edit from the bar", note: "Refine without reopening the modal.", component: FilterBarDropdown },
-    { slug: "many-filters", title: "Ten-plus filters", note: "Where the pattern starts to strain.", component: ManyFilters },
-    { slug: "group-by", title: "Group by", note: "Results collapsed by developmental stage, counted off the filtered set.", component: GroupBy },
+    { slug: "results", title: "Results", note: "285,529 drugs, no filters yet. Apply filter opens the modal.", component: Incumbent },
+    { slug: "ai-empty", title: "AI filter", note: "The modal on its AI tab: four suggestions, an empty builder.", component: Incumbent },
+    { slug: "ai-typed", title: "Query typed", note: "A suggestion or free text in the composer; submit resolves it after a short beat.", component: Incumbent },
+    { slug: "ai-parsed", title: "Parsed", note: "The exchange on the left, the parse as editable groups on the right.", component: Incumbent },
+    { slug: "manual-areas", title: "Manual areas", note: "The same builder on the Manual tab, authored by hand.", component: Incumbent },
+    { slug: "manual-attributes", title: "Attributes", note: "An area open — level two of the cascade.", component: Incumbent },
+    { slug: "manual-values", title: "Values", note: "An attribute open — level three, values with result counts.", component: Incumbent },
+    { slug: "manual-selected", title: "Value selected", note: "A ticked value writes straight into the builder.", component: Incumbent },
+    { slug: "applied", title: "Applied", note: "Apply moves the builder into the bar and filters the table.", component: Incumbent },
+    { slug: "filter-bar-dropdown", title: "Edit from the bar", note: "A bar pill reopens its values without the modal.", component: Incumbent },
+    { slug: "many-filters", title: "Ten-plus filters", note: "Past ten values the bar collapses the rest into +N.", component: Incumbent },
+    { slug: "group-by", title: "Group by", note: "A column menu collapses the filtered rows by that column.", component: Incumbent },
   ],
 }

@@ -170,7 +170,7 @@ export function ResultsTable({
             {displayedRows.length === 0 ? (
               <tr>
                 <td colSpan={resultColumns.length} className="text-muted-foreground px-4 py-10 text-center">
-                  No drugs match these filters.
+                  No drugs in this 16-row sample match these filters.
                 </td>
               </tr>
             ) : (

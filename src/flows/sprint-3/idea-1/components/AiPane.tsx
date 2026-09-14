@@ -2,44 +2,59 @@ import { ArrowRightIcon, SearchIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { motion } from "@/components/prototype/motion"
 import { PaneHeading } from "@/flows/sprint-3/idea-1/components/FilterModal"
-import { aiSuggestions } from "@/flows/sprint-3/idea-1/data"
+import { aiParses } from "@/flows/sprint-3/idea-1/data"
 import type { Transcript } from "@/flows/sprint-3/idea-1/state"
 
 /**
  * Left pane of the AI tab. `transcript` swaps the suggestion chips for the
- * exchange once a query has been submitted.
+ * exchange once a query has been submitted; `pending` holds the query while
+ * it resolves.
  *
- * One canned resolution, matched to the worked example in the data — the
- * parsing is not what is being tested here, the shape of the surface is.
+ * Every chip has a canned resolution and free text is matched to the nearest
+ * one — the parsing is not what is being tested here, the shape of the surface
+ * is.
  */
 export function AiPane({
   query,
   transcript,
+  pending,
   onQuery,
   onSubmit,
 }: {
   /** Text sitting in the composer. */
   query: string
   transcript?: Transcript | null
+  /** A submitted query still resolving. */
+  pending?: string | null
   onQuery: (query: string) => void
   onSubmit: () => void
 }) {
   const filled = query.trim().length > 0
+  const busy = Boolean(pending)
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <PaneHeading title="Drug Search" />
 
       <div className="flex min-h-0 flex-1 flex-col justify-end gap-6 px-6 pb-6">
-        {transcript ? (
+        {pending ? (
           <div className="flex flex-col gap-4 overflow-y-auto">
-            <div className="flex flex-col items-end gap-1">
-              <p className="bg-muted text-foreground max-w-[340px] rounded-2xl px-4 py-3 text-sm">
-                {transcript.user}
-              </p>
-              <span className="text-muted-foreground text-xs">{transcript.time}</span>
-            </div>
+            <UserBubble text={pending} />
+            <p role="status" aria-label="Resolving your query" className="flex items-center gap-1 py-1">
+              {[0, 1, 2].map((dot) => (
+                <span
+                  key={dot}
+                  className="bg-muted-foreground/60 size-1.5 animate-pulse rounded-full motion-reduce:animate-none"
+                  style={{ animationDelay: `${dot * motion.stagger * 2}ms` }}
+                />
+              ))}
+            </p>
+          </div>
+        ) : transcript ? (
+          <div className="flex flex-col gap-4 overflow-y-auto">
+            <UserBubble text={transcript.user} time={transcript.time} />
             <div className="flex flex-col items-start gap-1">
               <p className="max-w-[380px] text-sm">{transcript.assistant}</p>
               <p className="text-muted-foreground flex items-center gap-1.5 text-sm">
@@ -50,14 +65,14 @@ export function AiPane({
           </div>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {aiSuggestions.map((suggestion) => (
+            {aiParses.map((parse) => (
               <button
-                key={suggestion}
+                key={parse.id}
                 type="button"
-                onClick={() => onQuery(suggestion)}
+                onClick={() => onQuery(parse.query)}
                 className="bg-muted hover:bg-accent rounded-full px-4 py-2 text-sm transition-colors"
               >
-                {suggestion}
+                {parse.suggestion}
               </button>
             ))}
           </div>
@@ -66,7 +81,7 @@ export function AiPane({
         <form
           onSubmit={(event) => {
             event.preventDefault()
-            if (filled) onSubmit()
+            if (filled && !busy) onSubmit()
           }}
           className={cn(
             "bg-background flex gap-3 rounded-2xl border px-4",
@@ -80,7 +95,7 @@ export function AiPane({
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault()
-                if (filled) onSubmit()
+                if (filled && !busy) onSubmit()
               }
             }}
             rows={1}
@@ -92,13 +107,22 @@ export function AiPane({
             type="submit"
             size="icon-sm"
             aria-label="Create filters from this query"
-            disabled={!filled}
+            disabled={!filled || busy}
             className="shrink-0 rounded-full"
           >
             <ArrowRightIcon />
           </Button>
         </form>
       </div>
+    </div>
+  )
+}
+
+function UserBubble({ text, time }: { text: string; time?: string }) {
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <p className="bg-muted text-foreground max-w-[340px] rounded-2xl px-4 py-3 text-sm">{text}</p>
+      {time ? <span className="text-muted-foreground text-xs">{time}</span> : null}
     </div>
   )
 }
