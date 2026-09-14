@@ -2,7 +2,6 @@
 
 import { ChevronsUpDownIcon } from "lucide-react"
 
-import { liftClass } from "@/components/prototype/motion"
 import { StageBadge } from "@/components/prototype/StageBadge"
 import { Button } from "@/components/ui/button"
 import type { DrugRow } from "@/flows/sprint-3/idea-2/data"
@@ -75,7 +74,7 @@ export function ResultsTable({
           {rows.map((row) => (
             <tr
               key={row.id}
-              className="group/row border-hairline hover:bg-accent border-b transition-colors last:border-0"
+              className="group/row border-hairline hover:bg-surface-page border-b transition-colors last:border-0"
             >
               {shown.map((column) =>
                 column.key === "name" ? (
@@ -83,33 +82,37 @@ export function ResultsTable({
                     {/*
                       `Open` cannot simply sit on top of the name — the name
                       column is the widest thing here and still truncates, and
-                      the button would cover its last third. The text yields to it
-                      instead: on hover the name reserves the button's width and
-                      truncates earlier, so nothing is ever hidden behind it.
+                      the button would cover its last third. So the name reserves
+                      the button's width *permanently* rather than on hover.
+                      Animating that padding made the row reflow under a moving
+                      cursor, which dropped the hover state between the mouse
+                      arriving and the click landing — the button was there,
+                      visible, and the click went nowhere. Nothing moves now.
                     */}
-                    <span className="block truncate pr-0 font-medium transition-[padding] group-hover/row:pr-16">
-                      {row.name}
-                    </span>
+                    <span className="block truncate pr-16 font-medium">{row.name}</span>
                     {/* The generic rides under the brand name, so it takes the
                         step below the cell rather than a size of its own. */}
-                    <span className="text-muted-foreground block truncate pr-0 text-xs transition-[padding] group-hover/row:pr-16">
+                    <span className="text-muted-foreground block truncate pr-16 text-xs">
                       {row.generic}
                     </span>
                     {/*
                       Hidden until the row is hovered — anywhere in the row, not
                       just this cell — but focusable at all times, because the
-                      drawer cannot be a mouse-only door. Pointer events follow
-                      the opacity so an invisible button never swallows a click.
+                      drawer cannot be a mouse-only door. Pointer events stay on
+                      so a click at the moment the fade begins still lands; the
+                      button occupies reserved space, so it can never swallow a
+                      click meant for the name. Opacity alone transitions: the
+                      old `transition-all` animated the button's own
+                      `-translate-y-1/2`, which is where the bounce came from.
                     */}
                     <Button
                       variant="outline"
                       size="xs"
                       onClick={() => onOpenRecord(row.id)}
                       className={cn(
-                        "pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 opacity-0",
-                        "group-hover/row:pointer-events-auto group-hover/row:opacity-100",
-                        "focus-visible:pointer-events-auto focus-visible:opacity-100",
-                        liftClass,
+                        "absolute top-1/2 right-3 -translate-y-1/2 opacity-0 transition-opacity duration-100",
+                        "group-hover/row:opacity-100 focus-visible:opacity-100",
+                        "motion-reduce:transition-none",
                       )}
                     >
                       Open
