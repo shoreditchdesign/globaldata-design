@@ -58,9 +58,9 @@ function countLane(items: ColumnRow[], negated = false) {
       Math.max(n, item.count === null ? 1 : formatCount(item.count).length + (negated ? 1 : 0)),
     0,
   )
-  if (longest <= 3) return "w-10"
-  if (longest <= 5) return "w-14"
-  return "w-16"
+  if (longest <= 3) return "w-8"
+  if (longest <= 5) return "w-12"
+  return "w-14"
 }
 
 /**
@@ -98,9 +98,10 @@ export function MillerColumn({
       className={cn(
         // A floor on the column width — below it the labels stop being
         // readable, and the strip scrolls the way Finder's does instead. At
-        // 260px a leaf column has 174px of label lane and a drillable one
-        // 152px, which is a two-word indication and no more; the panel is sized
-        // so the floor is only reached on a window narrower than any desk.
+        // 260px a leaf column has 188px of label lane and a drillable one
+        // 172px, and the rows read at 13px now rather than 16px, so the floor
+        // buys a three-word indication where it used to buy two; the panel is
+        // sized so it is only reached on a window narrower than any desk.
         "flex min-w-[260px] flex-col",
         // Every column body is the same grey. The split that used to put the
         // navigation columns on chrome and the value columns on the panel plane
@@ -116,19 +117,19 @@ export function MillerColumn({
           start, so the header of the panel is one plane whatever column sits
           under it, and the only rule on it is the `border-edge` closing the
           block off. */}
-      <div className="bg-surface-panel border-edge flex h-9 shrink-0 items-center gap-1.5 border-b pr-1.5 pl-2">
-        <span className="w-4 shrink-0" aria-hidden />
+      <div className="bg-surface-panel border-edge flex h-8 shrink-0 items-center gap-1.5 border-b pr-1.5 pl-2">
+        <span className="w-3 shrink-0" aria-hidden />
         {/* One ink for every caption. Which column you are ticking into is said
             by the tick boxes in it, not by a heading two shades darker than its
             neighbour's. */}
-        <span className="text-muted-foreground min-w-0 flex-1 truncate text-[12px] font-medium tracking-[0.09em] uppercase">
+        <span className="text-muted-foreground min-w-0 flex-1 truncate text-[10px] font-medium tracking-[0.08em] uppercase">
           {column.level}
         </span>
         {column.search ? null : (
           <>
             <span
               className={cn(
-                "shrink-0 text-right text-[12px] font-medium tracking-[0.09em] uppercase",
+                "shrink-0 text-right text-[10px] font-medium tracking-[0.08em] uppercase",
                 // An excluding column counts what a value would take away, so
                 // it says so in the tone that means "out" rather than in the
                 // same grey as a column that adds.
@@ -143,7 +144,7 @@ export function MillerColumn({
       </div>
 
       {column.search ? (
-        <p className="text-muted-foreground px-3 py-1 text-[14px] leading-relaxed">
+        <p className="text-muted-foreground px-3 py-1 text-xs leading-relaxed">
           Free text — no value list.
         </p>
       ) : (
@@ -151,7 +152,7 @@ export function MillerColumn({
           {/* Only reachable from the panel search: every column has rows of its
               own, so an empty list means the query matched none of them. */}
           {column.items.length === 0 ? (
-            <li className="text-muted-foreground px-2 py-1 text-[14px]">No matches</li>
+            <li className="text-muted-foreground px-2 py-1 text-xs">No matches</li>
           ) : null}
           {column.items.map((item) => (
             <ColumnItem
@@ -216,7 +217,7 @@ function ColumnItem({
         // The transparent edge is carried by every row so that the open row can
         // colour one in without insetting its lanes a pixel further than its
         // neighbours' — the count lane has to stay plumb down the column.
-        "relative flex h-9 items-center rounded-md border border-transparent",
+        "relative flex h-8 items-center rounded-md border border-transparent",
         tintClass,
         // Hover is grey on every row you can still move to, a ticked one
         // included — a `hover:` class outranks a flat one, so no row is left
@@ -251,14 +252,17 @@ function ColumnItem({
       {/* Lead lane: one control, always. A tick box where the column ticks, a
           radio mark where it only navigates. Never a number — the count lane on
           the right is the only place a number belongs. */}
-      <span className="flex w-6 shrink-0 items-center justify-center">
+      <span className="flex w-5 shrink-0 items-center justify-center">
         {column.selectable && onToggle ? (
           <Checkbox
             checked={isSelected}
             onCheckedChange={() => onToggle(item.label)}
             aria-label={`${isSelected ? "Remove" : "Add"} ${item.label}`}
             className={cn(
-              "size-4",
+              // 14px, with the tick inside it cut to 12px: the box comes down
+              // with the type it sits beside rather than staying the one thing
+              // in the column still sized for the 16px round.
+              "size-3.5 [&>[data-slot=checkbox-indicator]>svg]:size-3",
               // Ticking a value into an excluding attribute takes rows away.
               // It cannot look like ticking one into an attribute that keeps
               // them — that is the whole difference between the two filters.
@@ -282,12 +286,12 @@ function ColumnItem({
           <span
             aria-hidden
             className={cn(
-              "border-border flex size-4 items-center justify-center rounded-full border",
+              "border-border flex size-3.5 items-center justify-center rounded-full border",
               tintClass,
             )}
           >
             {isOpen ? (
-              <span className={cn("bg-selected size-2 rounded-full", tintClass)} />
+              <span className={cn("bg-selected size-1.5 rounded-full", tintClass)} />
             ) : null}
           </span>
         )}
@@ -301,14 +305,14 @@ function ColumnItem({
         }}
         title={item.label}
         aria-current={isOpen ? "true" : undefined}
-        // `h-full`, not `h-9`: the row owns the 36px now that it carries a
-        // border, and a second fixed 36px inside a 34px content box would
+        // `h-full`, not `h-8`: the row owns the 32px now that it carries a
+        // border, and a second fixed 32px inside a 30px content box would
         // overflow it.
         className="flex h-full min-w-0 flex-1 items-center gap-1.5 pr-1.5 text-left"
       >
         <span
           className={cn(
-            "min-w-0 flex-1 truncate text-[16px] text-foreground",
+            "min-w-0 flex-1 truncate text-[13px] text-foreground",
             // Weight is what `selected` means in both kinds of column: in a
             // value column the value is in the query, in a navigation column
             // the branch under the row holds values. That second reading is the
@@ -326,7 +330,7 @@ function ColumnItem({
         </span>
         <span
           className={cn(
-            "shrink-0 text-right text-[14px] tabular-nums",
+            "shrink-0 text-right text-xs tabular-nums",
             lane,
             // The number is read, not pressed, so it is not the accent's to
             // spend: a value in the query states its count in full ink, an
