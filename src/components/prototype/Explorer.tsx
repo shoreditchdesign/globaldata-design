@@ -1,9 +1,15 @@
 "use client"
 
-import { useCallback, useEffect, useSyncExternalStore } from "react"
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon, XIcon } from "lucide-react"
+import {
+  ArrowLeftIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  XIcon,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -90,6 +96,18 @@ export function Explorer({
 
   const hydrated = useHydrated()
   const open = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+
+  // Every idea's steps are reachable from here, not only the one being viewed,
+  // so a reviewer can cross from Idea 1's cascade straight to Idea 3's sentence.
+  // The idea in view opens on arrival; the rest are one click away, because all
+  // four expanded at once is forty-six rows and buries where you are.
+  const currentKey = `${sprintId}/${ideaId}`
+  const [expanded, setExpanded] = useState<string[]>([currentKey])
+  const toggleIdea = useCallback((key: string) => {
+    setExpanded((current) =>
+      current.includes(key) ? current.filter((k) => k !== key) : [...current, key],
+    )
+  }, [])
 
   const toggle = useCallback(() => {
     setStoredOpen(!getSnapshot())
@@ -230,29 +248,50 @@ export function Explorer({
               {s.name}
             </p>
             {s.ideas.map((i) => {
-              const isCurrentIdea = s.id === sprintId && i.id === ideaId
+              const key = `${s.id}/${i.id}`
+              const isCurrentIdea = key === currentKey
+              const isExpanded = expanded.includes(key)
               const first = i.screens[0]
+              const listId = `explorer-steps-${s.id}-${i.id}`
               return (
                 <div key={i.id}>
-                  <Link
-                    href={first ? `/${s.id}/${i.id}/${first.slug}` : `/${s.id}/${i.id}`}
-                    className={cn(
-                      "hover:bg-accent flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
-                      isCurrentIdea && "font-medium",
-                    )}
-                  >
-                    <span className="truncate">{i.name}</span>
-                  </Link>
+                  <div className="flex items-center gap-0.5">
+                    <button
+                      type="button"
+                      onClick={() => toggleIdea(key)}
+                      disabled={i.screens.length === 0}
+                      aria-expanded={isExpanded}
+                      aria-controls={listId}
+                      aria-label={`${isExpanded ? "Collapse" : "Expand"} ${i.name}`}
+                      className="text-muted-foreground hover:text-foreground flex size-6 shrink-0 items-center justify-center rounded-md disabled:opacity-0"
+                    >
+                      <ChevronDownIcon
+                        className={cn("size-3.5 transition-transform", !isExpanded && "-rotate-90")}
+                      />
+                    </button>
+                    <Link
+                      href={first ? `/${s.id}/${i.id}/${first.slug}` : `/${s.id}/${i.id}`}
+                      className={cn(
+                        "hover:bg-accent min-w-0 flex-1 rounded-md px-1.5 py-1.5 text-sm transition-colors",
+                        isCurrentIdea && "font-medium",
+                      )}
+                    >
+                      <span className="block truncate">{i.name}</span>
+                    </Link>
+                    <span className="text-muted-foreground/70 shrink-0 pr-1 text-[11px] tabular-nums">
+                      {i.screens.length}
+                    </span>
+                  </div>
 
-                  {isCurrentIdea ? (
-                    <ol className="border-border/70 mt-0.5 mb-1 ml-4 border-l pl-1">
+                  {isExpanded && i.screens.length > 0 ? (
+                    <ol id={listId} className="border-border/70 mt-0.5 mb-1 ml-5 border-l pl-1">
                       {i.screens.map((sc, n) => (
                         <li key={sc.slug}>
                           <Link
                             href={`/${s.id}/${i.id}/${sc.slug}`}
                             className={cn(
                               "flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors",
-                              sc.slug === screenSlug
+                              isCurrentIdea && sc.slug === screenSlug
                                 ? "bg-brand-tint ring-brand-border text-foreground font-medium ring-1 ring-inset"
                                 : "hover:bg-accent",
                             )}
