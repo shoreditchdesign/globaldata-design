@@ -1,6 +1,6 @@
 "use client"
 
-import { createElement, useEffect, useMemo, useRef, useState } from "react"
+import { createElement, useEffect, useMemo, useRef } from "react"
 import {
   ArrowUpIcon,
   BrainIcon,
@@ -405,6 +405,8 @@ export function AgentPanel({
   matchCount,
   messages,
   version,
+  draft,
+  onDraftChange,
   onSubmit,
   onAccept,
   onDismiss,
@@ -417,6 +419,9 @@ export function AgentPanel({
   messages: ThreadMessage[]
   /** Grid version, bumped on every change — a proposal behind it is stale. */
   version: number
+  /** The composer's contents, held by the screen so a link can arrive with one. */
+  draft: string
+  onDraftChange: (text: string) => void
   onSubmit: (text: string) => void
   onAccept: (messageId: string) => void
   onDismiss: (messageId: string) => void
@@ -424,7 +429,6 @@ export function AgentPanel({
   onRerun: (messageId: string) => void
   onClose: () => void
 }) {
-  const [draft, setDraft] = useState("")
   const endRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -451,7 +455,7 @@ export function AgentPanel({
     const trimmed = text.trim()
     if (!trimmed || busy) return
     onSubmit(trimmed)
-    setDraft("")
+    onDraftChange("")
   }
 
   return (
@@ -532,7 +536,7 @@ export function AgentPanel({
           <Textarea
             value={draft}
             rows={1}
-            onChange={(event) => setDraft(event.target.value)}
+            onChange={(event) => onDraftChange(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault()

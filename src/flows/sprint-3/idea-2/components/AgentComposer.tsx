@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { XIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -29,9 +28,12 @@ import type { Screener } from "@/flows/sprint-3/idea-2/use-screener"
  * is the one thing a panel claiming to show its work cannot do. The suggestions
  * fill the field rather than firing, for the same reason — and the one that
  * runs is marked, so picking another is not a promise the prototype breaks.
+ *
+ * The line itself is the hook's, not this component's: what the agent is about
+ * to be asked is a state of the screen, so it is one a link can open on.
  */
 export function AgentComposer({ screener }: { screener: Screener }) {
-  const [request, setRequest] = useState(agentRequest)
+  const { request, setRequest } = screener
   const wired = request.trim() === agentRequest
 
   return (

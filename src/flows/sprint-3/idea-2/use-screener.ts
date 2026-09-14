@@ -5,48 +5,28 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   agentPlan,
   attributeSplit,
-  defaultPath,
   facetCounts,
-  initialFilters,
   matchingRows,
   type AgentStep,
   type AttributeFilter,
 } from "@/flows/sprint-3/idea-2/data"
+import {
+  applyStep,
+  reverseStep,
+  slugFor,
+  type AgentState,
+  type Idea2State,
+  type StepRecord,
+} from "@/flows/sprint-3/idea-2/state"
 import type { ResultColumnKey } from "@/flows/sprint-3/idea-2/components/ResultsTable"
+
+// The run's own vocabulary lives in `state.ts`, because a seeded run and a live
+// one have to be the same shape, but it is this hook the components talk to.
+export type { AgentStatus, StepRecord } from "@/flows/sprint-3/idea-2/state"
 
 /* -------------------------------------------------------------------------- */
 /* The agent's run                                                             */
 /* -------------------------------------------------------------------------- */
-
-export type AgentStatus = "idle" | "running" | "done" | "yielded"
-
-export interface StepRecord {
-  step: AgentStep
-  status: "pending" | "running" | "stopped" | "done" | "undone"
-  /**
-   * What the step has to put back if it is undone. Both are scoped to the one
-   * attribute the step touched — undoing step 2 cannot disturb step 4.
-   */
-  previous?: AttributeFilter | null
-  removed?: AttributeFilter[]
-}
-
-interface AgentState {
-  status: AgentStatus
-  request: string | null
-  steps: StepRecord[]
-  /** Which step the sequencer is on, and which beat inside it. */
-  stepIndex: number
-  beat: number
-}
-
-const idleAgent: AgentState = {
-  status: "idle",
-  request: null,
-  steps: [],
-  stepIndex: 0,
-  beat: 0,
-}
 
 /**
  * How long the agent waits between beats. Slow enough that a person watching
@@ -65,23 +45,36 @@ const TICK_MS = 380
  * pill bar, the count and the table all have to be derived from the same
  * filters or they will disagree — and the agent has to drive exactly the same
  * state a click drives, or it is a black box wearing a panel.
+ *
+ * It opens on a seed rather than on one fixed query, so a URL can name a state
+ * of the screener instead of only its starting point. The seed is a whole
+ * `Idea2State` — filters, path, agent and all — and `reseed` puts another one
+ * in when the address bar moves somewhere the screen did not take it.
  */
-export function useScreener() {
-  const [filters, setFilters] = useState<AttributeFilter[]>(initialFilters)
-  const [path, setPath] = useState<string[]>(defaultPath)
+export function useScreener(seed: Idea2State) {
+  const [filters, setFilters] = useState<AttributeFilter[]>(seed.filters)
+  const [path, setPath] = useState<string[]>(seed.path)
   /*
    * Which column the visible window starts on, clamped on render. Setting a
    * large index always lands on the rightmost window, whichever depth the
    * panel is at, which is how "follow the drill-down" is expressed.
    *
-   * It opens on 1 rather than the rightmost, so the first thing on screen is
-   * the attribute inventory — the argument this direction is making — instead
-   * of the deepest column of the worked example. On a wide window that is the
-   * rightmost window anyway; on a narrower one it is the difference between
-   * arriving at the data model and arriving three levels inside it.
+   * The working state opens on 1 rather than the rightmost, so the first thing
+   * on screen is the attribute inventory — the argument this direction is
+   * making — instead of the deepest column of the worked example. On a wide
+   * window that is the rightmost window anyway; on a narrower one it is the
+   * difference between arriving at the data model and arriving three levels
+   * inside it.
    */
-  const [leftIndex, setLeftIndex] = useState(1)
-  const [agent, setAgent] = useState<AgentState>(idleAgent)
+  const [leftIndex, setLeftIndex] = useState(seed.leftIndex)
+  const [agent, setAgent] = useState<AgentState>(seed.agent)
+  /*
+   * The line in the composer. It is the hook's rather than the composer's
+   * because what the agent is about to be asked is a state of the screen —
+   * a request with no plan behind it, and a Send that will not pretend, is a
+   * frame the review has to be able to open on.
+   */
+  const [request, setRequest] = useState(seed.request)
 
   // The sequencer reads the filters as they stand when a beat fires, which is
   // long after render — so the mirror is kept in an effect, not in the body.
@@ -242,7 +235,7 @@ export function useScreener() {
    * while it is open and the drawer closes with it, which is the honest
    * behaviour for a panel that claims to be a view of the result set.
    */
-  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null)
+  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(seed.selectedRecordId)
   const openRecord = useCallback((id: string) => setSelectedRecordId(id), [])
   const closeRecord = useCallback(() => setSelectedRecordId(null), [])
   const selectedRow = useMemo(
@@ -345,24 +338,9 @@ export function useScreener() {
       // because the sequencer watches `steps`, every undo restarts the beat it
       // was part-way through — enough clicks and it never finishes.
       yieldToUser()
-      const action = record.step.action
-
-      if (action.kind === "clear") {
-        const removed = record.removed ?? []
-        setFilters((current) => [
-          ...removed.filter(
-            (filter) => !current.some((entry) => entry.attribute === filter.attribute),
-          ),
-          ...current,
-        ])
-      } else {
-        const previous = record.previous ?? null
-        setFilters((current) => {
-          const without = current.filter((filter) => filter.attribute !== action.attribute)
-          return previous ? [...without, previous] : without
-        })
-      }
-
+      // The same reversal `state.ts` seeds an undone run with, so the frame a
+      // link opens on and the frame this button produces are one state.
+      setFilters((current) => reverseStep(current, record))
       setStepStatus(id, "undone")
     },
     [agent.steps, setStepStatus, yieldToUser],
@@ -443,7 +421,8 @@ export function useScreener() {
       const before = filtersRef.current
 
       if (action.kind === "clear") {
-        setFilters([])
+        const cleared = applyStep(before, step)
+        setFilters(cleared.filters)
         setAgent((current) => {
           if (current.status !== "running") return current
           const next = current.stepIndex + 1
@@ -453,7 +432,9 @@ export function useScreener() {
             stepIndex: next,
             beat: 0,
             steps: current.steps.map((entry) =>
-              entry.step.id === step.id ? { ...entry, status: "done", removed: before } : entry,
+              entry.step.id === step.id
+                ? { ...entry, status: "done", removed: cleared.removed }
+                : entry,
             ),
           }
         })
@@ -461,35 +442,17 @@ export function useScreener() {
       }
 
       // Values go on one at a time, so the count moves once per value rather
-      // than jumping to the answer in a single frame.
+      // than jumping to the answer in a single frame — which is the step cut
+      // short to the values ticked so far, run through the same function a
+      // seeded run is built by.
       const valueIndex = beat - 1
-      const value = action.values[valueIndex]
-      const previous = before.find((filter) => filter.attribute === action.attribute) ?? null
+      const soFar: AgentStep = {
+        ...step,
+        action: { ...action, values: action.values.slice(0, valueIndex + 1) },
+      }
+      const { previous } = applyStep(before, step)
 
-      setFilters((current) => {
-        const others = current.filter((filter) => filter.attribute !== action.attribute)
-        if (valueIndex === 0) {
-          return [
-            ...others,
-            {
-              attribute: action.attribute,
-              values: [value],
-              join: action.join,
-              mode: action.mode,
-            },
-          ]
-        }
-        const existing = current.find((filter) => filter.attribute === action.attribute)
-        return [
-          ...others,
-          {
-            attribute: action.attribute,
-            values: [...(existing?.values ?? []), value],
-            join: action.join,
-            mode: action.mode,
-          },
-        ]
-      })
+      setFilters((current) => applyStep(current, soFar).filters)
 
       const last = valueIndex === action.values.length - 1
 
@@ -519,6 +482,30 @@ export function useScreener() {
 
   const appliedCount = agent.steps.filter((record) => record.status === "done").length
 
+  /* ---------------------------------------------------------------------- */
+  /* Which frame this is, and jumping to another one                        */
+  /* ---------------------------------------------------------------------- */
+
+  /** The frame the live state is nearest to — what the address bar carries. */
+  const liveSlug = slugFor(
+    { filters, path, leftIndex, agent, request, selectedRecordId },
+    rows.length,
+  )
+
+  /**
+   * A jump: the URL moved somewhere the screen did not take it, so the whole
+   * state is replaced at once. Merging would leave a frame carrying half of
+   * the one before it, and the counts would be answering two questions.
+   */
+  const reseed = useCallback((next: Idea2State) => {
+    setFilters(next.filters)
+    setPath(next.path)
+    setLeftIndex(next.leftIndex)
+    setAgent(next.agent)
+    setRequest(next.request)
+    setSelectedRecordId(next.selectedRecordId)
+  }, [])
+
   return {
     filters,
     rows,
@@ -544,10 +531,14 @@ export function useScreener() {
     closeRecord,
     visibleColumns,
     toggleColumn,
+    request,
+    setRequest,
     submitRequest,
     resumeAgent,
     undoStep,
     redoStep,
+    liveSlug,
+    reseed,
   }
 }
 

@@ -29,6 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import type { Clause } from "@/flows/sprint-3/idea-3/data"
 import { clauseMode, clauseTemplates } from "@/flows/sprint-3/idea-3/data"
 import { clauseTerms, sentenceLayout } from "@/flows/sprint-3/idea-3/grammar"
+import type { OpenPill } from "@/flows/sprint-3/idea-3/state"
 
 export interface SentenceHandlers {
   onToggleValue: (clauseId: string, value: string) => void
@@ -124,15 +125,19 @@ export function ValueMenu({
 function ValuePill({
   clause,
   value,
+  open,
+  onOpenChange,
   onToggleValue,
   onRemoveClause,
 }: {
   clause: Clause
   value: string
+  /** Which pill is open is held above the sentence, so a link can name one. */
+  open: boolean
+  onOpenChange: (open: boolean) => void
   onToggleValue: SentenceHandlers["onToggleValue"]
   onRemoveClause: SentenceHandlers["onRemoveClause"]
 }) {
-  const [open, setOpen] = React.useState(false)
   const option = clause.options.find((o) => o.value === value)
   const excluded = clauseMode(clause) === "exclude"
 
@@ -140,7 +145,7 @@ function ValuePill({
     // The group, so the dismiss can sit beside the trigger rather than inside
     // it — a button cannot hold a button.
     <span className="group/pill relative mr-1 -ml-0.5 inline-flex align-baseline">
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={onOpenChange}>
         <PopoverTrigger asChild>
           <button
             type="button"
@@ -172,7 +177,7 @@ function ValuePill({
             clause={clause}
             onToggleValue={onToggleValue}
             onRemoveClause={onRemoveClause}
-            onClose={() => setOpen(false)}
+            onClose={() => onOpenChange(false)}
           />
         </PopoverContent>
       </Popover>
@@ -278,12 +283,16 @@ function ClauseSpan({
   clause,
   handlers,
   removable,
+  openPill,
+  onPillOpenChange,
   noun,
   comma,
 }: {
   clause: Clause
   handlers: SentenceHandlers
   removable: boolean
+  openPill: OpenPill | null
+  onPillOpenChange: (pill: OpenPill | null) => void
   /** ` drugs`, when the adjectival run ends here. Kept inside the nowrap unit. */
   noun?: string
   /** A trailing comma, also kept inside the nowrap unit. */
@@ -325,6 +334,10 @@ function ClauseSpan({
           <ValuePill
             clause={clause}
             value={option.value}
+            open={openPill?.clauseId === clause.id && openPill.value === option.value}
+            onOpenChange={(next) =>
+              onPillOpenChange(next ? { clauseId: clause.id, value: option.value } : null)
+            }
             onToggleValue={handlers.onToggleValue}
             onRemoveClause={handlers.onRemoveClause}
           />
@@ -406,10 +419,22 @@ export function AddCondition({
 export function QuerySentence({
   clauses,
   handlers,
+  openPill,
+  onPillOpenChange,
 }: {
   clauses: Clause[]
   handlers: SentenceHandlers
+  /**
+   * The pill whose menu is open, when the screen owns that — which it does so
+   * a link can open on one. Left out, the sentence keeps it to itself.
+   */
+  openPill?: OpenPill | null
+  onPillOpenChange?: (pill: OpenPill | null) => void
 }) {
+  const [localPill, setLocalPill] = React.useState<OpenPill | null>(null)
+  const pill = onPillOpenChange ? (openPill ?? null) : localPill
+  const setPill = onPillOpenChange ?? setLocalPill
+
   // Punctuation belongs to the clause that ends, not the one that starts, and
   // rides inside its nowrap unit — otherwise a wrap drops a comma to the head
   // of the next line. The rules live in `grammar`, so the prose that
@@ -427,6 +452,8 @@ export function QuerySentence({
             clause={clause}
             handlers={handlers}
             removable={clauses.length > 1}
+            openPill={pill}
+            onPillOpenChange={setPill}
             noun={noun}
             comma={comma}
           />

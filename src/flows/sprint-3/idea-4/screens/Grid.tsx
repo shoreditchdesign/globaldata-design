@@ -1,18 +1,19 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
+import { usePathname } from "next/navigation"
 import { SparklesIcon } from "lucide-react"
 
 import { ProductChrome } from "@/components/prototype/ProductChrome"
 import { motion, resolveMarks, usePrefersReducedMotion } from "@/components/prototype/motion"
 import { Button } from "@/components/ui/button"
+import { useDeepLink } from "@/hooks/use-deep-link"
 import { cn } from "@/lib/utils"
 import { AgentPanel } from "@/flows/sprint-3/idea-4/components/AgentPanel"
 import { AppliedFilterBar, GridToolbar } from "@/flows/sprint-3/idea-4/components/GridToolbar"
 import { ResultsGrid } from "@/flows/sprint-3/idea-4/components/ResultsGrid"
 import {
   respond,
-  seedPrompt,
   type AgentMessage,
   type AgentReply,
   type ThreadMessage,
@@ -21,42 +22,10 @@ import { filterRows, groupRows, rows, sortRows } from "@/flows/sprint-3/idea-4/d
 import {
   applyAction,
   applyActions,
-  initialGridState,
   type GridAction,
   type GridState,
 } from "@/flows/sprint-3/idea-4/grid-state"
-
-/**
- * The thread opens with the turn that produced the grid's opening filters, so
- * a reviewer lands on a finished example of the anatomy — and its Undo takes
- * the grid back to no filters. The filters come from `respond`, run against
- * an unfiltered grid, not from a hand-written copy.
- */
-function seedThread(): ThreadMessage[] {
-  const before: GridState = { ...initialGridState, filters: {} }
-  const reply = respond(seedPrompt, before)
-  if (reply.kind !== "proposal") return []
-  const after = applyActions(before, reply.proposal.actions)
-  return [
-    { id: "seed-analyst", role: "analyst", text: seedPrompt },
-    {
-      id: "seed-agent",
-      role: "agent",
-      prompt: seedPrompt,
-      phase: "applied",
-      message: reply.message,
-      proposal: reply.proposal,
-      trace: reply.trace,
-      thoughtMs: resolveMarks.structure,
-      appliedMs: reply.proposal.actions.length * motion.reflow + motion.quick,
-      stepsDone: reply.proposal.actions.length,
-      countBefore: rows.length,
-      countAfter: filterRows(rows, after.filters).length,
-      before,
-      stateVersion: 0,
-    },
-  ]
-}
+import { initialState, slugFor } from "@/flows/sprint-3/idea-4/state"
 
 function replyFields(reply: AgentReply): Partial<AgentMessage> {
   return reply.kind === "proposal"
@@ -91,15 +60,22 @@ function replyFields(reply: AgentReply): Partial<AgentMessage> {
  */
 export function Grid() {
   const reduced = usePrefersReducedMotion()
-  const [state, setState] = useState<GridState>(initialGridState)
+
+  // The slug the route was rendered with seeds the whole screen; from there the
+  // state leads and `useDeepLink` walks the address bar along behind it.
+  const pathname = usePathname()
+  const seed = initialState(pathname.slice(pathname.lastIndexOf("/") + 1))
+
+  const [state, setState] = useState<GridState>(seed.grid)
   // Bumped on every change to the grid, by hand or by the agent. A proposal
   // computed against an older version is stale and cannot be accepted.
-  const [version, setVersion] = useState(0)
-  const [openColumn, setOpenColumn] = useState<string | null>(null)
-  const [selectedRows, setSelectedRows] = useState<string[]>([])
+  const [version, setVersion] = useState(seed.version)
+  const [openColumn, setOpenColumn] = useState<string | null>(seed.openColumn)
+  const [selectedRows, setSelectedRows] = useState<string[]>(seed.selectedRows)
 
-  const [panelOpen, setPanelOpen] = useState(true)
-  const [messages, setMessages] = useState<ThreadMessage[]>(seedThread)
+  const [panelOpen, setPanelOpen] = useState(seed.panelOpen)
+  const [messages, setMessages] = useState<ThreadMessage[]>(seed.messages)
+  const [draft, setDraft] = useState(seed.draft)
 
   // Ids kept in a ref rather than a module counter so a hot reload cannot
   // restart the sequence underneath messages already on screen.
@@ -130,6 +106,22 @@ export function Grid() {
     () => selectedRows.filter((id) => visibleIds.has(id)),
     [selectedRows, visibleIds],
   )
+
+  const liveSlug = slugFor(
+    { grid: state, version, openColumn, selectedRows, panelOpen, messages, draft },
+    matching.length,
+  )
+
+  useDeepLink(liveSlug, (slug) => {
+    const next = initialState(slug)
+    setState(next.grid)
+    setVersion(next.version)
+    setOpenColumn(next.openColumn)
+    setSelectedRows(next.selectedRows)
+    setPanelOpen(next.panelOpen)
+    setMessages(next.messages)
+    setDraft(next.draft)
+  })
 
   const commit = (next: GridState | ((current: GridState) => GridState)) => {
     setState(next)
@@ -301,6 +293,8 @@ export function Grid() {
             matchCount={matching.length}
             messages={messages}
             version={version}
+            draft={draft}
+            onDraftChange={setDraft}
             onSubmit={submit}
             onAccept={accept}
             onDismiss={dismiss}
