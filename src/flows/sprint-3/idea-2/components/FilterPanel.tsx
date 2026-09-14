@@ -271,7 +271,7 @@ export function FilterPanel({
             type into, and a sunken input is how that is said everywhere else in
             the product — a white field on a white block would be an outline
             drawn for no reason. */}
-        <InputGroup className="bg-surface-sunken">
+        <InputGroup className="bg-surface-page">
           <InputGroupAddon>
             <SearchIcon className="size-4" />
           </InputGroupAddon>

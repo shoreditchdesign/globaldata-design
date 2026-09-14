@@ -9,12 +9,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 import { AppliedPills } from "@/flows/sprint-3/idea-2/components/AppliedPills"
 import { RecordDrawer } from "@/flows/sprint-3/idea-2/components/RecordDrawer"
 import { ResultsTable, resultColumns } from "@/flows/sprint-3/idea-2/components/ResultsTable"
@@ -58,7 +52,6 @@ export function ResultsPane({
 
   return (
     <section className={cn("bg-surface-panel flex min-w-0 flex-col", className)}>
-      <TooltipProvider>
         <div className="border-edge flex shrink-0 flex-col gap-2 border-b px-3 py-2.5">
           <div className="flex items-center gap-1.5">
             <div className="mr-auto flex min-w-0 items-baseline gap-1.5">
@@ -85,28 +78,22 @@ export function ResultsPane({
               ) : null}
             </div>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
-                  <LayersIcon className="size-4" />
-                  <span className="sr-only">Group by</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Group by</TooltipContent>
-            </Tooltip>
+            {/* Labelled, not icon-only. The icons alone were a concession to a
+                results pane a fifth of the window wide; at half the window the
+                words fit, and a toolbar you have to hover to read is a worse
+                toolbar than one you can. */}
+            <Button variant="ghost" size="sm" className="text-muted-foreground">
+              <LayersIcon className="size-4" />
+              Group by
+            </Button>
 
             <DropdownMenu>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
-                      <Columns3Icon className="size-4" />
-                      <span className="sr-only">Columns</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent>Columns</TooltipContent>
-              </Tooltip>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                  <Columns3Icon className="size-4" />
+                  Columns
+                </Button>
+              </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-auto min-w-44">
                 {resultColumns.map((column) => {
                   const shown = visibleColumns.includes(column.key)
@@ -128,15 +115,10 @@ export function ResultsPane({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button size="icon-sm" disabled={rows.length === 0}>
-                  <DownloadIcon className="size-4" />
-                  <span className="sr-only">Export</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Export</TooltipContent>
-            </Tooltip>
+            <Button size="sm" disabled={rows.length === 0}>
+              <DownloadIcon className="size-4" />
+              Export
+            </Button>
           </div>
 
           <div className="flex items-start gap-2">
@@ -157,7 +139,6 @@ export function ResultsPane({
             </button>
           </div>
         </div>
-      </TooltipProvider>
 
       {rows.length === 0 ? (
         <div className="flex min-h-0 flex-1 items-start justify-center px-4 pt-16">

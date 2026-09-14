@@ -1111,6 +1111,24 @@ export interface AgentStep {
 export const agentRequest =
   "anti-inflammatories in phase II or later, excluding Austria and Italy"
 
+/**
+ * Cold-start prompts for the composer, in the spirit of Idea 3's. They fill the
+ * field rather than firing, and only the first one has a plan behind it — which
+ * the composer marks, so offering the others is showing the shape of a request
+ * rather than claiming they all resolve.
+ */
+export const suggestedRequests = [
+  { label: "Anti-inflammatories, phase II+, not AT or IT", text: agentRequest },
+  {
+    label: "Marketed dermatology drugs in Europe",
+    text: "marketed dermatology drugs available in Europe",
+  },
+  {
+    label: "Small molecules in preclinical",
+    text: "small molecule drugs still in preclinical",
+  },
+]
+
 export const agentReading = [
   "Drug descriptor is Antiinflammatory Therapy",
   "Development stage is Phase II, Phase III or Phase IV",
