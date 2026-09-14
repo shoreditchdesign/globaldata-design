@@ -72,7 +72,7 @@ Restrained and systematic, never a rainbow. Colour goes where it carries meaning
 
 ### Data grids
 
-A dense grid works to its own type scale, set on Idea 4's working grid: 16px for cell data and any typed input over the grid (the assistant's composer included), 14px for labels, tags, header text and menu rows, and nothing smaller than that. Header labels never wrap — a column's minimum width is set so its label, sort arrow and filter badge fit on one line — so past that width the grid scrolls horizontally rather than wrapping, with the identity column (the row's checkbox and name) pinned to the left.
+Every dense grid in the sprint works to one type scale, Idea 3's: 13px cell data, 10px column headers (`font-medium tracking-[0.08em] uppercase text-muted-foreground`), 12px for the chips, tags and meta lines in and around the table, and `py-2.5` cells. The directions have to read as one product, so a grid does not set a scale of its own. Header labels never wrap — a column's minimum width is set so its label, sort arrow and filter badge fit on one line — so past that width the grid scrolls horizontally rather than wrapping, with the identity column (the row's checkbox and name) pinned to the left. Size those minimums by measuring the real labels: uppercase at 10px with `0.08em` tracking is barely narrower than 14px sentence case, so they never scale by the type ratio.
 
 ### Motion
 
