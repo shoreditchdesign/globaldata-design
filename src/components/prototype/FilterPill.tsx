@@ -12,8 +12,10 @@ import { cn } from "@/lib/utils"
  *
  * The variants say what the pill *means*, not what it looks like:
  *
- *   applied  — a condition that is on. Carries the accent, because the accent
- *              is what "on" looks like everywhere in this product.
+ *   applied  — a condition that is on. The accent at full strength is spent
+ *              on primary buttons, checked controls, filter chips that are on
+ *              and links. Other selected states take the washed brand, and
+ *              hover is grey.
  *   excluded — a condition that takes rows away. It cannot look identical to
  *              one that keeps them; a bar of grey chips where half are `is not`
  *              is a bar you have to read word by word.

@@ -29,6 +29,14 @@
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
+  /* Selected: a checked control, brand fill, white label. `bg-selected text-selected-foreground`. */
+  --color-selected: var(--selected);
+  --color-selected-foreground: var(--selected-foreground);
+  --color-selected-hover: var(--selected-hover);
+  /* Disabled: a flat grey, never a faded accent. */
+  --color-brand-disabled: var(--brand-disabled);
+  --color-brand-disabled-foreground: var(--brand-disabled-foreground);
+  --color-control-disabled-foreground: var(--control-disabled-foreground);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -54,6 +62,7 @@
   /* ---- The accent. `bg-brand`, `text-brand-ink`, `border-brand-border`, … ---- */
   --color-brand: var(--brand);
   --color-brand-strong: var(--brand-strong);
+  --color-brand-pressed: var(--brand-pressed);
   --color-brand-ink: var(--brand-ink);
   --color-brand-border: var(--brand-border);
   --color-brand-tint: var(--brand-tint);
@@ -117,8 +126,8 @@
    * forward off it, and a well is pushed back into it. Five steps, and
    * they are the only backgrounds a screen should reach for.
    *
-   *   sunken  — a well cut into a panel: inputs, empty states, the strip
-   *             behind a sticky table head, a disabled row.
+   *   sunken  — a well cut into a panel: inputs, empty states, a
+   *             segmented control's track, a disabled row.
    *   page    — the application ground. Nothing sits at this level
    *             except the gaps between panels.
    *   chrome  — structure: the product header, area tabs, toolbars,
@@ -161,48 +170,87 @@
    * ------------------------------------------------------------------
    * The accent — the GlobalData brand primary
    * ------------------------------------------------------------------
-   * `--brand` is the client's `#0034ec`, written in OKLCH so the rest of
-   * the ramp can be derived from it: `oklch(0.465 0.27 264)` renders to
-   * exactly that hex. It is a hard blue and it sits on the sRGB gamut
-   * wall — 0.27 is the most chroma this hue can hold at any lightness —
-   * which is the single fact that shapes everything below. There is no
-   * room above it, so the scale is built by walking *down* in lightness
-   * for the solid states and *up* toward white for the tints.
+   * `--brand` is a calmer derivative of the client's `#0034ec`, at the
+   * same hue. The raw hex is `oklch(0.465 0.27 264)`, which sits on the
+   * sRGB gamut wall: 0.27 is the most chroma this hue can hold at any
+   * lightness. Used as a solid across four screens of dense data, that
+   * much blue vibrated and pulled the eye to every button and chip. So
+   * the brand keeps its hue and gives up about a quarter of its chroma
+   * (0.27 → 0.205), and moves up a little in lightness (0.465 → 0.49) so
+   * it does not go navy. It renders as #2052d2, is still unmistakably the
+   * GlobalData blue, and white on it still clears 6.6:1.
    *
-   * It carries primary actions, active and selected states, filter chips
-   * that are on, focus rings and the agent's own accents — and nothing
-   * else. Black is not an active-state colour anywhere.
+   * With headroom below the gamut wall now, every rung is derived from
+   * the brand by stepping lightness and scaling chroma together, so the
+   * whole ramp reads as one colour at different depths.
    *
-   * Because it is roughly seventy per cent more chromatic than the
-   * cerulean it replaces, everything downstream is *quieter* than the
-   * proportional equivalent would be. A stronger accent means less of it.
+   * It carries primary buttons, filter chips that are on, and links —
+   * nothing else. Checked controls (checkbox, radio, switch, progress)
+   * take `selected`, which is this same brand; selected options and
+   * toggles take the washed brand (`brand-tint` fill, `brand-border`
+   * edge) instead. Hovers are grey and focus is neutral. A strong accent
+   * means less of it.
    *
-   *   brand         solid fills; white sits on it at 7.5:1
-   *   brand-strong  hover and pressed on a solid fill — deeper, not paler
-   *   brand-ink     the accent as text or an icon on a light surface;
-   *                 8.5:1 on white, and calmer than the raw brand, which
-   *                 shimmers at 12px and would make a coloured word look
-   *                 like a button
-   *   brand-border  the edge of a selected chip or an active tab
-   *   brand-tint    the fill of a selected chip
-   *   brand-wash    a selected row or a hovered option
+   *   brand          solid fills; white on it at 6.6:1
+   *   brand-strong   hover on a solid fill: one small step deeper
+   *                  (L −0.035, C −0.015), 7.6:1. Deeper, never paler, and
+   *                  small enough to read as a response rather than a
+   *                  different colour
+   *   brand-pressed  active/pressed: the same step again (L −0.07 from
+   *                  rest), 8.8:1
+   *   brand-ink      the accent as text or an icon on a light surface;
+   *                  7.8:1 on white, and calmer than the brand, which
+   *                  would make a coloured word look like a button
+   *   brand-border   the edge of a filter chip that is on
+   *   brand-tint     the fill of a filter chip that is on
+   *   brand-wash     the palest step, kept for the ramp
    *
-   * `tint` and `wash` are both at their gamut ceiling for this hue
-   * (0.022 at L 0.953, 0.012 at L 0.973). A pale blue at 264 simply
-   * cannot be more saturated than this in sRGB, so the chips read as the
-   * new brand by hue rather than by intensity.
+   * `tint` and `wash` sit close to the gamut ceiling for a pale blue at
+   * 264, so the chips read as the brand by hue rather than intensity.
    */
-  --brand: oklch(0.465 0.27 264);
-  --brand-strong: oklch(0.405 0.235 264);
-  --brand-ink: oklch(0.43 0.18 264);
-  --brand-border: oklch(0.855 0.062 264);
-  --brand-tint: oklch(0.953 0.022 264);
-  --brand-wash: oklch(0.973 0.012 264);
+  --brand: oklch(0.49 0.205 264);
+  --brand-strong: oklch(0.455 0.19 264);
+  --brand-pressed: oklch(0.42 0.175 264);
+  --brand-ink: oklch(0.445 0.15 264);
+  --brand-border: oklch(0.86 0.052 264);
+  --brand-tint: oklch(0.955 0.02 264);
+  --brand-wash: oklch(0.975 0.011 264);
   --brand-foreground: oklch(0.99 0 0);
+
+  /*
+   * Disabled belongs to the brand, never a faded one and never a grey.
+   * `opacity-50` left a washed-out brand that still said "press me",
+   * and a neutral grey looked broken next to the blue. This is the brand
+   * pushed toward white with its chroma pulled right down: a pale blue
+   * that is plainly the same button, plainly asleep. The label is a
+   * dusty blue at 3.5:1 on the fill, so the word stays readable. The
+   * fill is 1.3:1 against white, just enough to hold the button's shape.
+   *
+   * Transparent variants (outline, ghost, secondary) keep their resting
+   * fill and drop the label to `control-disabled-foreground`, a neutral
+   * grey a step quieter than `muted-foreground`: 3.5:1 on white, 3.2:1
+   * on the page grey.
+   */
+  --brand-disabled: oklch(0.915 0.03 264);
+  --brand-disabled-foreground: oklch(0.57 0.08 264);
+  --control-disabled-foreground: oklch(0.63 0.01 258);
 
   --primary: var(--brand);
   --primary-foreground: var(--brand-foreground);
-  --ring: oklch(0.6 0.205 264);
+  /* Focus is neutral, not the brand: a grey ring reads as focus without
+   * competing with the one blue a screen is allowed. */
+  --ring: oklch(0.708 0.008 258);
+
+  /*
+   * Selected — a checked or selected control (checkbox, radio, switch,
+   * progress fill) is brand solid with a white label, and `selected-hover`
+   * goes one step deeper. A selected option, toggle or segmented item takes
+   * washed brand instead: `bg-brand-tint border-brand-border
+   * text-foreground`. Black is never a fill; beside the blue it reads busy.
+   */
+  --selected: var(--brand);
+  --selected-foreground: var(--primary-foreground);
+  --selected-hover: var(--brand-strong);
 
   --secondary: oklch(0.968 0.002 255);
   --secondary-foreground: oklch(0.26 0.01 260);
@@ -210,6 +258,7 @@
   --muted-foreground: oklch(0.545 0.012 258);
   --accent: oklch(0.962 0.003 255);
   --accent-foreground: oklch(0.26 0.01 260);
+
   --destructive: oklch(0.55 0.19 25);
 
   /*
@@ -303,11 +352,11 @@
 
   /* Charts follow the accent rather than a greyscale, so a bar and a
    * selected chip belong to the same product. */
-  --chart-1: oklch(0.465 0.27 264);
-  --chart-2: oklch(0.58 0.215 264);
-  --chart-3: oklch(0.7 0.15 264);
-  --chart-4: oklch(0.8 0.095 264);
-  --chart-5: oklch(0.885 0.05 264);
+  --chart-1: var(--brand);
+  --chart-2: oklch(0.59 0.165 264);
+  --chart-3: oklch(0.7 0.12 264);
+  --chart-4: oklch(0.8 0.08 264);
+  --chart-5: oklch(0.885 0.045 264);
 
   --radius: 0.625rem;
 
@@ -315,8 +364,8 @@
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--brand);
   --sidebar-primary-foreground: var(--brand-foreground);
-  --sidebar-accent: var(--brand-wash);
-  --sidebar-accent-foreground: var(--brand-ink);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
 

@@ -122,7 +122,7 @@ export function SprintTable({
                 </Td>
                 <Td>
                   <Dot className={sprint.ideas.some((i) => i.status !== "placeholder")
-                    ? "bg-brand"
+                    ? "bg-foreground"
                     : "bg-muted-foreground/30"} />
                 </Td>
                 <Td className="font-medium">{sprint.name}</Td>
