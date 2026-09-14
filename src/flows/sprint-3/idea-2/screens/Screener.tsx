@@ -28,9 +28,18 @@ export function Screener() {
 
   return (
     <ProductChrome activeArea="Drugs" body="row">
+      {/*
+        Half the window each. The columns are still the work, but four fifths of
+        the screen bought a third column rather than a better one, and it left
+        the results as a strip. The floors are what the two regions stop at
+        rather than what they aim for: two Miller columns at their 260px minimum
+        plus the rule between them and the panel's own border is 522px, and the
+        results pane holds its name column at 260px, so the body scrolls
+        sideways below 782px of window instead of the 1,160px it used to.
+      */}
       <FilterPanel
         screener={screener}
-        className="border-edge w-[80%] max-w-none min-w-[900px] shrink-0 border-r"
+        className="border-edge w-[50%] max-w-none min-w-[522px] shrink-0 border-r"
       />
       <ResultsPane screener={screener} className="min-w-[260px] flex-1" />
 

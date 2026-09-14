@@ -24,30 +24,44 @@ import type { Screener } from "@/flows/sprint-3/idea-2/use-screener"
 /**
  * How many columns are on screen at once before the rest go to the breadcrumb.
  *
- * Re-derived at the 16px baseline, which is the whole of why the number moved.
- * A row spends its lanes before it spends anything on the label — 106px of
- * control, count and chevron in a drillable column, 84px where nothing drills —
- * and the labels themselves grew a third: `Musculoskeletal Disorders` measures
- * 198px at 16px against 148px at 12px. Four columns split the panel
- * 1.25 : 1 : 1 : 1, so at 1680px of window the panel is 1344px, the three plain
- * columns come out at 316px and the attribute column at 394px, and every filter
- * area, attribute, therapy area and country label fits. Below 1680 the panel
- * drops to three columns — 354px each at 1440px of window, where nothing
- * truncates at all — and the breadcrumb carries the extra depth, which is what
- * the breadcrumb is for. The type does not yield to the column count; the column
- * count yields to the type.
+ * Re-derived for a panel that is half the window rather than four fifths. The
+ * Miller type has not moved a pixel, so the labels are exactly as wide as they
+ * were and it is the column count that gives.
  *
- * Two labels still truncate with four columns open, both in the child column:
- * `Cutaneous Lupus Erythematosus` at 247px and `Pulmonary Arterial
- * Hypertension` at 243px, against 232px of label lane. They fitted at 12px, so
- * this is a real loss rather than an inherited one, and the row's `title` is
- * what carries them. Clearing them needs 1920px of window, which would take the
- * fourth column off every laptop in the studio to save two ellipses in the
- * deepest column of the drill-down.
+ * A row spends its lanes before it spends anything on the label. Lead control
+ * 24px, the gaps and the row's own padding 22px, then the count lane and, where
+ * a column drills, a 16px chevron: 124px of furniture in the filter-area column
+ * (a five-character count lane), 108px in a drillable column with a three-digit
+ * one, 86px in a leaf column. The labels, measured off Geist at the 16px the
+ * rows render at and at the medium weight a ticked value takes:
+ * `Advanced Company Watchlist` 224px, `Musculoskeletal Disorders` 203px,
+ * `Therapy Area / Indication` 192px, `Pulmonary Arterial Hypertension` 249px,
+ * `Cutaneous Lupus Erythematosus` 253px.
+ *
+ * Add the two together and a column wants 348px for the filter areas, 339px for
+ * the deepest indication, 311px for a therapy area, and 300px for the attribute
+ * inventory — which takes 1.25 shares of the panel rather than 1, so it asks
+ * 240px of the share. The binding column is the widest of those over 1 share:
+ * 348px.
+ *
+ * Two columns are 2.25 shares plus the rule between them and the panel's own
+ * border, so they want 1,570px of window at the widest pair (filter areas
+ * beside attributes) and 1,405px at the pair the screen opens on (attributes
+ * beside therapy areas). Three columns are 3.25 shares and want 2,267px, which
+ * is a large desktop and not a laptop — so three is the wide case and two is
+ * the ordinary one, and the breadcrumb carries the rest of the depth, which is
+ * what the breadcrumb is for.
+ *
+ * What that costs at the sprint's 1440px review viewport, honestly: the pair on
+ * screen at first paint fits, and so does the deepest pair. One label does not —
+ * `Advanced Company Watchlist` in the filter-area column, 29px over its lane,
+ * carried by the row's `title` until the window reaches 1,570px. It is the one
+ * area of the eight that cannot be opened, so the ellipsis falls on the row
+ * that costs least.
  */
-const FOUR_COLUMN_MIN_WIDTH = 1680
-const WIDE_COLUMNS = 4
-const NARROW_COLUMNS = 3
+const THREE_COLUMN_MIN_WIDTH = 2280
+const WIDE_COLUMNS = 3
+const NARROW_COLUMNS = 2
 
 function useMaxColumns() {
   // Server-render the wide case, then correct on mount — the prototype is
@@ -55,7 +69,7 @@ function useMaxColumns() {
   const [maxColumns, setMaxColumns] = useState(WIDE_COLUMNS)
 
   useEffect(() => {
-    const query = window.matchMedia(`(min-width: ${FOUR_COLUMN_MIN_WIDTH}px)`)
+    const query = window.matchMedia(`(min-width: ${THREE_COLUMN_MIN_WIDTH}px)`)
     const apply = () => setMaxColumns(query.matches ? WIDE_COLUMNS : NARROW_COLUMNS)
     apply()
     query.addEventListener("change", apply)
@@ -83,7 +97,7 @@ const childLevel: Record<string, string> = {
  *
  * Drilling in adds a column beside the one you were on instead of wiping it,
  * so the path you took stays on screen and the branches either side of it stay
- * open. Past the three or four the window fits, the leftmost fold into the
+ * open. Past the two or three the window fits, the leftmost fold into the
  * breadcrumb, which is still a live control: clicking a crumb slides that
  * column back into view without discarding anything to the right of it.
  *
@@ -116,7 +130,6 @@ export function FilterPanel({
       key: "areas",
       level: "Filter area",
       unit: "Records",
-      tone: "chrome",
       items: areaItems,
       open: area,
       // No lead-lane count of applied filters: it put a number on both sides of
@@ -136,7 +149,6 @@ export function FilterPanel({
       // there are is the difference between a menu you get past and a data
       // model you can read.
       level: `${attributeItems.length} attributes`,
-      tone: "chrome",
       items: attributeItems.map((item) => ({
         ...item,
         // Free-text attributes have no value list, so they carry no number.
@@ -156,7 +168,6 @@ export function FilterPanel({
     columns.push({
       key: `values:${attribute}`,
       level: valueLevel[attribute] ?? attribute,
-      tone: "panel",
       items: (valuesByAttribute[attribute] ?? []).map((item) => ({
         ...item,
         count: openCounts[item.label] ?? 0,
@@ -173,7 +184,6 @@ export function FilterPanel({
     columns.push({
       key: `children:${value}`,
       level: childLevel[attribute] ?? "Value",
-      tone: "panel",
       items: childrenByValue[value].map((item) => ({
         ...item,
         count: openCounts[item.label] ?? 0,
@@ -205,11 +215,10 @@ export function FilterPanel({
 
   return (
     <aside className={cn("bg-surface-page flex h-full min-h-0 flex-col", className)}>
-      {/* The breadcrumb is the panel's heading, so it sits on the panel's own
-          ground. Search and the column captions below it are one chrome plate
-          with no rule between them — the search reads as belonging to the
-          columns it filters rather than to the crumbs above it. */}
-      <div className="shrink-0 px-3 pt-2.5 pb-2">
+      {/* The breadcrumb, the search field and the column captions are one white
+          block with no rule between them: the panel has a header, and under it
+          the columns are the only coloured thing in the region. */}
+      <div className="bg-surface-panel shrink-0 px-3 pt-2.5 pb-2">
         <div className="flex items-center gap-1">
           {start > 0 ? (
             <button
@@ -235,14 +244,13 @@ export function FilterPanel({
                     type="button"
                     onClick={() => screener.setLeftIndex(Math.max(0, Math.min(i, maxLeft)))}
                     className={cn(
-                      "hover:text-foreground truncate rounded px-1 py-0.5",
-                      // The crumb you are on is the panel's heading, and a
-                      // heading is read rather than pressed — so it takes its
-                      // prominence from size and weight and leaves the accent
-                      // to the controls.
-                      isLast
-                        ? "text-foreground text-[19px] font-semibold"
-                        : "text-muted-foreground text-[15px]",
+                      "hover:text-foreground truncate rounded px-1 py-0.5 text-[15px]",
+                      // One size for every crumb: a trail where the last step
+                      // is four pixels taller than the one before it reads as
+                      // two different kinds of thing rather than one path. The
+                      // crumb you are on is marked by weight and full ink,
+                      // which leaves the accent to the controls.
+                      isLast ? "text-foreground font-semibold" : "text-muted-foreground",
                       hidden && "bg-surface-sunken",
                     )}
                   >
@@ -255,7 +263,11 @@ export function FilterPanel({
         </div>
       </div>
 
-      <div className="bg-surface-chrome shrink-0 px-3 pt-2 pb-2">
+      <div className="bg-surface-panel shrink-0 px-3 pt-2 pb-2">
+        {/* The field keeps its well. It is the one thing in the white block you
+            type into, and a sunken input is how that is said everywhere else in
+            the product — a white field on a white block would be an outline
+            drawn for no reason. */}
         <InputGroup className="bg-surface-sunken">
           <InputGroupAddon>
             <SearchIcon className="size-4" />
