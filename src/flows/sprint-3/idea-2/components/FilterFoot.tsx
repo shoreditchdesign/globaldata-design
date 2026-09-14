@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { AgentComposer } from "@/flows/sprint-3/idea-2/components/AgentComposer"
 import { AgentRun } from "@/flows/sprint-3/idea-2/components/AgentRun"
 import { AppliedPills } from "@/flows/sprint-3/idea-2/components/AppliedPills"
 import { platformTotal, sample } from "@/flows/sprint-3/idea-2/data"
@@ -19,10 +20,9 @@ import type { Screener } from "@/flows/sprint-3/idea-2/use-screener"
  * already shares a subject across the values of one attribute, which is why
  * the query reads as a sentence rather than a heap of chips.
  *
- * The agent lands here too, and only here: `Ask` and its ⌘K hint are the one
- * resident trace of it, and `AgentRun` appears at the top of the block once
- * there is a run to report — the steps sit directly over the count and the
- * sentence they produced, which stay adjacent to each other.
+ * The agent lands here too, and only here: the composer is its one resident
+ * surface, and `AgentRun` appears above it once there is a run to report — the
+ * steps sit between the request that produced them and the count they moved.
  */
 export function FilterFoot({ screener }: { screener: Screener }) {
   const { filters, rows } = screener
@@ -30,8 +30,9 @@ export function FilterFoot({ screener }: { screener: Screener }) {
   return (
     <div className="bg-surface-chrome border-edge shrink-0 border-t px-3 py-2.5">
       <AgentRun screener={screener} />
+      <AgentComposer screener={screener} />
 
-      <div className="flex items-baseline gap-1.5">
+      <div className="mt-2.5 flex items-baseline gap-1.5">
         {/* The count is the answer, not a control: it earns its prominence
             from thirty pixels and a weight, and leaves the accent to the
             things on this row that are actually a press. */}
@@ -51,18 +52,6 @@ export function FilterFoot({ screener }: { screener: Screener }) {
         <div className="min-w-0 flex-1">
           <AppliedPills screener={screener} />
         </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={screener.openSpotlight}
-          className="h-8 shrink-0 px-2.5 text-[14px]"
-        >
-          Ask
-          <span className="text-muted-foreground" aria-hidden="true">
-            ⌘K
-          </span>
-        </Button>
 
         <Button
           variant="ghost"
