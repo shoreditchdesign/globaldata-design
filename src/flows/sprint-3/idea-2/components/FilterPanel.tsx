@@ -18,48 +18,46 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { MillerColumn, type ColumnModel } from "@/flows/sprint-3/idea-2/components/MillerColumn"
-import { FilterFoot } from "@/flows/sprint-3/idea-2/components/FilterFoot"
+import { AgentFoot } from "@/flows/sprint-3/idea-2/components/AgentFoot"
 import type { Screener } from "@/flows/sprint-3/idea-2/use-screener"
 
 /**
  * How many columns are on screen at once before the rest go to the breadcrumb.
  *
- * Re-derived for a panel that is half the window rather than four fifths. The
- * Miller type has not moved a pixel, so the labels are exactly as wide as they
- * were and it is the column count that gives.
+ * Re-derived at the 13px the columns now read at. The Miller type has come down
+ * onto the table's scale, so every label is 0.8125 of the width it was measured
+ * at and the threshold comes down with it.
  *
  * A row spends its lanes before it spends anything on the label. Lead control
- * 24px, the gaps and the row's own padding 22px, then the count lane and, where
- * a column drills, a 16px chevron: 124px of furniture in the filter-area column
- * (a five-character count lane), 108px in a drillable column with a three-digit
- * one, 86px in a leaf column. The labels, measured off Geist at the 16px the
- * rows render at and at the medium weight a ticked value takes:
- * `Advanced Company Watchlist` 224px, `Musculoskeletal Disorders` 203px,
- * `Therapy Area / Indication` 192px, `Pulmonary Arterial Hypertension` 249px,
- * `Cutaneous Lupus Erythematosus` 253px.
+ * 20px, the gaps and the row's own padding 20px, then the count lane and, where
+ * a column drills, a 16px chevron: 104px of furniture in the filter-area column
+ * (a five-character count lane, now 48px), 88px in a drillable column with a
+ * three-digit one, 72px in a leaf column. The labels, measured off Geist at the
+ * 16px the rows used to render at and scaled to 13px, at the medium weight a
+ * ticked value takes: `Advanced Company Watchlist` 182px, `Musculoskeletal
+ * Disorders` 165px, `Therapy Area / Indication` 156px, `Pulmonary Arterial
+ * Hypertension` 202px, `Cutaneous Lupus Erythematosus` 206px.
  *
- * Add the two together and a column wants 348px for the filter areas, 339px for
- * the deepest indication, 311px for a therapy area, and 300px for the attribute
+ * Add the two together and a column wants 286px for the filter areas, 278px for
+ * the deepest indication, 253px for a therapy area, and 244px for the attribute
  * inventory — which takes 1.25 shares of the panel rather than 1, so it asks
- * 240px of the share. The binding column is the widest of those over 1 share:
- * 348px.
+ * 195px of the share. The binding column is the widest of those over 1 share:
+ * 286px.
  *
  * Two columns are 2.25 shares plus the rule between them and the panel's own
- * border, so they want 1,570px of window at the widest pair (filter areas
- * beside attributes) and 1,405px at the pair the screen opens on (attributes
- * beside therapy areas). Three columns are 3.25 shares and want 2,267px, which
- * is a large desktop and not a laptop — so three is the wide case and two is
- * the ordinary one, and the breadcrumb carries the rest of the depth, which is
- * what the breadcrumb is for.
+ * border, so they want 1,292px of window at the widest pair (filter areas
+ * beside attributes) and 1,142px at the pair the screen opens on (attributes
+ * beside therapy areas). Three columns are 3.25 shares and want 1,866px, which
+ * is still a wide desktop rather than a laptop — so three remains the wide case
+ * and two the ordinary one, and the breadcrumb carries the rest of the depth,
+ * which is what the breadcrumb is for.
  *
- * What that costs at the sprint's 1440px review viewport, honestly: the pair on
- * screen at first paint fits, and so does the deepest pair. One label does not —
- * `Advanced Company Watchlist` in the filter-area column, 29px over its lane,
- * carried by the row's `title` until the window reaches 1,570px. It is the one
- * area of the eight that cannot be opened, so the ellipsis falls on the row
- * that costs least.
+ * What the smaller type buys at the sprint's 1440px review viewport: both pairs
+ * now fit whole. `Advanced Company Watchlist` used to overrun its lane by 29px
+ * and lean on the row's `title` until the window reached 1,570px; at 13px it is
+ * inside the lane, so nothing in the panel truncates at the review size.
  */
-const THREE_COLUMN_MIN_WIDTH = 2280
+const THREE_COLUMN_MIN_WIDTH = 1880
 const WIDE_COLUMNS = 3
 const NARROW_COLUMNS = 2
 
@@ -137,7 +135,7 @@ export function FilterPanel({
       // wrong. Nothing replaces it here, because there is nothing to compare
       // against — `Drugs` is the only area you can open, the radio mark already
       // says the path is on it, and how many filters it holds is stated in
-      // words on the pills at the foot of the panel.
+      // words on the pills heading the results.
     },
   ]
 
@@ -158,8 +156,8 @@ export function FilterPanel({
       wide: true,
       open: attribute,
       // An attribute with values in the query is `selected`, and that is the
-      // whole of the signal: how many values it holds is on the pills at the
-      // foot, said once, in words.
+      // whole of the signal: how many values it holds is on the pills heading
+      // the results, said once, in words.
       selected: filters.map((filter) => filter.attribute),
     })
   }
@@ -216,9 +214,14 @@ export function FilterPanel({
   return (
     <aside className={cn("bg-surface-page flex h-full min-h-0 flex-col", className)}>
       {/* The breadcrumb, the search field and the column captions are one white
-          block with no rule between them: the panel has a header, and under it
-          the columns are the only coloured thing in the region. */}
-      <div className="bg-surface-panel shrink-0 px-3 pt-2.5 pb-2">
+          block: the panel has a header, and under it the columns are the only
+          coloured thing in the region. The one rule inside it is above the
+          captions, which belong to the columns rather than to the field.
+
+          The rail takes its own room top and bottom. Crammed against the search
+          field under it, the path read as a label on the field rather than as
+          the thing the columns are currently showing. */}
+      <div className="bg-surface-panel shrink-0 px-3 pt-3 pb-3">
         <div className="flex items-center gap-1">
           {start > 0 ? (
             <button
@@ -238,13 +241,13 @@ export function FilterPanel({
               return (
                 <span key={crumb} className="flex min-w-0 items-center gap-1">
                   {i > 0 ? (
-                    <ChevronRightIcon className="text-muted-foreground size-4 shrink-0" />
+                    <ChevronRightIcon className="text-muted-foreground size-3.5 shrink-0" />
                   ) : null}
                   <button
                     type="button"
                     onClick={() => screener.setLeftIndex(Math.max(0, Math.min(i, maxLeft)))}
                     className={cn(
-                      "hover:text-foreground truncate rounded px-1 py-0.5 text-[15px]",
+                      "hover:text-foreground truncate rounded px-1 py-0.5 text-[13px]",
                       // One size for every crumb: a trail where the last step
                       // is four pixels taller than the one before it reads as
                       // two different kinds of thing rather than one path. The
@@ -272,14 +275,15 @@ export function FilterPanel({
           <InputGroupAddon>
             <SearchIcon className="size-4" />
           </InputGroupAddon>
-          {/* `Input` lands on `md:text-sm` — 14px, which is under the baseline
-              this panel now reads at, so the field states its own size. */}
+          {/* `Input` lands on `md:text-sm` — 14px, a pixel over the 13px the
+              columns and the table beside them read at, so the field states its
+              own size rather than sitting a step above everything it filters. */}
           <InputGroupInput
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search filters"
             aria-label="Search the columns on screen"
-            className="md:text-[16px]"
+            className="md:text-[13px]"
           />
         </InputGroup>
       </div>
@@ -303,7 +307,7 @@ export function FilterPanel({
         })}
       </div>
 
-      <FilterFoot screener={screener} />
+      <AgentFoot screener={screener} />
     </aside>
   )
 }
