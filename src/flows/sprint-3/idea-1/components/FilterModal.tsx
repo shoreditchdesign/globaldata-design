@@ -79,9 +79,9 @@ function Tab({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "rounded-full px-4 py-1.5 text-sm transition-colors",
+        "rounded-full border px-4 py-1.5 text-sm transition-colors",
         active
-          ? "bg-surface-panel text-brand-ink shadow-panel"
+          ? "bg-brand-tint border-brand-border text-foreground"
           : "text-muted-foreground hover:text-foreground",
       )}
     >

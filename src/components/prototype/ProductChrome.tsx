@@ -107,7 +107,7 @@ export function ProductChrome({
 
           <BellIcon className="text-muted-foreground size-4 shrink-0" aria-hidden />
           <Avatar className="size-7 shrink-0">
-            <AvatarFallback className="bg-brand-tint text-brand-ink text-[11px] font-medium">
+            <AvatarFallback className="bg-muted text-foreground text-[11px] font-medium">
               {user}
             </AvatarFallback>
           </Avatar>
@@ -127,7 +127,7 @@ export function ProductChrome({
               className={cn(
                 "relative flex h-full items-center px-2.5 text-[12.5px] whitespace-nowrap",
                 active
-                  ? "text-brand-ink after:bg-brand font-medium after:absolute after:inset-x-2.5 after:-bottom-px after:h-0.5"
+                  ? "text-foreground after:bg-brand font-medium after:absolute after:inset-x-2.5 after:-bottom-px after:h-0.5"
                   : "text-muted-foreground",
               )}
             >

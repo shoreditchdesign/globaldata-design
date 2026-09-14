@@ -5,7 +5,7 @@
  * sample of 1,440 drug rows**, built once at module load from weighted tables
  * and a seeded generator, so the numbers on screen can be derived rather than
  * authored. Every count in the prototype — the headline, the per-value counts
- * in the Miller columns, the badges on the attribute rows — is counted off that
+ * in the Miller columns, the value tally beside each attribute — is counted off that
  * one array against the filters currently applied. The panel therefore cannot
  * disagree with the pill bar or with the table, which is the failure this
  * direction could not afford once selection became live.
