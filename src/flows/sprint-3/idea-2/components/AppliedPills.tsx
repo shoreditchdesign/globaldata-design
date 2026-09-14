@@ -48,7 +48,7 @@ function WordButton({
 }
 
 /**
- * The query, in the foot of the filter panel, as a sentence made of removable
+ * The query, at the head of the results pane, as a sentence made of removable
  * objects.
  *
  * Values from one attribute share a subject rather than repeating it, so the
