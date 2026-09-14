@@ -12,6 +12,7 @@ import {
   type AgentStep,
   type AttributeFilter,
 } from "@/flows/sprint-3/idea-2/data"
+import type { ResultColumnKey } from "@/flows/sprint-3/idea-2/components/ResultsTable"
 
 /* -------------------------------------------------------------------------- */
 /* The agent's run                                                             */
@@ -31,8 +32,6 @@ export interface StepRecord {
 }
 
 interface AgentState {
-  /** The panel is dismissible; dismissing it does not discard the run. */
-  visible: boolean
   status: AgentStatus
   request: string | null
   steps: StepRecord[]
@@ -42,7 +41,6 @@ interface AgentState {
 }
 
 const idleAgent: AgentState = {
-  visible: true,
   status: "idle",
   request: null,
   steps: [],
@@ -52,7 +50,7 @@ const idleAgent: AgentState = {
 
 /**
  * How long the agent waits between beats. Slow enough that a person watching
- * a demo can follow which control moved — the point of the panel is that you
+ * a demo can follow which control moved — the point of the run is that you
  * see your own interface being driven, and instant application shows nothing.
  */
 const NAVIGATE_MS = 520
@@ -233,12 +231,90 @@ export function useScreener() {
   )
 
   /* ---------------------------------------------------------------------- */
+  /* Reading one row, and choosing which columns to read it by               */
+  /* ---------------------------------------------------------------------- */
+
+  /**
+   * Which record the drawer is showing, as an id rather than a row.
+   *
+   * The row itself is looked up in `rows` — the filtered set — so a record
+   * cannot outlive the query that surfaced it: untick the value it matched on
+   * while it is open and the drawer closes with it, which is the honest
+   * behaviour for a panel that claims to be a view of the result set.
+   */
+  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null)
+  const openRecord = useCallback((id: string) => setSelectedRecordId(id), [])
+  const closeRecord = useCallback(() => setSelectedRecordId(null), [])
+  const selectedRow = useMemo(
+    () => rows.find((row) => row.id === selectedRecordId) ?? null,
+    [rows, selectedRecordId],
+  )
+
+  // Closing it that way has to drop the id with it. Held on to, a record that
+  // left the set is still selected behind a shut drawer, and the drawer slides
+  // back in on its own the moment the query lets the row through again — a
+  // re-tick, or an undone agent step. Nothing opens it but `Open`.
+  //
+  // Adjusted during render rather than in an effect: React re-renders before
+  // committing, so the drawer never paints a frame holding a record the query
+  // has already dropped. The same pattern `useStagedSequence` uses in
+  // `prototype/motion.ts`, and the one the lint rules here allow.
+  if (selectedRecordId !== null && selectedRow === null) {
+    setSelectedRecordId(null)
+  }
+
+  /**
+   * The columns the table shows. Three by default — the pane is a fifth of the
+   * window — and never fewer than two, because a one-column table of drug names
+   * is a list, and the `Columns` menu should not be able to make one by
+   * accident. Order is the table's, not the order they were ticked in.
+   */
+  const [visibleColumns, setVisibleColumns] = useState<ResultColumnKey[]>([
+    "name",
+    "stage",
+    "company",
+  ])
+
+  const toggleColumn = useCallback((key: ResultColumnKey) => {
+    setVisibleColumns((current) => {
+      if (!current.includes(key)) return [...current, key]
+      // The name is not one of the two: it carries `Open`, so unticking it is
+      // unticking the only route to the fields the table dropped.
+      if (key === "name") return current
+      if (current.length <= 2) return current
+      return current.filter((entry) => entry !== key)
+    })
+  }, [])
+
+  /* ---------------------------------------------------------------------- */
   /* The agent                                                              */
   /* ---------------------------------------------------------------------- */
 
+  /**
+   * The agent has no resident surface, so the overlay is the only way in — and
+   * the shortcut and the `Ask` button both come through this one piece of
+   * state rather than each holding a copy, which is how they stay one door.
+   * ⌘⇧E belongs to the Explorer; plain ⌘K is free.
+   */
+  const [spotlightOpen, setSpotlightOpen] = useState(false)
+  const openSpotlight = useCallback(() => setSpotlightOpen(true), [])
+  const closeSpotlight = useCallback(() => setSpotlightOpen(false), [])
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.key !== "k") return
+      event.preventDefault()
+      setSpotlightOpen((current) => !current)
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [])
+
   const submitRequest = useCallback((request: string) => {
+    // The overlay closes in the same tick the run starts, so the first step
+    // moves the columns the request was asked of rather than a dimmed copy.
+    setSpotlightOpen(false)
     setAgent({
-      visible: true,
       status: "running",
       request,
       steps: agentPlan.map((step) => ({ step, status: "pending" })),
@@ -247,29 +323,21 @@ export function useScreener() {
     })
   }, [])
 
-  const dismissAgent = useCallback(() => {
-    setAgent((current) => ({
-      ...current,
-      visible: false,
-      status: current.status === "running" ? "yielded" : current.status,
-    }))
-  }, [])
-
-  const recallAgent = useCallback(() => {
-    setAgent((current) => ({ ...current, visible: true }))
-  }, [])
-
-  /** Picking the run back up after taking over. The steps left are unchanged. */
+  /**
+   * Picking the run back up after taking over. The steps left are unchanged,
+   * except for one case: a step that was stopped part-way and then undone has
+   * had its values reverted, so resuming from the beat it stopped on would
+   * write only the values after that beat and still report the step done. An
+   * undone step restarts from its first value.
+   */
   const resumeAgent = useCallback(() => {
     setAgent((current) => {
       if (current.status !== "yielded") return current
       const left = current.stepIndex < current.steps.length
-      return { ...current, status: left ? "running" : "done" }
+      const resuming = current.steps[current.stepIndex]
+      const beat = resuming?.status === "undone" ? 0 : current.beat
+      return { ...current, status: left ? "running" : "done", beat }
     })
-  }, [])
-
-  const resetAgent = useCallback(() => {
-    setAgent({ ...idleAgent, visible: true })
   }, [])
 
   /**
@@ -290,6 +358,11 @@ export function useScreener() {
     (id: string) => {
       const record = agent.steps.find((entry) => entry.step.id === id)
       if (!record || (record.status !== "done" && record.status !== "stopped")) return
+      // Reversing a step is taking over. Without this the run keeps driving
+      // while the step it already applied is pulled out from under it, and
+      // because the sequencer watches `steps`, every undo restarts the beat it
+      // was part-way through — enough clicks and it never finishes.
+      yieldToUser()
       const action = record.step.action
 
       if (action.kind === "clear") {
@@ -310,13 +383,17 @@ export function useScreener() {
 
       setStepStatus(id, "undone")
     },
-    [agent.steps, setStepStatus],
+    [agent.steps, setStepStatus, yieldToUser],
   )
 
   const redoStep = useCallback(
     (id: string) => {
       const record = agent.steps.find((entry) => entry.step.id === id)
       if (!record || record.status !== "undone") return
+      // Redo moves the columns as well as the filters, so it takes over for the
+      // same reason undo does — harder, since `openPath` would otherwise pull
+      // the view off whatever step the run is mid-way through.
+      yieldToUser()
       const action = record.step.action
 
       if (action.kind === "clear") {
@@ -341,7 +418,7 @@ export function useScreener() {
       openPath(record.step.path)
       setStepStatus(id, "done")
     },
-    [agent.steps, openPath, setStepStatus],
+    [agent.steps, openPath, setStepStatus, yieldToUser],
   )
 
   /* ---------------------------------------------------------------------- */
@@ -479,11 +556,17 @@ export function useScreener() {
     agent,
     running,
     appliedCount,
+    selectedRecordId,
+    selectedRow,
+    openRecord,
+    closeRecord,
+    visibleColumns,
+    toggleColumn,
+    spotlightOpen,
+    openSpotlight,
+    closeSpotlight,
     submitRequest,
-    dismissAgent,
-    recallAgent,
     resumeAgent,
-    resetAgent,
     undoStep,
     redoStep,
   }
