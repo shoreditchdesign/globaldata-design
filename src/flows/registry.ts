@@ -3,6 +3,7 @@ import { sprint3Idea1 } from "@/flows/sprint-3/idea-1/flow"
 import { sprint3Idea2 } from "@/flows/sprint-3/idea-2/flow"
 import { sprint3Idea3 } from "@/flows/sprint-3/idea-3/flow"
 import { sprint3Idea4 } from "@/flows/sprint-3/idea-4/flow"
+import { sprint4Idea1 } from "@/flows/sprint-4/idea-1/flow"
 
 export const sprints: Sprint[] = [
   {
@@ -10,6 +11,12 @@ export const sprints: Sprint[] = [
     name: "Sprint 3",
     goal: "Natural-language search over the GlobalData filter model — the reviewed design as a baseline, against three new directions.",
     ideas: [sprint3Idea1, sprint3Idea2, sprint3Idea3, sprint3Idea4],
+  },
+  {
+    id: "sprint-4",
+    name: "Sprint 4",
+    goal: "Sprint 3's text box, Miller columns and logic builder combined on one screen, as views of one query.",
+    ideas: [sprint4Idea1],
   },
 ]
 
