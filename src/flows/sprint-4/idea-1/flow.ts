@@ -16,7 +16,7 @@ export const sprint4Idea1: Flow = {
     {
       slug: "start",
       title: "Start",
-      note: "Shared product chrome in place; the prototype body is ready for the new direction.",
+      note: "A natural-language starting point with the incumbent's top-level search areas.",
       viewport: "desktop",
       component: Start,
     },

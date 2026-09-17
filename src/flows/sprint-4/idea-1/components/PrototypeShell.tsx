@@ -5,10 +5,12 @@ import { usePathname } from "next/navigation"
 
 import { ProductChrome } from "@/components/prototype/ProductChrome"
 import { useDeepLink } from "@/hooks/use-deep-link"
+import { LandingPage } from "@/flows/sprint-4/idea-1/components/LandingPage"
 import { activeProductArea } from "@/flows/sprint-4/idea-1/data"
 import {
   initialState,
   slugFor,
+  type SearchMode,
   type Sprint4Idea1State,
 } from "@/flows/sprint-4/idea-1/state"
 
@@ -23,9 +25,17 @@ export function PrototypeShell() {
 
   useDeepLink(slugFor(state), reseed)
 
+  const setMode = (mode: SearchMode) => setState((current) => ({ ...current, mode }))
+  const setQuery = (query: string) => setState((current) => ({ ...current, query }))
+
   return (
     <ProductChrome activeArea={activeProductArea}>
-      <main className="bg-surface-page min-h-0 flex-1" />
+      <LandingPage
+        mode={state.mode}
+        query={state.query}
+        onModeChange={setMode}
+        onQueryChange={setQuery}
+      />
     </ProductChrome>
   )
 }
