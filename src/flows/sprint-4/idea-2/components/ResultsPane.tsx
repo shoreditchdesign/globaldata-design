@@ -198,7 +198,7 @@ export function ResultsPane({
     <section className={cn("bg-surface-panel flex min-h-0 min-w-0 flex-col", className)}>
       {toolbar}
 
-      <div className="bg-surface-panel min-h-0 flex-1 overflow-auto">
+      <div className="bg-surface-chrome min-h-0 flex-1 overflow-auto">
         <table className="w-full border-collapse text-[13px]">
           {head}
           <tbody>
@@ -209,9 +209,15 @@ export function ResultsPane({
                 </td>
               </tr>
             ) : (
-              shown.map((row) => (
-                <tr key={row.id} className="group/row border-hairline border-b last:border-0">
-                  <td className="bg-surface-panel group-hover/row:bg-accent border-hairline sticky left-0 z-10 border-r py-2.5 pr-3 pl-(--text-inset) font-medium whitespace-nowrap transition-colors">
+              shown.map((row, i) => (
+                <tr
+                  key={row.id}
+                  className={cn(
+                    "group/row border-hairline hover:bg-accent border-b transition-colors last:border-0",
+                    i % 2 === 1 ? "bg-surface-page" : "bg-surface-chrome",
+                  )}
+                >
+                  <td className="border-hairline sticky left-0 z-10 border-r bg-inherit py-2.5 pr-3 pl-(--text-inset) font-medium whitespace-nowrap">
                     {/*
                       The name keeps the button's width permanently rather than
                       on hover. Sprint 3 Idea 2 animated that room in and the
@@ -236,7 +242,7 @@ export function ResultsPane({
                   </td>
                   <Cell>{row.company}</Cell>
                   <Cell>{row.indication}</Cell>
-                  <td className="group-hover/row:bg-accent px-3 py-2.5 transition-colors">
+                  <td className="px-3 py-2.5">
                     <StageBadge stage={row.stage} />
                   </td>
                   <Cell>{row.country}</Cell>
@@ -281,7 +287,7 @@ function Cell({ children, className }: { children: React.ReactNode; className?: 
   return (
     <td
       className={cn(
-        "text-muted-foreground group-hover/row:bg-accent px-3 py-2.5 whitespace-nowrap transition-colors",
+        "text-muted-foreground px-3 py-2.5 whitespace-nowrap",
         className,
       )}
     >

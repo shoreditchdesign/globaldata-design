@@ -134,17 +134,15 @@ function FilterChip({
           type="button"
           className={cn(
             "flex h-7 items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors",
+            // A chip holding values is the thing you pressed and it is on, so it
+            // takes the primary fill rather than a tint with a badge on it.
             values.length > 0
-              ? "bg-brand-tint border-brand-border text-foreground"
+              ? "bg-brand border-brand text-primary-foreground hover:bg-brand-strong hover:border-brand-strong"
               : "bg-surface-panel border-border text-muted-foreground hover:text-foreground hover:border-edge",
           )}
         >
           {attribute}
-          {values.length > 0 ? (
-            <span className="bg-brand text-primary-foreground flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] tabular-nums">
-              {values.length}
-            </span>
-          ) : null}
+          {values.length > 0 ? <span className="tabular-nums">({values.length})</span> : null}
           <ChevronDownIcon className="size-3.5 opacity-70" />
         </button>
       </PopoverTrigger>
