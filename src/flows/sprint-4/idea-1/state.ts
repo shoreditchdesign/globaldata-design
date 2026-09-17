@@ -22,6 +22,9 @@ export interface Sprint4Idea1State {
   activeCategory: ProductArea | null
   /** The open second-layer pill, whose values show as a third layer. */
   activeAttribute: string | null
+  /** The manual search's Miller path, kept apart so the pills stay closed. */
+  manualCategory: ProductArea | null
+  manualAttribute: string | null
   /** The pill path that built the current filters, when no query did. */
   path: SearchPath | null
   /** The last query resolved into filters. Typing never changes this value. */
@@ -38,6 +41,8 @@ const startState = (): Sprint4Idea1State => ({
   query: "",
   activeCategory: null,
   activeAttribute: null,
+  manualCategory: null,
+  manualAttribute: null,
   path: null,
   submittedQuery: null,
   filters: [],
@@ -50,6 +55,8 @@ const filteredState = (): Sprint4Idea1State => ({
   query: workedQuery,
   activeCategory: null,
   activeAttribute: null,
+  manualCategory: null,
+  manualAttribute: null,
   path: null,
   submittedQuery: workedQuery,
   filters: initialResolvedFilters(),
@@ -80,6 +87,8 @@ const resolvingState = (): Sprint4Idea1State => ({
   query: workedQuery,
   activeCategory: null,
   activeAttribute: null,
+  manualCategory: null,
+  manualAttribute: null,
   path: null,
   submittedQuery: null,
   filters: [],

@@ -30,6 +30,8 @@ export function SearchPanel({
   onCategoryChange,
   onAttributeChange,
   onValuePick,
+  manualCategory,
+  manualAttribute,
   onOpenCategory,
   onOpenAttribute,
   onValuePickAt,
@@ -47,6 +49,8 @@ export function SearchPanel({
   onCategoryChange: (category: ProductArea) => void
   onAttributeChange: (attribute: string) => void
   onValuePick: (value: string) => void
+  manualCategory: ProductArea | null
+  manualAttribute: string | null
   onOpenCategory: (category: ProductArea) => void
   onOpenAttribute: (attribute: string) => void
   onValuePickAt: (area: ProductArea, attribute: string, value: string) => void
@@ -133,8 +137,8 @@ export function SearchPanel({
       ) : (
         <ManualSearch
           filters={filters}
-          activeCategory={activeCategory}
-          activeAttribute={activeAttribute}
+          activeCategory={manualCategory}
+          activeAttribute={manualAttribute}
           onOpenCategory={onOpenCategory}
           onOpenAttribute={onOpenAttribute}
           onToggleValue={onValuePickAt}
