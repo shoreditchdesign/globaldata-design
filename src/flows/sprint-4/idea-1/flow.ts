@@ -20,5 +20,12 @@ export const sprint4Idea1: Flow = {
       viewport: "desktop",
       component: Start,
     },
+    {
+      slug: "filters",
+      title: "Resolved filters",
+      note: "The walkthrough query resolved into five filters and an authored result count.",
+      viewport: "desktop",
+      component: Start,
+    },
   ],
 }

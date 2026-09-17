@@ -27,6 +27,10 @@ export function PrototypeShell() {
 
   const setMode = (mode: SearchMode) => setState((current) => ({ ...current, mode }))
   const setQuery = (query: string) => setState((current) => ({ ...current, query }))
+  const resolveQuery = () =>
+    setState((current) =>
+      current.query.trim() ? { ...current, submittedQuery: current.query.trim() } : current,
+    )
 
   return (
     <ProductChrome activeArea={activeProductArea}>
@@ -35,6 +39,8 @@ export function PrototypeShell() {
         query={state.query}
         onModeChange={setMode}
         onQueryChange={setQuery}
+        onResolve={resolveQuery}
+        hasResolvedFilters={Boolean(state.submittedQuery)}
       />
     </ProductChrome>
   )
