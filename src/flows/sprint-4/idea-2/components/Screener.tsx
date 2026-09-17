@@ -191,7 +191,18 @@ export function Screener() {
     [],
   )
 
-  const setView = (next: View) => setState((current) => ({ ...current, view: next }))
+  /**
+   * True once the tree has finished opening, so its shadow is not clipped. A
+   * screen seeded with the explorer already open never animates, so it starts
+   * settled rather than waiting for a transition that will not come.
+   */
+  const [treeSettled, setTreeSettled] = React.useState(view === "explorer")
+
+  const setView = (next: View) =>
+    setState((current) => {
+      setTreeSettled(false)
+      return { ...current, view: next }
+    })
 
   const undo = () =>
     setState((current) => {
@@ -403,13 +414,20 @@ export function Screener() {
         <div className="flex min-h-0 flex-1 gap-4 px-(--box-gutter) pb-5">
           <div
             inert={!explorer}
+            onTransitionEnd={(event) => {
+              if (event.propertyName === "width") setTreeSettled(explorer)
+            }}
             style={{
               width: explorer ? TREE_WIDTH : 0,
               marginRight: explorer ? 0 : "-1rem",
               transitionDuration: `${motion.reflow}ms`,
             }}
             className={cn(
-              "ease-settle shrink-0 overflow-hidden transition-[width] motion-reduce:transition-none",
+              "ease-settle shrink-0 transition-[width] motion-reduce:transition-none",
+              // The width is animated by clipping, which clips the card's shadow
+              // with it. Once the pane has arrived there is nothing to clip, so
+              // the clip is lifted and the shadow reads.
+              treeSettled ? "overflow-visible" : "overflow-hidden",
             )}
           >
             <div
