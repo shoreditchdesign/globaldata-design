@@ -1,3 +1,5 @@
+import { CheckIcon } from "lucide-react"
+
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import {
   pathOf,
@@ -37,6 +39,10 @@ export function SearchPills({
   const areaCount = (area: ProductArea) => paths.filter((path) => path.area === area).length
   const attributeCount = (area: ProductArea, attribute: string) =>
     paths.find((path) => path.area === area && path.attribute === attribute)?.values ?? 0
+  const openFilter = filters.find((filter) => {
+    const path = pathOf(filter.id)
+    return path.area === activeCategory && path.attribute === activeAttribute
+  })
 
   return (
     <div className="w-full">
@@ -115,16 +121,31 @@ export function SearchPills({
               justify,
             )}
           >
-            {searchAttributeValues(activeCategory, activeAttribute).map((value) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => onValuePick(value)}
-                className="bg-surface-panel border-border text-foreground hover:bg-accent inline-flex min-h-8 items-center rounded-full border px-3.5 py-1.5 text-[13px] transition-colors"
-              >
-                {value}
-              </button>
-            ))}
+            {searchAttributeValues(activeCategory, activeAttribute).map((value) => {
+              const selected = Boolean(openFilter?.values.includes(value))
+              // A value its filter excludes keeps the negation tone, so it never
+              // reads as included.
+              const excluded = selected && openFilter?.excluded
+
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => onValuePick(value)}
+                  className={cn(
+                    "border-border text-foreground inline-flex min-h-8 items-center gap-1.5 rounded-full border py-1.5 text-[13px] transition-colors",
+                    selected ? "pr-3.5 pl-2.5" : "px-3.5",
+                    !selected && "bg-surface-panel hover:bg-accent",
+                    selected && !excluded && "bg-brand-tint border-brand-border hover:bg-brand-border/60",
+                    excluded && "bg-negative border-negative-border text-negative-ink",
+                  )}
+                >
+                  {selected ? <CheckIcon className="size-3.5 shrink-0" aria-hidden /> : null}
+                  {value}
+                </button>
+              )
+            })}
           </nav>
         ) : null}
       </div>

@@ -66,10 +66,23 @@ export function PrototypeShell() {
       const hasFilters = current.showResults || current.submittedQuery || current.path
       if (!hasFilters) return { ...current, path, filters: [picked] }
       const existing = current.filters.find((filter) => filter.id === picked.id)
+
+      // A value already in its filter is selected, so a second click takes it
+      // out again — and the filter with it, once it holds nothing.
+      if (existing?.values.includes(value)) {
+        return {
+          ...current,
+          filters: current.filters.flatMap((filter) => {
+            if (filter.id !== picked.id) return [filter]
+            const values = filter.values.filter((item) => item !== value)
+            return values.length > 0 ? [{ ...filter, values }] : []
+          }),
+        }
+      }
+
       const filters = existing
         ? current.filters.map((filter) =>
-            filter.id === picked.id && !filter.values.includes(value)
-              ? { ...filter, values: [...filter.values, value] }
+            filter.id === picked.id ? { ...filter, values: [...filter.values, value] }
               : filter,
           )
         : [...current.filters, picked]
