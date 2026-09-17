@@ -29,8 +29,10 @@ export function ResultsPage({
   return (
     <>
       {panel}
-      <main className="bg-surface-page flex min-w-0 flex-1 flex-col gap-3 p-3">
-        <div className="max-h-[45%] shrink-0 overflow-y-auto rounded-xl">{filterBox}</div>
+      <main className="bg-surface-panel flex min-w-0 flex-1 flex-col">
+        <div className="bg-surface-chrome border-edge max-h-[45%] shrink-0 overflow-y-auto border-b">
+          {filterBox}
+        </div>
         <ResultsGrid
           rows={matchingRows(filters)}
           resultCount={resultCountFor(filters)}

@@ -312,7 +312,7 @@ export function ResultsGrid({
   const totalColumns = shownColumns + hiddenColumnKeys(state).length
 
   return (
-    <div className="bg-surface-panel border-border flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border">
+    <div className="bg-surface-panel flex min-h-0 flex-1 flex-col overflow-hidden">
       <div className="border-edge flex h-11 shrink-0 items-center gap-3 border-b px-3">
         <p className="text-[13px] tabular-nums" aria-live="polite">
           <span className="font-medium">{resultCount.toLocaleString("en-GB")}</span>{" "}
