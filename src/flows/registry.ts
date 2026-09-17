@@ -4,6 +4,7 @@ import { sprint3Idea2 } from "@/flows/sprint-3/idea-2/flow"
 import { sprint3Idea3 } from "@/flows/sprint-3/idea-3/flow"
 import { sprint3Idea4 } from "@/flows/sprint-3/idea-4/flow"
 import { sprint4Idea1 } from "@/flows/sprint-4/idea-1/flow"
+import { sprint4Idea2 } from "@/flows/sprint-4/idea-2/flow"
 
 export const sprints: Sprint[] = [
   {
@@ -16,7 +17,7 @@ export const sprints: Sprint[] = [
     id: "sprint-4",
     name: "Sprint 4",
     goal: "Sprint 3's text box, Miller columns and logic builder combined on one screen, as views of one query.",
-    ideas: [sprint4Idea1],
+    ideas: [sprint4Idea1, sprint4Idea2],
   },
 ]
 
