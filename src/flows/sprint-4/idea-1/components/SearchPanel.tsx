@@ -1,3 +1,4 @@
+import * as React from "react"
 import { ArrowRightIcon } from "lucide-react"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
@@ -57,6 +58,13 @@ export function SearchPanel({
 }) {
   const hasQuery = query.trim().length > 0
   const resolving = Boolean(pending)
+  const fieldRef = React.useRef<HTMLTextAreaElement>(null)
+
+  // The field shows three lines and scrolls past them. The reading overlay is
+  // drawn from the top, so the field returns there while a query is read.
+  React.useEffect(() => {
+    if (resolving && fieldRef.current) fieldRef.current.scrollTop = 0
+  }, [resolving])
   const submit = () => {
     if (hasQuery && !resolving) onResolve()
   }
@@ -89,8 +97,9 @@ export function SearchPanel({
           >
             <div className="relative">
               <textarea
+                ref={fieldRef}
                 value={query}
-                rows={5}
+                rows={3}
                 onChange={(event) => onQueryChange(event.target.value)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
@@ -103,7 +112,7 @@ export function SearchPanel({
                 aria-hidden={resolving}
                 disabled={resolving}
                 className={cn(
-                  "placeholder:text-muted-foreground block min-h-20 w-full resize-none field-sizing-content bg-transparent p-0 text-[13px] leading-5 wrap-break-word outline-none disabled:opacity-100",
+                  "placeholder:text-muted-foreground block h-15 w-full resize-none overflow-y-auto bg-transparent p-0 text-[13px] leading-5 wrap-break-word outline-none [scrollbar-width:none] disabled:opacity-100 [&::-webkit-scrollbar]:hidden",
                   resolving && "text-transparent",
                 )}
               />
