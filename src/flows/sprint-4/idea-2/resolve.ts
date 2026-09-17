@@ -552,6 +552,7 @@ export function resolveQuery(raw: string): Resolution {
   /* Conditions in the order they were typed, which is the order the logic gate
      evaluates them — reordering would change what an `or` means. */
   const conditions: Condition[] = [...chosen.entries()].map(([attribute, picked]) => ({
+    id: attribute,
     attribute,
     values: picked.values,
     join: "or",
