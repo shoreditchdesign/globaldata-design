@@ -9,7 +9,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -170,7 +169,7 @@ function FilterClause({
 
       <DropdownMenu>
         <DropdownMenuTrigger className="hover:bg-foreground/5 flex shrink-0 items-center gap-1 border-r border-current/10 px-2 py-1.5 transition-colors">
-          {filter.excluded ? "is not" : "is"}
+          {filter.excluded ? "IS NOT" : "IS"}
           <ChevronDownIcon className="size-3" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-32">
@@ -184,40 +183,35 @@ function FilterClause({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger className="hover:bg-foreground/5 flex min-w-0 items-center gap-1.5 px-2.5 py-1.5 text-left transition-colors">
-          <span className="max-w-64 truncate">
-            {filter.values.join(` ${filter.join} `)}
-          </span>
-          <ChevronDownIcon className="size-3 shrink-0" />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-72">
-          <DropdownMenuLabel>{filter.label}</DropdownMenuLabel>
-          {definition.options.map((option) => (
-            <DropdownMenuCheckboxItem
-              key={option}
-              checked={filter.values.includes(option)}
-              onSelect={(event) => event.preventDefault()}
-              onCheckedChange={() => onToggleValue(filter.id, option)}
-            >
-              {option}
-            </DropdownMenuCheckboxItem>
-          ))}
-          {filter.values.length > 1 ? (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Match values with</DropdownMenuLabel>
-              <DropdownMenuRadioGroup
-                value={filter.join}
-                onValueChange={(value) => onJoinChange(filter.id, value as FilterJoin)}
-              >
-                <DropdownMenuRadioItem value="or">OR — any value</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="and">AND — every value</DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </>
+      {filter.values.map((value, index) => (
+        <div key={value} className="contents">
+          {index > 0 ? (
+            <ValueJoinControl
+              filter={filter}
+              onChange={(join) => onJoinChange(filter.id, join)}
+            />
           ) : null}
-        </DropdownMenuContent>
-      </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="hover:bg-foreground/5 flex min-w-0 items-center gap-1.5 border-r border-current/10 px-2.5 py-1.5 text-left transition-colors last:border-r-0">
+              <span className="max-w-64 truncate">{value}</span>
+              <ChevronDownIcon className="size-3 shrink-0" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-72">
+              <DropdownMenuLabel>{filter.label}</DropdownMenuLabel>
+              {definition.options.map((option) => (
+                <DropdownMenuCheckboxItem
+                  key={option}
+                  checked={filter.values.includes(option)}
+                  onSelect={(event) => event.preventDefault()}
+                  onCheckedChange={() => onToggleValue(filter.id, option)}
+                >
+                  {option}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ))}
 
       <button
         type="button"
@@ -228,5 +222,34 @@ function FilterClause({
         <XIcon className="size-3" />
       </button>
     </div>
+  )
+}
+
+function ValueJoinControl({
+  filter,
+  onChange,
+}: {
+  filter: ResolvedFilter
+  onChange: (join: FilterJoin) => void
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        aria-label={`Match ${filter.label} values using ${filter.join}`}
+        className="hover:bg-foreground/5 flex h-full shrink-0 items-center gap-1 border-r border-current/10 px-2 py-1.5 text-[10px] font-medium uppercase transition-colors"
+      >
+        {filter.join}
+        <ChevronDownIcon className="size-3" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="center" className="w-44">
+        <DropdownMenuRadioGroup
+          value={filter.join}
+          onValueChange={(value) => onChange(value as FilterJoin)}
+        >
+          <DropdownMenuRadioItem value="and">AND — every value</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="or">OR — any value</DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
