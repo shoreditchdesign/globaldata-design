@@ -94,11 +94,13 @@ export function LandingPage({
         </form>
 
         {/*
-          The filter box takes over the pills' well, which keeps its height so
-          the centred search does not drop when a search resolves.
+          The well keeps the pills' height so the centred search never moves.
+          Once a filter exists its box sits above the pills and the stack hangs
+          past the well, scrolling the page rather than pushing the search up.
         */}
-        <div className="mt-5 min-h-72 w-full">
-          {filterBox ?? (
+        <div className="relative mt-5 h-72 w-full">
+          <div className="absolute inset-x-0 top-0 flex flex-col gap-5 pb-16">
+            {filterBox}
             <SearchPills
               layout="centered"
               activeCategory={activeCategory}
@@ -107,7 +109,7 @@ export function LandingPage({
               onAttributeChange={onAttributeChange}
               onValuePick={onValuePick}
             />
-          )}
+          </div>
         </div>
       </section>
     </main>
