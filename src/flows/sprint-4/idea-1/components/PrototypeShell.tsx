@@ -83,7 +83,7 @@ export function PrototypeShell() {
         filters: [...current.filters, { id, label, values: [...values], excluded, join }],
       }
     })
-  const clearFilters = () => setState((current) => ({ ...current, filters: [] }))
+  const clearFilters = () => setState(initialState("start"))
 
   return (
     <ProductChrome activeArea={activeProductArea}>
