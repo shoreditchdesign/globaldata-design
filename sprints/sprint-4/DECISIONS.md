@@ -27,3 +27,33 @@ Idea 1 puts three Sprint 3 directions on one screen and makes them views of one 
 **The right half before and after.** Before any condition exists, the right half is an empty state: the size of the set, and the two ways in, typing above or ticking a column. It is deliberately not a table of all 1,440 rows, since that would look like an answer to a question nobody has asked yet. Once a condition exists, it becomes the results grid at the sprint's scale: 13px cells, 10px uppercase headers, `py-2.5`. Half a window cannot hold eight columns, so the grid scrolls sideways with the drug name pinned. It draws the first 100 rows and says how many there are in total.
 
 **The view toggle takes the washed brand.** Idea 3's toggle lifted the selected option on a white fill with a shadow. This one follows the design system's rule for segmented options, `bg-brand-tint` with a `brand-border` edge.
+
+## 2026-09-17 — Idea 2, the tucked logic gate
+
+Idea 2 is a variant of Idea 1 with the Miller columns taken out. The text box and its `Sentence / Logic gate` toggle sit across the top at full width, and the results sit underneath. The logic gate no longer opens as its own full-height pillar. It takes the slot the columns held, and it stays tucked away until you ask for it. Everything it needed was copied into `src/flows/sprint-4/idea-2` and trimmed there, so nothing imports from Idea 1 or from Sprint 3. It lives at `/sprint-4/idea-2`.
+
+**Two views of one query.** The query model is Idea 1's, with each condition carrying its values, its join, whether it keeps or drops rows and how it meets the conditions before it. The sentence and the canvas both draw that one list, and the grid and every count are read from it. Build a node on the canvas and the sentence gains a pill. Type a request and resolve it, and the canvas holds the same nodes. Toggling back to Sentence hides the canvas and keeps the query.
+
+**Landing is one thing to do.** You arrive on a large text box with Sentence selected and the grid at full width underneath. The grid keeps its column heads, so you can see where results will land, and the body says "No results yet" with one short line under it. Idea 1's right-hand empty state counted the sample and listed the two ways in. That went, because the count already sits beside the text box and the columns it pointed to are gone.
+
+**Logic gate splits the bottom half.** At the 1440px review viewport the canvas takes 560px on the left and the results keep the rest, roughly 880px. The canvas opens and closes by width over the `reflow` duration on the `settle` curve, and its contents fade up a `handover` beat later, so the nodes slide into view rather than reflowing as the slot grows. Reduced motion gets the end state at once. The canvas holds its width inside the slot while it animates, and it stays mounted while closed so it can close as smoothly as it opens.
+
+**The empty canvas suggests, from real pairings.** A blank canvas gives you nowhere to start, so it offers suggested filters. They come from the drug search behaviour pairing analysis, which counts how often two Drugs filters are used in the same search:
+
+- Company Name + Company Type, 10.3%
+- Development Stage + Therapy Area, 9.2%
+- Development Stage + Molecule Type, 5.0%
+- Development Stage + Drug Geography, 3.6%
+- Molecule Type + Therapy Area, 3.5%
+
+The empty canvas ranks the attributes by how much they co-occur across those pairs. That puts Development Stage first, since it appears in three of them, followed by Therapy Area, Molecule Type and Drug Geography. Company Name and Company Type top the list, but the 1,440-row sample does not carry either as a filter, and Idea 1 already treats Company as its own product area. So they are left out rather than offered as a chip that filters nothing. The same analysis for Clinical Trials was read as context only, since this screener is Drugs. The percentages rank the chips and never appear on screen.
+
+**Suggestions build on what is there.** Once a node is on the canvas, the remaining suggestions reorder by what pairs with the nodes present, strongest first. After Development Stage the chips read Therapy area, Molecule type, Drug geography. After Molecule Type they read Development stage and Therapy area, and Drug geography drops out because nothing in the analysis pairs it with Molecule Type. If nothing on the canvas pairs with anything, the chips fall back to the cold-start order. Every other attribute stays one click away under `More`.
+
+**A suggestion looks like a suggestion.** The chips have a dashed edge, muted text and a plus, and hover is grey. They never take the brand fill or the washed-brand treatment an applied filter wears, so a row of suggestions next to a node cannot be read as conditions that are already on.
+
+**A clicked suggestion becomes a node straight away.** It appears as a dashed node with its value picker already open, and every value is counted as it is in Idea 1's pill menu. The node joins the query with its first value, so the sentence, the count and the grid all move on that click. Closing the picker without a value removes the node, rather than leaving an empty condition in the sentence. More nodes join with AND by default, and each operator flips to OR, NOT or OR NOT exactly as in Idea 1.
+
+**The sentence adds conditions without columns.** In Idea 1, `+ condition` sent you to the columns. Here it opens a small picker, attribute first and then the same counted value list the canvas uses.
+
+**What stayed behind from Idea 1.** The Miller columns, the breadcrumb, `Show in the columns` and the column-edit and resolving frames all went. The resolve animation still plays, and while it runs the address stays on the frame it started from. The canvas also dropped Idea 1's click-through from a node to the columns. Clicking a node's heading or a value opens that node's value picker.
