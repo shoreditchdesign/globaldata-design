@@ -61,9 +61,10 @@ export function PrototypeShell() {
       }
       const picked = pathFilter(path.area, path.attribute, value)
 
-      // On the landing page a path starts the filters; on the results page it
-      // refines the ones already there, joining a clause that tests the same thing.
-      if (!current.showResults) return { ...current, path, filters: [picked] }
+      // The first path starts the filters; once there are filters, on either
+      // page, a path refines them, joining a clause that tests the same thing.
+      const hasFilters = current.showResults || current.submittedQuery || current.path
+      if (!hasFilters) return { ...current, path, filters: [picked] }
       const existing = current.filters.find((filter) => filter.id === picked.id)
       const filters = existing
         ? current.filters.map((filter) =>
