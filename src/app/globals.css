@@ -387,6 +387,10 @@
   --shadow-panel: 0 1px 2px oklch(0.2 0.02 260 / 0.04);
   --shadow-raised:
     0 1px 2px oklch(0.2 0.02 260 / 0.06), 0 8px 24px -6px oklch(0.2 0.02 260 / 0.1);
+  /* A card that has to sit off the page rather than on it: the same shape as
+     `raised`, carried further, for a pane the eye should read as in front. */
+  --shadow-float:
+    0 1px 2px oklch(0.2 0.02 260 / 0.08), 0 12px 32px -8px oklch(0.2 0.02 260 / 0.18);
 }
 
 @layer base {
@@ -406,6 +410,9 @@
    * drift apart between directions. */
   .shadow-panel {
     box-shadow: var(--shadow-panel);
+  }
+  .shadow-float {
+    box-shadow: var(--shadow-float);
   }
   .shadow-raised {
     box-shadow: var(--shadow-raised);

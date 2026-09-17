@@ -165,3 +165,9 @@ Austin reversed the two greys added earlier the same day, and both reversals hol
 **The heads are pinned to one height.** The results toolbar is 48px, two pixels above and below the Standard / Explorer toggle, and its column heads are 36px. The explorer's head is 84px — its title row and its search row — so the two panes' chrome ends on the same line, measured rather than eyeballed. The search field carries its own bottom padding, so it clears the head's rule.
 
 **The explorer's plane is the page grey.** Darker than its own white head and rail, and darker than the grid's rows beside it, which is what carries the separation now that both panes are cards.
+
+## 2026-09-18 — Idea 2, the Open button, and a card that sits in front
+
+**`Open` took clicks while it was invisible.** The control sits over the right-hand end of the drug name and fades in on row hover, but it kept its pointer events at zero opacity, so every click landing on that part of a name hit a button nobody could see and nothing happened. It now takes no clicks until it is shown, by hover or by keyboard focus, and it is a little taller so the target is worth aiming at. The name reserves its width permanently, as before, because animating that room is what made Sprint 3's rows reflow under the cursor.
+
+**A new shadow, `shadow-float`.** The explorer card needed to read as in front of the page rather than resting on it, and `shadow-raised` was not carrying that at this size. `float` is the same shape carried further — a 32px spread at 0.18 against `raised`'s 24px at 0.1 — and the card's edge steps up from `border` to `border-edge` with it. It is a fourth step on an existing ladder rather than a new idea, and only this card uses it so far.

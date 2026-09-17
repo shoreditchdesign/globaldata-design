@@ -224,16 +224,23 @@ export function ResultsPane({
                       row reflowed under a moving cursor, dropping the hover
                       between the mouse arriving and the click landing.
                     */}
-                    <span className="block pr-14">{row.name}</span>
-                    {/* Shown on hover anywhere in the row, but focusable at all
-                        times, so the record is never a mouse-only door. */}
+                    <span className="block pr-16">{row.name}</span>
+                    {/*
+                      Shown on hover anywhere in the row, and reachable by
+                      keyboard at all times, so the record is never a mouse-only
+                      door. It takes no clicks while it is invisible: it sits
+                      over the right-hand end of the name, and an unseen button
+                      there swallowed every click meant for the row.
+                    */}
                     <Button
                       variant="outline"
                       size="xs"
                       onClick={() => onOpenRecord(row.id)}
+                      tabIndex={0}
                       className={cn(
-                        "absolute top-1/2 right-3 -translate-y-1/2 opacity-0 transition-opacity duration-100",
-                        "group-hover/row:opacity-100 focus-visible:opacity-100",
+                        "absolute top-1/2 right-3 h-6 -translate-y-1/2 opacity-0 transition-opacity duration-100",
+                        "pointer-events-none group-hover/row:pointer-events-auto group-hover/row:opacity-100",
+                        "focus-visible:pointer-events-auto focus-visible:opacity-100",
                         "motion-reduce:transition-none",
                       )}
                     >
