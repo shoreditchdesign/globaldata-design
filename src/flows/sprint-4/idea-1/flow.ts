@@ -21,6 +21,13 @@ export const sprint4Idea1: Flow = {
       component: Start,
     },
     {
+      slug: "resolving",
+      title: "Reading the query",
+      note: "Recognised phrases flash in place before the Float-style filters update.",
+      viewport: "desktop",
+      component: Start,
+    },
+    {
       slug: "filters",
       title: "Resolved filters",
       note: "The walkthrough query resolved into editable Float-style filters and 356 drugs.",

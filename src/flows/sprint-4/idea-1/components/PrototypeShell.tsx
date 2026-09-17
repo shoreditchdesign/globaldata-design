@@ -9,11 +9,11 @@ import { LandingPage } from "@/flows/sprint-4/idea-1/components/LandingPage"
 import {
   activeProductArea,
   definitionFor,
-  initialResolvedFilters,
   resultCountFor,
   type FilterId,
   type FilterJoin,
 } from "@/flows/sprint-4/idea-1/data"
+import { resolveQuery as resolveNaturalLanguage } from "@/flows/sprint-4/idea-1/resolve"
 import {
   initialState,
   slugFor,
@@ -34,16 +34,25 @@ export function PrototypeShell() {
 
   const setMode = (mode: SearchMode) => setState((current) => ({ ...current, mode }))
   const setQuery = (query: string) => setState((current) => ({ ...current, query }))
-  const resolveQuery = () =>
-    setState((current) =>
-      current.query.trim()
-        ? {
-            ...current,
-            submittedQuery: current.query.trim(),
-            filters: initialResolvedFilters(),
-          }
-        : current,
-    )
+  const submitQuery = () =>
+    setState((current) => {
+      const resolution = resolveNaturalLanguage(current.query)
+      return resolution.ok ? { ...current, pending: resolution } : current
+    })
+  const settleQuery = React.useCallback(
+    () =>
+      setState((current) =>
+        current.pending
+          ? {
+              ...current,
+              submittedQuery: current.pending.raw,
+              filters: current.pending.filters,
+              pending: null,
+            }
+          : current,
+      ),
+    [],
+  )
   const setFilterMode = (id: FilterId, excluded: boolean) =>
     setState((current) => ({
       ...current,
@@ -92,7 +101,7 @@ export function PrototypeShell() {
         query={state.query}
         onModeChange={setMode}
         onQueryChange={setQuery}
-        onResolve={resolveQuery}
+        onResolve={submitQuery}
         hasResolvedFilters={Boolean(state.submittedQuery)}
         filters={state.filters}
         resultCount={resultCountFor(state.filters)}
@@ -102,6 +111,8 @@ export function PrototypeShell() {
         onRemoveFilter={removeFilter}
         onAddFilter={addFilter}
         onClearFilters={clearFilters}
+        pending={state.pending}
+        onScanDone={settleQuery}
       />
     </ProductChrome>
   )
