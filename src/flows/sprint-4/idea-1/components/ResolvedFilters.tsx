@@ -106,7 +106,7 @@ export function ResolvedFilters({
           <span className="ml-1 flex items-center gap-2">
             <AddFilterMenu unused={unused} onAdd={onAdd}>
               <Button
-                variant="outline"
+                variant="secondary"
                 size="icon-sm"
                 disabled={unused.length === 0}
                 aria-label="Add filter"
