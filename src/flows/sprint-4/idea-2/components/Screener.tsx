@@ -317,24 +317,11 @@ export function Screener() {
                 <Notes notes={notes} resolution={query.resolution} onAdd={addSuggestion} />
               ) : null}
 
-              {!composing && !resolving ? (
-                <div className="mt-3.5 flex items-baseline justify-between gap-4">
-                  {query.raw ? (
-                    <p className="text-muted-foreground min-w-0 truncate text-xs">
-                      {query.edited ? "Edited since it was read from" : "Read from"}{" "}
-                      <span className="text-brand-ink">{query.raw}</span>
-                    </p>
-                  ) : (
-                    <span />
-                  )}
-                  <button
-                    type="button"
-                    onClick={editAsText}
-                    className="text-brand hover:text-brand-strong shrink-0 text-xs font-medium underline-offset-2 hover:underline"
-                  >
-                    Edit
-                  </button>
-                </div>
+              {!composing && !resolving && query.raw ? (
+                <p className="text-muted-foreground mt-3.5 min-w-0 truncate text-xs">
+                  {query.edited ? "Edited since it was read from" : "Read from"}{" "}
+                  <span className="text-brand-ink">{query.raw}</span>
+                </p>
               ) : null}
             </div>
 
@@ -391,7 +378,16 @@ export function Screener() {
                     Resolve
                     <CornerDownLeftIcon />
                   </Button>
-                ) : null}
+                ) : (
+                  <button
+                    type="button"
+                    onClick={editAsText}
+                    disabled={resolving}
+                    className="text-brand hover:text-brand-strong px-2 text-xs font-medium underline-offset-2 hover:underline"
+                  >
+                    Edit
+                  </button>
+                )}
               </div>
             </div>
           </div>

@@ -155,3 +155,13 @@ Austin reversed the two greys added earlier the same day, and both reversals hol
 **An active filter chip is the primary button.** A chip holding values takes the brand fill with a white label and its count inline in brackets, `Drug Geography (2)`, rather than a washed tint with a solid badge sitting on it. This is a chip you pressed and that is on, which is the accent's own job in `CLAUDE.md`; the tint stays for the inline pills in the sentence, so the two do not read as the same control.
 
 **The grid's rows carry the tint, the heads keep the white.** Floating the panes as cards cost the table the contrast it had when its head was the only white thing on a grey plane. The rows now sit on the same faintly blue grey the explorer reads on, with every other row a step darker, so a row is easy to follow across eight columns, and the column heads stay white above them. The pinned name column takes its row's own fill rather than setting one, so the stripe runs unbroken under it.
+
+## 2026-09-18 — Idea 2, applying is starting again
+
+**A filter applied from the explorer is a fresh search, not an edit.** What is ticked becomes the whole query: every attribute joined with `and`, its own values with `or`, in the product's order, and the line in the box is rewritten to match. A typed query's exclusions and `or` links do not survive it. That is Austin's call and it is the honest reading of a button that says Apply filters on a panel showing the whole taxonomy — the alternative, quietly keeping a `not` the tree has no way to show, was worse. The quick filter bar works the same way: if a line is already in the box, the first tick clears it and builds its own from scratch.
+
+**Edit sits where Resolve sits.** The rail's right end holds one action: Resolve while a line is being written, Edit once it has resolved, as a blue link rather than a second button. The duplicate Edit beside the "Read from" line is gone, and that line is now just what the query was read from.
+
+**The heads are pinned to one height.** The results toolbar is 48px, two pixels above and below the Standard / Explorer toggle, and its column heads are 36px. The explorer's head is 84px — its title row and its search row — so the two panes' chrome ends on the same line, measured rather than eyeballed. The search field carries its own bottom padding, so it clears the head's rule.
+
+**The explorer's plane is the page grey.** Darker than its own white head and rail, and darker than the grid's rows beside it, which is what carries the separation now that both panes are cards.

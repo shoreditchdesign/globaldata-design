@@ -201,14 +201,14 @@ export function ExplorerTree({
     })
 
   return (
-    <section className={cn("bg-surface-panel flex min-h-0 flex-col", className)}>
+    <section className={cn("bg-surface-page flex min-h-0 flex-col", className)}>
       {/*
         The head of the tree is built to the same line as the head of the
         results across the split: the toolbar's 44px and the column heads' 36px,
         as a title row and a search row. Change one height and change the other.
       */}
-      <div className="bg-surface-panel border-edge shrink-0 border-b">
-        <div className="flex h-11 items-center gap-1 px-(--text-inset)">
+      <div className="bg-surface-panel border-edge h-21 shrink-0 border-b">
+        <div className="flex h-12 items-center gap-1 px-(--text-inset)">
           <p className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
             Explorer
           </p>
@@ -232,7 +232,7 @@ export function ExplorerTree({
           </Button>
         </div>
 
-        <div className="flex h-9 items-center px-(--text-inset) pb-1.5">
+        <div className="flex flex-1 items-start px-(--text-inset) pb-2">
           <div className="relative w-full">
             <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
             <Input
@@ -270,7 +270,7 @@ export function ExplorerTree({
           const shown = hit.values ? values.filter((value) => hit.values?.includes(value.label)) : values
 
           return (
-            <div key={attribute} className="mb-0.5 last:mb-0">
+            <div key={attribute} className="mb-1 last:mb-0">
               <Row
                 tall
                 open={isOpen}
@@ -341,7 +341,7 @@ export function ExplorerTree({
               Reset
             </Button>
           ) : null}
-          <Button size="sm" disabled={!dirty} onClick={() => onApply(applyTicks(conditions, draft))}>
+          <Button size="sm" disabled={!dirty} onClick={() => onApply(applyTicks(draft))}>
             Apply filters
           </Button>
         </div>
@@ -504,28 +504,18 @@ function sameTicks(a: Record<string, string[]>, b: Record<string, string[]>) {
 }
 
 /**
- * Ticks written back into the query. A condition the query already holds keeps
- * its own words — its join, whether it excludes, how it meets the rest — and
- * only its values change, so applying a tick cannot quietly turn `not Austria`
- * into `Austria`. An attribute the query did not have joins the end as a plain
- * `and`, in the order the product lists its attributes.
+ * Ticks written back into the query, as a fresh search rather than an edit of
+ * the one before: what is ticked is the whole query, every attribute joined
+ * with `and` and its own values with `or`, in the order the product lists them.
+ *
+ * So a query typed in English and then applied from the tree does not keep the
+ * exclusions or the `or` links the sentence had. Applying here starts again
+ * from what the branches say, which is what the rail's button claims, and the
+ * line in the box is rewritten to match.
  */
-function applyTicks(conditions: Condition[], draft: Record<string, string[]>): Condition[] {
-  const seen = new Set<string>()
-  const kept = conditions
-    .map((condition) => {
-      const values = draft[condition.attribute]
-      if (!values || values.length === 0) return null
-      // Several conditions can share an attribute. The first takes the ticks;
-      // the rest go, since the tree draws one branch per attribute.
-      if (seen.has(condition.attribute)) return null
-      seen.add(condition.attribute)
-      return { ...condition, values }
-    })
-    .filter((condition): condition is Condition => condition !== null)
-
-  const added = Object.entries(draft)
-    .filter(([attribute, values]) => values.length > 0 && !seen.has(attribute))
+function applyTicks(draft: Record<string, string[]>): Condition[] {
+  return Object.entries(draft)
+    .filter(([, values]) => values.length > 0)
     .sort(([a], [b]) => drugAttributeOrder.indexOf(a) - drugAttributeOrder.indexOf(b))
     .map(([attribute, values]): Condition => ({
       id: attribute,
@@ -535,6 +525,4 @@ function applyTicks(conditions: Condition[], draft: Record<string, string[]>): C
       mode: "is",
       link: "and",
     }))
-
-  return [...kept, ...added]
 }

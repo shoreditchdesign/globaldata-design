@@ -151,7 +151,7 @@ export function ResultsPane({
   // The explorer is reached from the head of the results in both states, so a
   // cold start has a way into the taxonomy without typing anything first.
   const toolbar = (
-    <div className="bg-surface-panel text-muted-foreground flex h-11 shrink-0 items-center justify-between gap-4 px-(--text-inset) text-xs">
+    <div className="bg-surface-panel text-muted-foreground flex h-12 shrink-0 items-center justify-between gap-4 px-(--text-inset) text-xs">
       {/*
         Two views of the results rather than a switch with an on state: standard
         is the grid on its own, explorer brings the tree in beside it. The

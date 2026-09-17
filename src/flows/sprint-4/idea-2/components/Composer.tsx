@@ -225,13 +225,6 @@ export function Composer({
             ) : null}
           </>
         ) : null}
-        {/* The one mention the demo shortcut gets, and only while the box is
-            empty — it is unguessable, so it is named once and then gone. */}
-        {value.length === 0 ? (
-          <span className="text-muted-foreground ml-1 text-xs">
-            <span className="text-foreground/70">$$</span> fills in an example
-          </span>
-        ) : null}
       </div>
     </div>
   )
