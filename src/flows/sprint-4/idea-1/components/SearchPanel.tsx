@@ -112,7 +112,7 @@ export function SearchPanel({
                     submit()
                   }
                 }}
-                placeholder="Ask anything"
+                placeholder="What are you looking for?"
                 aria-label="Describe the drugs you are looking for"
                 aria-hidden={resolving}
                 disabled={resolving}
