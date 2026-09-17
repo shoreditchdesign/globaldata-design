@@ -24,6 +24,7 @@ import {
   type Condition,
 } from "@/flows/sprint-4/idea-2/data"
 import { conditionsToProse } from "@/flows/sprint-4/idea-2/grammar"
+import { insetVars } from "@/flows/sprint-4/idea-2/inset"
 import { resolveQuery, type Resolution } from "@/flows/sprint-4/idea-2/resolve"
 import {
   blankQuery,
@@ -209,19 +210,24 @@ export function Screener() {
   const composing = phase === "compose"
   const resolving = phase === "resolving"
   const logic = view === "logic"
-  const notes =
-    query.resolution && !query.edited ? [...query.resolution.notes, ...unplacedNote(query.resolution)] : []
+  const notes: NoteLine[] =
+    query.resolution && !query.edited
+      ? [
+          ...query.resolution.notes.map((note) => ({ phrases: [note.phrase], text: note.text })),
+          ...unplacedNote(query.resolution),
+        ]
+      : []
 
   return (
-    <ProductChrome activeArea="Drugs" body="column">
-      <section className="shrink-0 px-6 pt-5 pb-4">
+    <ProductChrome activeArea="Drugs" body="column" className={insetVars}>
+      <section className="shrink-0 px-(--box-gutter) pt-5 pb-4">
         <div className="bg-surface-panel border-border shadow-raised flex items-stretch rounded-xl border">
-          <div className="min-w-0 flex-1 px-5 py-4">
+          <div className="min-w-0 flex-1 px-(--box-pad) py-4">
             <div className="mb-3 flex items-center gap-3">
               <span className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
                 Drug screener
               </span>
-              <div className="border-border bg-surface-sunken ml-auto flex items-center gap-0.5 rounded-lg border p-0.5">
+              <div className="bg-muted ml-auto flex items-center gap-0.5 rounded-lg p-0.5">
                 <ViewTab
                   active={!logic}
                   onClick={() => setView("sentence")}
@@ -265,7 +271,7 @@ export function Screener() {
                 {query.raw ? (
                   <p className="text-muted-foreground min-w-0 truncate text-xs">
                     {query.edited ? "Edited since it was read from" : "Read from"}{" "}
-                    <span className="text-foreground/70">&ldquo;{query.raw}&rdquo;</span>
+                    <span className="text-brand-ink">{query.raw}</span>
                   </p>
                 ) : (
                   <span />
@@ -281,7 +287,7 @@ export function Screener() {
             ) : null}
           </div>
 
-          <div className="border-edge flex w-[200px] shrink-0 flex-col gap-3 border-l px-5 py-4">
+          <div className="border-edge flex w-[200px] shrink-0 flex-col gap-3 border-l px-(--box-pad) py-4">
             <div>
               <p
                 className={cn(
@@ -367,11 +373,18 @@ export function Screener() {
   )
 }
 
+/** One line under the sentence: the reviewer's own words, then what became of them. */
+interface NoteLine {
+  phrases: string[]
+  text: string
+}
+
 /** What the resolver skipped, said out loud. */
-function unplacedNote(resolution: Resolution) {
+function unplacedNote(resolution: Resolution): NoteLine[] {
   if (resolution.unplaced.length === 0) return []
-  const phrases = resolution.unplaced.map((phrase) => `“${phrase}”`).join(", ")
-  return [`${phrases} — no condition in this screener matches that, so it was left out.`]
+  return [
+    { phrases: resolution.unplaced, text: "no condition in this screener matches that, so it was left out." },
+  ]
 }
 
 function Notes({
@@ -379,7 +392,7 @@ function Notes({
   resolution,
   onAdd,
 }: {
-  notes: string[]
+  notes: NoteLine[]
   resolution: Resolution | null
   onAdd: (attribute: string, value: string) => void
 }) {
@@ -388,8 +401,14 @@ function Notes({
   return (
     <div className="border-border bg-surface-sunken mt-3 rounded-lg border px-3 py-2.5">
       {notes.map((note) => (
-        <p key={note} className="text-muted-foreground text-xs">
-          {note}
+        <p key={`${note.phrases.join(",")}:${note.text}`} className="text-muted-foreground text-xs">
+          {note.phrases.map((phrase, i) => (
+            <React.Fragment key={phrase}>
+              {i > 0 ? ", " : null}
+              <span className="text-brand-ink">{phrase}</span>
+            </React.Fragment>
+          ))}{" "}
+          — {note.text}
         </p>
       ))}
       {suggestions.length > 0 ? (
@@ -413,8 +432,9 @@ function Notes({
 }
 
 /**
- * One option of the view toggle. Selected takes the washed brand, per the
- * design system's rule for segmented options.
+ * One option of the view toggle. Selected is a white segment lifted off a muted
+ * track, with no brand in it — Austin's call, logged in DECISIONS.md, against
+ * the design system's washed-brand rule for segmented options.
  */
 function ViewTab({
   active,
@@ -433,10 +453,10 @@ function ViewTab({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "flex h-6 items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors",
+        "flex h-6 items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-[background-color,color,box-shadow]",
         active
-          ? "bg-brand-tint border-brand-border text-foreground"
-          : "text-muted-foreground hover:bg-accent hover:text-foreground border-transparent",
+          ? "bg-surface-raised text-foreground shadow-panel"
+          : "text-muted-foreground hover:text-foreground",
       )}
     >
       {icon}

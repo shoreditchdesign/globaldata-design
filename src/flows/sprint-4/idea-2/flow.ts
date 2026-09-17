@@ -15,7 +15,7 @@ export const sprint4Idea2: Flow = {
     "Idea 1 put the text box, the Miller columns and the logic gate on screen at once, and the gate had to push a full-height sidebar in to make room. This asks whether the columns are earning their place, or whether a sentence and a gate are enough.",
     "The screen lands on one thing to do: a big text box, Sentence selected, and a results grid whose heads are already there with a quiet line where the rows will go.",
     "Logic gate splits the bottom half rather than adding a pillar. The canvas takes the left, where Idea 1's columns sat, and the results keep the right. The text box stays full width in both views.",
-    "An empty canvas is a blank page, so it offers starting points. They are the attributes that the drug search pairing analysis shows being used together most, and once a node is on the canvas the rest reorder by what pairs with it. They are drawn as dashed suggestions, never as filters that are on.",
+    "An empty canvas is a blank page, so it offers starting points. They are the attributes that the drug search pairing analysis shows being used together most, and once a node is on the canvas the rest reorder by what pairs with it. They wear the same blue as the pills in the sentence, with a plus to say they are still to add.",
     "A suggestion becomes a node the moment it is clicked, with its value picker already open and every value counted. It joins the query with its first value, so the sentence gains a pill and the grid its rows at the same time.",
     "Tests: whether a gate you reach for, built on top of suggested filters, carries the Boolean work well enough that the columns can go, and whether a sentence alone is enough of a way in for everyone else.",
   ],
@@ -35,7 +35,7 @@ export const sprint4Idea2: Flow = {
     {
       slug: "logic-empty",
       title: "Logic gate, empty",
-      note: "Toggled to Logic gate. The bottom half splits, and the empty canvas offers Development stage, Therapy area, Molecule type and Drug geography as dashed suggestions, ranked by how often they are used together. The grid is still empty.",
+      note: "Toggled to Logic gate. The bottom half splits, and the empty canvas offers Development stage, Therapy area, Molecule type and Drug geography as suggestions, ranked by how often they are used together. The grid is still empty.",
       viewport: "desktop",
       component: Screener,
     },

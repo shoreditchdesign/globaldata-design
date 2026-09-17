@@ -415,8 +415,14 @@ export interface Resolution {
   unplaced: string[]
   /** Nearest known value for something unplaced, offered rather than assumed. */
   suggestions: Suggestion[]
-  /** Attributes that are real in the product but not here. */
-  notes: string[]
+  /** Attributes that are real in the product but not here, with the words that asked for them. */
+  notes: Note[]
+}
+
+/** Something the reviewer typed that names a real attribute this screener does not carry. */
+export interface Note {
+  phrase: string
+  text: string
 }
 
 function levenshtein(a: string, b: string) {
@@ -502,7 +508,7 @@ export function resolveQuery(raw: string): Resolution {
   }
 
   const chosen = new Map<string, { values: string[]; exclude: boolean; link: "and" | "or" }>()
-  const notes: string[] = []
+  const notes: Note[] = []
   const read: ReadSpan[] = []
   let previousAttribute: string | undefined
   let previousEnd = 0
@@ -510,8 +516,8 @@ export function resolveQuery(raw: string): Resolution {
   spans.forEach((span, index) => {
     const phrase = raw.slice(map[span.start], map[span.end - 1] + 1)
     if (span.note) {
-      const message = `“${phrase}” — ${span.note}`
-      if (!notes.includes(message)) notes.push(message)
+      const note = span.note
+      if (!notes.some((known) => known.phrase === phrase && known.text === note)) notes.push({ phrase, text: note })
       return
     }
     if (!span.attribute) return

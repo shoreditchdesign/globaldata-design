@@ -25,9 +25,10 @@ import { gateOf, suggestionsFor, type Gate } from "@/flows/sprint-4/idea-2/state
 const subjectOf = (attribute: string) => attributeDefs[attribute]?.subject ?? attribute
 
 /**
- * An operator, as a pill with a dropdown. Idea 1's shape; `NOT` takes the
- * negation tone so the node that drops rows cannot be mistaken for one that
- * keeps them.
+ * An operator, as a pill with a dropdown. Idea 1's shape. The chips of a node
+ * that drops rows wear the same blue as any other, so `NOT` carries the
+ * exclusion on its own: full-strength text, a heavier weight and a firmer edge
+ * than the quiet `AND` and `OR` beside it.
  */
 function OperatorPill<T extends string>({
   value,
@@ -48,7 +49,7 @@ function OperatorPill<T extends string>({
         className={cn(
           "inline-flex h-6 items-center gap-1 rounded-full border px-2 text-[11px] font-medium tracking-[0.08em] transition-colors",
           negated
-            ? "bg-negative border-negative-border text-negative-ink hover:border-negative-ink/40"
+            ? "text-foreground bg-surface-panel border-foreground/40 hover:bg-accent font-semibold"
             : "text-muted-foreground bg-surface-panel border-border hover:text-foreground hover:bg-accent",
         )}
       >
@@ -77,9 +78,9 @@ function Wire({ dashed }: { dashed?: boolean }) {
 }
 
 /**
- * A suggestion, not a filter. Dashed edge, muted text and a plus, so it reads
- * as something you could add rather than something already applied — never the
- * brand fill or the washed-brand chip a real condition wears.
+ * A suggested condition. It wears the same washed brand as the pills in the
+ * sentence, at Austin's direction, and keeps the leading plus so it still reads
+ * as something to add. Hover is one calm step within that family.
  */
 function SuggestionChip({ attribute, onAdd }: { attribute: string; onAdd: (attribute: string) => void }) {
   return (
@@ -87,7 +88,7 @@ function SuggestionChip({ attribute, onAdd }: { attribute: string; onAdd: (attri
       type="button"
       onClick={() => onAdd(attribute)}
       className={cn(
-        "text-muted-foreground border-edge hover:text-foreground hover:bg-accent hover:border-muted-foreground/40 inline-flex h-7 items-center gap-1 rounded-full border border-dashed pr-2.5 pl-2 text-[12px]",
+        "bg-brand-tint border-brand-border text-brand-ink hover:border-brand-ink/40 hover:shadow-panel inline-flex h-7 items-center gap-1 rounded-full border pr-2.5 pl-2 text-[12px] font-medium",
         liftClass,
       )}
     >
@@ -147,7 +148,6 @@ function GroupNode({
   handlers: QueryHandlers
 }) {
   const anchor = React.useRef<HTMLDivElement>(null)
-  const negated = condition?.mode === "is not"
   const subject = subjectOf(attribute)
   const added = picking && !condition
 
@@ -223,7 +223,7 @@ function GroupNode({
                       }
                     }}
                   >
-                    <FilterPill variant={negated ? "excluded" : "applied"} removeLabel={`Remove ${value}`}>
+                    <FilterPill variant="applied" removeLabel={`Remove ${value}`}>
                       <button
                         type="button"
                         onClick={() => onPicking(true)}
@@ -320,14 +320,15 @@ export function LogicCanvas({
 
   return (
     <section aria-label="Logic gate" className={cn("flex min-h-0 flex-col", className)}>
-      <div className="bg-surface-chrome border-edge flex h-11 shrink-0 items-center gap-2 border-b pr-2 pl-4">
+      <div className="bg-surface-chrome border-edge flex h-11 shrink-0 items-center gap-2 border-b px-(--text-inset)">
         <span className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
           Logic gate
         </span>
         <Button
           size="icon"
           variant="ghost"
-          className="text-muted-foreground ml-auto size-7"
+          // The icon, not the button's hit area, sits on the inset.
+          className="text-muted-foreground -mr-[7px] ml-auto size-7"
           onClick={onClose}
           aria-label="Close the logic gate"
         >
@@ -335,13 +336,13 @@ export function LogicCanvas({
         </Button>
       </div>
 
-      <div className="bg-surface-page min-h-0 flex-1 overflow-y-auto bg-[radial-gradient(var(--color-hairline)_1px,transparent_1px)] [background-size:16px_16px] px-6 py-6">
+      <div className="bg-surface-page min-h-0 flex-1 overflow-y-auto bg-[radial-gradient(var(--color-hairline)_1px,transparent_1px)] [background-size:16px_16px] px-(--text-inset) py-6">
         {empty ? (
-          <div className="flex min-h-full items-center justify-center">
-            <div className="flex max-w-[400px] flex-col items-center text-center">
+          <div className="flex flex-col items-start">
+            <div className="flex max-w-[400px] flex-col items-start">
               <p className="text-[13px] font-medium">Build a logic gate</p>
               <p className="text-muted-foreground mt-1 text-xs">Start from a common filter.</p>
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5">
+              <div className="mt-4 flex flex-wrap items-center gap-1.5">
                 {suggestions.map((attribute) => (
                   <SuggestionChip key={attribute} attribute={attribute} onAdd={pick} />
                 ))}
@@ -350,7 +351,7 @@ export function LogicCanvas({
             </div>
           </div>
         ) : (
-          <div className="mx-auto flex max-w-[400px] flex-col items-center">
+          <div className="flex w-full flex-col items-center">
             <div className="bg-surface-panel border-border flex w-full items-baseline gap-2 rounded-lg border px-3 py-2.5">
               <span className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
                 All drugs

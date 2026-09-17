@@ -65,7 +65,6 @@ export function ValueMenu({
   const counts = handlers.countsFor(attribute)
   const selected = condition?.values ?? []
   const options = valueOptions(attribute, selected)
-  const negated = condition?.mode === "is not"
 
   return (
     <Command>
@@ -93,11 +92,7 @@ export function ValueMenu({
                 <span
                   className={cn(
                     "flex size-4 shrink-0 items-center justify-center rounded-[4px] border",
-                    ticked
-                      ? negated
-                        ? "bg-negative-ink border-negative-ink text-background"
-                        : "bg-selected border-selected text-selected-foreground"
-                      : "border-border",
+                    ticked ? "bg-selected border-selected text-selected-foreground" : "border-border",
                   )}
                 >
                   {ticked ? <CheckIcon className="size-3" /> : null}

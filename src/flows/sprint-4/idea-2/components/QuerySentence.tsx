@@ -36,7 +36,6 @@ function ValuePill({
   handlers: QueryHandlers
 }) {
   const [open, setOpen] = React.useState(false)
-  const excluded = condition.mode === "is not"
 
   return (
     <span className="group/pill relative mr-1 -ml-0.5 inline-flex align-baseline">
@@ -45,10 +44,7 @@ function ValuePill({
           <button
             type="button"
             className={cn(
-              "text-foreground focus-visible:ring-ring/50 inline-flex items-center gap-1 rounded-md border px-1.5 font-medium transition-[background-color,box-shadow] outline-none focus-visible:ring-3",
-              excluded
-                ? "bg-negative border-negative-border group-hover/pill:shadow-panel"
-                : "bg-brand-tint border-brand-border group-hover/pill:shadow-panel",
+              "text-foreground focus-visible:ring-ring/50 bg-brand-tint border-brand-border group-hover/pill:shadow-panel inline-flex items-center gap-1 rounded-md border px-1.5 font-medium transition-[background-color,box-shadow] outline-none focus-visible:ring-3",
               open && "shadow-panel",
             )}
           >
@@ -57,7 +53,7 @@ function ValuePill({
               className={cn(
                 "size-[0.55em] opacity-70 group-focus-within/pill:opacity-0 group-hover/pill:opacity-0",
                 liftClass,
-                excluded ? "text-negative-ink" : "text-brand-ink",
+                "text-brand-ink",
               )}
             />
           </button>
@@ -80,7 +76,7 @@ function ValuePill({
         className={cn(
           "focus-visible:ring-ring/50 absolute top-1/2 right-[3px] flex size-[0.8em] -translate-y-1/2 items-center justify-center rounded-sm opacity-0 outline-none group-focus-within/pill:opacity-100 group-hover/pill:opacity-100 focus-visible:opacity-100 focus-visible:ring-2",
           liftClass,
-          excluded ? "text-negative-ink hover:bg-negative-border" : "text-brand-ink hover:bg-brand-border",
+          "text-brand-ink hover:bg-brand-border",
         )}
       >
         <XIcon className="size-[0.55em]" />
@@ -91,8 +87,10 @@ function ValuePill({
 
 /**
  * A logic word. Dotted-underlined rather than filled, so the sentence has two
- * legible classes of control: values you pick, operators you flip. A word that
- * drops rows is drawn in the negation tone.
+ * legible classes of control: values you pick, operators you flip. An excluded
+ * value wears the same pill as an included one, so the word that drops rows is
+ * the whole of the difference: full-strength text at a heavier weight, and a
+ * darker dotted rule, beside the muted words around it.
  */
 function OperatorWord<T extends string>({
   word,
@@ -116,7 +114,7 @@ function OperatorWord<T extends string>({
           className={cn(
             "focus-visible:ring-ring/50 -mx-0.5 rounded-md px-0.5 underline decoration-dotted underline-offset-[5px] transition-colors outline-none focus-visible:ring-3",
             negated
-              ? "text-negative-ink decoration-negative-ink/60 hover:bg-negative aria-expanded:bg-negative font-medium"
+              ? "text-foreground decoration-foreground/70 hover:bg-accent aria-expanded:bg-accent font-semibold"
               : "text-muted-foreground hover:text-foreground decoration-muted-foreground/50 hover:decoration-foreground aria-expanded:text-foreground aria-expanded:bg-accent",
           )}
         >
