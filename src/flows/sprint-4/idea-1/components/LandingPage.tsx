@@ -20,7 +20,7 @@ export function LandingPage({
 
   return (
     <main className="bg-surface-page min-h-0 flex-1 overflow-y-auto">
-      <section className="mx-auto flex w-full max-w-4xl flex-col px-8 pt-[clamp(64px,12vh,128px)] pb-16">
+      <section className="mx-auto flex min-h-full w-full max-w-4xl flex-col items-center justify-center px-8 py-16">
         <div
           role="tablist"
           aria-label="Search method"
@@ -34,7 +34,7 @@ export function LandingPage({
           </SearchTab>
         </div>
 
-        <div className="mt-8">
+        <div className="mt-8 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">Drug Database</h1>
           <p className="text-muted-foreground mt-2 max-w-3xl text-sm leading-6">
             Describe any key search metrics such as Therapy Area, Classification, Geography,
@@ -43,7 +43,7 @@ export function LandingPage({
         </div>
 
         <form
-          className="bg-surface-panel border-border focus-within:border-ring mt-7 flex min-h-16 items-center gap-3 rounded-xl border px-4 transition-colors"
+          className="bg-surface-panel border-border focus-within:border-ring mt-7 flex min-h-16 w-full items-center gap-3 rounded-xl border px-4 transition-colors"
           onSubmit={(event) => event.preventDefault()}
         >
           <SearchIcon className="text-muted-foreground size-5 shrink-0" aria-hidden />
@@ -65,7 +65,7 @@ export function LandingPage({
           </Button>
         </form>
 
-        <nav aria-label="Search categories" className="mt-5 flex flex-wrap gap-2">
+        <nav aria-label="Search categories" className="mt-5 flex flex-wrap justify-center gap-2">
           {searchCategories.map((category) => (
             <button
               key={category}
