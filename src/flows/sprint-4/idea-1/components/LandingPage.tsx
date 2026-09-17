@@ -86,7 +86,10 @@ export function LandingPage({
 
         <form
           className="bg-surface-panel border-border focus-within:border-ring mt-7 flex min-h-16 w-full items-center gap-3 rounded-xl border px-4 transition-colors"
-          onSubmit={(event) => event.preventDefault()}
+          onSubmit={(event) => {
+            event.preventDefault()
+            if (hasQuery && !resolving) onResolve()
+          }}
         >
           <SearchIcon className="text-muted-foreground size-5 shrink-0" aria-hidden />
           <div className="relative min-w-0 flex-1">
@@ -105,9 +108,8 @@ export function LandingPage({
             {pending ? <ScanningQuery resolution={pending} onDone={onScanDone} /> : null}
           </div>
           <Button
-            type="button"
+            type="submit"
             size="icon-lg"
-            onClick={onResolve}
             disabled={!hasQuery || resolving}
             aria-label={
               hasResolvedFilters ? "Update filters from this search" : "Build filters from this search"
