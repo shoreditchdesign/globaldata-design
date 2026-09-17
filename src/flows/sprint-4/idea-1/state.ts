@@ -3,6 +3,7 @@ import {
   workedQuery,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1/data"
+import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { resolveQuery, type Resolution } from "@/flows/sprint-4/idea-1/resolve"
 
 export type SearchMode = "quick" | "manual"
@@ -10,6 +11,7 @@ export type SearchMode = "quick" | "manual"
 export interface Sprint4Idea1State {
   mode: SearchMode
   query: string
+  activeCategory: ProductArea | null
   /** The last query resolved into filters. Typing never changes this value. */
   submittedQuery: string | null
   filters: ResolvedFilter[]
@@ -20,6 +22,7 @@ export interface Sprint4Idea1State {
 const startState = (): Sprint4Idea1State => ({
   mode: "quick",
   query: "",
+  activeCategory: null,
   submittedQuery: null,
   filters: [],
   pending: null,
@@ -28,6 +31,7 @@ const startState = (): Sprint4Idea1State => ({
 const filteredState = (): Sprint4Idea1State => ({
   mode: "quick",
   query: workedQuery,
+  activeCategory: null,
   submittedQuery: workedQuery,
   filters: initialResolvedFilters(),
   pending: null,
@@ -36,6 +40,7 @@ const filteredState = (): Sprint4Idea1State => ({
 const resolvingState = (): Sprint4Idea1State => ({
   mode: "quick",
   query: workedQuery,
+  activeCategory: null,
   submittedQuery: null,
   filters: [],
   pending: resolveQuery(workedQuery),

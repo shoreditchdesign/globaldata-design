@@ -1,10 +1,12 @@
 import { ArrowRightIcon, SearchIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { ResolvedFilters } from "@/flows/sprint-4/idea-1/components/ResolvedFilters"
 import { ScanningQuery } from "@/flows/sprint-4/idea-1/components/ScanningQuery"
 import {
   searchCategories,
+  searchCategoryChildren,
   type FilterId,
   type FilterJoin,
   type FilterLink,
@@ -17,8 +19,10 @@ import { cn } from "@/lib/utils"
 export function LandingPage({
   mode,
   query,
+  activeCategory,
   onModeChange,
   onQueryChange,
+  onCategoryChange,
   onResolve,
   hasResolvedFilters,
   filters,
@@ -35,8 +39,10 @@ export function LandingPage({
 }: {
   mode: SearchMode
   query: string
+  activeCategory: ProductArea | null
   onModeChange: (mode: SearchMode) => void
   onQueryChange: (query: string) => void
+  onCategoryChange: (category: ProductArea) => void
   onResolve: () => void
   hasResolvedFilters: boolean
   filters: ResolvedFilter[]
@@ -125,17 +131,50 @@ export function LandingPage({
             onClear={onClearFilters}
           />
         ) : (
-          <nav aria-label="Search categories" className="mt-5 flex flex-wrap justify-center gap-2">
-            {searchCategories.map((category) => (
-              <button
-                key={category}
-                type="button"
-                className="bg-surface-panel border-border hover:bg-accent inline-flex h-8 items-center rounded-full border px-3.5 text-[13px] transition-colors"
+          <div className="mt-5 w-full">
+            <nav aria-label="Search categories" className="flex flex-wrap justify-center gap-2">
+              {searchCategories.map((category) => {
+                const active = activeCategory === category
+                const inactive = activeCategory !== null && !active
+
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    aria-expanded={active}
+                    aria-controls={`search-category-${category.toLowerCase().replaceAll(" ", "-")}`}
+                    onClick={() => onCategoryChange(category)}
+                    className={cn(
+                      "bg-surface-panel border-border hover:bg-accent inline-flex h-8 items-center rounded-full border px-3.5 text-[13px] transition-[color,background-color,border-color,opacity]",
+                      active && "bg-foreground text-background border-foreground hover:bg-foreground/90",
+                      inactive && "opacity-35 hover:opacity-70",
+                    )}
+                  >
+                    {category}
+                  </button>
+                )
+              })}
+            </nav>
+
+            {activeCategory ? (
+              <nav
+                key={activeCategory}
+                id={`search-category-${activeCategory.toLowerCase().replaceAll(" ", "-")}`}
+                aria-label={`${activeCategory} filters`}
+                className="animate-in fade-in slide-in-from-top-2 mt-4 flex flex-wrap justify-center gap-2 duration-300"
               >
-                {category}
-              </button>
-            ))}
-          </nav>
+                {searchCategoryChildren[activeCategory].map((child) => (
+                  <button
+                    key={child}
+                    type="button"
+                    className="bg-surface-sunken border-border text-foreground hover:bg-accent inline-flex min-h-8 items-center rounded-full border px-3.5 py-1.5 text-[13px] transition-colors"
+                  >
+                    {child}
+                  </button>
+                ))}
+              </nav>
+            ) : null}
+          </div>
         )}
       </section>
     </main>
