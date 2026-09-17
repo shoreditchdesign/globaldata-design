@@ -47,7 +47,7 @@ export function ResolvedFilters({
   )
 
   return (
-    <div className="bg-surface-panel border-border mt-5 w-full rounded-xl border p-4">
+    <div className="bg-surface-panel border-border w-full rounded-xl border p-4">
       <div className="flex min-h-10 flex-wrap items-center gap-2">
         {filters.length === 0 ? (
           <p className="text-muted-foreground text-[13px]">No filters selected.</p>

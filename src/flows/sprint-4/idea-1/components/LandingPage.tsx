@@ -127,99 +127,105 @@ export function LandingPage({
           </Button>
         </form>
 
-        {hasResolvedFilters ? (
-          <ResolvedFilters
-            filters={filters}
-            resultCount={resultCount}
-            onModeChange={onFilterModeChange}
-            onJoinChange={onFilterJoinChange}
-            onLinkChange={onFilterLinkChange}
-            onToggleValue={onToggleFilterValue}
-            onRemove={onRemoveFilter}
-            onAdd={onAddFilter}
-            onClear={onClearFilters}
-          />
-        ) : (
-          <div className="mt-5 w-full">
-            <nav aria-label="Search categories" className="flex flex-wrap justify-center gap-2">
-              {searchCategories.map((category) => {
-                const active = activeCategory === category
-                const inactive = activeCategory !== null && !active
+        {/*
+          The filter box takes over the pills' well, which keeps its height so
+          the centred search does not drop when a search resolves.
+        */}
+        <div className="mt-5 min-h-72 w-full">
+          {hasResolvedFilters ? (
+            <ResolvedFilters
+              filters={filters}
+              resultCount={resultCount}
+              onModeChange={onFilterModeChange}
+              onJoinChange={onFilterJoinChange}
+              onLinkChange={onFilterLinkChange}
+              onToggleValue={onToggleFilterValue}
+              onRemove={onRemoveFilter}
+              onAdd={onAddFilter}
+              onClear={onClearFilters}
+            />
+          ) : (
+            <div className="w-full">
+              <nav aria-label="Search categories" className="flex flex-wrap justify-center gap-2">
+                {searchCategories.map((category) => {
+                  const active = activeCategory === category
+                  const inactive = activeCategory !== null && !active
 
-                return (
-                  <button
-                    key={category}
-                    type="button"
-                    aria-expanded={active}
-                    aria-controls={`search-category-${slugify(category)}`}
-                    onClick={() => onCategoryChange(category)}
-                    className={cn(
-                      "bg-surface-panel border-border hover:bg-accent inline-flex h-8 items-center rounded-full border px-3.5 text-[13px] transition-[color,background-color,border-color,opacity]",
-                      active && "bg-foreground text-background border-foreground hover:bg-foreground/90",
-                      inactive && "opacity-35 hover:opacity-70",
-                    )}
-                  >
-                    {category}
-                  </button>
-                )
-              })}
-            </nav>
-
-            {/* One fixed well for both layers, so each cascades straight under the last. */}
-            <div className="mt-4 h-60">
-              {activeCategory ? (
-                <nav
-                  key={activeCategory}
-                  id={`search-category-${slugify(activeCategory)}`}
-                  aria-label={`${activeCategory} filters`}
-                  className="animate-in fade-in slide-in-from-top-2 flex flex-wrap justify-center gap-2 duration-300"
-                >
-                  {searchAttributeLabels(activeCategory).map((child) => {
-                    const active = activeAttribute === child
-                    const inactive = activeAttribute !== null && !active
-
-                    return (
-                      <button
-                        key={child}
-                        type="button"
-                        aria-expanded={active}
-                        aria-controls={`search-attribute-${slugify(child)}`}
-                        onClick={() => onAttributeChange(child)}
-                        className={cn(
-                          "bg-surface-sunken border-border text-foreground hover:bg-accent inline-flex min-h-8 items-center rounded-full border px-3.5 py-1.5 text-[13px] transition-[color,background-color,border-color,opacity]",
-                          active && "bg-foreground text-background border-foreground hover:bg-foreground/90",
-                          inactive && "opacity-35 hover:opacity-70",
-                        )}
-                      >
-                        {child}
-                      </button>
-                    )
-                  })}
-                </nav>
-              ) : null}
-
-              {activeCategory && activeAttribute ? (
-                <nav
-                  key={`${activeCategory}/${activeAttribute}`}
-                  id={`search-attribute-${slugify(activeAttribute)}`}
-                  aria-label={`${activeAttribute} values`}
-                  className="mt-4 animate-in fade-in slide-in-from-top-2 flex flex-wrap justify-center gap-2 duration-300"
-                >
-                  {searchAttributeValues(activeCategory, activeAttribute).map((value) => (
+                  return (
                     <button
-                      key={value}
+                      key={category}
                       type="button"
-                      onClick={() => onValuePick(value)}
-                      className="bg-surface-panel border-border text-foreground hover:bg-accent inline-flex min-h-8 items-center rounded-full border px-3.5 py-1.5 text-[13px] transition-colors"
+                      aria-expanded={active}
+                      aria-controls={`search-category-${slugify(category)}`}
+                      onClick={() => onCategoryChange(category)}
+                      className={cn(
+                        "bg-surface-panel border-border hover:bg-accent inline-flex h-8 items-center rounded-full border px-3.5 text-[13px] transition-[color,background-color,border-color,opacity]",
+                        active && "bg-foreground text-background border-foreground hover:bg-foreground/90",
+                        inactive && "opacity-35 hover:opacity-70",
+                      )}
                     >
-                      {value}
+                      {category}
                     </button>
-                  ))}
-                </nav>
-              ) : null}
+                  )
+                })}
+              </nav>
+
+              {/* One fixed well for both layers, so each cascades straight under the last. */}
+              <div className="mt-4 h-60">
+                {activeCategory ? (
+                  <nav
+                    key={activeCategory}
+                    id={`search-category-${slugify(activeCategory)}`}
+                    aria-label={`${activeCategory} filters`}
+                    className="animate-in fade-in slide-in-from-top-2 flex flex-wrap justify-center gap-2 duration-300"
+                  >
+                    {searchAttributeLabels(activeCategory).map((child) => {
+                      const active = activeAttribute === child
+                      const inactive = activeAttribute !== null && !active
+
+                      return (
+                        <button
+                          key={child}
+                          type="button"
+                          aria-expanded={active}
+                          aria-controls={`search-attribute-${slugify(child)}`}
+                          onClick={() => onAttributeChange(child)}
+                          className={cn(
+                            "bg-surface-sunken border-border text-foreground hover:bg-accent inline-flex min-h-8 items-center rounded-full border px-3.5 py-1.5 text-[13px] transition-[color,background-color,border-color,opacity]",
+                            active && "bg-foreground text-background border-foreground hover:bg-foreground/90",
+                            inactive && "opacity-35 hover:opacity-70",
+                          )}
+                        >
+                          {child}
+                        </button>
+                      )
+                    })}
+                  </nav>
+                ) : null}
+
+                {activeCategory && activeAttribute ? (
+                  <nav
+                    key={`${activeCategory}/${activeAttribute}`}
+                    id={`search-attribute-${slugify(activeAttribute)}`}
+                    aria-label={`${activeAttribute} values`}
+                    className="mt-4 animate-in fade-in slide-in-from-top-2 flex flex-wrap justify-center gap-2 duration-300"
+                  >
+                    {searchAttributeValues(activeCategory, activeAttribute).map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => onValuePick(value)}
+                        className="bg-surface-panel border-border text-foreground hover:bg-accent inline-flex min-h-8 items-center rounded-full border px-3.5 py-1.5 text-[13px] transition-colors"
+                      >
+                        {value}
+                      </button>
+                    ))}
+                  </nav>
+                ) : null}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </section>
     </main>
   )
