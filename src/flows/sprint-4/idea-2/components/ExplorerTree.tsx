@@ -260,7 +260,7 @@ export function ExplorerTree({
           const shown = hit.values ? values.filter((value) => hit.values?.includes(value.label)) : values
 
           return (
-            <div key={attribute}>
+            <div key={attribute} className="mb-0.5 last:mb-0">
               <Row
                 tall
                 open={isOpen}

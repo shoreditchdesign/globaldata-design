@@ -343,7 +343,7 @@ export function Screener() {
               what can be done about it on the right. One grey band across the
               foot of the card, so the three ways in all end in the same place.
             */}
-            <div className="bg-surface-sunken border-edge flex items-center gap-3 border-t px-(--box-pad) py-2.5">
+            <div className="bg-surface-chrome border-edge flex items-center gap-3 border-t px-(--box-pad) py-2.5">
               <QuickFilters
                 conditions={conditions}
                 picks={picks}
@@ -391,11 +391,7 @@ export function Screener() {
                     Resolve
                     <CornerDownLeftIcon />
                   </Button>
-                ) : (
-                  <Button size="sm" variant="secondary" onClick={editAsText} disabled={resolving}>
-                    Edit
-                  </Button>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
