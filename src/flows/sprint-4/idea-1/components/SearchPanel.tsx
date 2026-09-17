@@ -67,7 +67,7 @@ export function SearchPanel({
       // Manual search widens the panel to hold two Miller columns side by side.
       className={cn(
         "bg-surface-chrome border-edge flex shrink-0 flex-col border-r",
-        mode === "manual" ? "w-[580px]" : "w-[340px]",
+        mode === "manual" ? "w-[528px]" : "w-[340px]",
       )}
     >
       <div className="shrink-0 px-3 pt-3">
