@@ -95,3 +95,17 @@ Austin wanted the blue pills in the sentence to be draggable, so filters can be 
 **What felt odd in the hand.** Pulling a value out of an excluded group joins it with OR NOT, and in a query that reads left to right, that can take the count from 41 to 1,367. The preview shows this, but it is rarely what anyone means. Pulling a value out to a spot *before* its source group also leaves the source's own `and` sitting after an `or`. For example, `small molecule, or Europe, and North America` gives 162. Both results are correct under the rules above, and both are worth watching in review.
 
 **No drag library.** The drag is a small pointer-events implementation in `components/Arrange.tsx`. `@dnd-kit` sortable assumes block or grid items. Here the targets are thin carets in the gaps of wrapping inline text, so the geometry had to be written either way, and adding the dependency would only have supplied the gesture.
+
+## 2026-09-17 — Idea 2, the sentence shows the grouping, and the record comes back
+
+Two more of Austin's calls, made together.
+
+**Picking happens on the canvas, not in the sentence.** The sentence's pills used to open a value dropdown, its operator words opened a menu of alternatives, and `+ condition` opened an attribute picker. All three are gone. The sentence is there to show how the conditions group, so its words are now read rather than set: a pill is a plain blue value, and `and`, `or` and `available in` are plain text, without the dotted underline that marked them as controls. `not available in` keeps its heavier weight, because that word is still the whole difference between an excluded value and an included one. Values and operators are chosen on the logic gate canvas, where every one has its counted list.
+
+What stays in the sentence is clearing and regrouping. The × on a pill and on a clause still removes it, and pills and a clause's head word still drag by the rules in the section above. That means the moves that lived in the pill's menu, `Move to its own condition`, `Move left`, `Move right` and `Merge with …`, are now reachable without a drag only from the node menus on the canvas. With the canvas tucked away, Sentence mode has two ways to change a query: type it again, or clear what is there.
+
+**Open brings the whole record in from the right.** This is ported from Sprint 3 Idea 2. `Open` sits on the pinned drug-name cell and shows when the row is hovered, but it can be focused at any time. The name keeps the button's width all the time rather than making room on hover, because making room on hover is what made Sprint 3's row reflow under the cursor and swallow the click. The record is a shadcn `Sheet` over a scrim and closes by the scrim, Escape or its close button. It lists every field in the sample, including the eight that are not grid columns.
+
+The drawer is looked up in the filtered rows, never the sample. When an edit anywhere drops the open drug, the drawer closes and forgets which drug it was, so it cannot slide back in if a later edit or Undo lets the row through again. The record id lives in the screen's one state atom, so the new `record` frame is addressable like the others.
+
+One divergence from the source: Sprint 3 Idea 2 set its drawer at 16px and 17px, and this one uses the sprint's 13px data scale with a 17px title. That way the record reads as part of the same grid it was opened from.
