@@ -236,9 +236,9 @@ function ValueJoinControl({
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={`Match ${filter.label} values using ${filter.join}`}
-        className="hover:bg-foreground/5 flex h-full shrink-0 items-center gap-1 border-r border-current/10 px-2 py-1.5 text-[10px] font-medium uppercase transition-colors"
+        className="hover:bg-foreground/5 flex shrink-0 items-center gap-1 border-r border-current/10 px-2 py-1.5 transition-colors"
       >
-        {filter.join}
+        {filter.join.toUpperCase()}
         <ChevronDownIcon className="size-3" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center" className="w-44">
