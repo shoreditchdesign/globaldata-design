@@ -17,6 +17,7 @@ import {
   filterDefinitions,
   type FilterId,
   type FilterJoin,
+  type FilterLink,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1/data"
 import { cn } from "@/lib/utils"
@@ -26,6 +27,7 @@ export function ResolvedFilters({
   resultCount,
   onModeChange,
   onJoinChange,
+  onLinkChange,
   onToggleValue,
   onRemove,
   onAdd,
@@ -35,6 +37,7 @@ export function ResolvedFilters({
   resultCount: number
   onModeChange: (id: FilterId, excluded: boolean) => void
   onJoinChange: (id: FilterId, join: FilterJoin) => void
+  onLinkChange: (id: FilterId, link: FilterLink) => void
   onToggleValue: (id: FilterId, value: string) => void
   onRemove: (id: FilterId) => void
   onAdd: (id: FilterId) => void
@@ -54,7 +57,10 @@ export function ResolvedFilters({
         {filters.map((filter, index) => (
           <div key={filter.id} className="contents">
             {index > 0 ? (
-              <span className="text-muted-foreground px-0.5 text-[11px] font-medium">AND</span>
+              <FilterLinkControl
+                filter={filter}
+                onChange={(link) => onLinkChange(filter.id, link)}
+              />
             ) : null}
             <FilterClause
               filter={filter}
@@ -102,6 +108,35 @@ export function ResolvedFilters({
         </div>
       </div>
     </div>
+  )
+}
+
+function FilterLinkControl({
+  filter,
+  onChange,
+}: {
+  filter: ResolvedFilter
+  onChange: (link: FilterLink) => void
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        aria-label={`Combine ${filter.label} with the previous filter using ${filter.link}`}
+        className="text-muted-foreground hover:bg-accent hover:text-foreground flex h-7 items-center gap-1 rounded-md px-1.5 text-[11px] font-medium uppercase transition-colors"
+      >
+        {filter.link}
+        <ChevronDownIcon className="size-3" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="center" className="w-36">
+        <DropdownMenuRadioGroup
+          value={filter.link}
+          onValueChange={(value) => onChange(value as FilterLink)}
+        >
+          <DropdownMenuRadioItem value="and">AND</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="or">OR</DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 

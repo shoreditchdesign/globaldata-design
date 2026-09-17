@@ -7,6 +7,7 @@ import {
   searchCategories,
   type FilterId,
   type FilterJoin,
+  type FilterLink,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1/data"
 import type { Resolution } from "@/flows/sprint-4/idea-1/resolve"
@@ -24,6 +25,7 @@ export function LandingPage({
   resultCount,
   onFilterModeChange,
   onFilterJoinChange,
+  onFilterLinkChange,
   onToggleFilterValue,
   onRemoveFilter,
   onAddFilter,
@@ -41,6 +43,7 @@ export function LandingPage({
   resultCount: number
   onFilterModeChange: (id: FilterId, excluded: boolean) => void
   onFilterJoinChange: (id: FilterId, join: FilterJoin) => void
+  onFilterLinkChange: (id: FilterId, link: FilterLink) => void
   onToggleFilterValue: (id: FilterId, value: string) => void
   onRemoveFilter: (id: FilterId) => void
   onAddFilter: (id: FilterId) => void
@@ -115,6 +118,7 @@ export function LandingPage({
             resultCount={resultCount}
             onModeChange={onFilterModeChange}
             onJoinChange={onFilterJoinChange}
+            onLinkChange={onFilterLinkChange}
             onToggleValue={onToggleFilterValue}
             onRemove={onRemoveFilter}
             onAdd={onAddFilter}
