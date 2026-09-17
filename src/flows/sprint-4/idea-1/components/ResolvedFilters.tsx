@@ -85,14 +85,21 @@ export function ResolvedFilters({
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="ghost" size="sm" onClick={onClear} disabled={filters.length === 0}>
-            Clear all
-          </Button>
         </div>
 
-        <Button type="button" size="default" className="shrink-0 tabular-nums">
-          Search for {resultCount.toLocaleString("en-GB")} drugs
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="default"
+            onClick={onClear}
+            disabled={filters.length === 0}
+          >
+            Clear filters
+          </Button>
+          <Button type="button" size="default" className="shrink-0 tabular-nums">
+            Search for {resultCount.toLocaleString("en-GB")} drugs
+          </Button>
+        </div>
       </div>
     </div>
   )
