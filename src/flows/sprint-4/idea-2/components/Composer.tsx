@@ -146,8 +146,8 @@ function Failure({
       ) : null}
 
       {failure.notes.map((note) => (
-        <p key={note} className="text-muted-foreground mt-2 text-xs">
-          {note}
+        <p key={`${note.phrase}:${note.text}`} className="text-muted-foreground mt-2 text-xs">
+          &ldquo;{note.phrase}&rdquo; — {note.text}
         </p>
       ))}
 

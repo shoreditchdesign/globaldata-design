@@ -59,6 +59,10 @@ function EmptyState() {
  * its minimum the grid scrolls sideways with the drug name pinned to the left,
  * rather than wrapping a header or clipping a column. Every header sorts; stage
  * sorts by pipeline position.
+ *
+ * The first and last columns and the toolbar pad by `--text-inset`, so the drug
+ * names start on the same line as the sentence in the box above, and the grid
+ * holds that inset inside its own half when the canvas is open.
  */
 export function ResultsPane({
   rows,
@@ -96,8 +100,8 @@ export function ResultsPane({
               aria-sort={isSorted ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
               className={cn(
                 "bg-surface-panel text-muted-foreground border-edge border-b px-3 py-2.5 text-left text-[10px] font-medium tracking-[0.08em] whitespace-nowrap uppercase",
-                i === 0 && "sticky left-0 z-10 border-r pl-4",
-                i === columns.length - 1 && "pr-4",
+                i === 0 && "sticky left-0 z-10 border-r pl-(--text-inset)",
+                i === columns.length - 1 && "pr-(--text-inset)",
               )}
             >
               {active ? (
@@ -148,7 +152,7 @@ export function ResultsPane({
 
   return (
     <section className={cn("bg-surface-page flex min-h-0 min-w-0 flex-col", className)}>
-      <div className="bg-surface-panel text-muted-foreground flex h-11 shrink-0 items-center justify-between gap-4 px-4 text-xs">
+      <div className="bg-surface-panel text-muted-foreground flex h-11 shrink-0 items-center justify-between gap-4 px-(--text-inset) text-xs">
         <span className="tabular-nums">
           {rows.length === 0
             ? "No drugs in the sample match this query"
@@ -167,14 +171,14 @@ export function ResultsPane({
           <tbody>
             {shown.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-10 text-center">
+                <td colSpan={columns.length} className="px-(--text-inset) py-10 text-center">
                   <p className="text-[13px] font-medium">No drugs match this query</p>
                 </td>
               </tr>
             ) : (
               shown.map((row) => (
                 <tr key={row.id} className="group/row border-hairline border-b last:border-0">
-                  <td className="bg-surface-chrome group-hover/row:bg-surface-page border-edge sticky left-0 z-10 border-r py-2.5 pr-3 pl-4 font-medium whitespace-nowrap transition-colors">
+                  <td className="bg-surface-chrome group-hover/row:bg-surface-page border-edge sticky left-0 z-10 border-r py-2.5 pr-3 pl-(--text-inset) font-medium whitespace-nowrap transition-colors">
                     {row.name}
                   </td>
                   <Cell>{row.company}</Cell>
@@ -185,7 +189,7 @@ export function ResultsPane({
                   <Cell>{row.country}</Cell>
                   <Cell>{row.moleculeType}</Cell>
                   <Cell>{row.route}</Cell>
-                  <Cell className="pr-4">{shortDescriptor(row.descriptor)}</Cell>
+                  <Cell className="pr-(--text-inset)">{shortDescriptor(row.descriptor)}</Cell>
                 </tr>
               ))
             )}
