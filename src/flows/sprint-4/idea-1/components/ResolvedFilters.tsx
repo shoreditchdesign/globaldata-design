@@ -43,7 +43,8 @@ export function ResolvedFilters({
   onRemove: (id: FilterId) => void
   onAdd: (id: FilterId) => void
   onClear: () => void
-  onSearch: () => void
+  /** Runs the search from the landing page. Omitted where results already follow the filters. */
+  onSearch?: () => void
   className?: string
 }) {
   const unused = filterDefinitions.filter(
@@ -105,9 +106,11 @@ export function ResolvedFilters({
           >
             Clear filters
           </Button>
-          <Button type="button" size="default" className="shrink-0 tabular-nums" onClick={onSearch}>
-            Search for {resultCount.toLocaleString("en-GB")} drugs
-          </Button>
+          {onSearch ? (
+            <Button type="button" size="default" className="shrink-0 tabular-nums" onClick={onSearch}>
+              Search for {resultCount.toLocaleString("en-GB")} drugs
+            </Button>
+          ) : null}
         </div>
       </div>
     </div>

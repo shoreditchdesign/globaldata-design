@@ -63,7 +63,7 @@ export function PrototypeShell() {
 
       // On the landing page a path starts the filters; on the results page it
       // refines the ones already there, joining a clause that tests the same thing.
-      if (!current.appliedFilters) return { ...current, path, filters: [picked] }
+      if (!current.showResults) return { ...current, path, filters: [picked] }
       const existing = current.filters.find((filter) => filter.id === picked.id)
       const filters = existing
         ? current.filters.map((filter) =>
@@ -142,13 +142,13 @@ export function PrototypeShell() {
     })
   const clearFilters = () =>
     setState((current) =>
-      current.appliedFilters ? { ...current, filters: [] } : initialState("start"),
+      current.showResults ? { ...current, filters: [] } : initialState("start"),
     )
   const search = () =>
     setState((current) => ({
       ...current,
       pending: null,
-      appliedFilters: current.filters.map((filter) => ({ ...filter, values: [...filter.values] })),
+      showResults: true,
     }))
 
   const filterBox = (
@@ -162,15 +162,15 @@ export function PrototypeShell() {
       onRemove={removeFilter}
       onAdd={addFilter}
       onClear={clearFilters}
-      onSearch={search}
+      onSearch={state.showResults ? undefined : search}
     />
   )
 
-  if (state.appliedFilters) {
+  if (state.showResults) {
     return (
       <ProductChrome activeArea={activeProductArea} body="row">
         <ResultsPage
-          appliedFilters={state.appliedFilters}
+          filters={state.filters}
           filterBox={filterBox}
           panel={
             <SearchPanel
