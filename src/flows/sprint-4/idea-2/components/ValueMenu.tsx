@@ -244,28 +244,3 @@ export function availableAttributes(conditions: Condition[]) {
   const used = new Set(conditions.map((condition) => condition.attribute))
   return drugAttributeOrder.filter((attribute) => attributeDefs[attribute] && !used.has(attribute))
 }
-
-/** A list of attributes, the first step of adding a condition from the sentence. */
-export function AttributeMenu({
-  attributes,
-  onPick,
-}: {
-  attributes: string[]
-  onPick: (attribute: string) => void
-}) {
-  return (
-    <Command>
-      <CommandInput placeholder="Search attributes…" />
-      <CommandList className="max-h-[300px]">
-        <CommandEmpty>No attributes.</CommandEmpty>
-        <CommandGroup>
-          {attributes.map((attribute) => (
-            <CommandItem key={attribute} value={attribute} onSelect={() => onPick(attribute)}>
-              {attribute}
-            </CommandItem>
-          ))}
-        </CommandGroup>
-      </CommandList>
-    </Command>
-  )
-}
