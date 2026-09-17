@@ -3,7 +3,8 @@
 import * as React from "react"
 
 import { ResultsGrid } from "@/flows/sprint-4/idea-1/components/ResultsGrid"
-import { matchingRows, resultCountFor, type ResolvedFilter } from "@/flows/sprint-4/idea-1/data"
+import type { ResolvedFilter } from "@/flows/sprint-4/idea-1/data"
+import { resultsFor } from "@/flows/sprint-4/idea-1/results"
 import { applyAction, initialGridState, type GridAction } from "@/flows/sprint-4/idea-1/grid"
 
 /**
@@ -20,6 +21,7 @@ export function ResultsPage({
   filterBox: React.ReactNode
   filters: ResolvedFilter[]
 }) {
+  const results = resultsFor(filters)
   const [grid, setGrid] = React.useState(initialGridState)
   const onAction = React.useCallback(
     (action: GridAction) => setGrid((current) => applyAction(current, action)),
@@ -34,8 +36,8 @@ export function ResultsPage({
           {filterBox}
         </div>
         <ResultsGrid
-          rows={matchingRows(filters)}
-          resultCount={resultCountFor(filters)}
+          rows={results.rows}
+          resultCount={results.count}
           state={grid}
           onAction={onAction}
         />

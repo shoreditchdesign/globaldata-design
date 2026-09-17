@@ -14,11 +14,11 @@ import {
   activeProductArea,
   definitionFor,
   pathFilter,
-  resultCountFor,
   type FilterId,
   type FilterJoin,
   type FilterLink,
 } from "@/flows/sprint-4/idea-1/data"
+import { resultsFor } from "@/flows/sprint-4/idea-1/results"
 import { resolveQuery as resolveNaturalLanguage } from "@/flows/sprint-4/idea-1/resolve"
 import {
   initialState,
@@ -154,7 +154,7 @@ export function PrototypeShell() {
   const filterBox = (
     <ResolvedFilters
       filters={state.filters}
-      resultCount={resultCountFor(state.filters)}
+      resultCount={resultsFor(state.filters).count}
       onModeChange={setFilterMode}
       onJoinChange={setFilterJoin}
       onLinkChange={setFilterLink}
