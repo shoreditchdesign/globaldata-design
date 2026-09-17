@@ -10,6 +10,7 @@ import { LandingPage } from "@/flows/sprint-4/idea-1/components/LandingPage"
 import {
   activeProductArea,
   definitionFor,
+  pathFilter,
   resultCountFor,
   type FilterId,
   type FilterJoin,
@@ -40,7 +41,23 @@ export function PrototypeShell() {
     setState((current) => ({
       ...current,
       activeCategory: current.activeCategory === category ? null : category,
+      activeAttribute: null,
     }))
+  const toggleAttribute = (attribute: string) =>
+    setState((current) => ({
+      ...current,
+      activeAttribute: current.activeAttribute === attribute ? null : attribute,
+    }))
+  const pickValue = (value: string) =>
+    setState((current) => {
+      if (!current.activeCategory || !current.activeAttribute) return current
+      const path = {
+        area: current.activeCategory,
+        attribute: current.activeAttribute,
+        value,
+      }
+      return { ...current, path, filters: [pathFilter(path.area, path.attribute, value)] }
+    })
   const submitQuery = () =>
     setState((current) => {
       const resolution = resolveNaturalLanguage(current.query)
@@ -54,6 +71,7 @@ export function PrototypeShell() {
               ...current,
               submittedQuery: current.pending.raw,
               filters: current.pending.filters,
+              path: null,
               pending: null,
             }
           : current,
@@ -117,8 +135,11 @@ export function PrototypeShell() {
         onModeChange={setMode}
         onQueryChange={setQuery}
         onCategoryChange={toggleCategory}
+        activeAttribute={state.activeAttribute}
+        onAttributeChange={toggleAttribute}
+        onValuePick={pickValue}
         onResolve={submitQuery}
-        hasResolvedFilters={Boolean(state.submittedQuery)}
+        hasResolvedFilters={Boolean(state.submittedQuery || state.path)}
         filters={state.filters}
         resultCount={resultCountFor(state.filters)}
         onFilterModeChange={setFilterMode}
