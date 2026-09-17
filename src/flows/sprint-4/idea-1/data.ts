@@ -14,6 +14,7 @@ export const workedQuery =
 
 export type FilterId = "target" | "drug-type" | "descriptor" | "stage" | "geography"
 export type FilterJoin = "or" | "and"
+export type FilterLink = "and" | "or"
 
 export interface ResolvedFilter {
   id: FilterId
@@ -21,6 +22,8 @@ export interface ResolvedFilter {
   values: string[]
   excluded: boolean
   join: FilterJoin
+  /** How this category combines with the category before it. */
+  link: FilterLink
 }
 
 export interface FilterDefinition extends ResolvedFilter {
@@ -43,6 +46,7 @@ export const filterDefinitions: FilterDefinition[] = [
     ],
     excluded: false,
     join: "or",
+    link: "and",
     matchShare: 0.04122984446680776,
   },
   {
@@ -52,6 +56,7 @@ export const filterDefinitions: FilterDefinition[] = [
     options: ["Generic", "Branded", "Biosimilar", "Orphan"],
     excluded: false,
     join: "or",
+    link: "and",
     matchShare: 0.31,
   },
   {
@@ -66,6 +71,7 @@ export const filterDefinitions: FilterDefinition[] = [
     ],
     excluded: false,
     join: "or",
+    link: "and",
     matchShare: 0.114,
   },
   {
@@ -75,6 +81,7 @@ export const filterDefinitions: FilterDefinition[] = [
     options: ["Marketed", "Pipeline", "Withdrawn (Marketed)", "Archived (Marketed)"],
     excluded: true,
     join: "or",
+    link: "and",
     matchShare: 0.005,
   },
   {
@@ -84,17 +91,19 @@ export const filterDefinitions: FilterDefinition[] = [
     options: ["Austria", "Italy", "Germany", "France", "United Kingdom", "United States"],
     excluded: true,
     join: "or",
+    link: "and",
     matchShare: 0.14,
   },
 ]
 
 export function initialResolvedFilters(): ResolvedFilter[] {
-  return filterDefinitions.map(({ id, label, values, excluded, join }) => ({
+  return filterDefinitions.map(({ id, label, values, excluded, join, link }) => ({
     id,
     label,
     values: [...values],
     excluded,
     join,
+    link,
   }))
 }
 
@@ -108,17 +117,18 @@ export const baseDrugCount = 285_529
 export function resultCountFor(filters: ResolvedFilter[]) {
   if (filters.length === 0) return baseDrugCount
 
-  const count = filters.reduce((total, filter) => {
+  const combinedShare = filters.reduce((total, filter, index) => {
     const definition = definitionFor(filter.id)
     const perValueShare = definition.matchShare / definition.values.length
-    const combinedShare =
+    const valueShare =
       filter.join === "and" && filter.values.length > 1
         ? perValueShare ** filter.values.length
         : perValueShare * filter.values.length
-    const selectedShare = Math.min(0.98, combinedShare)
+    const selectedShare = Math.min(0.98, valueShare)
     const factor = filter.excluded ? 1 - selectedShare : selectedShare
-    return total * factor
-  }, baseDrugCount)
+    if (index === 0) return factor
+    return filter.link === "or" ? total + factor - total * factor : total * factor
+  }, 0)
 
-  return Math.max(1, Math.round(count))
+  return Math.max(1, Math.round(baseDrugCount * combinedShare))
 }

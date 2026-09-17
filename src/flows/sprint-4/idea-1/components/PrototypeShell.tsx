@@ -12,6 +12,7 @@ import {
   resultCountFor,
   type FilterId,
   type FilterJoin,
+  type FilterLink,
 } from "@/flows/sprint-4/idea-1/data"
 import { resolveQuery as resolveNaturalLanguage } from "@/flows/sprint-4/idea-1/resolve"
 import {
@@ -67,6 +68,13 @@ export function PrototypeShell() {
         filter.id === id ? { ...filter, join } : filter,
       ),
     }))
+  const setFilterLink = (id: FilterId, link: FilterLink) =>
+    setState((current) => ({
+      ...current,
+      filters: current.filters.map((filter) =>
+        filter.id === id ? { ...filter, link } : filter,
+      ),
+    }))
   const toggleFilterValue = (id: FilterId, value: string) =>
     setState((current) => ({
       ...current,
@@ -86,10 +94,10 @@ export function PrototypeShell() {
   const addFilter = (id: FilterId) =>
     setState((current) => {
       if (current.filters.some((filter) => filter.id === id)) return current
-      const { label, values, excluded, join } = definitionFor(id)
+      const { label, values, excluded, join, link } = definitionFor(id)
       return {
         ...current,
-        filters: [...current.filters, { id, label, values: [...values], excluded, join }],
+        filters: [...current.filters, { id, label, values: [...values], excluded, join, link }],
       }
     })
   const clearFilters = () => setState(initialState("start"))
@@ -107,6 +115,7 @@ export function PrototypeShell() {
         resultCount={resultCountFor(state.filters)}
         onFilterModeChange={setFilterMode}
         onFilterJoinChange={setFilterJoin}
+        onFilterLinkChange={setFilterLink}
         onToggleFilterValue={toggleFilterValue}
         onRemoveFilter={removeFilter}
         onAddFilter={addFilter}

@@ -181,6 +181,7 @@ export function resolveQuery(raw: string): Resolution {
         values: definition.options.filter((value) => selection.values.includes(value)),
         excluded: selection.excluded,
         join: selection.join,
+        link: "and" as const,
       }
     })
 
