@@ -14,6 +14,7 @@ import { Composer } from "@/flows/sprint-4/idea-2/components/Composer"
 import { LogicCanvas } from "@/flows/sprint-4/idea-2/components/LogicCanvas"
 import { QuerySentence } from "@/flows/sprint-4/idea-2/components/QuerySentence"
 import { Resolving } from "@/flows/sprint-4/idea-2/components/Resolving"
+import { RecordDrawer } from "@/flows/sprint-4/idea-2/components/RecordDrawer"
 import { ResultsPane } from "@/flows/sprint-4/idea-2/components/ResultsPane"
 import { type QueryHandlers } from "@/flows/sprint-4/idea-2/components/ValueMenu"
 import {
@@ -64,7 +65,7 @@ const CANVAS_WIDTH = 560
 export function Screener() {
   const slug = usePathname().split("/").pop() ?? ""
   const [state, setState] = React.useState<ScreenerState>(() => initialState(slug))
-  const { query, past, phase, draft, failure, pending, view } = state
+  const { query, past, phase, draft, failure, pending, view, recordId } = state
   const { conditions } = query
 
   const reseed = React.useCallback((next: string) => setState(initialState(next)), [])
@@ -76,6 +77,19 @@ export function Screener() {
 
   const rows = React.useMemo(() => matchingRows(conditions), [conditions])
   const running = React.useMemo(() => runningCounts(conditions), [conditions])
+  // The open record is looked up in the filtered set, never the sample. An edit
+  // anywhere that drops the drug — a pill, a node, a drag, Undo — drops the id
+  // with it, so the drawer closes rather than showing a drug the query excludes,
+  // and cannot slide back in by itself if a later edit lets the row through.
+  // Adjusted during render, so no frame paints a record the query has dropped.
+  const record = React.useMemo(
+    () => (recordId ? (rows.find((row) => row.id === recordId) ?? null) : null),
+    [rows, recordId],
+  )
+  if (recordId && !record) setState((current) => ({ ...current, recordId: null }))
+  const openRecord = (id: string) => setState((current) => ({ ...current, recordId: id }))
+  const closeRecord = () => setState((current) => ({ ...current, recordId: null }))
+
   const countsFor = React.useCallback(
     (id: string, attribute: string) => facetCounts(conditions, id, attribute),
     [conditions],
@@ -368,8 +382,10 @@ export function Screener() {
             </div>
           </div>
 
-          <ResultsPane rows={rows} active={!empty} className="min-w-0 flex-1" />
+          <ResultsPane rows={rows} active={!empty} onOpenRecord={openRecord} className="min-w-0 flex-1" />
         </div>
+
+        <RecordDrawer row={record} onClose={closeRecord} />
       </ProductChrome>
     </ArrangeProvider>
   )

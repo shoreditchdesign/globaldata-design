@@ -5,6 +5,7 @@ import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { StageBadge } from "@/components/prototype/StageBadge"
+import { Button } from "@/components/ui/button"
 import { stageOrder, type DrugRow } from "@/flows/sprint-4/idea-2/data"
 
 const columns = [
@@ -67,11 +68,14 @@ function EmptyState() {
 export function ResultsPane({
   rows,
   active,
+  onOpenRecord,
   className,
 }: {
   rows: DrugRow[]
   /** Whether the query holds anything yet. */
   active: boolean
+  /** `Open` on a drug name: the whole record, in a drawer over a scrim. */
+  onOpenRecord: (id: string) => void
   className?: string
 }) {
   const [sort, setSort] = React.useState<Sort | null>(null)
@@ -179,7 +183,27 @@ export function ResultsPane({
               shown.map((row) => (
                 <tr key={row.id} className="group/row border-hairline border-b last:border-0">
                   <td className="bg-surface-chrome group-hover/row:bg-surface-page border-edge sticky left-0 z-10 border-r py-2.5 pr-3 pl-(--text-inset) font-medium whitespace-nowrap transition-colors">
-                    {row.name}
+                    {/*
+                      The name keeps the button's width permanently rather than
+                      on hover. Sprint 3 Idea 2 animated that room in and the
+                      row reflowed under a moving cursor, dropping the hover
+                      between the mouse arriving and the click landing.
+                    */}
+                    <span className="block pr-14">{row.name}</span>
+                    {/* Shown on hover anywhere in the row, but focusable at all
+                        times, so the record is never a mouse-only door. */}
+                    <Button
+                      variant="outline"
+                      size="xs"
+                      onClick={() => onOpenRecord(row.id)}
+                      className={cn(
+                        "absolute top-1/2 right-3 -translate-y-1/2 opacity-0 transition-opacity duration-100",
+                        "group-hover/row:opacity-100 focus-visible:opacity-100",
+                        "motion-reduce:transition-none",
+                      )}
+                    >
+                      Open
+                    </Button>
                   </td>
                   <Cell>{row.company}</Cell>
                   <Cell>{row.indication}</Cell>
