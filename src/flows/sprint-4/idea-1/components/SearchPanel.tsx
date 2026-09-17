@@ -85,7 +85,9 @@ export function SearchPanel({
         <SearchTabs
           mode={mode}
           onModeChange={onModeChange}
-          className="flex w-full [&>button]:flex-1"
+          // The quick panel's inner width, held when manual search widens the
+          // panel so the tabs stay put, left-aligned, rather than stretching.
+          className="flex w-[316px] [&>button]:flex-1"
         />
       </div>
 
