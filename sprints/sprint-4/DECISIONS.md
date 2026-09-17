@@ -115,3 +115,23 @@ One divergence from the source: Sprint 3 Idea 2 set its drawer at 16px and 17px,
 The hybrid screener that was Idea 1 has come off main, and the Idea 1 slot is a placeholder again. A colleague is picking up Idea 1 as a separate direction on their own branch, and an empty slot keeps that work from colliding with a prototype it is not building on. The routes under `/sprint-4/idea-1` stay, now showing one placeholder screen.
 
 Nothing about the hybrid is lost. Its code is in the history at `ae56cf1`, and its section at the top of this file still stands as the record of what it was. Idea 2 grew out of it, so Idea 2's copy and comments now name it as "the Sprint 4 hybrid screener" rather than "Idea 1", which would otherwise start pointing at the colleague's work. The Sprint 4 goal in the registry is rewritten to describe what is on main.
+
+## 2026-09-18 — Idea 2, three ways into one query
+
+Austin reworked the idea around three ways to build the same query, and the logic gate came out of it.
+
+**The toggle went, and the explorer replaced the canvas.** There is no Sentence / Logic gate switch any more: the box always shows the sentence. Where the canvas used to split in, a file tree does, opened from `Explorer` in the head of the results rather than from a toggle over the box. The first level is the Drugs attributes, each with its own icon, then values, then the children a value has. The other product areas are not at the top of the tree; they are separate screeners with their own taxonomies, and putting all eight there made the top of the tree read as the platform's nav rather than this screen's filters.
+
+**Nothing the tree does reaches the table until it is applied.** Ticks build up against a rail at the foot, so walking a branch costs nothing and the count only moves when it is asked to. Applying keeps an existing condition's own words and changes only its values, so a tick can never quietly turn `not Austria` into `Austria`.
+
+**It reads both ways.** A query resolved from the box arrives in the tree as ticks in the branches it came from, and they land the way the sentence does — the branches open and the values tick one after another, on the same stagger the resolve uses. It is the resolve animation's claim, made where the taxonomy can show which branch each word came from. Reduced motion gets the end state at once.
+
+**The quick filter bar writes, it does not apply.** Eight chips under the box, each a dropdown of counted values with its own search. Ticking a value adds it to the line in the box, in the same words a typed query resolves to, and the query only moves on Resolve. So the bar is a filter builder whose output is a sentence, rather than a second filter model beside the sentence. A line already in the box was typed or read back from a query, so the first tick clears it rather than appending to someone else's sentence. The suggestion chips that used to sit inside the box are gone, replaced by the bar.
+
+**`$$` fills in an example.** Six worked examples cycle, covering several conditions at once, an exclusion, an `or` between values, a partial read that offers its nearest match, and terms that name something real in the product this prototype does not wire. Every one was checked against the resolver, so a demo cannot land on a sentence that does not read.
+
+**The sentence speaks boolean.** `Development Stage is Phase II or Phase III, and Drug Geography is not Austria or Italy`. The phrase-per-attribute wording — `available in`, `given via`, `described as` — is gone: it read as invented product language, and the attribute names are the same labels the picker, the tree branch and the grid column use. Dragging pills is switched off behind one flag, with the code left in place.
+
+**Three cards on a grey page.** The box, the explorer and the results each sit on their own card with the same outer gutter and the same inner padding, rather than the box floating over two full-bleed panes. That fixed the `Explorer` control reading as closer to the table than to the tree it opens, and it means the shared inset only has to hold inside a card: `--text-inset` is now the card's padding plus its border, not the sum of the page gutter as well.
+
+**Hierarchy inside the tree.** The first level sits on the card's own white with more height per row; an open branch is recessed into `surface-sunken`, which is what that surface is for — a well cut into a panel, so an open attribute reads as opened rather than as a second plane laid on top.

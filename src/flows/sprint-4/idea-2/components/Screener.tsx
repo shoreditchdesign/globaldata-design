@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { usePathname } from "next/navigation"
-import { RotateCcwIcon, TextIcon, WorkflowIcon } from "lucide-react"
+import { RotateCcwIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { useDeepLink } from "@/hooks/use-deep-link"
@@ -11,16 +11,18 @@ import { ProductChrome } from "@/components/prototype/ProductChrome"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Composer } from "@/flows/sprint-4/idea-2/components/Composer"
-import { LogicCanvas } from "@/flows/sprint-4/idea-2/components/LogicCanvas"
+import { ExplorerTree } from "@/flows/sprint-4/idea-2/components/ExplorerTree"
 import { QuerySentence } from "@/flows/sprint-4/idea-2/components/QuerySentence"
+import { QuickFilters } from "@/flows/sprint-4/idea-2/components/QuickFilters"
 import { Resolving } from "@/flows/sprint-4/idea-2/components/Resolving"
 import { RecordDrawer } from "@/flows/sprint-4/idea-2/components/RecordDrawer"
 import { ResultsPane } from "@/flows/sprint-4/idea-2/components/ResultsPane"
 import { type QueryHandlers } from "@/flows/sprint-4/idea-2/components/ValueMenu"
 import {
+  drugAttributeOrder,
   facetCounts,
   matchingRows,
-  runningCounts,
+
   sample,
   type Condition,
 } from "@/flows/sprint-4/idea-2/data"
@@ -35,18 +37,16 @@ import {
   normaliseConditions,
   slugFor,
   toggleValue,
-  withGate,
-  type Gate,
   type ScreenerState,
   type View,
 } from "@/flows/sprint-4/idea-2/state"
 
 /**
- * The canvas's share of the bottom half at the 1440px review viewport: 560px,
+ * The tree's share of the bottom half at the 1440px review viewport: 560px,
  * which leaves the results about 880px. Fixed rather than a percentage so the
- * nodes inside do not reflow while the split is opening.
+ * rows inside do not reflow while the split is opening.
  */
-const CANVAS_WIDTH = 560
+const TREE_WIDTH = 560
 
 /**
  * Idea 2, as one screen: Idea 3's text box across the top with the view toggle,
@@ -76,7 +76,6 @@ export function Screener() {
   /* ------------------------------------------------------------------ */
 
   const rows = React.useMemo(() => matchingRows(conditions), [conditions])
-  const running = React.useMemo(() => runningCounts(conditions), [conditions])
   // The open record is looked up in the filtered set, never the sample. An edit
   // anywhere that drops the drug — a pill, a node, a drag, Undo — drops the id
   // with it, so the drawer closes rather than showing a drug the query excludes,
@@ -141,7 +140,56 @@ export function Screener() {
     [commit],
   )
 
-  const setGate = (id: string, next: Gate) => update(id, (condition) => withGate(condition, next))
+
+  /**
+   * What the quick filter bar has ticked but not resolved. It is the line in
+   * the box, in pieces: every change rewrites the draft in the same words a
+   * resolved query reads in, and Resolve then reads that line like any other.
+   */
+  const [picks, setPicks] = React.useState<Record<string, string[]>>({})
+
+  const pickFilter = React.useCallback(
+    (attribute: string, values: string[]) =>
+      setState((current) => {
+        // Nothing has been ticked yet, so a line already in the box was typed or
+        // read back from a query. The bar starts its own rather than appending
+        // to someone else's sentence.
+        const building = Object.keys(picks).length > 0
+        const base = building ? picks : {}
+        const next = { ...base, [attribute]: values }
+        if (values.length === 0) delete next[attribute]
+        setPicks(next)
+
+        const built = quickConditions(next)
+        return {
+          ...current,
+          draft: built.length > 0 ? conditionsToProse(built) : "",
+          phase: "compose",
+          failure: null,
+        }
+      }),
+    [picks],
+  )
+
+  // The explorer's rail, applied. One entry in `past` like any other edit, and
+  // the box takes the query back as plain words, since a walk through the tree
+  // never went through a sentence in the first place.
+  const applyTicks = React.useCallback(
+    (next: Condition[]) =>
+      setState((current) => {
+        const conditions = normaliseConditions(next)
+        const raw = conditions.length > 0 ? conditionsToProse(conditions) : ""
+        return {
+          ...current,
+          query: { conditions, raw, resolution: null, edited: false },
+          past: [...current.past, current.query],
+          phase: conditions.length === 0 ? "compose" : "resolved",
+          draft: raw,
+          failure: null,
+        }
+      }),
+    [],
+  )
 
   const setView = (next: View) => setState((current) => ({ ...current, view: next }))
 
@@ -158,7 +206,8 @@ export function Screener() {
       }
     })
 
-  const clearAll = () =>
+  const clearAll = () => {
+    setPicks({})
     setState((current) => ({
       ...current,
       query: blankQuery,
@@ -167,6 +216,7 @@ export function Screener() {
       failure: null,
       phase: "compose",
     }))
+  }
 
   /* ------------------------------------------------------------------ */
   /* Typing, resolving, and back again                                   */
@@ -185,6 +235,7 @@ export function Screener() {
   // Stable for the whole transition, or the animation would restart under the
   // reviewer: it reads the pending reading from state rather than closing over it.
   const settle = React.useCallback(() => {
+    setPicks({})
     setState((current) => {
       const resolution = current.pending
       if (!resolution) return { ...current, phase: "resolved" }
@@ -223,7 +274,7 @@ export function Screener() {
   const empty = conditions.length === 0
   const composing = phase === "compose"
   const resolving = phase === "resolving"
-  const logic = view === "logic"
+  const explorer = view === "explorer"
   const notes: NoteLine[] =
     query.resolution && !query.edited
       ? [
@@ -242,20 +293,6 @@ export function Screener() {
                 <span className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
                   Drug screener
                 </span>
-                <div className="bg-muted ml-auto flex items-center gap-0.5 rounded-lg p-0.5">
-                  <ViewTab
-                    active={!logic}
-                    onClick={() => setView("sentence")}
-                    icon={<TextIcon className="size-3.5" />}
-                    label="Sentence"
-                  />
-                  <ViewTab
-                    active={logic}
-                    onClick={() => setView("logic")}
-                    icon={<WorkflowIcon className="size-3.5" />}
-                    label="Logic gate"
-                  />
-                </div>
               </div>
 
               {composing ? (
@@ -268,8 +305,6 @@ export function Screener() {
                   }
                   onSuggestion={applySuggestion}
                   failure={failure}
-                  // The canvas has its own starting points, and the room.
-                  showSuggestions={empty && !draft.trim() && !logic}
                 />
               ) : resolving && pending ? (
                 <Resolving resolution={pending} onDone={settle} />
@@ -280,6 +315,10 @@ export function Screener() {
               {!composing && !resolving && notes.length > 0 ? (
                 <Notes notes={notes} resolution={query.resolution} onAdd={addSuggestion} />
               ) : null}
+
+              <div className="border-hairline mt-4 border-t pt-3.5">
+                <QuickFilters conditions={conditions} picks={picks} onPick={pickFilter} />
+              </div>
 
               {!composing && !resolving ? (
                 <div className="mt-3.5 flex items-baseline justify-between gap-4">
@@ -344,51 +383,77 @@ export function Screener() {
           </div>
         </section>
 
-        <div className="border-edge flex min-h-0 flex-1 border-t">
-          {/*
-            The split. The canvas is always mounted and opens by width, so it can
-            close as smoothly as it opens; the results take whatever is left. The
-            inner canvas holds its width throughout, so its nodes slide into view
-            rather than reflowing. Reduced motion gets the end state at once.
-          */}
+        {/*
+          The split, as two cards on the page rather than two halves of one
+          plane: the explorer is always mounted and opens by width, so it closes
+          as smoothly as it opens, and the results take whatever is left. The
+          inner tree holds its width throughout, so its rows slide into view
+          rather than reflowing. Reduced motion gets the end state at once.
+        */}
+        <div className="flex min-h-0 flex-1 gap-4 px-(--box-gutter) pb-5">
           <div
-            inert={!logic}
-            style={{ width: logic ? CANVAS_WIDTH : 0, transitionDuration: `${motion.reflow}ms` }}
+            inert={!explorer}
+            style={{
+              width: explorer ? TREE_WIDTH : 0,
+              marginRight: explorer ? 0 : "-1rem",
+              transitionDuration: `${motion.reflow}ms`,
+            }}
             className={cn(
-              "ease-settle border-edge shrink-0 overflow-hidden transition-[width] motion-reduce:transition-none",
-              logic && "border-r",
+              "ease-settle shrink-0 overflow-hidden transition-[width] motion-reduce:transition-none",
             )}
           >
             <div
               style={{
-                width: CANVAS_WIDTH,
+                width: TREE_WIDTH,
                 transitionDuration: `${motion.settle}ms`,
-                transitionDelay: logic ? `${motion.handover}ms` : "0ms",
+                transitionDelay: explorer ? `${motion.handover}ms` : "0ms",
               }}
               className={cn(
                 "ease-settle h-full transition-opacity motion-reduce:transition-none",
-                logic ? "opacity-100" : "opacity-0",
+                explorer ? "opacity-100" : "opacity-0",
               )}
             >
-              <LogicCanvas
-                open={logic}
+              <ExplorerTree
                 conditions={conditions}
-                running={running}
-                handlers={handlers}
-                onSetGate={setGate}
+                onApply={applyTicks}
                 onClose={() => setView("sentence")}
-                className="h-full"
+                className="border-border shadow-panel h-full overflow-hidden rounded-xl border"
               />
             </div>
           </div>
 
-          <ResultsPane rows={rows} active={!empty} onOpenRecord={openRecord} className="min-w-0 flex-1" />
+          <ResultsPane
+            rows={rows}
+            active={!empty}
+            onOpenRecord={openRecord}
+            explorerOpen={explorer}
+            onToggleExplorer={() => setView(explorer ? "sentence" : "explorer")}
+            className="border-border shadow-panel min-w-0 flex-1 overflow-hidden rounded-xl border"
+          />
         </div>
 
         <RecordDrawer row={record} onClose={closeRecord} />
       </ProductChrome>
     </ArrangeProvider>
   )
+}
+
+/**
+ * The bar's ticks as conditions, in the order the product lists its attributes,
+ * so the line it writes reads the same way a typed query resolves.
+ */
+function quickConditions(picks: Record<string, string[]>): Condition[] {
+  return Object.entries(picks)
+    .filter(([, values]) => values.length > 0)
+    .sort(([a], [b]) => drugAttributeOrder.indexOf(a) - drugAttributeOrder.indexOf(b))
+    .map(([attribute, values]) => ({
+      id: attribute,
+      attribute,
+      values,
+      join: "or" as const,
+      mode: "is" as const,
+      link: "and" as const,
+    }))
 }
 
 /** One line under the sentence: the reviewer's own words, then what became of them. */
@@ -449,36 +514,3 @@ function Notes({
   )
 }
 
-/**
- * One option of the view toggle. Selected is a white segment lifted off a muted
- * track, with no brand in it — Austin's call, logged in DECISIONS.md, against
- * the design system's washed-brand rule for segmented options.
- */
-function ViewTab({
-  active,
-  onClick,
-  icon,
-  label,
-}: {
-  active: boolean
-  onClick: () => void
-  icon: React.ReactNode
-  label: string
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={cn(
-        "flex h-6 items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-[background-color,color,box-shadow]",
-        active
-          ? "bg-surface-raised text-foreground shadow-panel"
-          : "text-muted-foreground hover:text-foreground",
-      )}
-    >
-      {icon}
-      {label}
-    </button>
-  )
-}
