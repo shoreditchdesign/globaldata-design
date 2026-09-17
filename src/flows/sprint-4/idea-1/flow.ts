@@ -37,7 +37,7 @@ export const sprint4Idea1: Flow = {
     {
       slug: "results",
       title: "Results",
-      note: "The worked query searched: the search panel on the left, the filter box above an AG Grid-style table of the sample rows it keeps.",
+      note: "The worked query searched: the search panel on the left, the filter box above an AG Grid-style table that updates as filters are added or removed.",
       viewport: "desktop",
       component: Start,
     },

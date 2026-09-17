@@ -334,7 +334,7 @@ export function resultCountFor(filters: ResolvedFilter[]) {
   }, 0)
 
   // Never fewer than the sample rows the results grid can show for the same filters.
-  return Math.max(matchingRows(filters).length, 1, Math.round(baseDrugCount * combinedShare))
+  return Math.max(matchingRows(filters).length, Math.round(baseDrugCount * combinedShare))
 }
 
 /* -------------------------------------------------------------------------- */

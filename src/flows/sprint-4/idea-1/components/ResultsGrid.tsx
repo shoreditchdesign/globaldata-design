@@ -313,9 +313,14 @@ export function ResultsGrid({
 
   return (
     <div className="bg-surface-panel border-border flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border">
-      <div className="border-edge flex h-11 shrink-0 items-center gap-2 border-b px-3">
+      <div className="border-edge flex h-11 shrink-0 items-center gap-3 border-b px-3">
+        <p className="text-[13px] tabular-nums" aria-live="polite">
+          <span className="font-medium">{resultCount.toLocaleString("en-GB")}</span>{" "}
+          <span className="text-muted-foreground">{resultCount === 1 ? "drug" : "drugs"}</span>
+        </p>
         {selected.length > 0 ? (
           <>
+            <span className="bg-hairline h-4 w-px" aria-hidden />
             <span className="text-[13px] tabular-nums">
               <span className="font-medium">{selected.length}</span>{" "}
               <span className="text-muted-foreground">selected</span>
@@ -461,7 +466,7 @@ export function ResultsGrid({
           <span className="font-medium">{selected.length}</span>
         </span>
         <span className="text-muted-foreground ml-auto">
-          Sample of {drugRows.length} · {resultCount.toLocaleString("en-GB")} drugs match
+          Sample of {drugRows.length} rows
         </span>
       </div>
     </div>
