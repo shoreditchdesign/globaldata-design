@@ -2,12 +2,14 @@ import { ArrowRightIcon, SearchIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { ResolvedFilters } from "@/flows/sprint-4/idea-1/components/ResolvedFilters"
+import { ScanningQuery } from "@/flows/sprint-4/idea-1/components/ScanningQuery"
 import {
   searchCategories,
   type FilterId,
   type FilterJoin,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1/data"
+import type { Resolution } from "@/flows/sprint-4/idea-1/resolve"
 import type { SearchMode } from "@/flows/sprint-4/idea-1/state"
 import { cn } from "@/lib/utils"
 
@@ -26,6 +28,8 @@ export function LandingPage({
   onRemoveFilter,
   onAddFilter,
   onClearFilters,
+  pending,
+  onScanDone,
 }: {
   mode: SearchMode
   query: string
@@ -41,8 +45,11 @@ export function LandingPage({
   onRemoveFilter: (id: FilterId) => void
   onAddFilter: (id: FilterId) => void
   onClearFilters: () => void
+  pending: Resolution | null
+  onScanDone: () => void
 }) {
   const hasQuery = query.trim().length > 0
+  const resolving = Boolean(pending)
 
   return (
     <main className="bg-surface-page min-h-0 flex-1 overflow-y-auto">
@@ -73,18 +80,26 @@ export function LandingPage({
           onSubmit={(event) => event.preventDefault()}
         >
           <SearchIcon className="text-muted-foreground size-5 shrink-0" aria-hidden />
-          <input
-            value={query}
-            onChange={(event) => onQueryChange(event.target.value)}
-            placeholder="Ask anything"
-            aria-label="Describe the drugs you are looking for"
-            className="placeholder:text-muted-foreground h-16 min-w-0 flex-1 bg-transparent text-base outline-none"
-          />
+          <div className="relative min-w-0 flex-1">
+            <input
+              value={query}
+              onChange={(event) => onQueryChange(event.target.value)}
+              placeholder="Ask anything"
+              aria-label="Describe the drugs you are looking for"
+              aria-hidden={resolving}
+              disabled={resolving}
+              className={cn(
+                "placeholder:text-muted-foreground h-16 w-full min-w-0 bg-transparent text-base outline-none disabled:opacity-100",
+                resolving && "text-transparent",
+              )}
+            />
+            {pending ? <ScanningQuery resolution={pending} onDone={onScanDone} /> : null}
+          </div>
           <Button
             type="button"
             size="icon-lg"
             onClick={onResolve}
-            disabled={!hasQuery}
+            disabled={!hasQuery || resolving}
             aria-label={
               hasResolvedFilters ? "Update filters from this search" : "Build filters from this search"
             }
