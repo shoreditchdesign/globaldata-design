@@ -59,7 +59,7 @@ export function SearchPills({
               )}
             >
               {category}
-              <FilterCount count={areaCount(category)} noun="filter" />
+              <FilterCount count={areaCount(category)} noun="filter" inverted={active} />
             </button>
           )
         })}
@@ -98,7 +98,7 @@ export function SearchPills({
                   )}
                 >
                   {child}
-                  <FilterCount count={attributeCount(activeCategory, child)} noun="value" />
+                  <FilterCount count={attributeCount(activeCategory, child)} noun="value" inverted={active} />
                 </button>
               )
             })}
@@ -133,12 +133,24 @@ export function SearchPills({
 }
 
 /** A small count on a pill: how much of the filter box sits under it. */
-function FilterCount({ count, noun }: { count: number; noun: string }) {
+function FilterCount({
+  count,
+  noun,
+  inverted,
+}: {
+  count: number
+  noun: string
+  /** On a selected pill's dark fill, the count takes a dark treatment of its own. */
+  inverted: boolean
+}) {
   if (count === 0) return null
   return (
     <span
       aria-label={`${count} ${noun}${count === 1 ? "" : "s"} applied`}
-      className="bg-brand-tint text-brand-ink ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-none font-medium tabular-nums"
+      className={cn(
+        "ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-none font-medium tabular-nums",
+        inverted ? "bg-background/20 text-background" : "bg-brand-tint text-brand-ink",
+      )}
     >
       {count}
     </span>
