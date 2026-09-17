@@ -144,9 +144,6 @@
 
   .content{margin-top:56px;flex:1}
 
-  /* Coral as an accent on a word: the verdict label, goal tags. Never a fill. */
-  .accent{color:var(--coral);font-weight:700}
-
   /* Links inherit the text colour; the underline carries them. */
   .slide a{color:inherit;text-decoration-color:var(--rule-dark);text-underline-offset:3px}
   .slide--dark a{text-decoration-color:var(--rule-light)}
@@ -231,14 +228,6 @@
   .metric .label{font-size:14px;color:var(--muted-dark);margin-top:10px;max-width:220px}
   .slide--dark .metric .label{color:var(--muted-light)}
 
-  /* Card variant: a ruled cell with a coral index, a title and a line of text under it.
-     Used for the goals (three across) and the measures (four across). */
-  .metrics--3{grid-template-columns:repeat(3,1fr)}
-  .metrics--cards{align-content:start;height:auto}
-  .metrics--cards .metric{border-top:1px solid var(--rule-dark);padding-top:var(--space-3)}
-  .metrics--cards .body-title{margin-top:var(--space-2)}
-  .metrics--cards .body-text{margin-top:var(--space-1);font-size:15.5px;line-height:1.55;max-width:360px}
-
   .footnote{
     font-size:14px;
     line-height:1.5;
@@ -248,30 +237,6 @@
     padding-top:28px;
   }
   .slide--dark .footnote{color:var(--muted-light)}
-
-  /* Bottom row on an option slide: verdict left, prototype link right. */
-  .slide-foot{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-end;
-    gap:var(--space-5);
-    margin-top:auto;
-    padding-top:28px;
-  }
-  .slide-foot .footnote{margin-top:0;padding-top:0}
-  .slide-foot .proto-link{font-size:14px;line-height:1.5;white-space:nowrap}
-
-  /* ---------- link list — one state per row, goal tag inline ---------- */
-  .link-list{list-style:none;display:flex;flex-direction:column;gap:3px;margin-top:10px}
-  .link-list li{
-    display:flex;
-    align-items:center;
-    gap:var(--space-1);
-    font-size:14.5px;
-    line-height:1.5;
-    color:var(--muted-dark);
-  }
-  .link-list .accent{font-size:12px;letter-spacing:.06em}
 
   /* Navigation chrome (bottom bar, index panel, hover thumbnails) is injected at
      runtime by deck.js, not authored here — see DESIGN-NOTES.md §2. This file only
@@ -289,8 +254,8 @@
   <div class="logo" data-logo></div>
   <div style="margin-top:auto">
     <h1>Four directions for<br>natural-language search</h1>
-    <p class="deck-sub">Sprint 3 options review. Four interactive prototypes, the strengths and limitations of each, and a direct link to every state.</p>
-    <p class="deck-sub" style="margin-top:40px;font-size:14px">GlobalData &times; Shoreditch &middot; 16 September 2026</p>
+    <p class="deck-sub">Sprint 3 options review for GlobalData. Four clickable prototypes, the case for and against each one, and a link into every state.</p>
+    <p class="deck-sub" style="margin-top:40px;font-size:14px">16 September 2026</p>
   </div>
 </section>
 
@@ -299,35 +264,35 @@
   <div class="logo" data-logo></div>
   <h2>The four directions</h2>
   <div class="rule"></div>
-  <p class="lede">Each direction takes a different position on how much of the search the AI should handle.</p>
+  <p class="lede">Each one takes a different position on how much of the search the AI should take over.</p>
   <div class="content" style="margin-top:36px">
     <div class="stack">
       <div class="item">
         <div class="num">01</div>
         <div>
           <div class="body-title">Modal / Sidebar Takeover</div>
-          <div class="body-text">Filtering is a separate mode. The user asks in plain English or selects through three menu levels, then applies. This is the previously reviewed design, rebuilt as the baseline.</div>
+          <div class="body-text">Filtering is a mode you enter. Ask in English or drill three levels of menu, then apply. The reviewed design, rebuilt as the baseline.</div>
         </div>
       </div>
       <div class="item">
         <div class="num">02</div>
         <div>
           <div class="body-title">Miller Columns</div>
-          <div class="body-text">The taxonomy opens sideways, one column per level, with a count on every value and results alongside. An agent can operate the same columns.</div>
+          <div class="body-text">The taxonomy opens sideways, column by column, with a count on every value and the results beside it. An agent drives the same columns.</div>
         </div>
       </div>
       <div class="item">
         <div class="num">03</div>
         <div>
           <div class="body-title">Text Input Field</div>
-          <div class="body-text">A typed sentence becomes the query, shown back as editable text. A toggle presents the same conditions as conventional filters.</div>
+          <div class="body-text">One sentence becomes the query, written back as editable English. A toggle swaps the same clauses into conventional filters.</div>
         </div>
       </div>
       <div class="item">
         <div class="num">04</div>
         <div>
           <div class="body-title">Sidebar Agent</div>
-          <div class="body-text">There is no separate filter panel. Filters are set from the column headers of the results grid, and an assistant proposes changes to the same grid.</div>
+          <div class="body-text">No filter surface. You filter from the grid's column headers while an assistant proposes changes to the same grid.</div>
         </div>
       </div>
     </div>
@@ -335,66 +300,49 @@
 </section>
 
 <!-- ============ 3. GOALS ============ -->
-<section class="slide slide--light" data-section="Goals" data-title="Three user goals">
+<section class="slide slide--light" data-section="Goals">
   <div class="logo" data-logo></div>
-  <h2>Three user goals</h2>
+  <h2>What good looks like</h2>
   <div class="rule"></div>
-  <p class="lede">Based on 176,404 advanced searches across the Drugs and Clinical Trials databases.</p>
-  <div class="content" style="margin-top:48px">
-    <div class="metrics metrics--3 metrics--cards">
-      <div class="metric">
-        <div class="value">G1</div>
-        <div class="body-title">Quick screen</div>
-        <div class="body-text">53% of searches use a single filter and 85% use three or fewer. A usable list has to be reachable in very few steps.</div>
+  <p class="lede">Your measures from 14 September. Every option in this deck is scored against them.</p>
+  <div class="content" style="margin-top:36px">
+    <div class="targets">
+      <div class="target">
+        <div class="body-title">G1 · Quick screen</div>
+        <div class="body-text">About 70% of queries use three fields or fewer. They need a cold start that reaches a usable list fast.</div>
       </div>
-      <div class="metric">
-        <div class="value">G2</div>
-        <div class="body-title">Refine</div>
-        <div class="body-text">80% of follow-up searches keep the same fields and change a value. Only 12% add a filter. Adjusting a known query has to be fast and reversible.</div>
+      <div class="target">
+        <div class="body-title">G2 · Refine</div>
+        <div class="body-text">The 30% that get refined need cheap, reversible changes without starting over.</div>
       </div>
-      <div class="metric">
-        <div class="value">G3</div>
-        <div class="body-title">Deep Boolean</div>
-        <div class="body-text">15% of searches use four or more filters, with up to 22 in one search. OR within a field appears in 19%, NOT in under 1%.</div>
+      <div class="target">
+        <div class="body-title">G3 · Deep Boolean</div>
+        <div class="body-text">About 10% of refined queries, from your largest accounts. They need AND, OR and NOT across attributes.</div>
       </div>
     </div>
-  </div>
-  <p class="footnote">Source: GlobalData advanced search usage extract, 1 May to 21 August 2026. Shares are of searches, not users.</p>
-</section>
-
-<!-- ============ 4. MEASURES ============ -->
-<section class="slide slide--light" data-section="Measures" data-title="Four measures">
-  <div class="logo" data-logo></div>
-  <h2>Four measures</h2>
-  <div class="rule"></div>
-  <p class="lede">Each direction is assessed against the same four measures.</p>
-  <div class="content" style="margin-top:48px">
-    <div class="metrics metrics--cards">
-      <div class="metric">
-        <div class="value">01</div>
+    <div class="measures">
+      <div>
         <div class="body-title">Clicks</div>
-        <div class="body-text">The number of clicks from a cold start to a usable list.</div>
+        <div class="body-text">How many it takes to reach a usable list.</div>
       </div>
-      <div class="metric">
-        <div class="value">02</div>
+      <div>
         <div class="body-title">Speed of access</div>
-        <div class="body-text">The time from the first action to results on screen.</div>
+        <div class="body-text">How long before the first results appear.</div>
       </div>
-      <div class="metric">
-        <div class="value">03</div>
+      <div>
         <div class="body-title">Three terms</div>
-        <div class="body-text">Searches of three filters or fewer, which account for 85% of the total, are completed quickly.</div>
+        <div class="body-text">70% of queries reachable in three terms or fewer.</div>
       </div>
-      <div class="metric">
-        <div class="value">04</div>
+      <div>
         <div class="body-title">Power beneath</div>
-        <div class="body-text">Depth for complex queries is available without adding steps to simple ones.</div>
+        <div class="body-text">Depth for the 10% without slowing down the 70%.</div>
       </div>
     </div>
   </div>
+  <p class="footnote">The failure mode is an interface that serves one goal and abandons the others, or serves them as two products bolted together.</p>
 </section>
 
-<!-- ============ 5. OPTION 1 ============ -->
+<!-- ============ 4. OPTION 1 ============ -->
 <section class="slide slide--light" data-section="Options" data-title="01 Modal / Sidebar Takeover">
   <div class="logo" data-logo></div>
   <h2>01 Modal / Sidebar Takeover</h2>
@@ -405,10 +353,10 @@
         <div class="col-head">For</div>
         <div class="group">
           <ul class="marks">
-            <li><span class="m">+</span><span>Natural-language and manual filters write into one builder, so an AI-generated filter reopens in the same picker.</span></li>
-            <li><span class="m">+</span><span>Every value shows its result count before it is selected.</span></li>
-            <li><span class="m">+</span><span>Applied filters remain editable from the filter bar without reopening the modal.</span></li>
-            <li><span class="m">+</span><span>Boolean logic is presented as visible controls rather than typed syntax.</span></li>
+            <li><span class="m">+</span><span>AI and hand-built filters write into one builder, so a pill the AI wrote reopens the same picker path.</span></li>
+            <li><span class="m">+</span><span>A count sits beside every value before you commit.</span></li>
+            <li><span class="m">+</span><span>The applied query stays editable from the bar without reopening the modal.</span></li>
+            <li><span class="m">+</span><span>Boolean appears as visible controls, not typed syntax.</span></li>
           </ul>
         </div>
       </div>
@@ -416,23 +364,20 @@
         <div class="col-head">Against</div>
         <div class="group">
           <ul class="marks neg">
-            <li><span class="m">&mdash;</span><span>A three-filter search takes 12 clicks by hand, level with the current platform. Does not meet G1.</span></li>
-            <li><span class="m">&mdash;</span><span>The modal covers the results, and the total appears only after Apply.</span></li>
-            <li><span class="m">&mdash;</span><span>Values sit three menu levels deep, with one branch open at a time.</span></li>
-            <li><span class="m">&mdash;</span><span>OR between groups is displayed but not applied, and groups cannot be nested. Does not meet G3.</span></li>
-            <li><span class="m">&mdash;</span><span>A follow-up question replaces the query rather than refining it.</span></li>
+            <li><span class="m">&mdash;</span><span>A cold start costs 3n + 3 clicks, level with the live platform. Fails G1.</span></li>
+            <li><span class="m">&mdash;</span><span>The modal hides the table, and the total only appears after Apply.</span></li>
+            <li><span class="m">&mdash;</span><span>Three stacked cascade levels, with one branch open at a time.</span></li>
+            <li><span class="m">&mdash;</span><span>OR between groups is drawn but ignored, and nothing nests. Fails G3.</span></li>
+            <li><span class="m">&mdash;</span><span>A second question replaces the query instead of refining it.</span></li>
           </ul>
         </div>
       </div>
     </div>
   </div>
-  <div class="slide-foot">
-    <p class="footnote"><span class="accent">Verdict</span> Best suited to G2, adjusting an existing list. Filtering as a separate mode hides the results being filtered.</p>
-    <a class="proto-link" href="https://globaldata-design.vercel.app/sprint-3/idea-1/results">globaldata-design.vercel.app/sprint-3/idea-1</a>
-  </div>
+  <p class="footnote">Verdict: suits G2, nudging a list you already have. Filtering as a mode hides the results it filters.</p>
 </section>
 
-<!-- ============ 6. OPTION 2 ============ -->
+<!-- ============ 5. OPTION 2 ============ -->
 <section class="slide slide--light" data-section="Options" data-title="02 Miller Columns">
   <div class="logo" data-logo></div>
   <h2>02 Miller Columns</h2>
@@ -443,10 +388,10 @@
         <div class="col-head">For</div>
         <div class="group">
           <ul class="marks">
-            <li><span class="m">+</span><span>The selection path stays on screen, and earlier choices are never cleared.</span></li>
-            <li><span class="m">+</span><span>Every attribute and value shows a live count. A three-filter search takes 6 clicks.</span></li>
-            <li><span class="m">+</span><span>There is no apply step, so the count, filters and table always agree.</span></li>
-            <li><span class="m">+</span><span>The agent operates the same columns, one reversible step at a time.</span></li>
+            <li><span class="m">+</span><span>The path stays on screen and nothing is wiped.</span></li>
+            <li><span class="m">+</span><span>Every attribute and value carries its count. Six clicks to a three-field list, against 13 to 16 today.</span></li>
+            <li><span class="m">+</span><span>No commit step, so the count, pills and table cannot disagree.</span></li>
+            <li><span class="m">+</span><span>The agent drives the real columns, one undoable step at a time.</span></li>
           </ul>
         </div>
       </div>
@@ -454,22 +399,19 @@
         <div class="col-head">Against</div>
         <div class="group">
           <ul class="marks neg">
-            <li><span class="m">&mdash;</span><span>There is no fast entry point. The composer sits below the taxonomy, so a first search begins by browsing.</span></li>
-            <li><span class="m">&mdash;</span><span>The interface gives a first-time user no clear sequence to follow.</span></li>
-            <li><span class="m">&mdash;</span><span>Tested at roughly half the production attribute count, 15 of 27.</span></li>
-            <li><span class="m">&mdash;</span><span>Attributes combine with AND only, so cross-attribute OR and nesting are unavailable. Does not meet G3.</span></li>
+            <li><span class="m">&mdash;</span><span>No quick cold start: the composer sits below the taxonomy. Your objection, and it holds.</span></li>
+            <li><span class="m">&mdash;</span><span>Nothing sequences the task for a first-time user.</span></li>
+            <li><span class="m">&mdash;</span><span>Tested at about half the real attribute density.</span></li>
+            <li><span class="m">&mdash;</span><span>Attributes are hard-ANDed, so cross-attribute OR and nesting are out. G3 is not served.</span></li>
           </ul>
         </div>
       </div>
     </div>
   </div>
-  <div class="slide-foot">
-    <p class="footnote"><span class="accent">Verdict</span> The strongest structure and the weakest entry point. Placing the composer first would let a sentence resolve directly into the columns.</p>
-    <a class="proto-link" href="https://globaldata-design.vercel.app/sprint-3/idea-2/cold-start">globaldata-design.vercel.app/sprint-3/idea-2</a>
-  </div>
+  <p class="footnote">Verdict: the strongest structure and the weakest opening. Move the composer to the front so a sentence lands in the columns.</p>
 </section>
 
-<!-- ============ 7. OPTION 3 ============ -->
+<!-- ============ 6. OPTION 3 ============ -->
 <section class="slide slide--light" data-section="Options" data-title="03 Text Input Field">
   <div class="logo" data-logo></div>
   <h2>03 Text Input Field</h2>
@@ -480,10 +422,10 @@
         <div class="col-head">For</div>
         <div class="group">
           <ul class="marks">
-            <li><span class="m">+</span><span>A first search takes zero clicks. The composer is focused on arrival and Enter submits.</span></li>
-            <li><span class="m">+</span><span>The query resolves into visible, editable controls.</span></li>
-            <li><span class="m">+</span><span>Correcting a value takes two to three clicks, with one undo step per edit.</span></li>
-            <li><span class="m">+</span><span>The Filters view renders the same query, so switching views loses nothing.</span></li>
+            <li><span class="m">+</span><span>Zero clicks to a first list. The composer is focused on arrival.</span></li>
+            <li><span class="m">+</span><span>The prompt resolves into visible, editable controls.</span></li>
+            <li><span class="m">+</span><span>A correction costs two or three clicks, with one undo per edit.</span></li>
+            <li><span class="m">+</span><span>The Filters view draws the same query, so switching loses nothing.</span></li>
           </ul>
         </div>
       </div>
@@ -491,22 +433,19 @@
         <div class="col-head">Against</div>
         <div class="group">
           <ul class="marks neg">
-            <li><span class="m">&mdash;</span><span>Some queries are misread in ways that appear correct: "non-generic drugs" resolves to "Generic drugs".</span></li>
-            <li><span class="m">&mdash;</span><span>An empty input does not reveal the roughly 27 attributes available.</span></li>
-            <li><span class="m">&mdash;</span><span>Nested Boolean cannot be expressed and is flattened without warning. Does not meet G3.</span></li>
-            <li><span class="m">&mdash;</span><span>Results cannot be refined from the grid.</span></li>
+            <li><span class="m">&mdash;</span><span>It misreads queries in ways that look correct: "non-generic drugs" came back as "Generic drugs".</span></li>
+            <li><span class="m">&mdash;</span><span>A blank input teaches nothing about the roughly 27 attributes.</span></li>
+            <li><span class="m">&mdash;</span><span>Nested Boolean is flattened without warning. Fails G3.</span></li>
+            <li><span class="m">&mdash;</span><span>There is no way to refine from the results grid.</span></li>
           </ul>
         </div>
       </div>
     </div>
   </div>
-  <div class="slide-foot">
-    <p class="footnote"><span class="accent">Verdict</span> The strongest entry point for G1. It needs clause-level provenance and a group builder before it can support G3.</p>
-    <a class="proto-link" href="https://globaldata-design.vercel.app/sprint-3/idea-3/start">globaldata-design.vercel.app/sprint-3/idea-3</a>
-  </div>
+  <p class="footnote">Verdict: the right front door for the 70%. It needs per-clause provenance and a builder behind it before the 10% can rely on it.</p>
 </section>
 
-<!-- ============ 8. OPTION 4 ============ -->
+<!-- ============ 7. OPTION 4 ============ -->
 <section class="slide slide--light" data-section="Options" data-title="04 Sidebar Agent">
   <div class="logo" data-logo></div>
   <h2>04 Sidebar Agent</h2>
@@ -517,10 +456,10 @@
         <div class="col-head">For</div>
         <div class="group">
           <ul class="marks">
-            <li><span class="m">+</span><span>The only direction that keeps a wide results grid usable, and it can sit beneath any of the other three.</span></li>
-            <li><span class="m">+</span><span>Two clicks per filter, with counts shown before selection.</span></li>
-            <li><span class="m">+</span><span>The assistant proposes a change, previews the row count, applies it and records an undo.</span></li>
-            <li><span class="m">+</span><span>Adds column management that the current platform lacks: hide, reorder and pin.</span></li>
+            <li><span class="m">+</span><span>The only direction that stops the grid running off the screen, and it works under any of the others.</span></li>
+            <li><span class="m">+</span><span>Two clicks per parameter, with counts before you commit.</span></li>
+            <li><span class="m">+</span><span>The assistant proposes, previews the row count, applies, and leaves a receipt with undo.</span></li>
+            <li><span class="m">+</span><span>Column management the live product lacks: hide, move and pin.</span></li>
           </ul>
         </div>
       </div>
@@ -528,170 +467,167 @@
         <div class="col-head">Against</div>
         <div class="group">
           <ul class="marks neg">
-            <li><span class="m">&mdash;</span><span>The user starts from the full dataset rather than from a search. Does not meet G1.</span></li>
-            <li><span class="m">&mdash;</span><span>BI assistants have a weak retention record. Tableau retired Ask Data in 2024.</span></li>
-            <li><span class="m">&mdash;</span><span>Only the columns currently on screen can be filtered.</span></li>
-            <li><span class="m">&mdash;</span><span>OR within a column and AND across columns, with no NOT. Does not meet G3.</span></li>
+            <li><span class="m">&mdash;</span><span>It starts from every row rather than a screen. Your objection. Fails G1.</span></li>
+            <li><span class="m">&mdash;</span><span>BI assistants have the weakest retention record here. Tableau retired Ask Data in 2024.</span></li>
+            <li><span class="m">&mdash;</span><span>You can only filter the columns on screen.</span></li>
+            <li><span class="m">&mdash;</span><span>OR within a column and AND across columns, with no NOT. Fails G3.</span></li>
           </ul>
         </div>
       </div>
     </div>
   </div>
-  <div class="slide-foot">
-    <p class="footnote"><span class="accent">Verdict</span> The grid redesign is worth adopting whichever filtering model is chosen. Results-first filtering does not support a fast first search as built.</p>
-    <a class="proto-link" href="https://globaldata-design.vercel.app/sprint-3/idea-4/grid">globaldata-design.vercel.app/sprint-3/idea-4</a>
-  </div>
+  <p class="footnote">Verdict: adopt the grid redesign whichever model wins. The results-first filtering model fails the cold start as built.</p>
 </section>
 
-<!-- ============ 9. CLICKS ============ -->
-<section class="slide slide--light" data-section="Clicks" data-title="Clicks to a usable list">
+<!-- ============ 8. CLICKS ============ -->
+<section class="slide slide--light" data-section="Clicks" data-title="Clicks to a three-field list">
   <div class="logo" data-logo></div>
-  <h2>Clicks to a usable list</h2>
+  <h2>Clicks to a three-field list</h2>
   <div class="rule"></div>
-  <p class="lede">A representative three-filter search, counted from each prototype's code. The current platform takes about three clicks per filter, or 13 to 16 for three to four filters.</p>
-  <div class="content" style="margin-top:40px">
-    <div class="metrics" style="height:auto;align-content:start">
+  <p class="lede">Counted from each prototype's code, by the handlers a user has to fire. Your live platform takes 13 to 16.</p>
+  <div class="content">
+    <div class="metrics">
       <div class="metric">
         <div class="value">12</div>
-        <div class="label">01 Modal / Sidebar Takeover. 4 using the AI tab.</div>
+        <div class="label">Modal / Sidebar Takeover. 4 through the AI tab.</div>
       </div>
       <div class="metric">
         <div class="value">6</div>
-        <div class="label">02 Miller Columns. 2 using the agent, for its one wired request.</div>
+        <div class="label">Miller Columns. 2 through the agent.</div>
       </div>
       <div class="metric">
         <div class="value">0</div>
-        <div class="label">03 Text Input Field. One typed sentence and Enter.</div>
+        <div class="label">Text Input Field. One sentence and Enter.</div>
       </div>
       <div class="metric">
         <div class="value">6</div>
-        <div class="label">04 Sidebar Agent, plus one dismissal. 2 steps using the assistant.</div>
+        <div class="label">Sidebar Agent, plus a dismissal. 2 through the assistant.</div>
       </div>
     </div>
   </div>
-  <p class="footnote">Each direction is counted on its own representative query. The platform figure comes from a recorded walkthrough of the live product.</p>
+  <p class="footnote">Every option beats the live platform on the quick screen. None of them matches it on deep Boolean yet.</p>
 </section>
 
-<!-- ============ 10. FEEDBACK ============ -->
-<section class="slide slide--dark" data-section="Feedback" data-title="Feedback requested">
+<!-- ============ 9. DECISION ============ -->
+<section class="slide slide--dark" data-section="Decision" data-title="What we need you to decide">
   <div class="logo" data-logo></div>
-  <h2>Feedback requested</h2>
+  <h2>What we need you to decide</h2>
   <div class="rule"></div>
   <div class="content">
     <div class="stack">
       <div class="item">
         <div class="num">01</div>
         <div>
-          <div class="body-title">Feedback on each direction</div>
-          <div class="body-text">The strengths and limitations of each of the four directions, assessed against the three goals.</div>
+          <div class="body-title">Which front door?</div>
+          <div class="body-text">A sentence that resolves into structure (Option 3), or a browsable taxonomy with a sentence in front of it (Option 2).</div>
         </div>
       </div>
       <div class="item">
         <div class="num">02</div>
         <div>
-          <div class="body-title">A preferred direction</div>
-          <div class="body-text">The direction to take forward, and any to set aside.</div>
+          <div class="body-title">Does the grid redesign go in regardless?</div>
+          <div class="body-text">Option 4's results view answers a complaint the others leave alone, whichever filtering model wins.</div>
         </div>
       </div>
       <div class="item">
         <div class="num">03</div>
         <div>
-          <div class="body-title">Goal priority</div>
-          <div class="body-text">Whether G1, G2 or G3 should carry the most weight in the next sprint.</div>
+          <div class="body-title">How much Boolean do the 10% need?</div>
+          <div class="body-text">None of the four expresses nested, cross-attribute logic yet. Tell us what your largest accounts actually build.</div>
         </div>
       </div>
       <div class="item">
         <div class="num">04</div>
         <div>
-          <div class="body-title">Combining directions</div>
-          <div class="body-text">The elements to combine across directions, to be refined into a single direction in Sprint 4.</div>
+          <div class="body-title">Where we would go next</div>
+          <div class="body-text">Fuse Options 2 and 3: a composer in front that lands in the columns, with a group builder underneath for the 10%.</div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ============ 11. LINKS ============ -->
+<!-- ============ 10. LINKS ============ -->
 <section class="slide slide--light" data-section="Links" data-title="Every state, one link each">
   <div class="logo" data-logo></div>
   <h2>Every state, one link each</h2>
   <div class="rule"></div>
-  <p class="lede">Each link opens one state of a prototype, which stays interactive from there. <span class="accent">G1</span> <span class="accent">G2</span> <span class="accent">G3</span> mark the state where each goal is met.</p>
+  <p class="lede">Each link opens on one state and stays live from there. All at <a href="https://globaldata-design.vercel.app/sprint-3">globaldata-design.vercel.app/sprint-3</a>.</p>
   <div class="content" style="margin-top:32px">
     <div class="targets targets--4">
       <div class="target">
-        <div class="body-title">01 Modal / Sidebar Takeover</div>
-        <ul class="link-list">
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-1/results">results</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-1/ai-empty">ai-empty</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-1/ai-typed">ai-typed</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-1/ai-parsed">ai-parsed</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-1/manual-areas">manual-areas</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-1/manual-attributes">manual-attributes</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-1/manual-values">manual-values</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-1/manual-selected">manual-selected</a><span class="accent">G3</span></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-1/applied">applied</a><span class="accent">G1</span></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-1/filter-bar-dropdown">filter-bar-dropdown</a><span class="accent">G2</span></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-1/many-filters">many-filters</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-1/group-by">group-by</a></li>
-        </ul>
+        <div class="body-title">01 Modal / Sidebar</div>
+        <div class="body-text" style="display:flex;flex-direction:column">
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-1/results">results</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-1/ai-empty">ai-empty</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-1/ai-typed">ai-typed</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-1/ai-parsed">ai-parsed</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-1/manual-areas">manual-areas</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-1/manual-attributes">manual-attributes</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-1/manual-values">manual-values</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-1/manual-selected">manual-selected</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-1/applied">applied</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-1/filter-bar-dropdown">filter-bar-dropdown</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-1/many-filters">many-filters</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-1/group-by">group-by</a>
+        </div>
       </div>
       <div class="target">
         <div class="body-title">02 Miller Columns</div>
-        <ul class="link-list">
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-2/cold-start">cold-start</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-2/values">values</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-2/screener">screener</a><span class="accent">G2</span></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-2/excluded">excluded</a><span class="accent">G3</span></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-2/intersected">intersected</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-2/agent-running">agent-running</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-2/agent-done">agent-done</a><span class="accent">G1</span></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-2/agent-undone">agent-undone</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-2/record">record</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-2/empty">empty</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-2/agent-unwired">agent-unwired</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-2/breadcrumb">breadcrumb</a></li>
-        </ul>
+        <div class="body-text" style="display:flex;flex-direction:column">
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-2/cold-start">cold-start</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-2/values">values</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-2/screener">screener</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-2/excluded">excluded</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-2/intersected">intersected</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-2/agent-running">agent-running</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-2/agent-done">agent-done</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-2/agent-undone">agent-undone</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-2/record">record</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-2/empty">empty</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-2/agent-unwired">agent-unwired</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-2/breadcrumb">breadcrumb</a>
+        </div>
       </div>
       <div class="target">
         <div class="body-title">03 Text Input Field</div>
-        <ul class="link-list">
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-3/start">start</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-3/typed">typed</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-3/resolving">resolving</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-3/sentence">sentence</a><span class="accent">G1</span></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-3/filters">filters</a><span class="accent">G3</span></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-3/edit">edit</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-3/partial">partial</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-3/failure">failure</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-3/pill-open">pill-open</a><span class="accent">G2</span></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-3/empty">empty</a></li>
-        </ul>
+        <div class="body-text" style="display:flex;flex-direction:column">
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-3/start">start</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-3/typed">typed</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-3/resolving">resolving</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-3/sentence">sentence</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-3/filters">filters</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-3/edit">edit</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-3/partial">partial</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-3/failure">failure</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-3/pill-open">pill-open</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-3/empty">empty</a>
+        </div>
       </div>
       <div class="target">
         <div class="body-title">04 Sidebar Agent</div>
-        <ul class="link-list">
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-4/grid">grid</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-4/cold-grid">cold-grid</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-4/typed">typed</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-4/proposed">proposed</a><span class="accent">G1</span></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-4/undone">undone</a><span class="accent">G2</span></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-4/missed">missed</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-4/column-menu">column-menu</a><span class="accent">G3</span></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-4/grouped">grouped</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-4/wide">wide</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-4/stale">stale</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-4/panel-closed">panel-closed</a></li>
-          <li><a href="https://globaldata-design.vercel.app/sprint-3/idea-4/empty">empty</a></li>
-        </ul>
+        <div class="body-text" style="display:flex;flex-direction:column">
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-4/grid">grid</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-4/cold-grid">cold-grid</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-4/typed">typed</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-4/proposed">proposed</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-4/undone">undone</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-4/missed">missed</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-4/column-menu">column-menu</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-4/grouped">grouped</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-4/wide">wide</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-4/stale">stale</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-4/panel-closed">panel-closed</a>
+          <a href="https://globaldata-design.vercel.app/sprint-3/idea-4/empty">empty</a>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
 <script>
-  // The mark from logo.svg, with fill/stroke forced to currentColor by the .logo CSS
-  // so it flips between light and dark slides. See DESIGN-NOTES.md §5.
+  // The mark from slides/template/logo.svg, with fill/stroke forced to currentColor by
+  // the .logo CSS so it flips between light and dark slides. See DESIGN-NOTES.md §5.
   const LOGO = `<svg width="101" height="33" viewBox="0 0 101 33" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g clip-path="url(#clip0_9418_1733)">
 <path d="M51.1264 4.29261C49.9238 3.93618 49.3952 3.72496 49.3952 3.0913C49.3952 2.55005 49.8974 2.31243 50.611 2.31243C51.5229 2.31243 52.1043 2.74807 52.2101 3.47414H54.6152C54.5492 1.55996 52.818 0.398254 50.611 0.398254C48.5759 0.398254 46.9636 1.20352 46.9636 3.26291C46.9636 4.95267 48.4172 5.61273 50.0692 6.08796C51.3775 6.484 52.3157 6.69522 52.3157 7.5005C52.3157 7.98894 51.8665 8.34537 50.981 8.34537C49.9106 8.34537 49.078 7.93613 49.078 6.84044H46.6729C46.6729 9.00543 48.5362 10.2596 51.0074 10.2596C53.373 10.2596 54.7474 9.08464 54.7474 7.27607C54.7474 5.3223 52.9105 4.82066 51.1264 4.29261V4.29261" fill="currentColor"/>
