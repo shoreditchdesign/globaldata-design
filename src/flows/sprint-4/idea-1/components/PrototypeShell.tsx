@@ -141,10 +141,8 @@ export function PrototypeShell() {
         filters: [...current.filters, { id, label, values: [...values], excluded, join, link }],
       }
     })
-  const clearFilters = () =>
-    setState((current) =>
-      current.showResults ? { ...current, filters: [] } : initialState("start"),
-    )
+  const clearFilters = () => setState((current) => ({ ...current, filters: [] }))
+  const closeFilters = () => setState(initialState("start"))
   const search = () =>
     setState((current) => ({
       ...current,
@@ -164,6 +162,7 @@ export function PrototypeShell() {
       onAdd={addFilter}
       onClear={clearFilters}
       onSearch={state.showResults ? undefined : search}
+      onClose={state.showResults ? undefined : closeFilters}
       // On the results page the box is a band above the grid, not a card.
       className={state.showResults ? "bg-surface-chrome rounded-none border-0" : undefined}
     />
