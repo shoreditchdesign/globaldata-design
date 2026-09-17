@@ -26,7 +26,9 @@ import {
 import { conditionsToProse } from "@/flows/sprint-4/idea-2/grammar"
 import { insetVars } from "@/flows/sprint-4/idea-2/inset"
 import { resolveQuery, type Resolution } from "@/flows/sprint-4/idea-2/resolve"
+import { ArrangeProvider } from "@/flows/sprint-4/idea-2/components/Arrange"
 import {
+  addValue,
   blankQuery,
   initialState,
   normaliseConditions,
@@ -75,7 +77,7 @@ export function Screener() {
   const rows = React.useMemo(() => matchingRows(conditions), [conditions])
   const running = React.useMemo(() => runningCounts(conditions), [conditions])
   const countsFor = React.useCallback(
-    (attribute: string) => facetCounts(conditions, attribute),
+    (id: string, attribute: string) => facetCounts(conditions, id, attribute),
     [conditions],
   )
 
@@ -101,29 +103,31 @@ export function Screener() {
   }, [])
 
   const update = React.useCallback(
-    (attribute: string, change: (condition: Condition) => Condition) =>
-      commit((current) =>
-        current.map((condition) => (condition.attribute === attribute ? change(condition) : condition)),
-      ),
+    (id: string, change: (condition: Condition) => Condition) =>
+      commit((current) => current.map((condition) => (condition.id === id ? change(condition) : condition))),
     [commit],
   )
 
   const handlers: QueryHandlers = React.useMemo(
     () => ({
-      onToggleValue: (attribute, value) =>
-        commit((current) => toggleValue(current, attribute, value)),
-      onSetMode: (attribute, mode) => update(attribute, (condition) => ({ ...condition, mode })),
-      onSetJoin: (attribute, join) => update(attribute, (condition) => ({ ...condition, join })),
-      onSetLink: (attribute, link) => update(attribute, (condition) => ({ ...condition, link })),
-      onRemoveCondition: (attribute) =>
-        commit((current) => current.filter((condition) => condition.attribute !== attribute)),
+      onToggleValue: (id, attribute, value) => commit((current) => toggleValue(current, id, attribute, value)),
+      onSetMode: (id, mode) => update(id, (condition) => ({ ...condition, mode })),
+      onSetJoin: (id, join) => update(id, (condition) => ({ ...condition, join })),
+      onSetLink: (id, link) => update(id, (condition) => ({ ...condition, link })),
+      onRemoveCondition: (id) => commit((current) => current.filter((condition) => condition.id !== id)),
       countsFor,
     }),
     [commit, update, countsFor],
   )
 
-  const setGate = (attribute: string, next: Gate) =>
-    update(attribute, (condition) => withGate(condition, next))
+  // A drop or a move from a menu, already worked out against the query on
+  // screen. One entry in `past`, like any other edit, so Undo reverses it.
+  const commitArrangement = React.useCallback(
+    (next: Condition[]) => commit(() => next),
+    [commit],
+  )
+
+  const setGate = (id: string, next: Gate) => update(id, (condition) => withGate(condition, next))
 
   const setView = (next: View) => setState((current) => ({ ...current, view: next }))
 
@@ -189,11 +193,7 @@ export function Screener() {
     }))
 
   const addSuggestion = (attribute: string, value: string) =>
-    commit((current) =>
-      current.some((condition) => condition.attribute === attribute && condition.values.includes(value))
-        ? current
-        : toggleValue(current, attribute, value),
-    )
+    commit((current) => addValue(current, attribute, value))
 
   const applySuggestion = (phrase: string, value: string) => {
     const pattern = new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i")
@@ -219,157 +219,159 @@ export function Screener() {
       : []
 
   return (
-    <ProductChrome activeArea="Drugs" body="column" className={insetVars}>
-      <section className="shrink-0 px-(--box-gutter) pt-5 pb-4">
-        <div className="bg-surface-panel border-border shadow-raised flex items-stretch rounded-xl border">
-          <div className="min-w-0 flex-1 px-(--box-pad) py-4">
-            <div className="mb-3 flex items-center gap-3">
-              <span className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
-                Drug screener
-              </span>
-              <div className="bg-muted ml-auto flex items-center gap-0.5 rounded-lg p-0.5">
-                <ViewTab
-                  active={!logic}
-                  onClick={() => setView("sentence")}
-                  icon={<TextIcon className="size-3.5" />}
-                  label="Sentence"
-                />
-                <ViewTab
-                  active={logic}
-                  onClick={() => setView("logic")}
-                  icon={<WorkflowIcon className="size-3.5" />}
-                  label="Logic gate"
-                />
+    <ArrangeProvider conditions={conditions} onCommit={commitArrangement}>
+      <ProductChrome activeArea="Drugs" body="column" className={insetVars}>
+        <section className="shrink-0 px-(--box-gutter) pt-5 pb-4">
+          <div className="bg-surface-panel border-border shadow-raised flex items-stretch rounded-xl border">
+            <div className="min-w-0 flex-1 px-(--box-pad) py-4">
+              <div className="mb-3 flex items-center gap-3">
+                <span className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
+                  Drug screener
+                </span>
+                <div className="bg-muted ml-auto flex items-center gap-0.5 rounded-lg p-0.5">
+                  <ViewTab
+                    active={!logic}
+                    onClick={() => setView("sentence")}
+                    icon={<TextIcon className="size-3.5" />}
+                    label="Sentence"
+                  />
+                  <ViewTab
+                    active={logic}
+                    onClick={() => setView("logic")}
+                    icon={<WorkflowIcon className="size-3.5" />}
+                    label="Logic gate"
+                  />
+                </div>
               </div>
+
+              {composing ? (
+                <Composer
+                  value={draft}
+                  onChange={(value) => setState((current) => ({ ...current, draft: value }))}
+                  onSubmit={() => submit(draft)}
+                  onCancel={
+                    empty ? undefined : () => setState((current) => ({ ...current, phase: "resolved" }))
+                  }
+                  onSuggestion={applySuggestion}
+                  failure={failure}
+                  // The canvas has its own starting points, and the room.
+                  showSuggestions={empty && !draft.trim() && !logic}
+                />
+              ) : resolving && pending ? (
+                <Resolving resolution={pending} onDone={settle} />
+              ) : (
+                <QuerySentence conditions={conditions} handlers={handlers} />
+              )}
+
+              {!composing && !resolving && notes.length > 0 ? (
+                <Notes notes={notes} resolution={query.resolution} onAdd={addSuggestion} />
+              ) : null}
+
+              {!composing && !resolving ? (
+                <div className="mt-3.5 flex items-baseline justify-between gap-4">
+                  {query.raw ? (
+                    <p className="text-muted-foreground min-w-0 truncate text-xs">
+                      {query.edited ? "Edited since it was read from" : "Read from"}{" "}
+                      <span className="text-brand-ink">{query.raw}</span>
+                    </p>
+                  ) : (
+                    <span />
+                  )}
+                  <button
+                    type="button"
+                    onClick={editAsText}
+                    className="text-brand hover:text-brand-strong shrink-0 text-xs font-medium underline-offset-2 hover:underline"
+                  >
+                    Edit
+                  </button>
+                </div>
+              ) : null}
             </div>
 
-            {composing ? (
-              <Composer
-                value={draft}
-                onChange={(value) => setState((current) => ({ ...current, draft: value }))}
-                onSubmit={() => submit(draft)}
-                onCancel={
-                  empty ? undefined : () => setState((current) => ({ ...current, phase: "resolved" }))
-                }
-                onSuggestion={applySuggestion}
-                failure={failure}
-                // The canvas has its own starting points, and the room.
-                showSuggestions={empty && !draft.trim() && !logic}
-              />
-            ) : resolving && pending ? (
-              <Resolving resolution={pending} onDone={settle} />
-            ) : (
-              <QuerySentence conditions={conditions} handlers={handlers} />
-            )}
-
-            {!composing && !resolving && notes.length > 0 ? (
-              <Notes notes={notes} resolution={query.resolution} onAdd={addSuggestion} />
-            ) : null}
-
-            {!composing && !resolving ? (
-              <div className="mt-3.5 flex items-baseline justify-between gap-4">
-                {query.raw ? (
-                  <p className="text-muted-foreground min-w-0 truncate text-xs">
-                    {query.edited ? "Edited since it was read from" : "Read from"}{" "}
-                    <span className="text-brand-ink">{query.raw}</span>
-                  </p>
-                ) : (
-                  <span />
-                )}
-                <button
-                  type="button"
-                  onClick={editAsText}
-                  className="text-brand hover:text-brand-strong shrink-0 text-xs font-medium underline-offset-2 hover:underline"
+            <div className="border-edge flex w-[200px] shrink-0 flex-col gap-3 border-l px-(--box-pad) py-4">
+              <div>
+                <p
+                  className={cn(
+                    "ease-settle text-[34px] leading-none font-semibold tracking-tight tabular-nums transition-colors duration-300 motion-reduce:transition-none",
+                    empty || resolving ? "text-muted-foreground" : "text-foreground",
+                  )}
                 >
-                  Edit
-                </button>
+                  {rows.length.toLocaleString("en-GB")}
+                </p>
+                <p className="text-muted-foreground mt-1.5 text-xs">
+                  {resolving ? "resolving…" : `drugs of ${sample.length.toLocaleString("en-GB")} sampled`}
+                </p>
               </div>
-            ) : null}
-          </div>
 
-          <div className="border-edge flex w-[200px] shrink-0 flex-col gap-3 border-l px-(--box-pad) py-4">
-            <div>
-              <p
-                className={cn(
-                  "ease-settle text-[34px] leading-none font-semibold tracking-tight tabular-nums transition-colors duration-300 motion-reduce:transition-none",
-                  empty || resolving ? "text-muted-foreground" : "text-foreground",
-                )}
-              >
-                {rows.length.toLocaleString("en-GB")}
-              </p>
-              <p className="text-muted-foreground mt-1.5 text-xs">
-                {resolving ? "resolving…" : `drugs of ${sample.length.toLocaleString("en-GB")} sampled`}
-              </p>
-            </div>
+              <Separator />
 
-            <Separator />
-
-            <div className="-mx-1.5 flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={undo}
-                disabled={past.length === 0 || resolving}
-                className="text-muted-foreground hover:bg-accent"
-              >
-                <RotateCcwIcon />
-                Undo
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearAll}
-                disabled={empty || resolving}
-                className="text-muted-foreground hover:bg-accent"
-              >
-                Clear all
-              </Button>
+              <div className="-mx-1.5 flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={undo}
+                  disabled={past.length === 0 || resolving}
+                  className="text-muted-foreground hover:bg-accent"
+                >
+                  <RotateCcwIcon />
+                  Undo
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearAll}
+                  disabled={empty || resolving}
+                  className="text-muted-foreground hover:bg-accent"
+                >
+                  Clear all
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <div className="border-edge flex min-h-0 flex-1 border-t">
-        {/*
-          The split. The canvas is always mounted and opens by width, so it can
-          close as smoothly as it opens; the results take whatever is left. The
-          inner canvas holds its width throughout, so its nodes slide into view
-          rather than reflowing. Reduced motion gets the end state at once.
-        */}
-        <div
-          inert={!logic}
-          style={{ width: logic ? CANVAS_WIDTH : 0, transitionDuration: `${motion.reflow}ms` }}
-          className={cn(
-            "ease-settle border-edge shrink-0 overflow-hidden transition-[width] motion-reduce:transition-none",
-            logic && "border-r",
-          )}
-        >
+        <div className="border-edge flex min-h-0 flex-1 border-t">
+          {/*
+            The split. The canvas is always mounted and opens by width, so it can
+            close as smoothly as it opens; the results take whatever is left. The
+            inner canvas holds its width throughout, so its nodes slide into view
+            rather than reflowing. Reduced motion gets the end state at once.
+          */}
           <div
-            style={{
-              width: CANVAS_WIDTH,
-              transitionDuration: `${motion.settle}ms`,
-              transitionDelay: logic ? `${motion.handover}ms` : "0ms",
-            }}
+            inert={!logic}
+            style={{ width: logic ? CANVAS_WIDTH : 0, transitionDuration: `${motion.reflow}ms` }}
             className={cn(
-              "ease-settle h-full transition-opacity motion-reduce:transition-none",
-              logic ? "opacity-100" : "opacity-0",
+              "ease-settle border-edge shrink-0 overflow-hidden transition-[width] motion-reduce:transition-none",
+              logic && "border-r",
             )}
           >
-            <LogicCanvas
-              open={logic}
-              conditions={conditions}
-              running={running}
-              handlers={handlers}
-              onSetGate={setGate}
-              onClose={() => setView("sentence")}
-              className="h-full"
-            />
+            <div
+              style={{
+                width: CANVAS_WIDTH,
+                transitionDuration: `${motion.settle}ms`,
+                transitionDelay: logic ? `${motion.handover}ms` : "0ms",
+              }}
+              className={cn(
+                "ease-settle h-full transition-opacity motion-reduce:transition-none",
+                logic ? "opacity-100" : "opacity-0",
+              )}
+            >
+              <LogicCanvas
+                open={logic}
+                conditions={conditions}
+                running={running}
+                handlers={handlers}
+                onSetGate={setGate}
+                onClose={() => setView("sentence")}
+                className="h-full"
+              />
+            </div>
           </div>
-        </div>
 
-        <ResultsPane rows={rows} active={!empty} className="min-w-0 flex-1" />
-      </div>
-    </ProductChrome>
+          <ResultsPane rows={rows} active={!empty} className="min-w-0 flex-1" />
+        </div>
+      </ProductChrome>
+    </ArrangeProvider>
   )
 }
 

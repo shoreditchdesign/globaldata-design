@@ -942,6 +942,12 @@ export const drugAttributeOrder = [
  * canvas, the ticks in one attribute's value picker.
  */
 export interface Condition {
+  /**
+   * Stable across reordering. Usually the attribute itself; a value pulled out
+   * into its own condition gets the attribute with a suffix, since the same
+   * attribute can then appear twice.
+   */
+  id: string
   attribute: string
   /** Selected labels, at any level of that attribute's taxonomy. */
   values: string[]
@@ -970,6 +976,12 @@ function conditionHit(row: DrugRow, condition: Condition) {
   return condition.mode === "is not" ? !hit : hit
 }
 
+/**
+ * Strictly left to right: each condition folds into the result of everything
+ * before it by its own link, so `A and B or C` is `(A and B) or C`. The per-node
+ * counts on the logic gate are this same fold stopped early, so the last node's
+ * count is always the headline.
+ */
 function rowMatches(row: DrugRow, conditions: Condition[]) {
   let result = true
   conditions.forEach((condition, i) => {
@@ -995,15 +1007,16 @@ export function runningCounts(conditions: Condition[]) {
 
 /**
  * How many rows each label of an attribute would yield, in current context —
- * the query with that attribute's own condition lifted, so the numbers beside
- * the values say "what you would get if you picked this" rather than "what you
- * have already got".
+ * the query with this condition lifted, so the numbers beside the values say
+ * "what you would get if you picked this" rather than "what you have already
+ * got". Only the one condition is lifted: when a value has been pulled out into
+ * a condition of its own, the other condition on the same attribute still runs.
  */
-export function facetCounts(conditions: Condition[], attribute: string) {
+export function facetCounts(conditions: Condition[], id: string, attribute: string) {
   const def = attributeDefs[attribute]
   const counts: Record<string, number> = {}
   if (!def) return counts
-  const others = conditions.filter((condition) => condition.attribute !== attribute)
+  const others = conditions.filter((condition) => condition.id !== id)
   for (const row of matchingRows(others)) {
     for (const value of def.valuesOf(row)) {
       counts[value] = (counts[value] ?? 0) + 1

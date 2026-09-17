@@ -12,6 +12,7 @@
  * show a query or a count the screen would not have produced on its own.
  */
 
+import { applyDrop, newConditionId, normaliseConditions } from "@/flows/sprint-4/idea-2/arrange"
 import { type Condition } from "@/flows/sprint-4/idea-2/data"
 import { resolveQuery, type Resolution } from "@/flows/sprint-4/idea-2/resolve"
 
@@ -51,21 +52,39 @@ export const blankQuery: Query = { conditions: [], raw: "", resolution: null, ed
 /* -------------------------------------------------------------------------- */
 
 /**
- * A value ticked or unticked, from whichever view it happened in. A new
- * attribute joins the end of the query with `and`; an attribute left with no
- * values leaves the query, rather than a dangling operator in the sentence and
- * an empty node on the canvas.
+ * A value ticked or unticked in one condition, from whichever view it happened
+ * in. `id` names the condition; one that is not in the query yet joins the end
+ * with `and`. A condition left with no values leaves the query, rather than a
+ * dangling operator in the sentence and an empty node on the canvas.
  */
-export function toggleValue(conditions: Condition[], attribute: string, value: string) {
-  const existing = conditions.find((condition) => condition.attribute === attribute)
+export function toggleValue(conditions: Condition[], id: string, attribute: string, value: string) {
+  const existing = conditions.find((condition) => condition.id === id)
   if (!existing) {
-    return [...conditions, { attribute, values: [value], join: "or", mode: "is", link: "and" } as Condition]
+    const added: Condition = {
+      id: newConditionId(conditions, attribute),
+      attribute,
+      values: [value],
+      join: "or",
+      mode: "is",
+      link: "and",
+    }
+    return [...conditions, added]
   }
   const values = existing.values.includes(value)
     ? existing.values.filter((v) => v !== value)
     : [...existing.values, value]
   if (values.length === 0) return conditions.filter((condition) => condition !== existing)
   return conditions.map((condition) => (condition === existing ? { ...condition, values } : condition))
+}
+
+/**
+ * A value added from outside any one condition — the resolver's nearest match.
+ * It goes into the first condition on that attribute, or starts one.
+ */
+export function addValue(conditions: Condition[], attribute: string, value: string) {
+  const existing = conditions.find((condition) => condition.attribute === attribute)
+  if (existing?.values.includes(value)) return conditions
+  return toggleValue(conditions, existing?.id ?? attribute, attribute, value)
 }
 
 /**
@@ -88,15 +107,7 @@ export function withGate(condition: Condition, gate: Gate): Condition {
   }
 }
 
-/**
- * The first condition meets nothing, so its link is always `and` — otherwise
- * removing the head of an `A, or B` query would leave B reading `or` against
- * the whole sample, which keeps everything.
- */
-export function normaliseConditions(conditions: Condition[]) {
-  if (conditions.length === 0 || conditions[0].link === "and") return conditions
-  return [{ ...conditions[0], link: "and" as const }, ...conditions.slice(1)]
-}
+export { normaliseConditions }
 
 /* -------------------------------------------------------------------------- */
 /* Suggestions                                                                 */
@@ -209,10 +220,11 @@ function buildFromSuggestions() {
   const push = (next: Condition[]) => steps.push(normaliseConditions(next))
   const last = () => steps[steps.length - 1]
 
-  push(toggleValue(last(), "Development Stage", "Phase II"))
-  push(toggleValue(last(), "Development Stage", "Phase III"))
-  push(toggleValue(last(), "Therapy Area / Indication", "Dermatology"))
-  push(toggleValue(last(), "Drug Geography", "Europe"))
+  const tick = (attribute: string, value: string) => toggleValue(last(), attribute, attribute, value)
+  push(tick("Development Stage", "Phase II"))
+  push(tick("Development Stage", "Phase III"))
+  push(tick("Therapy Area / Indication", "Dermatology"))
+  push(tick("Drug Geography", "Europe"))
   push(
     last().map((condition) =>
       condition.attribute === "Drug Geography" ? withGate(condition, "NOT") : condition,
@@ -229,6 +241,30 @@ function buildFromSuggestions() {
 
 const built = buildFromSuggestions()
 
+/** Read, then one value dragged out of its group. */
+export const pulledApartPrompt = "small molecules in europe or north america"
+const pulledApartRead = resolveQuery(pulledApartPrompt)
+
+/**
+ * North America dragged out of the geography group and dropped straight after
+ * it, by the same `applyDrop` a drag calls. It joins with `or`, so the query
+ * now reads (small molecules in Europe) or anything in North America. Undo
+ * puts it back.
+ */
+function pullApart(): Pick<ScreenerState, "query" | "past"> {
+  const before = queryFrom(pulledApartRead)
+  const source = before.conditions.find((condition) => condition.attribute === "Drug Geography")
+  const arranged =
+    source &&
+    applyDrop(
+      before.conditions,
+      { kind: "value", id: source.id, value: "North America" },
+      { kind: "gap", index: before.conditions.indexOf(source) + 1 },
+    )
+  if (!arranged) return { query: before, past: [] }
+  return { query: { ...before, conditions: arranged.conditions, edited: true }, past: [before] }
+}
+
 export const initialStates: Record<string, ScreenerState> = {
   start: base,
   "logic-empty": { ...base, view: "logic" },
@@ -236,6 +272,12 @@ export const initialStates: Record<string, ScreenerState> = {
   typed: { ...base, draft: workedPrompt },
   sentence: resolved,
   "logic-gate": { ...resolved, view: "logic" },
+  "pulled-apart": {
+    ...base,
+    ...pullApart(),
+    phase: "resolved",
+    draft: pulledApartPrompt,
+  },
   partial: {
     ...base,
     query: queryFrom(partial),
@@ -263,6 +305,10 @@ export function slugFor(state: ScreenerState): string {
   // Read from a sentence or built node by node.
   if (view === "logic") return query.raw ? "logic-gate" : "logic-building"
   if (phase !== "resolved") return "typed"
+
+  // A value pulled out of its group leaves the same attribute in two conditions.
+  const attributes = query.conditions.map((condition) => condition.attribute)
+  if (new Set(attributes).size < attributes.length) return "pulled-apart"
 
   // Only while the reading still describes the query. The first edit answers
   // the note, and the screen stops showing it.

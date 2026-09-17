@@ -98,7 +98,11 @@ export function Resolving({
           )}
         >
           <div className="pointer-events-none">
-            <QuerySentence conditions={resolution.conditions} handlers={inertHandlers} />
+            <QuerySentence
+              conditions={resolution.conditions}
+              handlers={inertHandlers}
+              arrangeable={false}
+            />
           </div>
         </div>
       </div>

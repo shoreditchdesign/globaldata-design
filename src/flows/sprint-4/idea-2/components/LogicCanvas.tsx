@@ -4,7 +4,7 @@ import * as React from "react"
 import { ChevronDownIcon, PlusIcon, XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { liftClass } from "@/components/prototype/motion"
+import { liftClass, tintClass } from "@/components/prototype/motion"
 import { FilterPill } from "@/components/prototype/FilterPill"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,8 +14,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
+import {
+  applyDrop,
+  canMerge,
+  type DragPayload,
+  type DropTarget,
+} from "@/flows/sprint-4/idea-2/arrange"
 import { attributeDefs, sample, type Condition } from "@/flows/sprint-4/idea-2/data"
 import {
+  type Resolved,
+  useArrange,
+  useDropSurface,
+  useReflow,
+} from "@/flows/sprint-4/idea-2/components/Arrange"
+import {
+  arrangeActions,
   availableAttributes,
   ValueMenu,
   type QueryHandlers,
@@ -35,11 +48,14 @@ function OperatorPill<T extends string>({
   options,
   label,
   onChange,
+  lit,
 }: {
   value: T
   options: T[]
   label: string
   onChange: (value: T) => void
+  /** Just made by a drop, and lit for a beat. */
+  lit?: boolean
 }) {
   const negated = value === "NOT" || value === "OR NOT"
   return (
@@ -47,10 +63,12 @@ function OperatorPill<T extends string>({
       <DropdownMenuTrigger
         aria-label={`${label}, currently ${value}`}
         className={cn(
-          "inline-flex h-6 items-center gap-1 rounded-full border px-2 text-[11px] font-medium tracking-[0.08em] transition-colors",
+          "inline-flex h-6 items-center gap-1 rounded-full border px-2 text-[11px] font-medium tracking-[0.08em]",
+          tintClass,
           negated
             ? "text-foreground bg-surface-panel border-foreground/40 hover:bg-accent font-semibold"
             : "text-muted-foreground bg-surface-panel border-border hover:text-foreground hover:bg-accent",
+          lit && "bg-brand-tint border-brand-border text-brand-ink",
         )}
       >
         {value}
@@ -131,10 +149,15 @@ function MoreAttributes({ attributes, onAdd }: { attributes: string[]; onAdd: (a
  * between them, and how many drugs are still in the set once it has run. A node
  * that has just been added has no values yet, and stays a dashed outline with
  * its picker open until one is chosen.
+ *
+ * The node arranges by the same rules as the sentence. Its heading drags the
+ * whole condition; a chip in a group drags just its value; a chip alone drags
+ * the node.
  */
 function GroupNode({
   attribute,
   condition,
+  conditions,
   remaining,
   picking,
   onPicking,
@@ -142,6 +165,7 @@ function GroupNode({
 }: {
   attribute: string
   condition?: Condition
+  conditions: Condition[]
   remaining?: number
   picking: boolean
   onPicking: (open: boolean) => void
@@ -150,6 +174,12 @@ function GroupNode({
   const anchor = React.useRef<HTMLDivElement>(null)
   const subject = subjectOf(attribute)
   const added = picking && !condition
+  const context = useArrange()
+  const drag = context?.drag
+  const id = condition?.id ?? attribute
+  const single = (condition?.values.length ?? 0) < 2
+  const mergeTarget = drag?.target?.kind === "merge" && drag.target.id === id
+  const landed = context?.landed?.id === id ? context.landed.part : null
 
   // A node added from the foot of a long canvas lands below the fold; bring it
   // into view so the picker opens beside it rather than over the nodes above.
@@ -157,21 +187,34 @@ function GroupNode({
     if (added) anchor.current?.scrollIntoView({ block: "nearest" })
   }, [added])
 
+  const grab = (event: React.PointerEvent<HTMLElement>, value?: string) => {
+    if (!condition || !context) return
+    if (value !== undefined && !single) {
+      context.beginDrag(event, { kind: "value", id, value }, value)
+    } else {
+      context.beginDrag(event, { kind: "condition", id }, `${subject}: ${condition.values.join(` ${condition.join} `)}`)
+    }
+  }
+
   return (
     <Popover open={picking} onOpenChange={onPicking}>
       <PopoverAnchor asChild>
         <div
           ref={anchor}
+          data-node-card
           className={cn(
             "group/node bg-surface-panel relative w-full rounded-lg border p-3",
+            tintClass,
             condition ? "border-border" : "border-edge border-dashed",
             picking && "shadow-panel",
+            (mergeTarget || landed === "join" || landed === "clause") && "bg-brand-wash border-brand-border",
           )}
         >
           <div className="mb-2 flex items-baseline gap-2">
             <button
               type="button"
               onClick={() => onPicking(true)}
+              onPointerDown={condition ? (event) => grab(event) : undefined}
               className="text-muted-foreground hover:text-foreground min-w-0 truncate text-left text-[10px] font-medium tracking-[0.08em] uppercase"
             >
               {subject}
@@ -190,7 +233,7 @@ function GroupNode({
               <button
                 type="button"
                 aria-label={`Remove ${subject.toLowerCase()} condition`}
-                onClick={() => handlers.onRemoveCondition(attribute)}
+                onClick={() => handlers.onRemoveCondition(id)}
                 className={cn(
                   "text-muted-foreground hover:text-foreground hover:bg-accent -mr-1 flex size-5 shrink-0 items-center justify-center self-center rounded-md opacity-0 group-hover/node:opacity-100 focus-visible:opacity-100",
                   liftClass,
@@ -203,38 +246,43 @@ function GroupNode({
 
           {condition ? (
             <div className="flex flex-wrap items-center gap-1.5">
-              {condition.values.map((value, i) => (
-                <React.Fragment key={value}>
-                  {i > 0 ? (
-                    <OperatorPill
-                      value={condition.join === "and" ? "AND" : "OR"}
-                      options={["OR", "AND"]}
-                      label={`Between ${subject.toLowerCase()} values`}
-                      onChange={(next) => handlers.onSetJoin(attribute, next === "AND" ? "and" : "or")}
-                    />
-                  ) : null}
-                  {/* The shared pill owns its own remove button and takes no
-                      handler, so the removal is caught on the way up. */}
-                  <span
-                    className="contents"
-                    onClick={(event) => {
-                      if ((event.target as HTMLElement).closest('[data-slot="filter-pill-remove"]')) {
-                        handlers.onToggleValue(attribute, value)
-                      }
-                    }}
-                  >
-                    <FilterPill variant="applied" removeLabel={`Remove ${value}`}>
-                      <button
-                        type="button"
-                        onClick={() => onPicking(true)}
-                        className="max-w-[200px] truncate text-left hover:underline"
-                      >
-                        {value}
-                      </button>
-                    </FilterPill>
-                  </span>
-                </React.Fragment>
-              ))}
+              {condition.values.map((value, i) => {
+                const dragged =
+                  drag?.payload.kind === "value" && drag.payload.id === id && drag.payload.value === value
+                return (
+                  <React.Fragment key={value}>
+                    {i > 0 ? (
+                      <OperatorPill
+                        value={condition.join === "and" ? "AND" : "OR"}
+                        options={["OR", "AND"]}
+                        label={`Between ${subject.toLowerCase()} values`}
+                        onChange={(next) => handlers.onSetJoin(id, next === "AND" ? "and" : "or")}
+                      />
+                    ) : null}
+                    {/* The shared pill owns its own remove button and takes no
+                        handler, so the removal is caught on the way up. */}
+                    <span
+                      className={cn("contents", dragged && "[&>*]:opacity-40")}
+                      onClick={(event) => {
+                        if ((event.target as HTMLElement).closest('[data-slot="filter-pill-remove"]')) {
+                          handlers.onToggleValue(id, attribute, value)
+                        }
+                      }}
+                    >
+                      <FilterPill variant="applied" removeLabel={`Remove ${value}`}>
+                        <button
+                          type="button"
+                          onClick={() => onPicking(true)}
+                          onPointerDown={(event) => grab(event, value)}
+                          className="max-w-[200px] truncate text-left hover:underline"
+                        >
+                          {value}
+                        </button>
+                      </FilterPill>
+                    </span>
+                  </React.Fragment>
+                )
+              })}
               <button
                 type="button"
                 aria-label={`Add a ${subject.toLowerCase()} value`}
@@ -262,10 +310,70 @@ function GroupNode({
           condition={condition}
           handlers={handlers}
           onClose={() => onPicking(false)}
+          actions={
+            condition && context
+              ? arrangeActions({ conditions, condition, arrange: context.arrange, vertical: true })
+              : undefined
+          }
         />
       </PopoverContent>
     </Popover>
   )
+}
+
+/**
+ * Where a drag over the canvas would land. Each node owns the wire above it:
+ * the wire and the top third of the card are the gap before it, the bottom
+ * third the gap after, and the middle is the node itself — a merge on the same
+ * attribute, refused otherwise.
+ */
+function resolveCanvas(
+  y: number,
+  payload: DragPayload,
+  conditions: Condition[],
+  container: HTMLElement | null,
+): Resolved | null {
+  if (!container || conditions.length === 0) return null
+  const find = (id: string) => container.querySelector<HTMLElement>(`[data-node="${CSS.escape(id)}"]`)
+  const slots = conditions.map((condition) => {
+    const slot = find(condition.id)
+    const card = slot?.querySelector<HTMLElement>("[data-node-card]")
+    return slot && card ? { slot: slot.getBoundingClientRect(), card: card.getBoundingClientRect() } : null
+  })
+  if (slots.some((slot) => !slot)) return null
+  const boxes = slots as { slot: DOMRect; card: DOMRect }[]
+
+  let gap: number | null = null
+  let merge: number | null = null
+  const j = boxes.findIndex(({ card }) => y < card.bottom)
+  if (j === -1) gap = conditions.length
+  else {
+    const { card } = boxes[j]
+    const zone = Math.min(Math.max(card.height * 0.3, 12), card.height / 2)
+    if (y < card.top + zone) gap = j
+    else if (y > card.bottom - zone) gap = j + 1
+    else merge = j
+  }
+
+  const { card: first } = boxes[0]
+  if (merge !== null) {
+    const target = conditions[merge]
+    if (!canMerge(conditions, payload, target.id)) return null
+    const { card } = boxes[merge]
+    return {
+      target: { kind: "merge", id: target.id },
+      indicator: { kind: "merge", x: card.left + card.width / 2, y: card.top + 4 },
+    }
+  }
+
+  const index = gap as number
+  const target: DropTarget = { kind: "gap", index }
+  if (!applyDrop(conditions, payload, target)) return null
+  const caretY = index < boxes.length ? boxes[index].slot.top + 6 : boxes[boxes.length - 1].card.bottom + 6
+  return {
+    target,
+    indicator: { kind: "caret", orientation: "horizontal", x: first.left, y: caretY, length: first.width },
+  }
 }
 
 /**
@@ -293,18 +401,27 @@ export function LogicCanvas({
   /** Rows left after each condition, in order. */
   running: number[]
   handlers: QueryHandlers
-  onSetGate: (attribute: string, gate: Gate) => void
+  onSetGate: (id: string, gate: Gate) => void
   onClose: () => void
   className?: string
 }) {
+  // A condition's id while its picker is open, or the attribute of a node that
+  // has just been added and has no value yet.
   const [picking, setPicking] = React.useState<string | null>(null)
+  const context = useArrange()
+  const { container, track } = useReflow(context?.landed?.token)
+  useDropSurface("canvas", container, (_x, y, payload) =>
+    resolveCanvas(y, payload, conditions, container.current),
+  )
 
   // Tucked away, nothing on the canvas stays open. Adjusted during render so a
   // stale popover never paints over the sentence view.
   if (!open && picking) setPicking(null)
 
   const pendingAttribute =
-    picking && !conditions.some((condition) => condition.attribute === picking) ? picking : null
+    picking && attributeDefs[picking] && !conditions.some((condition) => condition.attribute === picking)
+      ? picking
+      : null
   const used = [...conditions.map((condition) => condition.attribute), ...(pendingAttribute ? [pendingAttribute] : [])]
   const suggestions = suggestionsFor(used)
   const others = availableAttributes(conditions).filter(
@@ -313,9 +430,9 @@ export function LogicCanvas({
   const empty = used.length === 0
 
   const pick = (attribute: string) => setPicking(attribute)
-  const nodes: { attribute: string; condition?: Condition }[] = [
-    ...conditions.map((condition) => ({ attribute: condition.attribute, condition })),
-    ...(pendingAttribute ? [{ attribute: pendingAttribute }] : []),
+  const nodes: { id: string; attribute: string; condition?: Condition }[] = [
+    ...conditions.map((condition) => ({ id: condition.id, attribute: condition.attribute, condition })),
+    ...(pendingAttribute ? [{ id: pendingAttribute, attribute: pendingAttribute }] : []),
   ]
 
   return (
@@ -351,7 +468,7 @@ export function LogicCanvas({
             </div>
           </div>
         ) : (
-          <div className="flex w-full flex-col items-center">
+          <div ref={container as React.RefObject<HTMLDivElement | null>} className="flex w-full flex-col items-center">
             <div className="bg-surface-panel border-border flex w-full items-baseline gap-2 rounded-lg border px-3 py-2.5">
               <span className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
                 All drugs
@@ -361,9 +478,17 @@ export function LogicCanvas({
               </span>
             </div>
 
-            {nodes.map(({ attribute, condition }, i) => {
+            {nodes.map(({ id, attribute, condition }, i) => {
+              const dragged = context?.drag?.payload.kind === "condition" && context.drag.payload.id === id
               return (
-                <React.Fragment key={attribute}>
+                // The wires and operator travel with their node, so a reorder
+                // settles as one piece.
+                <div
+                  key={id}
+                  ref={track(id)}
+                  data-node={condition ? id : undefined}
+                  className={cn("flex w-full flex-col items-center transition-opacity", dragged && "opacity-40")}
+                >
                   <Wire />
                   {condition ? (
                     <OperatorPill<Gate>
@@ -372,7 +497,8 @@ export function LogicCanvas({
                       // first node can only narrow the set or drop from it.
                       options={i === 0 ? ["AND", "NOT"] : ["AND", "OR", "NOT", "OR NOT"]}
                       label="Operator"
-                      onChange={(gate) => onSetGate(attribute, gate)}
+                      lit={context?.landed?.id === id && context.landed.part === "link"}
+                      onChange={(gate) => onSetGate(id, gate)}
                     />
                   ) : (
                     <span className="text-muted-foreground border-border inline-flex h-6 items-center rounded-full border border-dashed px-2 text-[11px] font-medium tracking-[0.08em]">
@@ -383,14 +509,13 @@ export function LogicCanvas({
                   <GroupNode
                     attribute={attribute}
                     condition={condition}
+                    conditions={conditions}
                     remaining={condition ? running[i] : undefined}
-                    picking={picking === attribute}
-                    onPicking={(next) =>
-                      setPicking((current) => (next ? attribute : current === attribute ? null : current))
-                    }
+                    picking={picking === id}
+                    onPicking={(next) => setPicking((current) => (next ? id : current === id ? null : current))}
                     handlers={handlers}
                   />
-                </React.Fragment>
+                </div>
               )
             })}
 
