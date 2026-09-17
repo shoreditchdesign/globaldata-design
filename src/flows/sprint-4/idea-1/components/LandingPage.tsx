@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button"
 import { ResolvedFilters } from "@/flows/sprint-4/idea-1/components/ResolvedFilters"
 import {
   searchCategories,
-  workedResultCount,
+  type FilterId,
+  type FilterJoin,
+  type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1/data"
 import type { SearchMode } from "@/flows/sprint-4/idea-1/state"
 import { cn } from "@/lib/utils"
@@ -16,6 +18,14 @@ export function LandingPage({
   onQueryChange,
   onResolve,
   hasResolvedFilters,
+  filters,
+  resultCount,
+  onFilterModeChange,
+  onFilterJoinChange,
+  onToggleFilterValue,
+  onRemoveFilter,
+  onAddFilter,
+  onClearFilters,
 }: {
   mode: SearchMode
   query: string
@@ -23,6 +33,14 @@ export function LandingPage({
   onQueryChange: (query: string) => void
   onResolve: () => void
   hasResolvedFilters: boolean
+  filters: ResolvedFilter[]
+  resultCount: number
+  onFilterModeChange: (id: FilterId, excluded: boolean) => void
+  onFilterJoinChange: (id: FilterId, join: FilterJoin) => void
+  onToggleFilterValue: (id: FilterId, value: string) => void
+  onRemoveFilter: (id: FilterId) => void
+  onAddFilter: (id: FilterId) => void
+  onClearFilters: () => void
 }) {
   const hasQuery = query.trim().length > 0
 
@@ -64,23 +82,29 @@ export function LandingPage({
           />
           <Button
             type="button"
-            size={hasResolvedFilters ? "default" : "icon-lg"}
+            size="icon-lg"
             onClick={onResolve}
             disabled={!hasQuery}
             aria-label={
-              hasResolvedFilters
-                ? `Search ${workedResultCount.toLocaleString("en-GB")} matching drugs`
-                : "Build filters from this search"
+              hasResolvedFilters ? "Update filters from this search" : "Build filters from this search"
             }
-            className="rounded-full tabular-nums"
+            className="rounded-full"
           >
-            {hasResolvedFilters ? workedResultCount.toLocaleString("en-GB") : null}
             <ArrowRightIcon />
           </Button>
         </form>
 
         {hasResolvedFilters ? (
-          <ResolvedFilters />
+          <ResolvedFilters
+            filters={filters}
+            resultCount={resultCount}
+            onModeChange={onFilterModeChange}
+            onJoinChange={onFilterJoinChange}
+            onToggleValue={onToggleFilterValue}
+            onRemove={onRemoveFilter}
+            onAdd={onAddFilter}
+            onClear={onClearFilters}
+          />
         ) : (
           <nav aria-label="Search categories" className="mt-5 flex flex-wrap justify-center gap-2">
             {searchCategories.map((category) => (

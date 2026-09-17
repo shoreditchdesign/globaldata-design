@@ -1,4 +1,8 @@
-import { workedQuery } from "@/flows/sprint-4/idea-1/data"
+import {
+  initialResolvedFilters,
+  workedQuery,
+  type ResolvedFilter,
+} from "@/flows/sprint-4/idea-1/data"
 
 export type SearchMode = "quick" | "manual"
 
@@ -7,18 +11,21 @@ export interface Sprint4Idea1State {
   query: string
   /** The last query resolved into filters. Typing never changes this value. */
   submittedQuery: string | null
+  filters: ResolvedFilter[]
 }
 
 const startState = (): Sprint4Idea1State => ({
   mode: "quick",
   query: "",
   submittedQuery: null,
+  filters: [],
 })
 
 const filteredState = (): Sprint4Idea1State => ({
   mode: "quick",
   query: workedQuery,
   submittedQuery: workedQuery,
+  filters: initialResolvedFilters(),
 })
 
 /** Seed the living screen from its URL. Unknown states return to the start. */

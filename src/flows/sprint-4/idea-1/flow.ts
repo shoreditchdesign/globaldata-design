@@ -23,7 +23,7 @@ export const sprint4Idea1: Flow = {
     {
       slug: "filters",
       title: "Resolved filters",
-      note: "The walkthrough query resolved into five filters and an authored result count.",
+      note: "The walkthrough query resolved into editable Float-style filters and 356 drugs.",
       viewport: "desktop",
       component: Start,
     },
