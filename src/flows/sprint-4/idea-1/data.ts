@@ -9,6 +9,43 @@ export const activeProductArea: ProductArea = "Drugs"
 /** The incumbent's highest-level search areas, kept in the established order. */
 export const searchCategories = productAreas
 
+/**
+ * Immediate children of each incumbent search area. These labels are copied
+ * from the established Sprint 3 hierarchy so Idea 1 remains self-contained.
+ */
+export const searchCategoryChildren: Record<ProductArea, readonly string[]> = {
+  Companies: ["Company Name", "Headquarters Country", "Company Type"],
+  Drugs: [
+    "Drug Name",
+    "Therapy Area / Indication",
+    "Development Stage",
+    "Drug Geography",
+    "Route of Administration",
+    "Molecule Type",
+    "Target",
+    "Mechanism of Action",
+    "ATC Classification",
+    "Drug Type",
+    "Mono/Combination Drug",
+    "Drug Descriptor",
+    "Gene Therapy Vector",
+    "Application Type",
+    "CAS Number",
+    "Expiry Date",
+    "Marketing Status",
+  ],
+  "Licensing Opportunities": ["Deal Type", "Deal Status", "Deal Value"],
+  "Regulatory Milestones": ["Regulatory Body", "Milestone Type", "Milestone Year"],
+  "Sales and Forecast": ["Sales Region", "Forecast Year", "Revenue Band"],
+  "Drugs by Manufacturer": [
+    "Manufacturer",
+    "Manufacturing Site Country",
+    "Production Stage",
+  ],
+  NPV: ["NPV Band", "Discount Rate", "Peak Sales Year"],
+  "Advanced Company Watchlist": ["Watchlist", "Alert Type", "Added"],
+}
+
 export const workedQuery =
   "Find generic anti-inflammatory therapies targeting Actin Gamma Enteric Smooth Muscle, but exclude drugs available in Austria or Italy, as well as marketed drugs that are withdrawn or archived."
 

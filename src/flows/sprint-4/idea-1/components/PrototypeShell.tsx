@@ -4,6 +4,7 @@ import * as React from "react"
 import { usePathname } from "next/navigation"
 
 import { ProductChrome } from "@/components/prototype/ProductChrome"
+import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { useDeepLink } from "@/hooks/use-deep-link"
 import { LandingPage } from "@/flows/sprint-4/idea-1/components/LandingPage"
 import {
@@ -35,6 +36,11 @@ export function PrototypeShell() {
 
   const setMode = (mode: SearchMode) => setState((current) => ({ ...current, mode }))
   const setQuery = (query: string) => setState((current) => ({ ...current, query }))
+  const toggleCategory = (category: ProductArea) =>
+    setState((current) => ({
+      ...current,
+      activeCategory: current.activeCategory === category ? null : category,
+    }))
   const submitQuery = () =>
     setState((current) => {
       const resolution = resolveNaturalLanguage(current.query)
@@ -107,8 +113,10 @@ export function PrototypeShell() {
       <LandingPage
         mode={state.mode}
         query={state.query}
+        activeCategory={state.activeCategory}
         onModeChange={setMode}
         onQueryChange={setQuery}
+        onCategoryChange={toggleCategory}
         onResolve={submitQuery}
         hasResolvedFilters={Boolean(state.submittedQuery)}
         filters={state.filters}
