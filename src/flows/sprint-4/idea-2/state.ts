@@ -1,7 +1,7 @@
 /**
  * The one state Idea 2 is, and the frames it can be opened on.
  *
- * The sentence, the logic gate canvas and the results are three views of one
+ * The sentence, the explorer tree and the results are three views of one
  * list of conditions, so there is one atom: a slug seeds it on arrival, every
  * click moves it, and `slugFor` names the frame the live state is nearest to so
  * the address bar can follow.
@@ -18,8 +18,8 @@ import { resolveQuery, type Resolution } from "@/flows/sprint-4/idea-2/resolve"
 
 export type Phase = "compose" | "resolving" | "resolved"
 
-/** Which view sits under the text box. `logic` splits the bottom half. */
-export type View = "sentence" | "logic"
+/** Whether the explorer tree is split in beside the results. */
+export type View = "sentence" | "explorer"
 
 /** One query and everything known about where it came from. */
 export interface Query {
@@ -93,7 +93,7 @@ export function addValue(conditions: Condition[], attribute: string, value: stri
 }
 
 /**
- * The operator in front of a condition, as the logic gate draws it. `NOT` is a
+ * The operator in front of a condition. `NOT` is a
  * condition that drops rows; `AND` and `OR` are how a condition meets the rest.
  * `OR NOT` is there because the sentence can say `or not available in`.
  */
@@ -216,10 +216,9 @@ const resolved: ScreenerState = {
 }
 
 /**
- * Three nodes added from the suggestions, in the order they are offered: two
- * development stages, then Dermatology under Therapy Area, then Europe under
- * Drug Geography, flipped to NOT. Molecule Type is the suggestion left over.
- * Every step is kept in `past`, so Undo walks back through them.
+ * Values ticked in the explorer and applied: two development stages, then
+ * Dermatology under Therapy Area, then Europe under Drug Geography flipped to
+ * NOT. Every step is kept in `past`, so Undo walks back through them.
  */
 function buildFromSuggestions() {
   const steps: Condition[][] = [[]]
@@ -273,11 +272,11 @@ function pullApart(): Pick<ScreenerState, "query" | "past"> {
 
 export const initialStates: Record<string, ScreenerState> = {
   start: base,
-  "logic-empty": { ...base, view: "logic" },
-  "logic-building": { ...base, ...built, phase: "resolved", view: "logic" },
+  "explorer-open": { ...base, view: "explorer" },
+  "explorer-applied": { ...base, ...built, phase: "resolved", view: "explorer" },
   typed: { ...base, draft: workedPrompt },
   sentence: resolved,
-  "logic-gate": { ...resolved, view: "logic" },
+  explorer: { ...resolved, view: "explorer" },
   record: { ...resolved, recordId: matchingRows(worked.conditions)[0]?.id ?? null },
   "pulled-apart": {
     ...base,
@@ -308,12 +307,12 @@ export function slugFor(state: ScreenerState): string {
   if (recordId && query.conditions.length > 0) return "record"
 
   if (query.conditions.length === 0) {
-    if (view === "logic") return "logic-empty"
+    if (view === "explorer") return "explorer-open"
     return draft.trim() ? "typed" : "start"
   }
 
   // Read from a sentence or built node by node.
-  if (view === "logic") return query.raw ? "logic-gate" : "logic-building"
+  if (view === "explorer") return query.raw ? "explorer" : "explorer-applied"
   if (phase !== "resolved") return "typed"
 
   // A value pulled out of its group leaves the same attribute in two conditions.

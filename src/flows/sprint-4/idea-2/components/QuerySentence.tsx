@@ -12,7 +12,7 @@ import {
   type DropTarget,
 } from "@/flows/sprint-4/idea-2/arrange"
 import { type Condition } from "@/flows/sprint-4/idea-2/data"
-import { operatorWord } from "@/flows/sprint-4/idea-2/grammar"
+import { attributeWord, clauseWords, operatorWord } from "@/flows/sprint-4/idea-2/grammar"
 import {
   type Resolved,
   useArrange,
@@ -21,13 +21,23 @@ import {
 } from "@/flows/sprint-4/idea-2/components/Arrange"
 import { type QueryHandlers } from "@/flows/sprint-4/idea-2/components/ValueMenu"
 
+/**
+ * Whether a pill or a clause can be dragged to regroup the query.
+ *
+ * Off for this round: the sentence is read and cleared, not rearranged. The
+ * drag itself, its drop targets and the settle after it are all still here and
+ * still wired — the flag is the only thing holding them shut — so turning
+ * arranging back on is this line and nothing else.
+ */
+export const ARRANGE_ENABLED = false
+
 /** The whole condition, as a line of words, for the ghost that follows the pointer. */
-const clauseLabel = (condition: Condition) =>
-  `${operatorWord(condition)} ${condition.values.join(` ${condition.join} `)}`
+const clauseLabel = (condition: Condition) => clauseWords(condition)
 
 /**
- * A value. Filled, so it reads as an object you can grab — and it can be
- * grabbed. In a group of values it carries just itself, to be pulled out into
+ * A value. Filled, so it reads as an object in its own right, and with
+ * `ARRANGE_ENABLED` it is one you can pick up. In a group of values it carries
+ * just itself, to be pulled out into
  * a condition of its own or merged into another group on the same attribute.
  * Alone in its condition it carries the whole condition, which can be
  * reordered or merged but has nothing to be pulled out of.
@@ -191,18 +201,20 @@ function ClauseSpan({
           (mergeTarget || landed === "clause") && "bg-brand-wash ring-brand-border ring-1",
         )}
       >
-        {/* The clause's head word is the handle for the whole condition, so a
-            group of values can be reordered as a group. */}
+        {/* The attribute names the clause and is the handle for the whole
+            condition, so a group of values can be reordered as a group. */}
         <LogicWord
-          negated={negated}
           onDragStart={
             arrangeable && context
               ? (event) => context.beginDrag(event, { kind: "condition", id: condition.id }, clauseLabel(condition))
               : undefined
           }
         >
-          {operatorWord(condition)}
+          {attributeWord(condition)}
         </LogicWord>{" "}
+        {/* Keeping or dropping. The only thing separating the two is this word,
+            so an excluded clause carries it at full strength. */}
+        <LogicWord negated={negated}>{operatorWord(condition)}</LogicWord>{" "}
         {condition.values.map((value, i) => (
           <React.Fragment key={value}>
             {i > 0 ? (
@@ -342,11 +354,14 @@ export function QuerySentence({
 }) {
   const context = useArrange()
   const { container, track } = useReflow(context?.landed?.token)
+  // The one place the flag meets the prop: nothing below this line asks whether
+  // arranging is switched on, only whether this sentence is arrangeable.
+  const arrange = ARRANGE_ENABLED && arrangeable
   useDropSurface(
     "sentence",
     container,
     (x, y, payload) => resolveSentence(x, y, payload, conditions, container.current),
-    arrangeable,
+    arrange,
   )
 
   return (
@@ -354,7 +369,6 @@ export function QuerySentence({
       ref={container as React.RefObject<HTMLParagraphElement | null>}
       className="max-w-[74ch] text-[22px] leading-[2.05] font-normal tracking-[-0.01em]"
     >
-      <span>Drugs </span>
       {conditions.map((condition, i) => (
         <React.Fragment key={condition.id}>
           {/* Outside the clause's nowrap unit: the only place a line may break. */}
@@ -365,7 +379,7 @@ export function QuerySentence({
             comma={i < conditions.length - 1}
             handlers={handlers}
             removable={conditions.length > 1}
-            arrangeable={arrangeable}
+            arrangeable={arrange}
             track={track(condition.id)}
           />
         </React.Fragment>

@@ -5,6 +5,7 @@ import {
   valuesByAttribute,
   type Condition,
 } from "@/flows/sprint-4/idea-2/data"
+import { attributeHeadings } from "@/flows/sprint-4/idea-2/grammar"
 
 /**
  * Turning typed English into the query.
@@ -370,6 +371,17 @@ function pickSpans(text: string) {
       for (const { start, end } of findAll(text, plain(pattern))) {
         candidates.push({ start, end, values: [], note: entry.note })
       }
+    }
+  }
+
+  /* The attribute names the sentence prints. Read as grammar, the way `is` and
+     `not` are: a heading carries no attribute and no note, so it is neither a
+     condition nor something the resolver failed to place. Longest match wins
+     below, which is what keeps `Gene Therapy Vector` off Molecule Type and
+     `Mono/Combination Drug` off both of its own values. */
+  for (const heading of attributeHeadings) {
+    for (const { start, end } of findAll(text, plain(heading))) {
+      candidates.push({ start, end, values: [] })
     }
   }
 

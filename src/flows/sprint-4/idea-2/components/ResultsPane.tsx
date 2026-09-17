@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon } from "lucide-react"
+import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon, FolderTreeIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { StageBadge } from "@/components/prototype/StageBadge"
@@ -69,6 +69,8 @@ export function ResultsPane({
   rows,
   active,
   onOpenRecord,
+  explorerOpen,
+  onToggleExplorer,
   className,
 }: {
   rows: DrugRow[]
@@ -76,6 +78,9 @@ export function ResultsPane({
   active: boolean
   /** `Open` on a drug name: the whole record, in a drawer over a scrim. */
   onOpenRecord: (id: string) => void
+  explorerOpen: boolean
+  /** `Explorer` splits the tree in beside the results, and closes it again. */
+  onToggleExplorer: () => void
   className?: string
 }) {
   const [sort, setSort] = React.useState<Sort | null>(null)
@@ -103,7 +108,7 @@ export function ResultsPane({
               key={column.key}
               aria-sort={isSorted ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
               className={cn(
-                "bg-surface-panel text-muted-foreground border-edge border-b px-3 py-2.5 text-left text-[10px] font-medium tracking-[0.08em] whitespace-nowrap uppercase",
+                "bg-surface-panel text-muted-foreground border-edge h-9 border-b px-3 text-left text-[10px] font-medium tracking-[0.08em] whitespace-nowrap uppercase",
                 i === 0 && "sticky left-0 z-10 border-r pl-(--text-inset)",
                 i === columns.length - 1 && "pr-(--text-inset)",
               )}
@@ -143,9 +148,43 @@ export function ResultsPane({
     </thead>
   )
 
+  // The explorer is reached from the head of the results in both states, so a
+  // cold start has a way into the taxonomy without typing anything first.
+  const toolbar = (
+    <div className="bg-surface-panel text-muted-foreground flex h-11 shrink-0 items-center justify-between gap-4 px-(--text-inset) text-xs">
+      <button
+        type="button"
+        onClick={onToggleExplorer}
+        aria-pressed={explorerOpen}
+        className={cn(
+          "-ml-1.5 flex h-7 items-center gap-1.5 rounded-md px-1.5 font-medium transition-colors",
+          explorerOpen
+            ? "bg-brand-tint border-brand-border text-foreground border"
+            : "hover:bg-accent hover:text-foreground",
+        )}
+      >
+        <FolderTreeIcon className="size-3.5" />
+        Explorer
+      </button>
+      {active ? (
+        <span className="ml-auto tabular-nums">
+          {rows.length === 0
+            ? "No drugs in the sample match this query"
+            : `Showing 1–${shown.length} of ${rows.length.toLocaleString("en-GB")} sampled drugs`}
+        </span>
+      ) : null}
+      {active && sort && sortedLabel ? (
+        <span className="truncate">
+          Sorted by {sortedLabel}, {sort.dir === "asc" ? "A–Z" : "Z–A"}
+        </span>
+      ) : null}
+    </div>
+  )
+
   if (!active) {
     return (
-      <section className={cn("bg-surface-chrome flex min-h-0 min-w-0 flex-col", className)}>
+      <section className={cn("bg-surface-panel flex min-h-0 min-w-0 flex-col", className)}>
+        {toolbar}
         <div className="shrink-0 overflow-hidden">
           <table className="w-full border-collapse text-[13px]">{head}</table>
         </div>
@@ -155,21 +194,10 @@ export function ResultsPane({
   }
 
   return (
-    <section className={cn("bg-surface-page flex min-h-0 min-w-0 flex-col", className)}>
-      <div className="bg-surface-panel text-muted-foreground flex h-11 shrink-0 items-center justify-between gap-4 px-(--text-inset) text-xs">
-        <span className="tabular-nums">
-          {rows.length === 0
-            ? "No drugs in the sample match this query"
-            : `Showing 1–${shown.length} of ${rows.length.toLocaleString("en-GB")} sampled drugs`}
-        </span>
-        {sort && sortedLabel ? (
-          <span className="truncate">
-            Sorted by {sortedLabel}, {sort.dir === "asc" ? "A–Z" : "Z–A"}
-          </span>
-        ) : null}
-      </div>
+    <section className={cn("bg-surface-panel flex min-h-0 min-w-0 flex-col", className)}>
+      {toolbar}
 
-      <div className="bg-surface-chrome border-edge min-h-0 flex-1 overflow-auto border-t">
+      <div className="bg-surface-panel min-h-0 flex-1 overflow-auto">
         <table className="w-full border-collapse text-[13px]">
           {head}
           <tbody>
@@ -182,7 +210,7 @@ export function ResultsPane({
             ) : (
               shown.map((row) => (
                 <tr key={row.id} className="group/row border-hairline border-b last:border-0">
-                  <td className="bg-surface-chrome group-hover/row:bg-surface-page border-edge sticky left-0 z-10 border-r py-2.5 pr-3 pl-(--text-inset) font-medium whitespace-nowrap transition-colors">
+                  <td className="bg-surface-panel group-hover/row:bg-accent border-hairline sticky left-0 z-10 border-r py-2.5 pr-3 pl-(--text-inset) font-medium whitespace-nowrap transition-colors">
                     {/*
                       The name keeps the button's width permanently rather than
                       on hover. Sprint 3 Idea 2 animated that room in and the
@@ -207,7 +235,7 @@ export function ResultsPane({
                   </td>
                   <Cell>{row.company}</Cell>
                   <Cell>{row.indication}</Cell>
-                  <td className="group-hover/row:bg-surface-page px-3 py-2.5 transition-colors">
+                  <td className="group-hover/row:bg-accent px-3 py-2.5 transition-colors">
                     <StageBadge stage={row.stage} />
                   </td>
                   <Cell>{row.country}</Cell>
@@ -228,7 +256,7 @@ function Cell({ children, className }: { children: React.ReactNode; className?: 
   return (
     <td
       className={cn(
-        "text-muted-foreground group-hover/row:bg-surface-page px-3 py-2.5 whitespace-nowrap transition-colors",
+        "text-muted-foreground group-hover/row:bg-accent px-3 py-2.5 whitespace-nowrap transition-colors",
         className,
       )}
     >
