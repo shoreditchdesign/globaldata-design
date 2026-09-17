@@ -156,24 +156,26 @@ export function LandingPage({
               })}
             </nav>
 
-            {activeCategory ? (
-              <nav
-                key={activeCategory}
-                id={`search-category-${activeCategory.toLowerCase().replaceAll(" ", "-")}`}
-                aria-label={`${activeCategory} filters`}
-                className="animate-in fade-in slide-in-from-top-2 mt-4 flex flex-wrap justify-center gap-2 duration-300"
-              >
-                {searchCategoryChildren[activeCategory].map((child) => (
-                  <button
-                    key={child}
-                    type="button"
-                    className="bg-surface-sunken border-border text-foreground hover:bg-accent inline-flex min-h-8 items-center rounded-full border px-3.5 py-1.5 text-[13px] transition-colors"
-                  >
-                    {child}
-                  </button>
-                ))}
-              </nav>
-            ) : null}
+            <div className="mt-4 h-28">
+              {activeCategory ? (
+                <nav
+                  key={activeCategory}
+                  id={`search-category-${activeCategory.toLowerCase().replaceAll(" ", "-")}`}
+                  aria-label={`${activeCategory} filters`}
+                  className="animate-in fade-in slide-in-from-top-2 flex flex-wrap justify-center gap-2 duration-300"
+                >
+                  {searchCategoryChildren[activeCategory].map((child) => (
+                    <button
+                      key={child}
+                      type="button"
+                      className="bg-surface-sunken border-border text-foreground hover:bg-accent inline-flex min-h-8 items-center rounded-full border px-3.5 py-1.5 text-[13px] transition-colors"
+                    >
+                      {child}
+                    </button>
+                  ))}
+                </nav>
+              ) : null}
+            </div>
           </div>
         )}
       </section>
