@@ -201,7 +201,7 @@ export function ExplorerTree({
     })
 
   return (
-    <section className={cn("bg-surface-chrome flex min-h-0 flex-col", className)}>
+    <section className={cn("bg-surface-panel flex min-h-0 flex-col", className)}>
       {/*
         The head of the tree is built to the same line as the head of the
         results across the split: the toolbar's 44px and the column heads' 36px,
@@ -274,7 +274,7 @@ export function ExplorerTree({
               />
 
               {isOpen ? (
-                <Branch recessed>
+                <Branch>
                   {shown.map((value) => {
                     const children = childrenByValue[value.label] ?? []
                     const valueKey = keyOf(attribute, value.label)
@@ -357,19 +357,10 @@ function searchHit(attribute: string, values: { label: string }[], query: string
  * One level of nesting, with the rule that traces it back to its parent — the
  * line a file tree is read by once the labels are long enough to lose the eye.
  */
-function Branch({ children, recessed }: { children: React.ReactNode; recessed?: boolean }) {
-  return (
-    <div
-      className={cn(
-        "border-border ml-[9px] border-l pl-2",
-        // An open attribute is a well cut into the card, not another plane on
-        // top of it, so the level below the first is recessed rather than white.
-        recessed && "bg-surface-sunken -mr-1 rounded-r-md py-1 pr-1",
-      )}
-    >
-      {children}
-    </div>
-  )
+function Branch({ children }: { children: React.ReactNode }) {
+  // The rule is the whole of the nesting. A fill under an open branch was one
+  // plane too many next to the tinted row of the attribute it belongs to.
+  return <div className="border-border ml-[9px] border-l pl-2">{children}</div>
 }
 
 function Row({

@@ -145,3 +145,13 @@ Austin reworked the idea around three ways to build the same query, and the logi
 **The explorer's plane is a middle grey.** Its body takes `surface-chrome`, between the white of its own header and apply rail and the page grey behind the cards, so the panel reads as a distinct surface without becoming a white card that competes with the results. Both the tree and the grid now carry `shadow-raised`, the same lift the box has, so the three cards read as one family on the page.
 
 Austin's Paper frames for both of these could not be opened — the Paper MCP server did not connect in this session — so this was built from his description and is for him to correct against the file.
+
+## 2026-09-18 — Idea 2, the grey comes back out
+
+Austin reversed the two greys added earlier the same day, and both reversals hold.
+
+**The explorer is white again, and an open branch has no fill.** The middle grey read as murky rather than as a distinct plane, and a fill under an open branch was one surface too many beside the tinted row of the attribute it hangs from. The rule down the left is the whole of the nesting now, which is what a file tree actually uses.
+
+**An active filter chip is the primary button.** A chip holding values takes the brand fill with a white label and its count inline in brackets, `Drug Geography (2)`, rather than a washed tint with a solid badge sitting on it. This is a chip you pressed and that is on, which is the accent's own job in `CLAUDE.md`; the tint stays for the inline pills in the sentence, so the two do not read as the same control.
+
+**The grid's rows carry the tint, the heads keep the white.** Floating the panes as cards cost the table the contrast it had when its head was the only white thing on a grey plane. The rows now sit on the same faintly blue grey the explorer reads on, with every other row a step darker, so a row is easy to follow across eight columns, and the column heads stay white above them. The pinned name column takes its row's own fill rather than setting one, so the stripe runs unbroken under it.
