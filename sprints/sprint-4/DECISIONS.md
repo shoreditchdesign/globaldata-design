@@ -135,3 +135,13 @@ Austin reworked the idea around three ways to build the same query, and the logi
 **Three cards on a grey page.** The box, the explorer and the results each sit on their own card with the same outer gutter and the same inner padding, rather than the box floating over two full-bleed panes. That fixed the `Explorer` control reading as closer to the table than to the tree it opens, and it means the shared inset only has to hold inside a card: `--text-inset` is now the card's padding plus its border, not the sum of the page gutter as well.
 
 **Hierarchy inside the tree.** The first level sits on the card's own white with more height per row; an open branch is recessed into `surface-sunken`, which is what that surface is for — a well cut into a panel, so an open attribute reads as opened rather than as a second plane laid on top.
+
+## 2026-09-18 — Idea 2, one rail under the box, and two views of the results
+
+**The card's foot is one grey rail.** The filter chips sit on the left of it and what the query costs sits on the right: the count, Undo, Clear all, and Resolve while a line is being written, or Edit once it has resolved. The count lost its 34px column on the right of the card, which was a headline number in a place nothing else was happening; as a figure on the rail it sits beside the buttons that change it. Everything a query can be built or undone with is now on one band, whichever of the three ways in was used.
+
+**Standard and Explorer are two views, not a toggle with an on state.** The head of the results carries a segmented control rather than a single button that lights up. Standard is the grid on its own; Explorer brings the tree in beside it. The selected segment is white on a muted track, the same treatment the box's own toggle had before it was removed.
+
+**The explorer's plane is a middle grey.** Its body takes `surface-chrome`, between the white of its own header and apply rail and the page grey behind the cards, so the panel reads as a distinct surface without becoming a white card that competes with the results. Both the tree and the grid now carry `shadow-raised`, the same lift the box has, so the three cards read as one family on the page.
+
+Austin's Paper frames for both of these could not be opened — the Paper MCP server did not connect in this session — so this was built from his description and is for him to correct against the file.

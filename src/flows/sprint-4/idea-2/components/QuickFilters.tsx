@@ -65,10 +65,7 @@ export function QuickFilters({
 
   return (
     <div
-      className={cn(
-        "bg-surface-sunken flex flex-wrap items-center gap-1.5 rounded-lg p-1.5",
-        className,
-      )}
+      className={cn("flex flex-wrap items-center gap-1.5", className)}
     >
       {quickAttributes.map((attribute) => (
         <FilterChip
@@ -80,7 +77,7 @@ export function QuickFilters({
         />
       ))}
       {total > 0 ? (
-        <span className="text-muted-foreground ml-auto pr-1 text-xs tabular-nums">
+        <span className="text-muted-foreground text-xs tabular-nums">
           {total} {total === 1 ? "filter" : "filters"}
         </span>
       ) : null}
