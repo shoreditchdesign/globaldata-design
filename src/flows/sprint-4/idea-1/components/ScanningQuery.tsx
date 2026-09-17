@@ -40,18 +40,21 @@ export function ScanningQuery({
       aria-label="Reading your request"
       className="pointer-events-none absolute inset-0 flex h-16 items-center overflow-hidden whitespace-nowrap text-base"
     >
-      {segments.map((segment, index) => (
-        <span
-          key={`${segment.text}:${index}`}
-          style={segment.matched ? staggerDelay(segment.rank) : undefined}
-          className={cn(
-            "ease-settle transition-colors duration-300 motion-reduce:transition-none",
-            segment.matched && stage === 1 && "bg-brand-tint text-brand-ink rounded px-0.5",
-          )}
-        >
-          {segment.text}
-        </span>
-      ))}
+      {/* One inline run: as separate flex items, each segment's edge spaces collapsed. */}
+      <span className="whitespace-pre">
+        {segments.map((segment, index) => (
+          <span
+            key={`${segment.text}:${index}`}
+            style={segment.matched ? staggerDelay(segment.rank) : undefined}
+            className={cn(
+              "ease-settle transition-colors duration-300 motion-reduce:transition-none",
+              segment.matched && stage === 1 && "bg-brand-tint text-brand-ink -mx-0.5 rounded px-0.5",
+            )}
+          >
+            {segment.text}
+          </span>
+        ))}
+      </span>
     </p>
   )
 }
