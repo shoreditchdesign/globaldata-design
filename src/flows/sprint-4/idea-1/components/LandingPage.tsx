@@ -6,7 +6,8 @@ import { ResolvedFilters } from "@/flows/sprint-4/idea-1/components/ResolvedFilt
 import { ScanningQuery } from "@/flows/sprint-4/idea-1/components/ScanningQuery"
 import {
   searchCategories,
-  searchCategoryChildren,
+  searchAttributeLabels,
+  searchAttributeValues,
   type FilterId,
   type FilterJoin,
   type FilterLink,
@@ -23,6 +24,9 @@ export function LandingPage({
   onModeChange,
   onQueryChange,
   onCategoryChange,
+  activeAttribute,
+  onAttributeChange,
+  onValuePick,
   onResolve,
   hasResolvedFilters,
   filters,
@@ -43,6 +47,9 @@ export function LandingPage({
   onModeChange: (mode: SearchMode) => void
   onQueryChange: (query: string) => void
   onCategoryChange: (category: ProductArea) => void
+  activeAttribute: string | null
+  onAttributeChange: (attribute: string) => void
+  onValuePick: (value: string) => void
   onResolve: () => void
   hasResolvedFilters: boolean
   filters: ResolvedFilter[]
@@ -62,7 +69,7 @@ export function LandingPage({
 
   return (
     <main className="bg-surface-page min-h-0 flex-1 overflow-y-auto">
-      <section className="mx-auto flex min-h-full w-full max-w-4xl -translate-y-[46px] flex-col items-center justify-center px-8 py-16">
+      <section className="mx-auto flex min-h-full w-full max-w-4xl translate-y-[18px] flex-col items-center justify-center px-8 py-16">
         <div
           role="tablist"
           aria-label="Search method"
@@ -144,7 +151,7 @@ export function LandingPage({
                     key={category}
                     type="button"
                     aria-expanded={active}
-                    aria-controls={`search-category-${category.toLowerCase().replaceAll(" ", "-")}`}
+                    aria-controls={`search-category-${slugify(category)}`}
                     onClick={() => onCategoryChange(category)}
                     className={cn(
                       "bg-surface-panel border-border hover:bg-accent inline-flex h-8 items-center rounded-full border px-3.5 text-[13px] transition-[color,background-color,border-color,opacity]",
@@ -162,17 +169,51 @@ export function LandingPage({
               {activeCategory ? (
                 <nav
                   key={activeCategory}
-                  id={`search-category-${activeCategory.toLowerCase().replaceAll(" ", "-")}`}
+                  id={`search-category-${slugify(activeCategory)}`}
                   aria-label={`${activeCategory} filters`}
                   className="animate-in fade-in slide-in-from-top-2 flex flex-wrap justify-center gap-2 duration-300"
                 >
-                  {searchCategoryChildren[activeCategory].map((child) => (
+                  {searchAttributeLabels(activeCategory).map((child) => {
+                    const active = activeAttribute === child
+                    const inactive = activeAttribute !== null && !active
+
+                    return (
+                      <button
+                        key={child}
+                        type="button"
+                        aria-expanded={active}
+                        aria-controls={`search-attribute-${slugify(child)}`}
+                        onClick={() => onAttributeChange(child)}
+                        className={cn(
+                          "bg-surface-sunken border-border text-foreground hover:bg-accent inline-flex min-h-8 items-center rounded-full border px-3.5 py-1.5 text-[13px] transition-[color,background-color,border-color,opacity]",
+                          active && "bg-foreground text-background border-foreground hover:bg-foreground/90",
+                          inactive && "opacity-35 hover:opacity-70",
+                        )}
+                      >
+                        {child}
+                      </button>
+                    )
+                  })}
+                </nav>
+              ) : null}
+            </div>
+
+            <div className="mt-4 h-28">
+              {activeCategory && activeAttribute ? (
+                <nav
+                  key={`${activeCategory}/${activeAttribute}`}
+                  id={`search-attribute-${slugify(activeAttribute)}`}
+                  aria-label={`${activeAttribute} values`}
+                  className="animate-in fade-in slide-in-from-top-2 flex flex-wrap justify-center gap-2 duration-300"
+                >
+                  {searchAttributeValues(activeCategory, activeAttribute).map((value) => (
                     <button
-                      key={child}
+                      key={value}
                       type="button"
-                      className="bg-surface-sunken border-border text-foreground hover:bg-accent inline-flex min-h-8 items-center rounded-full border px-3.5 py-1.5 text-[13px] transition-colors"
+                      onClick={() => onValuePick(value)}
+                      className="bg-surface-panel border-border text-foreground hover:bg-accent inline-flex min-h-8 items-center rounded-full border px-3.5 py-1.5 text-[13px] transition-colors"
                     >
-                      {child}
+                      {value}
                     </button>
                   ))}
                 </nav>
@@ -183,6 +224,10 @@ export function LandingPage({
       </section>
     </main>
   )
+}
+
+function slugify(label: string) {
+  return label.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")
 }
 
 function SearchTab({

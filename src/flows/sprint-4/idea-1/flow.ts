@@ -21,6 +21,20 @@ export const sprint4Idea1: Flow = {
       component: Start,
     },
     {
+      slug: "values",
+      title: "Attribute values",
+      note: "Drugs → Therapy Area / Indication opens a third layer of pills with that attribute's values.",
+      viewport: "desktop",
+      component: Start,
+    },
+    {
+      slug: "picked",
+      title: "Filter from a path",
+      note: "Picking a value builds the same filter box as a resolved query, holding one filter for the path.",
+      viewport: "desktop",
+      component: Start,
+    },
+    {
       slug: "resolving",
       title: "Reading the query",
       note: "Recognised phrases flash in place before the Float-style filters update.",
