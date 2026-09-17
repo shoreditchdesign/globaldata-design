@@ -13,7 +13,7 @@
  */
 
 import { applyDrop, newConditionId, normaliseConditions } from "@/flows/sprint-4/idea-2/arrange"
-import { type Condition } from "@/flows/sprint-4/idea-2/data"
+import { matchingRows, type Condition } from "@/flows/sprint-4/idea-2/data"
 import { resolveQuery, type Resolution } from "@/flows/sprint-4/idea-2/resolve"
 
 export type Phase = "compose" | "resolving" | "resolved"
@@ -43,6 +43,11 @@ export interface ScreenerState {
   /** The query being read, held for the length of the resolve animation. */
   pending: Resolution | null
   view: View
+  /**
+   * The drug whose record is open, as an id rather than a row. The row is looked
+   * up in the filtered set, so a query that drops the drug closes the drawer.
+   */
+  recordId: string | null
 }
 
 export const blankQuery: Query = { conditions: [], raw: "", resolution: null, edited: false }
@@ -200,6 +205,7 @@ const base: ScreenerState = {
   failure: null,
   pending: null,
   view: "sentence",
+  recordId: null,
 }
 
 const resolved: ScreenerState = {
@@ -272,6 +278,7 @@ export const initialStates: Record<string, ScreenerState> = {
   typed: { ...base, draft: workedPrompt },
   sentence: resolved,
   "logic-gate": { ...resolved, view: "logic" },
+  record: { ...resolved, recordId: matchingRows(worked.conditions)[0]?.id ?? null },
   "pulled-apart": {
     ...base,
     ...pullApart(),
@@ -295,7 +302,10 @@ export function initialState(slug: string): ScreenerState {
  * so landing on a deep link never rewrites it.
  */
 export function slugFor(state: ScreenerState): string {
-  const { query, view, phase, draft } = state
+  const { query, view, phase, draft, recordId } = state
+
+  // The drawer only ever holds a drug the query matches, so it outranks the rest.
+  if (recordId && query.conditions.length > 0) return "record"
 
   if (query.conditions.length === 0) {
     if (view === "logic") return "logic-empty"
