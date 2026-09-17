@@ -427,7 +427,7 @@ export function Screener() {
                 conditions={conditions}
                 onApply={applyTicks}
                 onClose={() => setView("sentence")}
-                className="border-border shadow-raised h-full overflow-hidden rounded-xl border"
+                className="border-edge shadow-float h-full overflow-hidden rounded-xl border"
               />
             </div>
           </div>
