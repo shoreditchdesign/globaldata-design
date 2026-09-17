@@ -1,8 +1,10 @@
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import {
+  pathOf,
   searchAttributeLabels,
   searchAttributeValues,
   searchCategories,
+  type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1/data"
 import { cn } from "@/lib/utils"
 
@@ -13,6 +15,7 @@ import { cn } from "@/lib/utils"
  */
 export function SearchPills({
   layout,
+  filters,
   activeCategory,
   activeAttribute,
   onCategoryChange,
@@ -20,6 +23,8 @@ export function SearchPills({
   onValuePick,
 }: {
   layout: "centered" | "panel"
+  /** The filters in the box, however they were built, counted onto the pills. */
+  filters: ResolvedFilter[]
   activeCategory: ProductArea | null
   activeAttribute: string | null
   onCategoryChange: (category: ProductArea) => void
@@ -27,6 +32,11 @@ export function SearchPills({
   onValuePick: (value: string) => void
 }) {
   const justify = layout === "centered" ? "justify-center" : "justify-start"
+  const paths = filters.map((filter) => ({ ...pathOf(filter.id), values: filter.values.length }))
+  // An area counts its filters; an attribute counts the values its filter holds.
+  const areaCount = (area: ProductArea) => paths.filter((path) => path.area === area).length
+  const attributeCount = (area: ProductArea, attribute: string) =>
+    paths.find((path) => path.area === area && path.attribute === attribute)?.values ?? 0
 
   return (
     <div className="w-full">
@@ -49,6 +59,7 @@ export function SearchPills({
               )}
             >
               {category}
+              <FilterCount count={areaCount(category)} noun="filter" />
             </button>
           )
         })}
@@ -87,6 +98,7 @@ export function SearchPills({
                   )}
                 >
                   {child}
+                  <FilterCount count={attributeCount(activeCategory, child)} noun="value" />
                 </button>
               )
             })}
@@ -117,6 +129,19 @@ export function SearchPills({
         ) : null}
       </div>
     </div>
+  )
+}
+
+/** A small count on a pill: how much of the filter box sits under it. */
+function FilterCount({ count, noun }: { count: number; noun: string }) {
+  if (count === 0) return null
+  return (
+    <span
+      aria-label={`${count} ${noun}${count === 1 ? "" : "s"} applied`}
+      className="bg-brand-tint text-brand-ink ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-none font-medium tabular-nums"
+    >
+      {count}
+    </span>
   )
 }
 

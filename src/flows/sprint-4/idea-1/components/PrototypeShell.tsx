@@ -180,6 +180,7 @@ export function PrototypeShell() {
               query={state.query}
               activeCategory={state.activeCategory}
               activeAttribute={state.activeAttribute}
+              filters={state.filters}
               pending={state.pending}
               onModeChange={setMode}
               onQueryChange={setQuery}
@@ -208,6 +209,7 @@ export function PrototypeShell() {
         onAttributeChange={toggleAttribute}
         onValuePick={pickValue}
         onResolve={submitQuery}
+        filters={state.filters}
         hasResolvedFilters={Boolean(state.submittedQuery || state.path)}
         filterBox={state.submittedQuery || state.path ? filterBox : null}
         pending={state.pending}

@@ -279,6 +279,13 @@ const authoredPaths: Partial<Record<FilterId, AuthoredFilterId>> = {
   "Drugs/Drug Geography": "geography",
 }
 
+/** Where a filter sits in the pill path, whether a query or a pill built it. */
+export function pathOf(id: FilterId): { area: ProductArea; attribute: string } {
+  const pathId = (Object.keys(authoredPaths) as FilterId[]).find((key) => authoredPaths[key] === id) ?? id
+  const area = searchCategories.find((item) => pathId.startsWith(`${item}/`)) as ProductArea
+  return { area, attribute: pathId.slice(area.length + 1) }
+}
+
 /** One definition for every attribute the pill path reaches without an authored one. */
 const pathDefinitions: FilterDefinition[] = searchCategories.flatMap((area) =>
   searchAttributes[area]

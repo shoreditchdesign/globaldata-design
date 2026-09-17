@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { ScanningQuery } from "@/flows/sprint-4/idea-1/components/ScanningQuery"
 import { SearchPills } from "@/flows/sprint-4/idea-1/components/SearchPills"
 import { SearchTabs } from "@/flows/sprint-4/idea-1/components/SearchTabs"
+import type { ResolvedFilter } from "@/flows/sprint-4/idea-1/data"
 import type { Resolution } from "@/flows/sprint-4/idea-1/resolve"
 import type { SearchMode } from "@/flows/sprint-4/idea-1/state"
 import { cn } from "@/lib/utils"
@@ -19,6 +20,7 @@ export function SearchPanel({
   query,
   activeCategory,
   activeAttribute,
+  filters,
   pending,
   onModeChange,
   onQueryChange,
@@ -32,6 +34,7 @@ export function SearchPanel({
   query: string
   activeCategory: ProductArea | null
   activeAttribute: string | null
+  filters: ResolvedFilter[]
   pending: Resolution | null
   onModeChange: (mode: SearchMode) => void
   onQueryChange: (query: string) => void
@@ -106,6 +109,7 @@ export function SearchPanel({
 
           <div className="mt-4">
             <SearchPills
+              filters={filters}
               layout="panel"
               activeCategory={activeCategory}
               activeAttribute={activeAttribute}
