@@ -50,8 +50,8 @@ export function ResolvedFilters({
   onClose?: () => void
   /**
    * `card` on the landing page, with Add filter and the search in a footer.
-   * `band` on the results page: a flush strip whose only action, Clear
-   * filters, sits at the end of the filters themselves.
+   * `band` on the results page: a flush strip whose actions, add and clear,
+   * sit at the end of the filters themselves.
    */
   variant?: "card" | "band"
 }) {
@@ -102,32 +102,36 @@ export function ResolvedFilters({
           </div>
         ))}
 
-        {band && filters.length > 0 ? (
-          <Button variant="secondary" size="sm" onClick={onClear} className="ml-1">
-            Clear filters
-          </Button>
+        {band ? (
+          <span className="ml-1 flex items-center gap-2">
+            <AddFilterMenu unused={unused} onAdd={onAdd}>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                disabled={unused.length === 0}
+                aria-label="Add filter"
+              >
+                <PlusIcon />
+              </Button>
+            </AddFilterMenu>
+            {filters.length > 0 ? (
+              <Button variant="secondary" size="sm" onClick={onClear}>
+                Clear filters
+              </Button>
+            ) : null}
+          </span>
         ) : null}
       </div>
 
       {band ? null : (
         <div className="border-hairline mt-4 flex items-center justify-between gap-4 border-t pt-4">
           <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" disabled={unused.length === 0}>
-                  <PlusIcon />
-                  Add filter
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56">
-                <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                {unused.map((definition) => (
-                  <DropdownMenuItem key={definition.id} onSelect={() => onAdd(definition.id)}>
-                    {definition.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <AddFilterMenu unused={unused} onAdd={onAdd}>
+              <Button variant="outline" size="sm" disabled={unused.length === 0}>
+                <PlusIcon />
+                Add filter
+              </Button>
+            </AddFilterMenu>
           </div>
 
           <div className="flex items-center gap-2">
@@ -148,6 +152,31 @@ export function ResolvedFilters({
         </div>
       )}
     </div>
+  )
+}
+
+/** The filter categories not yet in the box, opened from whichever trigger it wraps. */
+function AddFilterMenu({
+  unused,
+  onAdd,
+  children,
+}: {
+  unused: typeof filterDefinitions
+  onAdd: (id: FilterId) => void
+  children: React.ReactNode
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+        {unused.map((definition) => (
+          <DropdownMenuItem key={definition.id} onSelect={() => onAdd(definition.id)}>
+            {definition.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
