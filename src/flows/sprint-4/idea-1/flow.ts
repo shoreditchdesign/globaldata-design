@@ -35,6 +35,13 @@ export const sprint4Idea1: Flow = {
       component: Start,
     },
     {
+      slug: "results",
+      title: "Results",
+      note: "The worked query searched: the search panel on the left, the filter box above an AG Grid-style table of the sample rows it keeps.",
+      viewport: "desktop",
+      component: Start,
+    },
+    {
       slug: "resolving",
       title: "Reading the query",
       note: "Recognised phrases flash in place before the Float-style filters update.",

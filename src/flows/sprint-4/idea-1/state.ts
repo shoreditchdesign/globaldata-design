@@ -29,6 +29,8 @@ export interface Sprint4Idea1State {
   filters: ResolvedFilter[]
   /** A synchronous resolution held on screen while its phrases are scanned. */
   pending: Resolution | null
+  /** The filters the last search ran. Set once searched, it moves the screen to the results. */
+  appliedFilters: ResolvedFilter[] | null
 }
 
 const startState = (): Sprint4Idea1State => ({
@@ -40,6 +42,7 @@ const startState = (): Sprint4Idea1State => ({
   submittedQuery: null,
   filters: [],
   pending: null,
+  appliedFilters: null,
 })
 
 const filteredState = (): Sprint4Idea1State => ({
@@ -51,6 +54,7 @@ const filteredState = (): Sprint4Idea1State => ({
   submittedQuery: workedQuery,
   filters: initialResolvedFilters(),
   pending: null,
+  appliedFilters: null,
 })
 
 const valuesState = (): Sprint4Idea1State => ({
@@ -80,6 +84,12 @@ const resolvingState = (): Sprint4Idea1State => ({
   submittedQuery: null,
   filters: [],
   pending: resolveQuery(workedQuery),
+  appliedFilters: null,
+})
+
+const resultsState = (): Sprint4Idea1State => ({
+  ...filteredState(),
+  appliedFilters: initialResolvedFilters(),
 })
 
 /** Seed the living screen from its URL. Unknown states return to the start. */
@@ -89,6 +99,8 @@ export function initialState(slug: string): Sprint4Idea1State {
       return valuesState()
     case "picked":
       return pickedState()
+    case "results":
+      return resultsState()
     case "resolving":
       return resolvingState()
     case "filters":
@@ -101,6 +113,7 @@ export function initialState(slug: string): Sprint4Idea1State {
 
 /** Keep the address bar aligned with the state currently on screen. */
 export function slugFor(state: Sprint4Idea1State) {
+  if (state.appliedFilters) return "results"
   if (state.pending) return "resolving"
   if (state.submittedQuery) return "filters"
   if (state.path) return "picked"

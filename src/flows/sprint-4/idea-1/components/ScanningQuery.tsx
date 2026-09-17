@@ -23,9 +23,12 @@ interface Segment {
 export function ScanningQuery({
   resolution,
   onDone,
+  multiline = false,
 }: {
   resolution: Resolution
   onDone: () => void
+  /** Wrap over a textarea rather than sit on one line over an input. */
+  multiline?: boolean
 }) {
   const stage = useStagedSequence({
     marks: [resolveMarks.highlight, resolveMarks.structure],
@@ -38,10 +41,15 @@ export function ScanningQuery({
     <p
       role="status"
       aria-label="Reading your request"
-      className="pointer-events-none absolute inset-0 flex h-16 items-center overflow-hidden whitespace-nowrap text-base"
+      className={cn(
+        "pointer-events-none absolute inset-0 overflow-hidden",
+        multiline
+          ? "text-[13px] leading-5 wrap-break-word"
+          : "flex h-16 items-center text-base whitespace-nowrap",
+      )}
     >
       {/* One inline run: as separate flex items, each segment's edge spaces collapsed. */}
-      <span className="whitespace-pre">
+      <span className={multiline ? "whitespace-pre-wrap" : "whitespace-pre"}>
         {segments.map((segment, index) => (
           <span
             key={`${segment.text}:${index}`}
