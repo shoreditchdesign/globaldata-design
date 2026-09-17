@@ -5,6 +5,7 @@ import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { SearchTabs } from "@/flows/sprint-4/idea-1/components/SearchTabs"
 import { SearchPills } from "@/flows/sprint-4/idea-1/components/SearchPills"
 import { ScanningQuery } from "@/flows/sprint-4/idea-1/components/ScanningQuery"
+import type { ResolvedFilter } from "@/flows/sprint-4/idea-1/data"
 import type { Resolution } from "@/flows/sprint-4/idea-1/resolve"
 import type { SearchMode } from "@/flows/sprint-4/idea-1/state"
 import { cn } from "@/lib/utils"
@@ -21,6 +22,7 @@ export function LandingPage({
   onValuePick,
   onResolve,
   hasResolvedFilters,
+  filters,
   filterBox,
   pending,
   onScanDone,
@@ -36,6 +38,7 @@ export function LandingPage({
   onValuePick: (value: string) => void
   onResolve: () => void
   hasResolvedFilters: boolean
+  filters: ResolvedFilter[]
   /** The filter box, when a search or a pill path has built one. It replaces the pills. */
   filterBox: React.ReactNode
   pending: Resolution | null
@@ -102,6 +105,7 @@ export function LandingPage({
           <div className="absolute inset-x-0 top-0 flex flex-col gap-5 pb-16">
             {filterBox}
             <SearchPills
+              filters={filters}
               layout="centered"
               activeCategory={activeCategory}
               activeAttribute={activeAttribute}
