@@ -172,6 +172,11 @@ export function searchAttributeValues(area: ProductArea, label: string) {
   return attributeSpec(area, label).values.map(([value]) => value)
 }
 
+/** The third layer with the authored count beside each value. */
+export function searchAttributeValueCounts(area: ProductArea, label: string) {
+  return attributeSpec(area, label).values.map(([value, count]) => ({ value, count }))
+}
+
 function attributeSpec(area: ProductArea, label: string) {
   return searchAttributes[area].find((spec) => spec.label === label) as AttributeSpec
 }
