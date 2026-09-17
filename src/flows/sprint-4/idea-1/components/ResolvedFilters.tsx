@@ -81,7 +81,7 @@ export function ResolvedFilters({
       ) : null}
       <div className={cn("flex min-h-10 flex-wrap items-center gap-2", onClose && "pr-6")}>
         {filters.length === 0 ? (
-          <p className="text-muted-foreground text-[13px]">No filters selected.</p>
+          <p className="text-muted-foreground text-[13px]">No filters selected</p>
         ) : null}
 
         {filters.map((filter, index) => (
