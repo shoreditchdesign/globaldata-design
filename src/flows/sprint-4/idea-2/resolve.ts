@@ -9,8 +9,8 @@ import {
 /**
  * Turning typed English into the query.
  *
- * Copied from Sprint 4 Idea 1, which lifted it from Sprint 3 Idea 3 and pointed
- * it at Idea 2's taxonomy, so a typed phrase lands on the same labels a value
+ * Copied from the Sprint 4 hybrid screener (commit ae56cf1), which lifted it
+ * from Sprint 3 Idea 3 and pointed it at Sprint 3 Idea 2's taxonomy, so a typed phrase lands on the same labels a value
  * picker ticks.
  *
  * **This is keyword matching, not a parser, and it does not pretend to be one.**

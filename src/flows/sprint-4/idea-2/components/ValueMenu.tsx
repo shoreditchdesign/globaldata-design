@@ -71,8 +71,8 @@ export interface MenuAction {
 
 /**
  * The value list for one attribute: every value with what picking it would
- * leave, ticked where it is already in the query. Idea 1's pill menu, used by
- * both the sentence and the canvas. The attribute need not be in the query yet
+ * leave, ticked where it is already in the query. The hybrid screener's pill
+ * menu, now opened from the canvas only. The attribute need not be in the query yet
  * — a node that has just been added has no values until one is picked here.
  */
 export function ValueMenu({

@@ -1,19 +1,19 @@
 /**
  * Static content for Sprint 4 / Idea 2 — the tucked logic gate.
  *
- * Copied from Sprint 4 Idea 1 rather than imported, because the directions stay
- * independent. It is still Sprint 3 Idea 2's fixed sample of 1,440 drug rows,
+ * Copied from the Sprint 4 hybrid screener (commit ae56cf1) rather than
+ * imported, because the directions stay independent. It is still Sprint 3 Idea 2's fixed sample of 1,440 drug rows,
  * built once at module load from weighted tables and a seeded generator, with
  * the same taxonomy. Every number on screen — the headline, the per-value counts
  * in a value picker, the running count on each node of the logic gate and the
  * rows in the grid — is counted off that one array against the query as it
  * stands, so the views of the query cannot disagree.
  *
- * Each condition carries its own link to the one before, as in Idea 1, because
+ * Each condition carries its own link to the one before, as in the hybrid, because
  * the logic gate draws every join as something you can flip.
  */
 
-/** The attributes of Drugs as the product lists them. Idea 1's labels, inlined. */
+/** The attributes of Drugs as the product lists them. The hybrid's labels, inlined. */
 const drugAttributes = [
   "Drug Name",
   "Therapy Area / Indication",
@@ -450,7 +450,7 @@ export const childrenByValue: Record<string, ValueItem[]> = Object.fromEntries(
   ]),
 )
 
-/** Therapy areas keep Idea 1's ordering; the weights are this prototype's. */
+/** Therapy areas keep the hybrid's ordering; the weights are this prototype's. */
 const therapyAreaTable: Weighted[] = therapyAreas.map(({ label }) => [
   label,
   {
@@ -911,8 +911,8 @@ export const attributeDefs: Record<string, AttributeDef> = {
 
 /**
  * The attributes of Drugs, ordered by how far each can actually split a set,
- * with the two free-text ones last. Idea 1's order, kept so the two ideas list
- * attributes the same way.
+ * with the two free-text ones last. The hybrid screener's order, kept so this
+ * idea lists attributes the way it did.
  */
 export const drugAttributeOrder = [
   "Therapy Area / Indication",

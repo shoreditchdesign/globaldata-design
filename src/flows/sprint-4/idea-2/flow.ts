@@ -2,19 +2,19 @@ import type { Flow } from "@/flows/types"
 import { Screener } from "@/flows/sprint-4/idea-2/screens/Screener"
 
 /**
- * Idea 1 with the Miller columns taken out and the logic gate moved into their
- * slot: the text box on top, the results underneath, and the AND / OR / NOT
+ * The Sprint 4 hybrid screener (in the history at `ae56cf1`) with the Miller
+ * columns taken out and the logic gate moved into their slot: the text box on top, the results underneath, and the AND / OR / NOT
  * canvas tucked away until the toggle splits the bottom half.
  */
 export const sprint4Idea2: Flow = {
   id: "idea-2",
   name: "Idea 2 — Tucked Logic Gate",
   premise:
-    "The same one-query hybrid as Idea 1, with two views instead of three: a sentence on top and the results below, and a logic gate canvas that splits the bottom half only when asked for, starting from the filters people pair most often.",
+    "The one-query hybrid screener with two views instead of three: a sentence on top and the results below, and a logic gate canvas that splits the bottom half only when asked for, starting from the filters people pair most often.",
   rationale: [
-    "Idea 1 put the text box, the Miller columns and the logic gate on screen at once, and the gate had to push a full-height sidebar in to make room. This asks whether the columns are earning their place, or whether a sentence and a gate are enough.",
+    "The first Sprint 4 hybrid put the text box, the Miller columns and the logic gate on screen at once, and the gate had to push a full-height sidebar in to make room. This asks whether the columns are earning their place, or whether a sentence and a gate are enough.",
     "The screen lands on one thing to do: a big text box, Sentence selected, and a results grid whose heads are already there with a quiet line where the rows will go.",
-    "Logic gate splits the bottom half rather than adding a pillar. The canvas takes the left, where Idea 1's columns sat, and the results keep the right. The text box stays full width in both views.",
+    "Logic gate splits the bottom half rather than adding a pillar. The canvas takes the left, where the hybrid's columns sat, and the results keep the right. The text box stays full width in both views.",
     "An empty canvas is a blank page, so it offers starting points. They are the attributes that the drug search pairing analysis shows being used together most, and once a node is on the canvas the rest reorder by what pairs with it. They wear the same blue as the pills in the sentence, with a plus to say they are still to add.",
     "The pills in the sentence can be picked up. A value in a group drags out on its own, to stand as its own condition joined with OR, or back into a group on the same attribute; a lone value, or a clause's operator word, drags the whole condition to a new place. The query reads strictly left to right, so a drop shows the count it would leave before you let go. Undo takes every move back.",
     "The sentence shows the grouping and nothing more to pick from: its pills open no dropdowns and its operator words are read, not set. Values and operators are chosen on the canvas, where each one has its counted list. From the sentence a value can still be cleared, and a condition dragged or pulled apart.",
@@ -23,7 +23,7 @@ export const sprint4Idea2: Flow = {
     "Tests: whether a gate you reach for, built on top of suggested filters, carries the Boolean work well enough that the columns can go, and whether a sentence alone is enough of a way in for everyone else.",
   ],
   source:
-    "Sprint 4 — Idea 1 (Hybrid Screener) for the query model, sample, text box and results. Through it, Sprint 3 Idea 3 (Text Input Field) for the text box and resolver, Idea 2 (Miller Columns) for the sample and taxonomy, and Idea 1 (Incumbent) for the filter-builder stack the canvas draws. No Paper source.",
+    "The Sprint 4 hybrid screener (commit ae56cf1, since taken off main) for the query model, sample, text box and results. Through it, Sprint 3 Idea 3 (Text Input Field) for the text box and resolver, Idea 2 (Miller Columns) for the sample and taxonomy, and Idea 1 (Incumbent) for the filter-builder stack the canvas draws. No Paper source.",
   lastUpdated: "2026-09-17",
   tags: ["Hybrid", "Natural language", "Logic gate", "Suggested filters", "One query, two views"],
   status: "in-progress",

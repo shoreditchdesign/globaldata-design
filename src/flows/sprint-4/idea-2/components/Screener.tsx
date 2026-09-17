@@ -52,7 +52,7 @@ const CANVAS_WIDTH = 560
  * Idea 2, as one screen: Idea 3's text box across the top with the view toggle,
  * and underneath it either the results at full width (Sentence) or the logic
  * gate canvas beside them (Logic gate). There are no Miller columns; the canvas
- * takes the slot they held in Idea 1, and it is tucked away until asked for.
+ * takes the slot they held in the Sprint 4 hybrid, and it is tucked away until asked for.
  *
  * The sentence, the canvas and the results are views of one list of conditions
  * held in one atom. A node added on the canvas, a pill dismissed from the

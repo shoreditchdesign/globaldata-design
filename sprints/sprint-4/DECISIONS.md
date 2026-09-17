@@ -109,3 +109,9 @@ What stays in the sentence is clearing and regrouping. The × on a pill and on a
 The drawer is looked up in the filtered rows, never the sample. When an edit anywhere drops the open drug, the drawer closes and forgets which drug it was, so it cannot slide back in if a later edit or Undo lets the row through again. The record id lives in the screen's one state atom, so the new `record` frame is addressable like the others.
 
 One divergence from the source: Sprint 3 Idea 2 set its drawer at 16px and 17px, and this one uses the sprint's 13px data scale with a 17px title. That way the record reads as part of the same grid it was opened from.
+
+## 2026-09-17 — Idea 1 handed to its own branch
+
+The hybrid screener that was Idea 1 has come off main, and the Idea 1 slot is a placeholder again. A colleague is picking up Idea 1 as a separate direction on their own branch, and an empty slot keeps that work from colliding with a prototype it is not building on. The routes under `/sprint-4/idea-1` stay, now showing one placeholder screen.
+
+Nothing about the hybrid is lost. Its code is in the history at `ae56cf1`, and its section at the top of this file still stands as the record of what it was. Idea 2 grew out of it, so Idea 2's copy and comments now name it as "the Sprint 4 hybrid screener" rather than "Idea 1", which would otherwise start pointing at the colleague's work. The Sprint 4 goal in the registry is rewritten to describe what is on main.
