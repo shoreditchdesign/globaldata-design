@@ -32,6 +32,7 @@ export function ResolvedFilters({
   onAdd,
   onClear,
   onSearch,
+  onClose,
   className,
 }: {
   filters: ResolvedFilter[]
@@ -45,6 +46,8 @@ export function ResolvedFilters({
   onClear: () => void
   /** Runs the search from the landing page. Omitted where results already follow the filters. */
   onSearch?: () => void
+  /** Clears the filters and closes the box. Omitted where the box is always shown. */
+  onClose?: () => void
   className?: string
 }) {
   const unused = filterDefinitions.filter(
@@ -52,8 +55,20 @@ export function ResolvedFilters({
   )
 
   return (
-    <div className={cn("bg-surface-panel border-border w-full rounded-xl border p-4", className)}>
-      <div className="flex min-h-10 flex-wrap items-center gap-2">
+    <div className={cn("bg-surface-panel border-border relative w-full rounded-xl border p-4", className)}>
+      {onClose ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          onClick={onClose}
+          aria-label="Close and clear filters"
+          className="text-muted-foreground absolute top-2 right-2"
+        >
+          <XIcon />
+        </Button>
+      ) : null}
+      <div className={cn("flex min-h-10 flex-wrap items-center gap-2", onClose && "pr-6")}>
         {filters.length === 0 ? (
           <p className="text-muted-foreground text-[13px]">No filters selected.</p>
         ) : null}
