@@ -52,7 +52,7 @@ export function SearchPanel({
       aria-label="Search"
       className="bg-surface-chrome border-edge flex w-[340px] shrink-0 flex-col border-r"
     >
-      <div className="border-edge shrink-0 border-b p-3">
+      <div className="shrink-0 px-3 pt-3">
         <SearchTabs
           mode={mode}
           onModeChange={onModeChange}
