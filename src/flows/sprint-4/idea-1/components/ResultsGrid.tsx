@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ColumnManager } from "@/flows/sprint-4/idea-1/components/ColumnManager"
-import { drugRows, type DrugRow } from "@/flows/sprint-4/idea-1/data"
+import type { DrugRow } from "@/flows/sprint-4/idea-1/results"
 import {
   columnByKey,
   columnTrack,
@@ -291,9 +291,9 @@ export function ResultsGrid({
   state,
   onAction,
 }: {
-  /** Sample rows the applied filters keep, before sorting. */
+  /** Rows the filters keep, before sorting — at most the first 100. */
   rows: DrugRow[]
-  /** The count the search promised, which the sample rows stand in for. */
+  /** Every drug the filters match, of which `rows` are the first. */
   resultCount: number
   state: GridState
   onAction: (action: GridAction) => void
@@ -407,7 +407,7 @@ export function ResultsGrid({
 
           {rows.length === 0 ? (
             <p className="text-muted-foreground sticky left-0 w-fit px-4 py-10 text-[13px]">
-              No drug in this {drugRows.length}-row sample matches these filters.
+              No drug matches these filters.
             </p>
           ) : null}
 
@@ -466,7 +466,9 @@ export function ResultsGrid({
           <span className="font-medium">{selected.length}</span>
         </span>
         <span className="text-muted-foreground ml-auto">
-          Sample of {drugRows.length} rows
+          {resultCount > rows.length
+            ? `Illustrative data · first ${rows.length} of ${resultCount.toLocaleString("en-GB")}`
+            : "Illustrative data"}
         </span>
       </div>
     </div>

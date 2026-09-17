@@ -3,7 +3,7 @@
  * adapted from Sprint 3 Idea 4's grid. Filtering is not here: the filter box
  * above the grid owns it, so the grid only sorts, arranges and selects.
  */
-import type { DrugRow } from "@/flows/sprint-4/idea-1/data"
+import type { DrugRow } from "@/flows/sprint-4/idea-1/results"
 
 export type ColumnKind = "select" | "primary" | "text" | "badge" | "tags"
 
