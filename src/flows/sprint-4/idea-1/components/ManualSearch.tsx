@@ -22,8 +22,8 @@ const VISIBLE_COLUMNS = 2
  * Manual search as Miller columns, after Sprint 3 Idea 2's filter panel:
  * filter area, then attribute, then values. Drilling in adds a column beside
  * the last rather than replacing it, and ticking a value writes it into the
- * same filter box the quick search builds. The open area and attribute are the
- * pills' own, so switching tabs keeps your place.
+ * same filter box the quick search builds. Its open path is its own, so opening
+ * a column never opens the pills.
  */
 export function ManualSearch({
   filters,

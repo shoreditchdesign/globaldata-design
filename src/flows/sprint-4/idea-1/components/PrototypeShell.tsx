@@ -95,11 +95,11 @@ export function PrototypeShell() {
   const openCategory = (category: ProductArea) =>
     setState((current) => ({
       ...current,
-      activeCategory: category,
-      activeAttribute: current.activeCategory === category ? current.activeAttribute : null,
+      manualCategory: category,
+      manualAttribute: current.manualCategory === category ? current.manualAttribute : null,
     }))
   const openAttribute = (attribute: string) =>
-    setState((current) => ({ ...current, activeAttribute: attribute }))
+    setState((current) => ({ ...current, manualAttribute: attribute }))
   const pickValue = (value: string) =>
     setState((current) =>
       current.activeCategory && current.activeAttribute
@@ -181,6 +181,9 @@ export function PrototypeShell() {
       ...current,
       pending: null,
       showResults: true,
+      // The results page opens with its pills closed.
+      activeCategory: null,
+      activeAttribute: null,
     }))
 
   const filterBox = (
@@ -222,6 +225,8 @@ export function PrototypeShell() {
               onCategoryChange={toggleCategory}
               onAttributeChange={toggleAttribute}
               onValuePick={pickValue}
+              manualCategory={state.manualCategory}
+              manualAttribute={state.manualAttribute}
               onOpenCategory={openCategory}
               onOpenAttribute={openAttribute}
               onValuePickAt={pickValueAt}
