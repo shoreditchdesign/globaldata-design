@@ -192,7 +192,14 @@ function FilterClause({
             />
           ) : null}
           <DropdownMenu>
-            <DropdownMenuTrigger className="hover:bg-foreground/5 flex min-w-0 items-center gap-1.5 border-r border-current/10 px-2.5 py-1.5 text-left transition-colors last:border-r-0">
+            <DropdownMenuTrigger
+              className={cn(
+                "hover:bg-foreground/5 flex min-w-0 items-center gap-1.5 px-2.5 py-1.5 text-left transition-colors",
+                index < filter.values.length - 1
+                  ? "border-r-0"
+                  : "border-r border-current/10",
+              )}
+            >
               <span className="max-w-64 truncate">{value}</span>
               <ChevronDownIcon className="size-3 shrink-0" />
             </DropdownMenuTrigger>
@@ -236,7 +243,7 @@ function ValueJoinControl({
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={`Match ${filter.label} values using ${filter.join}`}
-        className="hover:bg-foreground/5 flex shrink-0 items-center gap-1 border-r border-current/10 px-2 py-1.5 transition-colors"
+        className="hover:bg-foreground/5 flex shrink-0 items-center gap-1 border-x border-current/10 px-2 py-1.5 transition-colors"
       >
         {filter.join.toUpperCase()}
         <ChevronDownIcon className="size-3" />
