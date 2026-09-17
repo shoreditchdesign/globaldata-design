@@ -239,8 +239,18 @@ export function ExplorerTree({
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search"
-              className="bg-surface-sunken h-7 pl-8 text-[13px]"
+              className="bg-surface-sunken h-7 pr-7 pl-8 text-[13px]"
             />
+            {search ? (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                aria-label="Clear the search"
+                className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 absolute top-1/2 right-1.5 flex size-5 -translate-y-1/2 items-center justify-center rounded outline-none focus-visible:ring-2"
+              >
+                <XIcon className="size-3.5" />
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
@@ -276,15 +286,20 @@ export function ExplorerTree({
               {isOpen ? (
                 <Branch>
                   {shown.map((value) => {
-                    const children = childrenByValue[value.label] ?? []
+                    const all = childrenByValue[value.label] ?? []
+                    const matched = hit.children?.[value.label] ?? null
+                    const children = matched ? all.filter((child) => matched.includes(child.label)) : all
                     const valueKey = keyOf(attribute, value.label)
-                    const valueOpen = expanded.has(valueKey)
+                    // A match this deep is only reachable through its value, so
+                    // the search opens that too rather than stopping a level short.
+                    const valueOpen = expanded.has(valueKey) || matched !== null
                     return (
                       <div key={value.label}>
                         <Row
                           open={children.length > 0 ? valueOpen : undefined}
                           onToggle={children.length > 0 ? () => toggle(valueKey) : undefined}
                           label={value.label}
+                          nested={matched !== null}
                           count={counts[value.label] ?? 0}
                           checked={tickShown(attribute, value.label)}
                           onCheck={() => tick(attribute, value.label)}
@@ -341,16 +356,27 @@ export function ExplorerTree({
  * because the branch is the only way to reach what matched.
  */
 function searchHit(attribute: string, values: { label: string }[], query: string) {
-  if (!query.trim()) return { direct: false, nested: false, values: null as string[] | null }
+  if (!query.trim()) {
+    return { direct: false, nested: false, values: null as string[] | null, children: null as Record<string, string[]> | null }
+  }
   const direct = matches(attribute, query)
-  const hits = values
-    .filter(
-      (value) =>
-        matches(value.label, query) ||
-        (childrenByValue[value.label] ?? []).some((child) => matches(child.label, query)),
-    )
-    .map((value) => value.label)
-  return { direct, nested: hits.length > 0, values: direct ? null : hits }
+  const hits: string[] = []
+  // A match can be three levels down — Austria under Europe under Drug
+  // Geography — so a value is kept when it matches or when one of its children
+  // does, and the children it keeps are recorded so the branch can open on them.
+  const children: Record<string, string[]> = {}
+  for (const value of values) {
+    const own = matches(value.label, query)
+    const under = (childrenByValue[value.label] ?? [])
+      .filter((child) => matches(child.label, query))
+      .map((child) => child.label)
+    if (!own && under.length === 0) continue
+    hits.push(value.label)
+    // A value that matches on its own keeps every child; one that only holds a
+    // match shows the children that matched.
+    if (!own && under.length > 0) children[value.label] = under
+  }
+  return { direct, nested: hits.length > 0, values: direct ? null : hits, children: direct ? null : children }
 }
 
 /**
