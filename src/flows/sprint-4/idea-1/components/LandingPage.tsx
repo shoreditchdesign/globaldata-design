@@ -165,7 +165,8 @@ export function LandingPage({
               })}
             </nav>
 
-            <div className="mt-4 h-28">
+            {/* One fixed well for both layers, so each cascades straight under the last. */}
+            <div className="mt-4 h-60">
               {activeCategory ? (
                 <nav
                   key={activeCategory}
@@ -196,15 +197,13 @@ export function LandingPage({
                   })}
                 </nav>
               ) : null}
-            </div>
 
-            <div className="mt-4 h-28">
               {activeCategory && activeAttribute ? (
                 <nav
                   key={`${activeCategory}/${activeAttribute}`}
                   id={`search-attribute-${slugify(activeAttribute)}`}
                   aria-label={`${activeAttribute} values`}
-                  className="animate-in fade-in slide-in-from-top-2 flex flex-wrap justify-center gap-2 duration-300"
+                  className="mt-4 animate-in fade-in slide-in-from-top-2 flex flex-wrap justify-center gap-2 duration-300"
                 >
                   {searchAttributeValues(activeCategory, activeAttribute).map((value) => (
                     <button
