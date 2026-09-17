@@ -1,5 +1,5 @@
 import type { Flow } from "@/flows/types"
-import { makePlaceholder } from "@/flows/placeholder"
+import { Start } from "@/flows/sprint-4/idea-1/screens/Start"
 
 /**
  * Held for a second direction, being built on its own branch. The hybrid
@@ -11,13 +11,14 @@ export const sprint4Idea1: Flow = {
   name: "Idea 1 — In progress",
   premise: "Held for a second direction, in progress on its own branch.",
   lastUpdated: "2026-09-17",
-  status: "placeholder",
+  status: "in-progress",
   screens: [
     {
       slug: "start",
       title: "Start",
+      note: "Shared product chrome in place; the prototype body is ready for the new direction.",
       viewport: "desktop",
-      component: makePlaceholder("Sprint 4 — Idea 1", "In progress on its own branch."),
+      component: Start,
     },
   ],
 }
