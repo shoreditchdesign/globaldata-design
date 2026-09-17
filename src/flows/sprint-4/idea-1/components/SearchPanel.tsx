@@ -60,11 +60,14 @@ export function SearchPanel({
   const resolving = Boolean(pending)
   const fieldRef = React.useRef<HTMLTextAreaElement>(null)
 
-  // The field shows three lines and scrolls past them. The reading overlay is
-  // drawn from the top, so the field returns there while a query is read.
-  React.useEffect(() => {
-    if (resolving && fieldRef.current) fieldRef.current.scrollTop = 0
-  }, [resolving])
+  // The field hugs its text, growing a line at a time as the query wraps.
+  // Measured rather than left to `field-sizing`, which Safari does not support.
+  React.useLayoutEffect(() => {
+    const field = fieldRef.current
+    if (!field) return
+    field.style.height = "auto"
+    field.style.height = `${field.scrollHeight}px`
+  }, [query])
   const submit = () => {
     if (hasQuery && !resolving) onResolve()
   }
@@ -99,7 +102,7 @@ export function SearchPanel({
               <textarea
                 ref={fieldRef}
                 value={query}
-                rows={3}
+                rows={1}
                 onChange={(event) => onQueryChange(event.target.value)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
@@ -112,7 +115,7 @@ export function SearchPanel({
                 aria-hidden={resolving}
                 disabled={resolving}
                 className={cn(
-                  "placeholder:text-muted-foreground block h-15 w-full resize-none overflow-y-auto bg-transparent p-0 text-[13px] leading-5 wrap-break-word outline-none [scrollbar-width:none] disabled:opacity-100 [&::-webkit-scrollbar]:hidden",
+                  "placeholder:text-muted-foreground block w-full resize-none overflow-hidden bg-transparent p-0 text-[13px] leading-5 wrap-break-word outline-none disabled:opacity-100",
                   resolving && "text-transparent",
                 )}
               />
