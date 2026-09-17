@@ -1,9 +1,9 @@
 import { ArrowRightIcon, SearchIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { searchCategories } from "@/flows/sprint-4/idea-1/data"
 import type { SearchMode } from "@/flows/sprint-4/idea-1/state"
+import { cn } from "@/lib/utils"
 
 export function LandingPage({
   mode,
@@ -21,16 +21,18 @@ export function LandingPage({
   return (
     <main className="bg-surface-page min-h-0 flex-1 overflow-y-auto">
       <section className="mx-auto flex w-full max-w-4xl flex-col px-8 pt-[clamp(64px,12vh,128px)] pb-16">
-        <Tabs value={mode} onValueChange={(value) => onModeChange(value as SearchMode)}>
-          <TabsList aria-label="Search method">
-            <TabsTrigger value="quick" className="px-3">
-              Quick search
-            </TabsTrigger>
-            <TabsTrigger value="manual" className="px-3">
-              Manual search
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div
+          role="tablist"
+          aria-label="Search method"
+          className="bg-surface-sunken border-border inline-flex w-fit items-center gap-0.5 rounded-lg border p-0.5"
+        >
+          <SearchTab active={mode === "quick"} onClick={() => onModeChange("quick")}>
+            Quick search
+          </SearchTab>
+          <SearchTab active={mode === "manual"} onClick={() => onModeChange("manual")}>
+            Manual search
+          </SearchTab>
+        </div>
 
         <div className="mt-8">
           <h1 className="text-2xl font-semibold tracking-tight">Drug Database</h1>
@@ -76,5 +78,32 @@ export function LandingPage({
         </nav>
       </section>
     </main>
+  )
+}
+
+function SearchTab({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={cn(
+        "flex h-7 items-center rounded-md px-3 text-[13px] font-medium transition-colors",
+        active
+          ? "bg-surface-panel text-foreground shadow-panel"
+          : "text-muted-foreground hover:bg-accent hover:text-foreground",
+      )}
+    >
+      {children}
+    </button>
   )
 }
