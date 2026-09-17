@@ -201,7 +201,7 @@ export function ExplorerTree({
     })
 
   return (
-    <section className={cn("bg-surface-panel flex min-h-0 flex-col", className)}>
+    <section className={cn("bg-surface-chrome flex min-h-0 flex-col", className)}>
       {/*
         The head of the tree is built to the same line as the head of the
         results across the split: the toolbar's 44px and the column heads' 36px,

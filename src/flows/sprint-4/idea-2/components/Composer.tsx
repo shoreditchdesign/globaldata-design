@@ -61,6 +61,7 @@ export function Composer({
   failure,
   note,
   showSuggestions,
+  showActions = true,
 }: {
   value: string
   onChange: (value: string) => void
@@ -73,6 +74,8 @@ export function Composer({
   failure?: Resolution | null
   /** Said above the field when the prose was written back from pill edits. */
   note?: string
+  /** Off when Resolve lives in the card's own footer rather than under the field. */
+  showActions?: boolean
   showSuggestions?: boolean
 }) {
   const field = React.useRef<HTMLTextAreaElement>(null)
@@ -209,14 +212,18 @@ export function Composer({
       ) : null}
 
       <div className="mt-4 flex items-center gap-2">
-        <Button size="sm" onClick={onSubmit} disabled={value.trim().length === 0}>
-          Resolve
-          <CornerDownLeftIcon />
-        </Button>
-        {onCancel ? (
-          <Button size="sm" variant="ghost" onClick={onCancel} className="text-muted-foreground">
-            Cancel
-          </Button>
+        {showActions ? (
+          <>
+            <Button size="sm" onClick={onSubmit} disabled={value.trim().length === 0}>
+              Resolve
+              <CornerDownLeftIcon />
+            </Button>
+            {onCancel ? (
+              <Button size="sm" variant="ghost" onClick={onCancel} className="text-muted-foreground">
+                Cancel
+              </Button>
+            ) : null}
+          </>
         ) : null}
         {/* The one mention the demo shortcut gets, and only while the box is
             empty — it is unguessable, so it is named once and then gone. */}

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon, FolderTreeIcon } from "lucide-react"
+import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon, FolderTreeIcon, TableIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { StageBadge } from "@/components/prototype/StageBadge"
@@ -152,20 +152,21 @@ export function ResultsPane({
   // cold start has a way into the taxonomy without typing anything first.
   const toolbar = (
     <div className="bg-surface-panel text-muted-foreground flex h-11 shrink-0 items-center justify-between gap-4 px-(--text-inset) text-xs">
-      <button
-        type="button"
-        onClick={onToggleExplorer}
-        aria-pressed={explorerOpen}
-        className={cn(
-          "-ml-1.5 flex h-7 items-center gap-1.5 rounded-md px-1.5 font-medium transition-colors",
-          explorerOpen
-            ? "bg-brand-tint border-brand-border text-foreground border"
-            : "hover:bg-accent hover:text-foreground",
-        )}
-      >
-        <FolderTreeIcon className="size-3.5" />
-        Explorer
-      </button>
+      {/*
+        Two views of the results rather than a switch with an on state: standard
+        is the grid on its own, explorer brings the tree in beside it. The
+        selected segment is white on a muted track, as the box's own toggle was.
+      */}
+      <div className="bg-muted -ml-1 flex items-center gap-0.5 rounded-lg p-0.5">
+        <ViewTab active={!explorerOpen} onClick={() => (explorerOpen ? onToggleExplorer() : undefined)}>
+          <TableIcon className="size-3.5" />
+          Standard
+        </ViewTab>
+        <ViewTab active={explorerOpen} onClick={() => (explorerOpen ? undefined : onToggleExplorer())}>
+          <FolderTreeIcon className="size-3.5" />
+          Explorer
+        </ViewTab>
+      </div>
       {active ? (
         <span className="ml-auto tabular-nums">
           {rows.length === 0
@@ -249,6 +250,30 @@ export function ResultsPane({
         </table>
       </div>
     </section>
+  )
+}
+
+function ViewTab({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "flex h-6 items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-[background-color,color,box-shadow]",
+        active ? "bg-surface-panel text-foreground shadow-panel" : "text-muted-foreground hover:text-foreground",
+      )}
+    >
+      {children}
+    </button>
   )
 }
 

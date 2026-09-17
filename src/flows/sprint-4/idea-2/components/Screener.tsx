@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { usePathname } from "next/navigation"
-import { RotateCcwIcon } from "lucide-react"
+import { CornerDownLeftIcon, RotateCcwIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { useDeepLink } from "@/hooks/use-deep-link"
@@ -287,8 +287,8 @@ export function Screener() {
     <ArrangeProvider conditions={conditions} onCommit={commitArrangement}>
       <ProductChrome activeArea="Drugs" body="column" className={insetVars}>
         <section className="shrink-0 px-(--box-gutter) pt-5 pb-4">
-          <div className="bg-surface-panel border-border shadow-raised flex items-stretch rounded-xl border">
-            <div className="min-w-0 flex-1 px-(--box-pad) py-4">
+          <div className="bg-surface-panel border-border shadow-raised flex flex-col overflow-hidden rounded-xl border">
+            <div className="min-w-0 flex-1 px-(--box-pad) pt-4 pb-3.5">
               <div className="mb-3 flex items-center gap-3">
                 <span className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
                   Drug screener
@@ -305,6 +305,7 @@ export function Screener() {
                   }
                   onSuggestion={applySuggestion}
                   failure={failure}
+                  showActions={false}
                 />
               ) : resolving && pending ? (
                 <Resolving resolution={pending} onDone={settle} />
@@ -315,10 +316,6 @@ export function Screener() {
               {!composing && !resolving && notes.length > 0 ? (
                 <Notes notes={notes} resolution={query.resolution} onAdd={addSuggestion} />
               ) : null}
-
-              <div className="border-hairline mt-4 border-t pt-3.5">
-                <QuickFilters conditions={conditions} picks={picks} onPick={pickFilter} />
-              </div>
 
               {!composing && !resolving ? (
                 <div className="mt-3.5 flex items-baseline justify-between gap-4">
@@ -341,24 +338,35 @@ export function Screener() {
               ) : null}
             </div>
 
-            <div className="border-edge flex w-[200px] shrink-0 flex-col gap-3 border-l px-(--box-pad) py-4">
-              <div>
-                <p
-                  className={cn(
-                    "ease-settle text-[34px] leading-none font-semibold tracking-tight tabular-nums transition-colors duration-300 motion-reduce:transition-none",
-                    empty || resolving ? "text-muted-foreground" : "text-foreground",
+            {/*
+              The rail: the filters on the left, and what the query costs and
+              what can be done about it on the right. One grey band across the
+              foot of the card, so the three ways in all end in the same place.
+            */}
+            <div className="bg-surface-sunken border-edge flex items-center gap-3 border-t px-(--box-pad) py-2.5">
+              <QuickFilters
+                conditions={conditions}
+                picks={picks}
+                onPick={pickFilter}
+                className="min-w-0 flex-1"
+              />
+
+              <div className="flex shrink-0 items-center gap-2">
+                <p className="text-muted-foreground text-xs tabular-nums">
+                  {resolving ? (
+                    "resolving…"
+                  ) : (
+                    <>
+                      <span className="text-foreground font-medium">
+                        {rows.length.toLocaleString("en-GB")}
+                      </span>{" "}
+                      of {sample.length.toLocaleString("en-GB")} sampled
+                    </>
                   )}
-                >
-                  {rows.length.toLocaleString("en-GB")}
                 </p>
-                <p className="text-muted-foreground mt-1.5 text-xs">
-                  {resolving ? "resolving…" : `drugs of ${sample.length.toLocaleString("en-GB")} sampled`}
-                </p>
-              </div>
 
-              <Separator />
+                <Separator orientation="vertical" className="h-5" />
 
-              <div className="-mx-1.5 flex items-center gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -373,11 +381,21 @@ export function Screener() {
                   variant="ghost"
                   size="sm"
                   onClick={clearAll}
-                  disabled={empty || resolving}
+                  disabled={(empty && !draft.trim()) || resolving}
                   className="text-muted-foreground hover:bg-accent"
                 >
                   Clear all
                 </Button>
+                {composing ? (
+                  <Button size="sm" onClick={() => submit(draft)} disabled={!draft.trim() || resolving}>
+                    Resolve
+                    <CornerDownLeftIcon />
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="secondary" onClick={editAsText} disabled={resolving}>
+                    Edit
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -417,7 +435,7 @@ export function Screener() {
                 conditions={conditions}
                 onApply={applyTicks}
                 onClose={() => setView("sentence")}
-                className="border-border shadow-panel h-full overflow-hidden rounded-xl border"
+                className="border-border shadow-raised h-full overflow-hidden rounded-xl border"
               />
             </div>
           </div>
@@ -428,7 +446,7 @@ export function Screener() {
             onOpenRecord={openRecord}
             explorerOpen={explorer}
             onToggleExplorer={() => setView(explorer ? "sentence" : "explorer")}
-            className="border-border shadow-panel min-w-0 flex-1 overflow-hidden rounded-xl border"
+            className="border-border shadow-raised min-w-0 flex-1 overflow-hidden rounded-xl border"
           />
         </div>
 
