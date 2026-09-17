@@ -1,15 +1,23 @@
+export type SearchMode = "quick" | "manual"
+
 export interface Sprint4Idea1State {
   slug: "start"
+  mode: SearchMode
+  query: string
 }
 
-const startState: Sprint4Idea1State = { slug: "start" }
+const startState = (): Sprint4Idea1State => ({
+  slug: "start",
+  mode: "quick",
+  query: "",
+})
 
 /** Seed the living screen from its URL. Unknown states return to the start. */
 export function initialState(slug: string): Sprint4Idea1State {
   switch (slug) {
     case "start":
     default:
-      return startState
+      return startState()
   }
 }
 
