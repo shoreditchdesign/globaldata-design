@@ -2,6 +2,7 @@ import { ArrowRightIcon } from "lucide-react"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { Button } from "@/components/ui/button"
+import { ManualSearch } from "@/flows/sprint-4/idea-1/components/ManualSearch"
 import { ScanningQuery } from "@/flows/sprint-4/idea-1/components/ScanningQuery"
 import { SearchPills } from "@/flows/sprint-4/idea-1/components/SearchPills"
 import { SearchTabs } from "@/flows/sprint-4/idea-1/components/SearchTabs"
@@ -11,9 +12,9 @@ import type { SearchMode } from "@/flows/sprint-4/idea-1/state"
 import { cn } from "@/lib/utils"
 
 /**
- * The results page's left panel: the landing search, narrowed. Quick search
- * keeps the natural-language field and the pill cascade; both feed the filter
- * box to the right rather than replacing the results.
+ * The results page's left panel. Quick search is the landing search, narrowed:
+ * the natural-language field and the pill cascade. Manual search is Miller
+ * columns. All three feed the filter box to the right.
  */
 export function SearchPanel({
   mode,
@@ -29,6 +30,9 @@ export function SearchPanel({
   onCategoryChange,
   onAttributeChange,
   onValuePick,
+  onOpenCategory,
+  onOpenAttribute,
+  onValuePickAt,
 }: {
   mode: SearchMode
   query: string
@@ -43,6 +47,9 @@ export function SearchPanel({
   onCategoryChange: (category: ProductArea) => void
   onAttributeChange: (attribute: string) => void
   onValuePick: (value: string) => void
+  onOpenCategory: (category: ProductArea) => void
+  onOpenAttribute: (attribute: string) => void
+  onValuePickAt: (area: ProductArea, attribute: string, value: string) => void
 }) {
   const hasQuery = query.trim().length > 0
   const resolving = Boolean(pending)
@@ -53,7 +60,11 @@ export function SearchPanel({
   return (
     <aside
       aria-label="Search"
-      className="bg-surface-chrome border-edge flex w-[340px] shrink-0 flex-col border-r"
+      // Manual search widens the panel to hold two Miller columns side by side.
+      className={cn(
+        "bg-surface-chrome border-edge flex shrink-0 flex-col border-r",
+        mode === "manual" ? "w-[580px]" : "w-[340px]",
+      )}
     >
       <div className="shrink-0 px-3 pt-3">
         <SearchTabs
@@ -119,7 +130,16 @@ export function SearchPanel({
             />
           </div>
         </div>
-      ) : null}
+      ) : (
+        <ManualSearch
+          filters={filters}
+          activeCategory={activeCategory}
+          activeAttribute={activeAttribute}
+          onOpenCategory={onOpenCategory}
+          onOpenAttribute={onOpenAttribute}
+          onToggleValue={onValuePickAt}
+        />
+      )}
     </aside>
   )
 }

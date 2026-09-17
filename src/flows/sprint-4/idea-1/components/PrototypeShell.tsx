@@ -28,6 +28,46 @@ import {
 } from "@/flows/sprint-4/idea-1/state"
 
 /**
+ * Ticks one value of a pill or Miller column path into the filters, or takes
+ * it out again when it is already there.
+ */
+function toggleValueAt(
+  current: Sprint4Idea1State,
+  area: ProductArea,
+  attribute: string,
+  value: string,
+): Sprint4Idea1State {
+  const path = { area, attribute, value }
+  const picked = pathFilter(area, attribute, value)
+
+  // The first path starts the filters; once there are filters, on either page,
+  // a path refines them, joining a clause that tests the same thing.
+  const hasFilters = current.showResults || current.submittedQuery || current.path
+  if (!hasFilters) return { ...current, path, filters: [picked] }
+  const existing = current.filters.find((filter) => filter.id === picked.id)
+
+  // A value already in its filter is selected, so a second click takes it out
+  // again — and the filter with it, once it holds nothing.
+  if (existing?.values.includes(value)) {
+    return {
+      ...current,
+      filters: current.filters.flatMap((filter) => {
+        if (filter.id !== picked.id) return [filter]
+        const values = filter.values.filter((item) => item !== value)
+        return values.length > 0 ? [{ ...filter, values }] : []
+      }),
+    }
+  }
+
+  const filters = existing
+    ? current.filters.map((filter) =>
+        filter.id === picked.id ? { ...filter, values: [...filter.values, value] } : filter,
+      )
+    : [...current.filters, picked]
+  return { ...current, path, filters }
+}
+
+/**
  * The living shell for Sprint 4 Idea 1: the landing search until a search
  * runs, then the results page. The shared product chrome stays constant.
  */
@@ -51,43 +91,23 @@ export function PrototypeShell() {
       ...current,
       activeAttribute: current.activeAttribute === attribute ? null : attribute,
     }))
+  // Miller columns open rather than toggle: clicking the open row keeps it open.
+  const openCategory = (category: ProductArea) =>
+    setState((current) => ({
+      ...current,
+      activeCategory: category,
+      activeAttribute: current.activeCategory === category ? current.activeAttribute : null,
+    }))
+  const openAttribute = (attribute: string) =>
+    setState((current) => ({ ...current, activeAttribute: attribute }))
   const pickValue = (value: string) =>
-    setState((current) => {
-      if (!current.activeCategory || !current.activeAttribute) return current
-      const path = {
-        area: current.activeCategory,
-        attribute: current.activeAttribute,
-        value,
-      }
-      const picked = pathFilter(path.area, path.attribute, value)
-
-      // The first path starts the filters; once there are filters, on either
-      // page, a path refines them, joining a clause that tests the same thing.
-      const hasFilters = current.showResults || current.submittedQuery || current.path
-      if (!hasFilters) return { ...current, path, filters: [picked] }
-      const existing = current.filters.find((filter) => filter.id === picked.id)
-
-      // A value already in its filter is selected, so a second click takes it
-      // out again — and the filter with it, once it holds nothing.
-      if (existing?.values.includes(value)) {
-        return {
-          ...current,
-          filters: current.filters.flatMap((filter) => {
-            if (filter.id !== picked.id) return [filter]
-            const values = filter.values.filter((item) => item !== value)
-            return values.length > 0 ? [{ ...filter, values }] : []
-          }),
-        }
-      }
-
-      const filters = existing
-        ? current.filters.map((filter) =>
-            filter.id === picked.id ? { ...filter, values: [...filter.values, value] }
-              : filter,
-          )
-        : [...current.filters, picked]
-      return { ...current, path, filters }
-    })
+    setState((current) =>
+      current.activeCategory && current.activeAttribute
+        ? toggleValueAt(current, current.activeCategory, current.activeAttribute, value)
+        : current,
+    )
+  const pickValueAt = (area: ProductArea, attribute: string, value: string) =>
+    setState((current) => toggleValueAt(current, area, attribute, value))
   const submitQuery = () =>
     setState((current) => {
       const resolution = resolveNaturalLanguage(current.query)
@@ -202,6 +222,9 @@ export function PrototypeShell() {
               onCategoryChange={toggleCategory}
               onAttributeChange={toggleAttribute}
               onValuePick={pickValue}
+              onOpenCategory={openCategory}
+              onOpenAttribute={openAttribute}
+              onValuePickAt={pickValueAt}
             />
           }
         />
