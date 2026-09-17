@@ -33,7 +33,7 @@ export function ResolvedFilters({
   onClear,
   onSearch,
   onClose,
-  className,
+  variant = "card",
 }: {
   filters: ResolvedFilter[]
   resultCount: number
@@ -48,14 +48,25 @@ export function ResolvedFilters({
   onSearch?: () => void
   /** Clears the filters and closes the box. Omitted where the box is always shown. */
   onClose?: () => void
-  className?: string
+  /**
+   * `card` on the landing page, with Add filter and the search in a footer.
+   * `band` on the results page: a flush strip whose only action, Clear
+   * filters, sits at the end of the filters themselves.
+   */
+  variant?: "card" | "band"
 }) {
+  const band = variant === "band"
   const unused = filterDefinitions.filter(
     (definition) => !filters.some((filter) => filter.id === definition.id),
   )
 
   return (
-    <div className={cn("bg-surface-panel border-border relative w-full rounded-xl border p-4", className)}>
+    <div
+      className={cn(
+        "relative w-full p-4",
+        band ? "bg-surface-chrome" : "bg-surface-panel border-border rounded-xl border",
+      )}
+    >
       {onClose ? (
         <Button
           type="button"
@@ -90,44 +101,52 @@ export function ResolvedFilters({
             />
           </div>
         ))}
-      </div>
 
-      <div className="border-hairline mt-4 flex items-center justify-between gap-4 border-t pt-4">
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" disabled={unused.length === 0}>
-                <PlusIcon />
-                Add filter
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
-              <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-              {unused.map((definition) => (
-                <DropdownMenuItem key={definition.id} onSelect={() => onAdd(definition.id)}>
-                  {definition.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            size="default"
-            onClick={onClear}
-            disabled={filters.length === 0}
-          >
+        {band && filters.length > 0 ? (
+          <Button variant="secondary" size="sm" onClick={onClear} className="ml-1">
             Clear filters
           </Button>
-          {onSearch ? (
-            <Button type="button" size="default" className="shrink-0 tabular-nums" onClick={onSearch}>
-              Search for {resultCount.toLocaleString("en-GB")} drugs
-            </Button>
-          ) : null}
-        </div>
+        ) : null}
       </div>
+
+      {band ? null : (
+        <div className="border-hairline mt-4 flex items-center justify-between gap-4 border-t pt-4">
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" disabled={unused.length === 0}>
+                  <PlusIcon />
+                  Add filter
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+                {unused.map((definition) => (
+                  <DropdownMenuItem key={definition.id} onSelect={() => onAdd(definition.id)}>
+                    {definition.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="default"
+              onClick={onClear}
+              disabled={filters.length === 0}
+            >
+              Clear filters
+            </Button>
+            {onSearch ? (
+              <Button type="button" size="default" className="shrink-0 tabular-nums" onClick={onSearch}>
+                Search for {resultCount.toLocaleString("en-GB")} drugs
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

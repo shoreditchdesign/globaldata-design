@@ -200,7 +200,7 @@ export function PrototypeShell() {
       onSearch={state.showResults ? undefined : search}
       onClose={state.showResults ? undefined : closeFilters}
       // On the results page the box is a band above the grid, not a card.
-      className={state.showResults ? "bg-surface-chrome rounded-none border-0" : undefined}
+      variant={state.showResults ? "band" : "card"}
     />
   )
 
