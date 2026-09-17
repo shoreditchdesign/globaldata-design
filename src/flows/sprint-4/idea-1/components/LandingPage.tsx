@@ -2,17 +2,9 @@ import { ArrowRightIcon, SearchIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import type { ProductArea } from "@/components/prototype/ProductChrome"
-import { ResolvedFilters } from "@/flows/sprint-4/idea-1/components/ResolvedFilters"
+import { SearchTabs } from "@/flows/sprint-4/idea-1/components/SearchTabs"
+import { SearchPills } from "@/flows/sprint-4/idea-1/components/SearchPills"
 import { ScanningQuery } from "@/flows/sprint-4/idea-1/components/ScanningQuery"
-import {
-  searchCategories,
-  searchAttributeLabels,
-  searchAttributeValues,
-  type FilterId,
-  type FilterJoin,
-  type FilterLink,
-  type ResolvedFilter,
-} from "@/flows/sprint-4/idea-1/data"
 import type { Resolution } from "@/flows/sprint-4/idea-1/resolve"
 import type { SearchMode } from "@/flows/sprint-4/idea-1/state"
 import { cn } from "@/lib/utils"
@@ -29,15 +21,7 @@ export function LandingPage({
   onValuePick,
   onResolve,
   hasResolvedFilters,
-  filters,
-  resultCount,
-  onFilterModeChange,
-  onFilterJoinChange,
-  onFilterLinkChange,
-  onToggleFilterValue,
-  onRemoveFilter,
-  onAddFilter,
-  onClearFilters,
+  filterBox,
   pending,
   onScanDone,
 }: {
@@ -52,15 +36,8 @@ export function LandingPage({
   onValuePick: (value: string) => void
   onResolve: () => void
   hasResolvedFilters: boolean
-  filters: ResolvedFilter[]
-  resultCount: number
-  onFilterModeChange: (id: FilterId, excluded: boolean) => void
-  onFilterJoinChange: (id: FilterId, join: FilterJoin) => void
-  onFilterLinkChange: (id: FilterId, link: FilterLink) => void
-  onToggleFilterValue: (id: FilterId, value: string) => void
-  onRemoveFilter: (id: FilterId) => void
-  onAddFilter: (id: FilterId) => void
-  onClearFilters: () => void
+  /** The filter box, when a search or a pill path has built one. It replaces the pills. */
+  filterBox: React.ReactNode
   pending: Resolution | null
   onScanDone: () => void
 }) {
@@ -70,18 +47,7 @@ export function LandingPage({
   return (
     <main className="bg-surface-page min-h-0 flex-1 overflow-y-auto">
       <section className="mx-auto flex min-h-full w-full max-w-4xl translate-y-[18px] flex-col items-center justify-center px-8 py-16">
-        <div
-          role="tablist"
-          aria-label="Search method"
-          className="bg-surface-sunken border-border inline-flex w-fit items-center gap-0.5 rounded-lg border p-0.5"
-        >
-          <SearchTab active={mode === "quick"} onClick={() => onModeChange("quick")}>
-            Quick search
-          </SearchTab>
-          <SearchTab active={mode === "manual"} onClick={() => onModeChange("manual")}>
-            Manual search
-          </SearchTab>
-        </div>
+        <SearchTabs mode={mode} onModeChange={onModeChange} />
 
         <div className="mt-8 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">Drug Database</h1>
@@ -132,132 +98,18 @@ export function LandingPage({
           the centred search does not drop when a search resolves.
         */}
         <div className="mt-5 min-h-72 w-full">
-          {hasResolvedFilters ? (
-            <ResolvedFilters
-              filters={filters}
-              resultCount={resultCount}
-              onModeChange={onFilterModeChange}
-              onJoinChange={onFilterJoinChange}
-              onLinkChange={onFilterLinkChange}
-              onToggleValue={onToggleFilterValue}
-              onRemove={onRemoveFilter}
-              onAdd={onAddFilter}
-              onClear={onClearFilters}
+          {filterBox ?? (
+            <SearchPills
+              layout="centered"
+              activeCategory={activeCategory}
+              activeAttribute={activeAttribute}
+              onCategoryChange={onCategoryChange}
+              onAttributeChange={onAttributeChange}
+              onValuePick={onValuePick}
             />
-          ) : (
-            <div className="w-full">
-              <nav aria-label="Search categories" className="flex flex-wrap justify-center gap-2">
-                {searchCategories.map((category) => {
-                  const active = activeCategory === category
-                  const inactive = activeCategory !== null && !active
-
-                  return (
-                    <button
-                      key={category}
-                      type="button"
-                      aria-expanded={active}
-                      aria-controls={`search-category-${slugify(category)}`}
-                      onClick={() => onCategoryChange(category)}
-                      className={cn(
-                        "bg-surface-panel border-border hover:bg-accent inline-flex h-8 items-center rounded-full border px-3.5 text-[13px] transition-[color,background-color,border-color,opacity]",
-                        active && "bg-foreground text-background border-foreground hover:bg-foreground/90",
-                        inactive && "opacity-35 hover:opacity-70",
-                      )}
-                    >
-                      {category}
-                    </button>
-                  )
-                })}
-              </nav>
-
-              {/* One fixed well for both layers, so each cascades straight under the last. */}
-              <div className="mt-4 h-60">
-                {activeCategory ? (
-                  <nav
-                    key={activeCategory}
-                    id={`search-category-${slugify(activeCategory)}`}
-                    aria-label={`${activeCategory} filters`}
-                    className="animate-in fade-in slide-in-from-top-2 flex flex-wrap justify-center gap-2 duration-300"
-                  >
-                    {searchAttributeLabels(activeCategory).map((child) => {
-                      const active = activeAttribute === child
-                      const inactive = activeAttribute !== null && !active
-
-                      return (
-                        <button
-                          key={child}
-                          type="button"
-                          aria-expanded={active}
-                          aria-controls={`search-attribute-${slugify(child)}`}
-                          onClick={() => onAttributeChange(child)}
-                          className={cn(
-                            "bg-surface-sunken border-border text-foreground hover:bg-accent inline-flex min-h-8 items-center rounded-full border px-3.5 py-1.5 text-[13px] transition-[color,background-color,border-color,opacity]",
-                            active && "bg-foreground text-background border-foreground hover:bg-foreground/90",
-                            inactive && "opacity-35 hover:opacity-70",
-                          )}
-                        >
-                          {child}
-                        </button>
-                      )
-                    })}
-                  </nav>
-                ) : null}
-
-                {activeCategory && activeAttribute ? (
-                  <nav
-                    key={`${activeCategory}/${activeAttribute}`}
-                    id={`search-attribute-${slugify(activeAttribute)}`}
-                    aria-label={`${activeAttribute} values`}
-                    className="mt-4 animate-in fade-in slide-in-from-top-2 flex flex-wrap justify-center gap-2 duration-300"
-                  >
-                    {searchAttributeValues(activeCategory, activeAttribute).map((value) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => onValuePick(value)}
-                        className="bg-surface-panel border-border text-foreground hover:bg-accent inline-flex min-h-8 items-center rounded-full border px-3.5 py-1.5 text-[13px] transition-colors"
-                      >
-                        {value}
-                      </button>
-                    ))}
-                  </nav>
-                ) : null}
-              </div>
-            </div>
           )}
         </div>
       </section>
     </main>
-  )
-}
-
-function slugify(label: string) {
-  return label.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")
-}
-
-function SearchTab({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={active}
-      onClick={onClick}
-      className={cn(
-        "flex h-7 items-center rounded-md px-3 text-[13px] font-medium transition-colors",
-        active
-          ? "bg-surface-panel text-foreground shadow-panel"
-          : "text-muted-foreground hover:bg-accent hover:text-foreground",
-      )}
-    >
-      {children}
-    </button>
   )
 }

@@ -7,6 +7,9 @@ import { ProductChrome } from "@/components/prototype/ProductChrome"
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { useDeepLink } from "@/hooks/use-deep-link"
 import { LandingPage } from "@/flows/sprint-4/idea-1/components/LandingPage"
+import { ResolvedFilters } from "@/flows/sprint-4/idea-1/components/ResolvedFilters"
+import { ResultsPage } from "@/flows/sprint-4/idea-1/components/ResultsPage"
+import { SearchPanel } from "@/flows/sprint-4/idea-1/components/SearchPanel"
 import {
   activeProductArea,
   definitionFor,
@@ -25,8 +28,8 @@ import {
 } from "@/flows/sprint-4/idea-1/state"
 
 /**
- * The living shell for Sprint 4 Idea 1. Content will be composed inside the
- * body as the direction develops; the shared product chrome stays constant.
+ * The living shell for Sprint 4 Idea 1: the landing search until a search
+ * runs, then the results page. The shared product chrome stays constant.
  */
 export function PrototypeShell() {
   const slug = usePathname().split("/").pop() ?? "start"
@@ -56,7 +59,20 @@ export function PrototypeShell() {
         attribute: current.activeAttribute,
         value,
       }
-      return { ...current, path, filters: [pathFilter(path.area, path.attribute, value)] }
+      const picked = pathFilter(path.area, path.attribute, value)
+
+      // On the landing page a path starts the filters; on the results page it
+      // refines the ones already there, joining a clause that tests the same thing.
+      if (!current.appliedFilters) return { ...current, path, filters: [picked] }
+      const existing = current.filters.find((filter) => filter.id === picked.id)
+      const filters = existing
+        ? current.filters.map((filter) =>
+            filter.id === picked.id && !filter.values.includes(value)
+              ? { ...filter, values: [...filter.values, value] }
+              : filter,
+          )
+        : [...current.filters, picked]
+      return { ...current, path, filters }
     })
   const submitQuery = () =>
     setState((current) => {
@@ -124,7 +140,58 @@ export function PrototypeShell() {
         filters: [...current.filters, { id, label, values: [...values], excluded, join, link }],
       }
     })
-  const clearFilters = () => setState(initialState("start"))
+  const clearFilters = () =>
+    setState((current) =>
+      current.appliedFilters ? { ...current, filters: [] } : initialState("start"),
+    )
+  const search = () =>
+    setState((current) => ({
+      ...current,
+      pending: null,
+      appliedFilters: current.filters.map((filter) => ({ ...filter, values: [...filter.values] })),
+    }))
+
+  const filterBox = (
+    <ResolvedFilters
+      filters={state.filters}
+      resultCount={resultCountFor(state.filters)}
+      onModeChange={setFilterMode}
+      onJoinChange={setFilterJoin}
+      onLinkChange={setFilterLink}
+      onToggleValue={toggleFilterValue}
+      onRemove={removeFilter}
+      onAdd={addFilter}
+      onClear={clearFilters}
+      onSearch={search}
+    />
+  )
+
+  if (state.appliedFilters) {
+    return (
+      <ProductChrome activeArea={activeProductArea} body="row">
+        <ResultsPage
+          appliedFilters={state.appliedFilters}
+          filterBox={filterBox}
+          panel={
+            <SearchPanel
+              mode={state.mode}
+              query={state.query}
+              activeCategory={state.activeCategory}
+              activeAttribute={state.activeAttribute}
+              pending={state.pending}
+              onModeChange={setMode}
+              onQueryChange={setQuery}
+              onResolve={submitQuery}
+              onScanDone={settleQuery}
+              onCategoryChange={toggleCategory}
+              onAttributeChange={toggleAttribute}
+              onValuePick={pickValue}
+            />
+          }
+        />
+      </ProductChrome>
+    )
+  }
 
   return (
     <ProductChrome activeArea={activeProductArea}>
@@ -140,15 +207,7 @@ export function PrototypeShell() {
         onValuePick={pickValue}
         onResolve={submitQuery}
         hasResolvedFilters={Boolean(state.submittedQuery || state.path)}
-        filters={state.filters}
-        resultCount={resultCountFor(state.filters)}
-        onFilterModeChange={setFilterMode}
-        onFilterJoinChange={setFilterJoin}
-        onFilterLinkChange={setFilterLink}
-        onToggleFilterValue={toggleFilterValue}
-        onRemoveFilter={removeFilter}
-        onAddFilter={addFilter}
-        onClearFilters={clearFilters}
+        filterBox={state.submittedQuery || state.path ? filterBox : null}
         pending={state.pending}
         onScanDone={settleQuery}
       />

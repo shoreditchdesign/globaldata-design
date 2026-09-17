@@ -31,6 +31,8 @@ export function ResolvedFilters({
   onRemove,
   onAdd,
   onClear,
+  onSearch,
+  className,
 }: {
   filters: ResolvedFilter[]
   resultCount: number
@@ -41,13 +43,15 @@ export function ResolvedFilters({
   onRemove: (id: FilterId) => void
   onAdd: (id: FilterId) => void
   onClear: () => void
+  onSearch: () => void
+  className?: string
 }) {
   const unused = filterDefinitions.filter(
     (definition) => !filters.some((filter) => filter.id === definition.id),
   )
 
   return (
-    <div className="bg-surface-panel border-border w-full rounded-xl border p-4">
+    <div className={cn("bg-surface-panel border-border w-full rounded-xl border p-4", className)}>
       <div className="flex min-h-10 flex-wrap items-center gap-2">
         {filters.length === 0 ? (
           <p className="text-muted-foreground text-[13px]">No filters selected.</p>
@@ -101,7 +105,7 @@ export function ResolvedFilters({
           >
             Clear filters
           </Button>
-          <Button type="button" size="default" className="shrink-0 tabular-nums">
+          <Button type="button" size="default" className="shrink-0 tabular-nums" onClick={onSearch}>
             Search for {resultCount.toLocaleString("en-GB")} drugs
           </Button>
         </div>
