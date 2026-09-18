@@ -159,13 +159,16 @@ export function ExplorerTree({
     return () => window.clearTimeout(timer)
   }, [revealed, order.length])
 
-  /** A tick is drawn once the sequence has reached it. */
+  /**
+   * Whether a box is drawn ticked. The draft is the answer; the sequence only
+   * decides *when* a tick that arrived with a resolved query is drawn, so a box
+   * the reviewer unticks goes straight away rather than waiting for its turn.
+   */
   const tickShown = React.useCallback(
     (attribute: string, value: string) => {
-      const key = keyOf(attribute, value)
-      const index = order.indexOf(key)
-      if (index === -1) return draft[attribute]?.includes(value) ?? false
-      return index < revealed
+      if (!draft[attribute]?.includes(value)) return false
+      const index = order.indexOf(keyOf(attribute, value))
+      return index === -1 || index < revealed
     },
     [draft, order, revealed],
   )
@@ -347,7 +350,7 @@ export function ExplorerTree({
               Reset
             </Button>
           ) : null}
-          <Button size="sm" disabled={!dirty} onClick={() => onApply(applyTicks(draft))}>
+          <Button size="sm" disabled={!dirty} onClick={() => onApply(applyTicks(conditions, draft))}>
             Apply filters
           </Button>
         </div>
@@ -510,18 +513,30 @@ function sameTicks(a: Record<string, string[]>, b: Record<string, string[]>) {
 }
 
 /**
- * Ticks written back into the query, as a fresh search rather than an edit of
- * the one before: what is ticked is the whole query, every attribute joined
- * with `and` and its own values with `or`, in the order the product lists them.
- *
- * So a query typed in English and then applied from the tree does not keep the
- * exclusions or the `or` links the sentence had. Applying here starts again
- * from what the branches say, which is what the rail's button claims, and the
- * line in the box is rewritten to match.
+ * Ticks written back into the query, on top of what is already there. A
+ * condition the query holds keeps its own words — its join, whether it excludes,
+ * how it meets the rest — and only its values change, so unticking `Austria`
+ * under an excluded geography removes that value and leaves the exclusion
+ * standing. An attribute the query did not have joins the end as a plain `and`,
+ * in the order the product lists its attributes, and one left with nothing
+ * ticked leaves the query.
  */
-function applyTicks(draft: Record<string, string[]>): Condition[] {
-  return Object.entries(draft)
-    .filter(([, values]) => values.length > 0)
+function applyTicks(conditions: Condition[], draft: Record<string, string[]>): Condition[] {
+  const seen = new Set<string>()
+  const kept = conditions
+    .map((condition) => {
+      const values = draft[condition.attribute]
+      if (!values || values.length === 0) return null
+      // Several conditions can share an attribute. The first takes the ticks;
+      // the rest go, since the tree draws one branch per attribute.
+      if (seen.has(condition.attribute)) return null
+      seen.add(condition.attribute)
+      return { ...condition, values }
+    })
+    .filter((condition): condition is Condition => condition !== null)
+
+  const added = Object.entries(draft)
+    .filter(([attribute, values]) => values.length > 0 && !seen.has(attribute))
     .sort(([a], [b]) => drugAttributeOrder.indexOf(a) - drugAttributeOrder.indexOf(b))
     .map(([attribute, values]): Condition => ({
       id: attribute,
@@ -531,4 +546,6 @@ function applyTicks(draft: Record<string, string[]>): Condition[] {
       mode: "is",
       link: "and",
     }))
+
+  return [...kept, ...added]
 }
