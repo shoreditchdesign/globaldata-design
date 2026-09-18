@@ -48,13 +48,16 @@ export function LandingPage({
   const resolving = Boolean(pending)
 
   return (
-    <main className="bg-surface-page min-h-0 flex-1 overflow-y-auto">
-      <section className="mx-auto flex min-h-full w-full max-w-4xl translate-y-[18px] flex-col items-center justify-center px-8 py-16">
+    <main className="bg-surface-page flex min-h-0 flex-1 flex-col overflow-y-auto">
+      {/* The tabs head the page rather than the search, which centres in the space below. */}
+      <div className="flex shrink-0 justify-center pt-6">
         <SearchTabs mode={mode} onModeChange={onModeChange} />
+      </div>
 
-        <div className="mt-8 text-center">
+      <section className="mx-auto flex w-full max-w-4xl flex-1 translate-y-[18px] flex-col items-center justify-center px-8 py-16">
+        <div className="text-center">
           <h1 className="text-2xl font-semibold tracking-tight">Drug Database</h1>
-          <p className="text-muted-foreground mt-2 max-w-3xl text-sm leading-6">
+          <p className="text-muted-foreground mx-auto mt-2 max-w-md text-sm leading-6 text-balance">
             Describe any key search metrics such as Therapy Area, Classification, Geography,
             Route of Administration etc.
           </p>
