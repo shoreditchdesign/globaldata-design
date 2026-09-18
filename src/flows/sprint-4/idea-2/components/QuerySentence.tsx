@@ -192,7 +192,14 @@ function ClauseSpan({
     <span
       ref={track}
       data-condition={condition.id}
-      className={cn("transition-opacity", dragged && "opacity-40")}
+      className={cn(
+        // A clause is a line of its own: `and Drug Geography is …` starts where
+        // the clause before it ended, not halfway across the line. It only
+        // wraps inside itself, when one attribute holds more values than the
+        // field is wide.
+        carriesOn ? "transition-opacity" : "block transition-opacity",
+        dragged && "opacity-40",
+      )}
     >
       {first ? null : (
         <>
