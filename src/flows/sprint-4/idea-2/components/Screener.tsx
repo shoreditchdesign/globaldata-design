@@ -327,7 +327,7 @@ export function Screener() {
               ) : null}
 
               {!composing && !resolving && query.raw ? (
-                <p className="text-muted-foreground mt-3.5 min-w-0 truncate text-xs">
+                <p className="text-muted-foreground mt-2 min-w-0 truncate text-xs">
                   {query.edited ? "Edited since it was read from" : "Read from"}{" "}
                   <span className="text-brand-ink">{query.raw}</span>
                 </p>
@@ -517,6 +517,12 @@ function unplacedNote(resolution: Resolution): NoteLine[] {
   ]
 }
 
+/**
+ * What the reading missed, in one line above the line it was read from. It was
+ * a grey card explaining itself in a sentence; no interface talks like that.
+ * The phrase it could not place, `not found`, and the nearest thing it does
+ * have as something to press.
+ */
 function Notes({
   notes,
   resolution,
@@ -527,36 +533,32 @@ function Notes({
   onAdd: (attribute: string, value: string) => void
 }) {
   const suggestions = resolution?.suggestions ?? []
+  const phrases = Array.from(new Set(notes.flatMap((note) => note.phrases)))
 
   return (
-    <div className="border-border bg-surface-sunken mt-3 rounded-lg border px-3 py-2.5">
-      {notes.map((note) => (
-        <p key={`${note.phrases.join(",")}:${note.text}`} className="text-muted-foreground text-xs">
-          {note.phrases.map((phrase, i) => (
+    <div className="mt-3.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs">
+      {phrases.length > 0 ? (
+        <p className="text-muted-foreground">
+          {phrases.map((phrase, i) => (
             <React.Fragment key={phrase}>
               {i > 0 ? ", " : null}
-              <span className="text-brand-ink">{phrase}</span>
+              <span className="text-foreground">{phrase}</span>
             </React.Fragment>
           ))}{" "}
-          — {note.text}
+          not found.
         </p>
-      ))}
-      {suggestions.length > 0 ? (
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          <span className="text-muted-foreground text-xs">Nearest condition it does have:</span>
-          {suggestions.map((suggestion) => (
-            <button
-              key={suggestion.value}
-              type="button"
-              onClick={() => onAdd(suggestion.attribute, suggestion.value)}
-              className="bg-surface-panel border-border hover:border-edge hover:bg-accent hover:text-foreground inline-flex h-6 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors"
-            >
-              Add {suggestion.value}
-              <span className="text-muted-foreground">{suggestion.attribute}</span>
-            </button>
-          ))}
-        </div>
       ) : null}
+      {suggestions.map((suggestion) => (
+        <button
+          key={suggestion.value}
+          type="button"
+          onClick={() => onAdd(suggestion.attribute, suggestion.value)}
+          className="bg-surface-panel border-border hover:border-edge hover:bg-accent hover:text-foreground inline-flex h-6 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors"
+        >
+          {suggestion.value}
+          <span className="text-muted-foreground">{suggestion.attribute}</span>
+        </button>
+      ))}
     </div>
   )
 }
