@@ -322,7 +322,10 @@ export function Screener() {
                 size="sm"
                 onClick={() => setState((current) => ({ ...current, railOpen: !current.railOpen }))}
                 aria-expanded={railOpen}
-                className="text-muted-foreground hover:bg-accent absolute top-2.5 right-3 z-10 text-[13px]"
+                // A ghost button fills while it reports itself expanded, and this
+                // one reports the rail. It says its state in its label instead,
+                // so it rests like Undo and Clear all and fills only on hover.
+                className="text-muted-foreground hover:bg-accent aria-expanded:bg-transparent aria-expanded:text-muted-foreground absolute top-2.5 right-3 z-10 text-[13px]"
               >
                 {railOpen ? <ChevronsDownUpIcon /> : <SlidersHorizontalIcon />}
                 {railOpen ? "Collapse filters" : "Show filters"}
