@@ -167,11 +167,12 @@ function FilterChip({
       <PopoverContent
         align="start"
         className="w-[300px] p-0"
-        // A pinned dropdown stays put when the pointer or the focus leaves it,
-        // so it can be photographed; the chip and Escape still close it.
-        onInteractOutside={(event) => {
-          if (pinned) event.preventDefault()
-        }}
+        /*
+          A pinned dropdown survives losing focus — which is what a screenshot
+          extension, the devtools or another window takes — so it can be
+          captured. A click in the page is a person dismissing it, so that
+          still closes it, as do the chip and Escape. Nothing is locked open.
+        */
         onFocusOutside={(event) => {
           if (pinned) event.preventDefault()
         }}
