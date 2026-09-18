@@ -253,7 +253,7 @@ export function ExplorerTree({
         two panes under the shared head start their content on the same line.
         The card's own head names the view, so the tree does not name itself.
       */}
-      <div className="bg-surface-panel border-edge flex h-9 shrink-0 items-center gap-1 border-b px-4">
+      <div className="bg-surface-panel border-edge flex h-11 shrink-0 items-center gap-1 border-b px-4 py-1">
         <div className="relative min-w-0 flex-1">
           <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
           <Input
