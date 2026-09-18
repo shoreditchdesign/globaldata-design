@@ -54,36 +54,66 @@ export function LandingPage({
   const hasQuery = query.trim().length > 0
   const resolving = Boolean(pending)
 
-  // The title slides between the centred search and the top of Manual rather
-  // than jumping: the same element, measured before and after the switch.
-  const titleRef = React.useRef<HTMLDivElement>(null)
-  const titleTop = React.useRef<number | null>(null)
-  const titleMode = React.useRef(mode)
+  // Switching between Quick and Manual moves things rather than swapping them.
+  // Each tracked element is measured either side of the switch and eased from
+  // where it was: the title slides; the filter box glides between its place
+  // under the field and its place under the columns; and whatever the switch
+  // brings in starts where the title's move puts it, travelling up or down with
+  // the title as it fades in, so it never lands on top of the title mid-move.
+  const sectionRef = React.useRef<HTMLElement>(null)
+  const lastTops = React.useRef<{ title?: number; summary?: number }>({})
+  const lastMode = React.useRef(mode)
   const reducedMotion = usePrefersReducedMotion()
   React.useLayoutEffect(() => {
-    const title = titleRef.current
-    if (!title) return
-    const top = title.getBoundingClientRect().top
-    const from = titleTop.current
-    const moved = titleMode.current !== mode
-    titleTop.current = top
-    titleMode.current = mode
-    if (!moved || from === null || from === top || reducedMotion) return
-    title.animate([{ transform: `translateY(${from - top}px)` }, { transform: "none" }], {
+    const section = sectionRef.current
+    if (!section) return
+    // Where each element rests, leaving out any move still running: a render
+    // mid-move (the address bar catching up) must not record the start of the
+    // move as where the element sits.
+    const top = (selector: string) => {
+      const element = section.querySelector<HTMLElement>(selector)
+      if (!element) return undefined
+      const transform = getComputedStyle(element).transform
+      const moving = transform === "none" ? 0 : new DOMMatrix(transform).m42
+      return element.getBoundingClientRect().top - moving
+    }
+    const was = lastTops.current
+    const now = { title: top("[data-flip='title']"), summary: top("[data-flip='summary']") }
+    const switched = lastMode.current !== mode
+    lastTops.current = now
+    lastMode.current = mode
+    if (!switched || reducedMotion || was.title === undefined || now.title === undefined) return
+
+    const timing = {
       duration: motion.reflow,
-      easing: getComputedStyle(title).getPropertyValue("--ease-settle-curve").trim() || "ease-out",
-    })
+      easing: getComputedStyle(section).getPropertyValue("--ease-settle-curve").trim() || "ease-out",
+    }
+    const slide = (element: Element, offset: number, fade = false) => {
+      // A switch made mid-move starts again from where things rest.
+      element.getAnimations().forEach((animation) => animation.cancel())
+      element.animate(
+        [
+          { transform: `translateY(${offset}px)`, ...(fade ? { opacity: 0 } : {}) },
+          { transform: "none", ...(fade ? { opacity: 1 } : {}) },
+        ],
+        timing,
+      )
+    }
+
+    const titleOffset = was.title - now.title
+    const title = section.querySelector("[data-flip='title']")
+    if (title && titleOffset !== 0) slide(title, titleOffset)
+    section.querySelectorAll("[data-flip='stack']").forEach((element) => slide(element, titleOffset, true))
+
+    const summary = section.querySelector("[data-flip='summary']")
+    if (summary && now.summary !== undefined) {
+      // A box that was already on screen glides from its old place; one that
+      // was not arrives with the rest of what the switch brings in.
+      if (was.summary !== undefined) slide(summary, was.summary - now.summary)
+      else slide(summary, titleOffset, true)
+    }
   })
 
-  // What a switch brings in fades up under the moving title; nothing fades on arrival.
-  const [seenMode, setSeenMode] = React.useState(mode)
-  const [switched, setSwitched] = React.useState(false)
-  if (seenMode !== mode) {
-    setSeenMode(mode)
-    setSwitched(true)
-  }
-  const entrance =
-    switched && "animate-in fade-in slide-in-from-bottom-2 duration-300 motion-reduce:animate-none"
   const manualMode = mode === "manual"
 
   return (
@@ -101,12 +131,13 @@ export function LandingPage({
         columns filling the page, and the filter box always beneath them.
       */}
       <section
+        ref={sectionRef}
         className={cn(
           "mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col px-8 pt-6",
           manualMode ? "pb-8" : "items-center justify-center pb-16",
         )}
       >
-        <div ref={titleRef} className="text-center">
+        <div data-flip="title" className="text-center">
           <h1 className="text-2xl font-semibold tracking-tight">Drug Database</h1>
           <p className="text-muted-foreground mx-auto mt-2 max-w-md text-sm leading-5 text-balance">
             Describe any key search metrics such as Therapy Area, Classification, Geography,
@@ -117,22 +148,20 @@ export function LandingPage({
         {manualMode ? (
           <>
             <div
-              className={cn(
-                "bg-surface-panel border-border mt-6 flex min-h-72 flex-1 flex-col overflow-hidden rounded-xl border",
-                entrance,
-              )}
+              data-flip="stack"
+              className="bg-surface-panel border-border mt-6 flex min-h-72 flex-1 flex-col overflow-hidden rounded-xl border"
             >
               {manual}
             </div>
-            <div className={cn("mt-2 shrink-0", entrance)}>{filterBox}</div>
+            <div data-flip="summary" className="mt-2 shrink-0">
+              {filterBox}
+            </div>
           </>
         ) : (
           <>
             <form
-              className={cn(
-                "bg-surface-panel border-border focus-within:border-ring mt-7 flex min-h-16 w-full items-center gap-3 rounded-xl border px-4 transition-colors",
-                entrance,
-              )}
+              data-flip="stack"
+              className="bg-surface-panel border-border focus-within:border-ring mt-7 flex min-h-16 w-full items-center gap-3 rounded-xl border px-4 transition-colors"
               onSubmit={(event) => {
                 event.preventDefault()
                 if (hasQuery && !resolving) onResolve()
@@ -173,7 +202,7 @@ export function LandingPage({
               Once a filter exists its box sits above the pills and the stack hangs
               past the well, scrolling the page rather than pushing the search up.
             */}
-            <div className={cn("relative mt-5 h-72 w-full", entrance)}>
+            <div className="relative mt-5 h-72 w-full">
               {/* A filter box sits 8px under the query that built it, pulled up inside the
                   well rather than moving it, so the search stays put. */}
               <div
@@ -182,16 +211,18 @@ export function LandingPage({
                   filterBox ? "-top-3" : "top-0",
                 )}
               >
-                {filterBox}
-                <SearchPills
-                  filters={filters}
-                  layout="centered"
-                  activeCategory={activeCategory}
-                  activeAttribute={activeAttribute}
-                  onCategoryChange={onCategoryChange}
-                  onAttributeChange={onAttributeChange}
-                  onValuePick={onValuePick}
-                />
+                {filterBox ? <div data-flip="summary">{filterBox}</div> : null}
+                <div data-flip="stack">
+                  <SearchPills
+                    filters={filters}
+                    layout="centered"
+                    activeCategory={activeCategory}
+                    activeAttribute={activeAttribute}
+                    onCategoryChange={onCategoryChange}
+                    onAttributeChange={onAttributeChange}
+                    onValuePick={onValuePick}
+                  />
+                </div>
               </div>
             </div>
           </>
