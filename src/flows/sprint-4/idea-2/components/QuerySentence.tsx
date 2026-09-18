@@ -224,7 +224,11 @@ function ClauseSpan({
           }
           aria-label={`${condition.attribute}: ${negated ? "excluding" : "including"} these values`}
           className={cn(
-            "text-muted-foreground focus-visible:ring-ring/50 decoration-brand -mx-1 rounded-md px-1 underline-offset-[5px] outline-none hover:underline focus-visible:ring-3",
+            // Hovering brings the attribute up to full strength rather than
+            // underlining it: the rule sat too close to the pill beside it, and
+            // a control the pointer is on should read as more, not less. The
+            // operator keeps its own colour throughout.
+            "text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 -mx-1 rounded-md px-1 outline-none focus-visible:ring-3",
             tintClass,
           )}
         >
