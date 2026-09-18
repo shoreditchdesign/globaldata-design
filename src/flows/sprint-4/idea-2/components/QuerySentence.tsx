@@ -79,7 +79,10 @@ function ValuePill({
           grabbable ? (event) => context.beginDrag(event, payload, single ? clauseLabel(condition) : value) : undefined
         }
         className={cn(
-          "text-foreground bg-brand-tint border-brand-border group-hover/pill:shadow-panel inline-flex items-center gap-1 rounded-md border px-1.5 font-medium transition-[background-color,box-shadow] select-none",
+          // Its own line height, not the sentence's. Inheriting it made the pill
+          // as tall as the line box it sits in, so opening the lines up opened
+          // the pills with them and two lines of values still touched.
+          "text-foreground bg-brand-tint border-brand-border group-hover/pill:shadow-panel inline-flex items-center gap-1 rounded-md border px-1.5 leading-[1.9] font-medium transition-[background-color,box-shadow] select-none",
           grabbable && "cursor-grab active:cursor-grabbing",
         )}
       >
