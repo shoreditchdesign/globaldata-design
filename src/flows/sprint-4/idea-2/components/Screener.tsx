@@ -4,7 +4,11 @@ import * as React from "react"
 import { usePathname } from "next/navigation"
 import {
   ChevronsDownUpIcon,
+  Columns3Icon,
   CornerDownLeftIcon,
+  DownloadIcon,
+  GripVerticalIcon,
+  PinIcon,
   FolderTreeIcon,
   RotateCcwIcon,
   SlidersHorizontalIcon,
@@ -16,6 +20,8 @@ import { useDeepLink } from "@/hooks/use-deep-link"
 import { motion } from "@/components/prototype/motion"
 import { ProductChrome } from "@/components/prototype/ProductChrome"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Composer } from "@/flows/sprint-4/idea-2/components/Composer"
 import { ExplorerTree } from "@/flows/sprint-4/idea-2/components/ExplorerTree"
 import { QuerySentence } from "@/flows/sprint-4/idea-2/components/QuerySentence"
@@ -33,7 +39,8 @@ import {
   type Condition,
 } from "@/flows/sprint-4/idea-2/data"
 import { conditionsToProse } from "@/flows/sprint-4/idea-2/grammar"
-import { insetVars } from "@/flows/sprint-4/idea-2/inset"
+import { insetVars, negationVars } from "@/flows/sprint-4/idea-2/inset"
+import { exportCsv, lockedColumn, resultColumns } from "@/flows/sprint-4/idea-2/columns"
 import { resolveQuery, type Resolution } from "@/flows/sprint-4/idea-2/resolve"
 import { ArrangeProvider } from "@/flows/sprint-4/idea-2/components/Arrange"
 import {
@@ -214,6 +221,21 @@ export function Screener() {
 
   /** What the grid is sorted by, said in the head both panes share. */
   const [sortLabel, setSortLabel] = React.useState<string | null>(null)
+  /** Columns switched off from the head's own menu. */
+  const [hidden, setHidden] = React.useState<string[]>([])
+  /** The order they are drawn in, and which of them hold the left edge. */
+  const [order, setOrder] = React.useState<string[]>(() => resultColumns.map((c) => c.key))
+  const [pinned, setPinned] = React.useState<string[]>([lockedColumn])
+  /** The column a drag in the menu picked up. */
+  const dragging = React.useRef<string | null>(null)
+
+  const moveColumn = (from: string, to: string) =>
+    setOrder((current) => {
+      if (from === to) return current
+      const next = current.filter((key) => key !== from)
+      next.splice(next.indexOf(to), 0, from)
+      return next
+    })
 
   const setView = (next: View) => setState((current) => ({ ...current, view: next }))
 
@@ -311,7 +333,7 @@ export function Screener() {
 
   return (
     <ArrangeProvider conditions={conditions} onCommit={commitArrangement}>
-      <ProductChrome activeArea="Drugs" body="column" className={insetVars}>
+      <ProductChrome activeArea="Drugs" body="column" className={cn(insetVars, negationVars)}>
         <section className="shrink-0 px-(--box-gutter) pt-5 pb-4">
           <div className="bg-surface-panel border-border shadow-raised flex flex-col overflow-hidden rounded-xl border">
             <div className="relative min-w-0 flex-1 px-(--box-pad) pt-4 pb-3.5">
@@ -369,7 +391,7 @@ export function Screener() {
               <div className="mt-3 flex items-end justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   {!composing && !resolving && (query.raw || notes.length > 0) ? (
-                    <p className="text-muted-foreground min-w-0 truncate text-xs">
+                    <p className="text-muted-foreground min-w-0 truncate text-sm">
                       {query.raw ? (
                         <>
                           {query.edited ? "Edited since it was read from" : "Read from"}{" "}
@@ -478,7 +500,7 @@ export function Screener() {
                 </ViewTab>
               </div>
 
-              <div className="flex min-w-0 items-baseline gap-2">
+              <div className="flex min-w-0 items-center gap-3">
                 {empty ? (
                   <p className="text-muted-foreground text-[16px]">No results yet</p>
                 ) : (
@@ -492,6 +514,102 @@ export function Screener() {
                     </p>
                   </>
                 )}
+
+                {/* Which columns are shown, and the rows as a file. Both belong
+                    to the results rather than to either pane, so they sit at
+                    the end of the head the two panes share. */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="ml-1">
+                      <Columns3Icon className="text-muted-foreground" />
+                      Columns
+                      <span className="tabular-nums">
+                        {resultColumns.length - hidden.length}
+                        <span className="text-muted-foreground font-normal">
+                          /{resultColumns.length}
+                        </span>
+                      </span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-[280px] px-1 py-2">
+                    {order.map((key) => {
+                      const column = resultColumns.find((entry) => entry.key === key)
+                      if (!column) return null
+                      const locked = column.key === lockedColumn
+                      const isPinned = pinned.includes(column.key)
+                      return (
+                        <div
+                          key={column.key}
+                          draggable={!locked}
+                          onDragStart={() => (dragging.current = column.key)}
+                          onDragOver={(event) => event.preventDefault()}
+                          onDrop={() => {
+                            if (dragging.current && !locked) moveColumn(dragging.current, column.key)
+                            dragging.current = null
+                          }}
+                          className="hover:bg-accent group/column flex items-center gap-1.5 rounded-md py-0.5 pr-1 pl-0.5 text-[13px]"
+                        >
+                          <GripVerticalIcon
+                            className={cn(
+                              "size-3.5 shrink-0",
+                              locked
+                                ? "text-transparent"
+                                : "text-muted-foreground/60 cursor-grab active:cursor-grabbing",
+                            )}
+                          />
+                          <label
+                            className={cn(
+                              "flex min-w-0 flex-1 items-center gap-2 py-1",
+                              locked ? "text-muted-foreground" : "cursor-pointer",
+                            )}
+                          >
+                            <Checkbox
+                              checked={!hidden.includes(column.key)}
+                              disabled={locked}
+                              onCheckedChange={() =>
+                                setHidden((current) =>
+                                  current.includes(column.key)
+                                    ? current.filter((entry) => entry !== column.key)
+                                    : [...current, column.key],
+                                )
+                              }
+                              className="border-muted-foreground/50 bg-background shrink-0"
+                            />
+                            <span className="truncate">{column.label}</span>
+                          </label>
+                          <button
+                            type="button"
+                            disabled={locked}
+                            aria-pressed={isPinned}
+                            aria-label={isPinned ? `Unpin ${column.label}` : `Pin ${column.label}`}
+                            onClick={() =>
+                              setPinned((current) =>
+                                current.includes(column.key)
+                                  ? current.filter((entry) => entry !== column.key)
+                                  : [...current, column.key],
+                              )
+                            }
+                            className={cn(
+                              "flex size-6 shrink-0 cursor-pointer items-center justify-center rounded",
+                              isPinned
+                                ? "text-brand-ink"
+                                : "text-muted-foreground/50 hover:text-foreground opacity-0 group-hover/column:opacity-100 disabled:opacity-0",
+                            )}
+                          >
+                            <PinIcon className={cn("size-3.5", isPinned && "fill-current")} />
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </PopoverContent>
+                </Popover>
+
+                {/* The one thing on this rail that takes something away with
+                    it, so it is the one that carries the brand. */}
+                <Button size="sm" disabled={empty || rows.length === 0} onClick={() => exportCsv(rows, hidden, order)}>
+                  <DownloadIcon />
+                  Export
+                </Button>
               </div>
             </div>
 
@@ -532,6 +650,9 @@ export function Screener() {
                 rows={rows}
                 active={!empty}
                 onOpenRecord={openRecord}
+                hidden={hidden}
+                order={order}
+                pinned={pinned}
                 onSortChange={setSortLabel}
                 className="min-w-0 flex-1"
               />

@@ -27,6 +27,7 @@ import {
 
 import { cn } from "@/lib/utils"
 import { motion, usePrefersReducedMotion } from "@/components/prototype/motion"
+import { excludeModifier, useExcludeModifierLabel } from "@/flows/sprint-4/idea-2/modifier"
 import { Button } from "@/components/ui/button"
 import { TickBox } from "@/flows/sprint-4/idea-2/components/TickBox"
 import { Input } from "@/components/ui/input"
@@ -201,8 +202,9 @@ export function ExplorerTree({
     setDropping(dropSeed)
   }
 
-  /** Alt is read on the way down, since the change event does not carry it. */
+  /** The modifier is read on the way down, since the change event drops it. */
   const altDown = React.useRef(false)
+  const modifierLabel = useExcludeModifierLabel()
 
   /** Which attributes the query excludes, so their ticks read as a minus. */
   /** Whether one value is ticked to be dropped rather than kept. */
@@ -293,7 +295,10 @@ export function ExplorerTree({
         </Button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto px-4 pt-2 pb-2">
+      {/* The rows take a narrower gutter than the head and the rail above and
+          below them: a tree row is a line of text with a chevron, and the panel
+          is better spent on the labels. */}
+      <div className="min-h-0 flex-1 overflow-auto px-2 pt-2 pb-2">
         {attributes.map((attribute) => {
           const values = valuesByAttribute[attribute] ?? []
           const hit = searchHit(attribute, values, search)
@@ -378,7 +383,7 @@ export function ExplorerTree({
           <span className="tabular-nums">{ticked === 0 ? "Nothing ticked" : `${ticked} ticked`}</span>
           {/* The modifier is unguessable, so it is named once, where the ticks
               are counted, rather than beside every box. */}
-          <span className="text-muted-foreground/70"> · ⌥ click to exclude</span>
+          <span className="text-muted-foreground/70"> · {modifierLabel}</span>
         </p>
         <div className="flex items-center gap-2">
           {dirty ? (
@@ -465,7 +470,7 @@ function Row({
   checked?: boolean
   /** Its condition drops the rows it matches, so the mark is a minus. */
   excluded?: boolean
-  /** Whether the pointer that is about to tick this box is holding Alt. */
+  /** Whether the pointer about to tick this box is holding the exclude keys. */
   onAlt?: (alt: boolean) => void
   onCheck?: () => void
 }) {
@@ -504,8 +509,8 @@ function Row({
         <TickBox
           checked={checked ?? false}
           excluded={excluded}
-          onPointerDown={(event) => onAlt?.(event.altKey)}
-          onKeyDown={(event) => onAlt?.(event.altKey)}
+          onPointerDown={(event) => onAlt?.(excludeModifier(event))}
+          onKeyDown={(event) => onAlt?.(excludeModifier(event))}
           onCheckedChange={onCheck}
           aria-label={label}
           className="shrink-0"

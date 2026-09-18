@@ -82,27 +82,27 @@ function ValuePill({
           // Its own line height, not the sentence's. Inheriting it made the pill
           // as tall as the line box it sits in, so opening the lines up opened
           // the pills with them and two lines of values still touched.
-          "text-foreground bg-brand-tint border-brand-border group-hover/pill:shadow-panel inline-flex items-center gap-1 rounded-md border px-1.5 leading-[1.9] font-medium transition-[background-color,box-shadow] select-none",
+          // Fill, text and edge all in the brand: the pill reads as one object
+          // in the query's own colour rather than a grey box with dark words in it.
+          "bg-brand-tint border-brand-border text-brand-ink inline-flex items-center rounded-md border px-2 leading-[1.9] font-medium transition-[background-color,box-shadow] select-none",
           grabbable && "cursor-grab active:cursor-grabbing",
         )}
       >
         {value}
-        {/* Holds the room the clear button appears in, so hovering a value
-            never reflows the sentence. */}
-        <span aria-hidden className="size-[0.55em]" />
       </span>
-      {/* The last value takes its condition with it. */}
+      {/* Over the pill's corner rather than inside it, so the value sits in
+          even padding and nothing has to reserve room for a button that is
+          only there on hover. The last value takes its condition with it. */}
       <button
         type="button"
         aria-label={`Remove ${value}`}
         onClick={() => handlers.onToggleValue(condition.id, condition.attribute, value)}
         className={cn(
-          "focus-visible:ring-ring/50 absolute top-1/2 right-[3px] flex size-[0.8em] -translate-y-1/2 items-center justify-center rounded-sm opacity-0 outline-none group-focus-within/pill:opacity-100 group-hover/pill:opacity-100 focus-visible:opacity-100 focus-visible:ring-2",
+          "text-muted-foreground hover:text-foreground hover:border-edge bg-surface-raised border-border shadow-panel focus-visible:ring-ring/50 absolute -top-1.5 -right-1.5 z-10 flex size-4 cursor-pointer items-center justify-center rounded-full border opacity-0 outline-none group-focus-within/pill:opacity-100 group-hover/pill:opacity-100 focus-visible:opacity-100 focus-visible:ring-2",
           liftClass,
-          "text-brand-ink hover:bg-brand-border",
         )}
       >
-        <XIcon className="size-[0.55em]" />
+        <XIcon className="size-2.5" />
       </button>
     </span>
   )
@@ -162,7 +162,6 @@ function ClauseSpan({
   first,
   comma,
   handlers,
-  removable,
   arrangeable,
   track,
 }: {
@@ -173,7 +172,6 @@ function ClauseSpan({
   /** Another condition follows. The comma rides inside this clause's nowrap unit. */
   comma: boolean
   handlers: QueryHandlers
-  removable: boolean
   arrangeable: boolean
   track: (element: HTMLElement | null) => void
 }) {
@@ -276,16 +274,7 @@ function ClauseSpan({
         ))}
         {comma ? <span className="-ml-0.5">,</span> : null}
 
-        {removable ? (
-          <button
-            type="button"
-            aria-label={`Remove ${condition.attribute} condition`}
-            onClick={() => handlers.onRemoveCondition(condition.id)}
-            className="text-muted-foreground hover:text-foreground hover:border-edge bg-surface-raised border-border shadow-panel absolute -top-2.5 -right-1 z-10 flex size-4 items-center justify-center rounded-full border opacity-0 transition-opacity group-hover/clause:opacity-100 focus-visible:opacity-100"
-          >
-            <XIcon className="size-2.5" />
-          </button>
-        ) : null}
+
       </span>
     </span>
   )
@@ -432,7 +421,6 @@ export function QuerySentence({
             first={i === 0}
             comma={i < conditions.length - 1 && !continues(conditions[i + 1], condition)}
             handlers={handlers}
-            removable={conditions.length > 1}
             arrangeable={arrange}
             track={track(condition.id)}
           />

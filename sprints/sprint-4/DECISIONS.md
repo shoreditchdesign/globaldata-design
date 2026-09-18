@@ -251,3 +251,9 @@ Only a clause joined with `and` is folded in. In a query read left to right an `
 **The box lost its `DRUG SCREENER` label and took its own controls.** Undo, Clear all and Resolve — or Edit, once the query has resolved — now sit in the bottom-right corner of the field itself, rather than on the grey rail underneath it.
 
 **The rail can be tucked away.** A button in the top-right corner of the field collapses the filter chips by height, on the same motion vocabulary as the tree with its own reduced-motion path, because a query with seven chips across two rows pushes the sentence up the page. Undo, Clear all and Resolve stay visible whether the rail is open or shut. `railOpen` lives in the screen's state atom like everything else.
+
+## 2026-09-18 — Idea 2, negation turns vermilion
+
+Rose at hue 22 sat beside the brand's violet-leaning blue and the two argued, which showed most where an excluded chip sat in a rail of blue ones. The negation family is pitched warm for this idea — around hue 42, a vermilion — so the pair reads as blue against orange, which the eye takes as opposition rather than noise. The tokens are overridden on this screen's root rather than changed in `globals.css`, so the Sprint 3 directions keep the family they were reviewed with.
+
+Two other things settled in the same pass. The excluding filter chip takes the washed negation rather than a solid fill, since solid red beside solid blue was two strong colours arguing across one rail. And a value pill is now brand throughout — fill, text and edge — with its clear moved onto the corner, so the value sits in even padding instead of reserving room inside for a button that only appears on hover. The clause-level clear went with it.
