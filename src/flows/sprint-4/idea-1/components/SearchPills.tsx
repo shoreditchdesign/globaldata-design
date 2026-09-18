@@ -72,10 +72,11 @@ export function SearchPills({
       </nav>
 
       {/*
-        On the landing page, one fixed well holds both layers so the centred
-        search never moves; each layer cascades straight under the last.
+        Each layer cascades straight under the last. On the landing page the
+        search is held still by the well the pills sit over, so these take only
+        the room they need and the page scrolls only once they outgrow it.
       */}
-      <div className={cn(layout === "centered" ? "mt-4 h-60" : activeCategory && "mt-4")}>
+      <div className={cn(activeCategory && "mt-4")}>
         {activeCategory ? (
           <nav
             key={activeCategory}
