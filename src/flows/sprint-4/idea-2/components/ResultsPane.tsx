@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon, FolderTreeIcon, TableIcon } from "lucide-react"
+import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { StageBadge } from "@/components/prototype/StageBadge"
@@ -69,8 +69,7 @@ export function ResultsPane({
   rows,
   active,
   onOpenRecord,
-  explorerOpen,
-  onToggleExplorer,
+  onSortChange,
   className,
 }: {
   rows: DrugRow[]
@@ -78,12 +77,16 @@ export function ResultsPane({
   active: boolean
   /** `Open` on a drug name: the whole record, in a drawer over a scrim. */
   onOpenRecord: (id: string) => void
-  explorerOpen: boolean
-  /** `Explorer` splits the tree in beside the results, and closes it again. */
-  onToggleExplorer: () => void
+  /** Reported so the card's head can say what the rows are sorted by. */
+  onSortChange?: (label: string | null) => void
   className?: string
 }) {
   const [sort, setSort] = React.useState<Sort | null>(null)
+
+  React.useEffect(() => {
+    const label = sort ? (columns.find((column) => column.key === sort.key)?.label ?? null) : null
+    onSortChange?.(label && `${label}, ${sort?.dir === "asc" ? "A–Z" : "Z–A"}`)
+  }, [sort, onSortChange])
 
   const sorted = React.useMemo(() => {
     if (!sort) return rows
@@ -96,7 +99,6 @@ export function ResultsPane({
       current?.key !== key ? { key, dir: "asc" } : current.dir === "asc" ? { key, dir: "desc" } : null,
     )
   const shown = sorted.slice(0, PAGE)
-  const sortedLabel = sort ? columns.find((column) => column.key === sort.key)?.label : null
 
   const head = (
     <thead className="sticky top-0 z-20">
@@ -148,44 +150,9 @@ export function ResultsPane({
     </thead>
   )
 
-  // The explorer is reached from the head of the results in both states, so a
-  // cold start has a way into the taxonomy without typing anything first.
-  const toolbar = (
-    <div className="bg-surface-panel text-muted-foreground flex h-12 shrink-0 items-center justify-between gap-4 px-(--text-inset) text-xs">
-      {/*
-        Two views of the results rather than a switch with an on state: standard
-        is the grid on its own, explorer brings the tree in beside it. The
-        selected segment is white on a muted track, as the box's own toggle was.
-      */}
-      <div className="bg-muted -ml-1 flex items-center gap-0.5 rounded-lg p-0.5">
-        <ViewTab active={!explorerOpen} onClick={() => (explorerOpen ? onToggleExplorer() : undefined)}>
-          <TableIcon className="size-3.5" />
-          Standard
-        </ViewTab>
-        <ViewTab active={explorerOpen} onClick={() => (explorerOpen ? undefined : onToggleExplorer())}>
-          <FolderTreeIcon className="size-3.5" />
-          Explorer
-        </ViewTab>
-      </div>
-      {active ? (
-        <span className="ml-auto tabular-nums">
-          {rows.length === 0
-            ? "No drugs in the sample match this query"
-            : `Showing 1–${shown.length} of ${rows.length.toLocaleString("en-GB")} sampled drugs`}
-        </span>
-      ) : null}
-      {active && sort && sortedLabel ? (
-        <span className="truncate">
-          Sorted by {sortedLabel}, {sort.dir === "asc" ? "A–Z" : "Z–A"}
-        </span>
-      ) : null}
-    </div>
-  )
-
   if (!active) {
     return (
       <section className={cn("bg-surface-chrome flex min-h-0 min-w-0 flex-col", className)}>
-        {toolbar}
         <div className="shrink-0 overflow-hidden">
           <table className="w-full border-collapse text-[13px]">{head}</table>
         </div>
@@ -196,7 +163,6 @@ export function ResultsPane({
 
   return (
     <section className={cn("bg-surface-panel flex min-h-0 min-w-0 flex-col", className)}>
-      {toolbar}
 
       <div className="bg-surface-chrome min-h-0 flex-1 overflow-auto">
         <table className="w-full border-collapse text-[13px]">
@@ -263,30 +229,6 @@ export function ResultsPane({
         </table>
       </div>
     </section>
-  )
-}
-
-function ViewTab({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={cn(
-        "flex h-6 cursor-pointer items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-[background-color,color,box-shadow]",
-        active ? "bg-surface-panel text-foreground shadow-panel" : "text-muted-foreground hover:text-foreground",
-      )}
-    >
-      {children}
-    </button>
   )
 }
 
