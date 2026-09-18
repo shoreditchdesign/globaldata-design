@@ -120,7 +120,7 @@ export function Composer({
          */}
         <div
           aria-hidden
-          className="text-muted-foreground pointer-events-none col-start-1 row-start-1 px-0 py-0 text-[22px] leading-[2.05] tracking-[-0.01em] break-words whitespace-pre-wrap"
+          className="text-muted-foreground pointer-events-none col-start-1 row-start-1 px-0 py-0 text-[22px] leading-[2.23] tracking-[-0.01em] break-words whitespace-pre-wrap"
         >
           <span className="invisible">{value}</span>
           {completion}
@@ -187,7 +187,7 @@ export function Composer({
           placeholder="Describe the drugs you're looking for"
           spellCheck={false}
           aria-label="Describe the drugs you're looking for"
-          className="col-start-1 row-start-1 min-h-[2.05em] resize-none rounded-none border-0 bg-transparent px-0 py-0 text-[22px] leading-[2.05] tracking-[-0.01em] shadow-none focus-visible:border-0 focus-visible:ring-0 md:text-[22px]"
+          className="col-start-1 row-start-1 min-h-[2.23em] resize-none rounded-none border-0 bg-transparent px-0 py-0 text-[22px] leading-[2.23] tracking-[-0.01em] shadow-none focus-visible:border-0 focus-visible:ring-0 md:text-[22px]"
         />
       </div>
 
