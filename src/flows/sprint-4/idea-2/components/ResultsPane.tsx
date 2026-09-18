@@ -184,7 +184,7 @@ export function ResultsPane({
 
   if (!active) {
     return (
-      <section className={cn("bg-surface-panel flex min-h-0 min-w-0 flex-col", className)}>
+      <section className={cn("bg-surface-chrome flex min-h-0 min-w-0 flex-col", className)}>
         {toolbar}
         <div className="shrink-0 overflow-hidden">
           <table className="w-full border-collapse text-[13px]">{head}</table>

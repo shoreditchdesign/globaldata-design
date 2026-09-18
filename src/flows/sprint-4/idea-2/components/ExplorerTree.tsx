@@ -91,22 +91,28 @@ const attributes = drugAttributeOrder.filter((attribute) => attributeDefs[attrib
 
 export function ExplorerTree({
   conditions,
+  seed: frame,
   onApply,
   onClose,
   className,
 }: {
   /** The query as applied. Ticks are seeded from it and reset to it when it changes. */
   conditions: Condition[]
+  /**
+   * Branches open and values ticked before anything is applied, when a frame
+   * arrives mid-walk. Only the first render reads it; from there the tree leads.
+   */
+  seed?: { expanded: string[]; ticks: Record<string, string[]> } | null
   onApply: (next: Condition[]) => void
   onClose: () => void
   className?: string
 }) {
-  const [expanded, setExpanded] = React.useState<Set<string>>(() => new Set())
+  const [expanded, setExpanded] = React.useState<Set<string>>(() => new Set(frame?.expanded ?? []))
   const [search, setSearch] = React.useState("")
 
   /** Ticked values per attribute, before they are applied. */
   const seed = React.useMemo(() => ticksFrom(conditions), [conditions])
-  const [draft, setDraft] = React.useState<Record<string, string[]>>(seed)
+  const [draft, setDraft] = React.useState<Record<string, string[]>>(frame?.ticks ?? seed)
   // The query moved somewhere else — a sentence resolved, a pill cleared, Undo.
   // The tree follows it rather than holding ticks the screen no longer shows.
   // Adjusted during render, so no frame paints ticks from the query before.

@@ -65,7 +65,7 @@ const TREE_WIDTH = 560
 export function Screener() {
   const slug = usePathname().split("/").pop() ?? ""
   const [state, setState] = React.useState<ScreenerState>(() => initialState(slug))
-  const { query, past, phase, draft, failure, pending, view, recordId } = state
+  const { query, past, phase, draft, picks, failure, pending, view, recordId, pinnedFilter, tree } = state
   const { conditions } = query
 
   const reseed = React.useCallback((next: string) => setState(initialState(next)), [])
@@ -146,29 +146,26 @@ export function Screener() {
    * the box, in pieces: every change rewrites the draft in the same words a
    * resolved query reads in, and Resolve then reads that line like any other.
    */
-  const [picks, setPicks] = React.useState<Record<string, string[]>>({})
-
   const pickFilter = React.useCallback(
     (attribute: string, values: string[]) =>
       setState((current) => {
         // Nothing has been ticked yet, so a line already in the box was typed or
         // read back from a query. The bar starts its own rather than appending
         // to someone else's sentence.
-        const building = Object.keys(picks).length > 0
-        const base = building ? picks : {}
-        const next = { ...base, [attribute]: values }
+        const building = Object.keys(current.picks).length > 0
+        const next = { ...(building ? current.picks : {}), [attribute]: values }
         if (values.length === 0) delete next[attribute]
-        setPicks(next)
 
         const built = quickConditions(next)
         return {
           ...current,
+          picks: next,
           draft: built.length > 0 ? conditionsToProse(built) : "",
           phase: "compose",
           failure: null,
         }
       }),
-    [picks],
+    [],
   )
 
   // The explorer's rail, applied. One entry in `past` like any other edit, and
@@ -185,6 +182,8 @@ export function Screener() {
           past: [...current.past, current.query],
           phase: conditions.length === 0 ? "compose" : "resolved",
           draft: raw,
+          picks: {},
+          tree: null,
           failure: null,
         }
       }),
@@ -217,17 +216,16 @@ export function Screener() {
       }
     })
 
-  const clearAll = () => {
-    setPicks({})
+  const clearAll = () =>
     setState((current) => ({
       ...current,
       query: blankQuery,
       past: [...current.past, current.query],
       draft: "",
+      picks: {},
       failure: null,
       phase: "compose",
     }))
-  }
 
   /* ------------------------------------------------------------------ */
   /* Typing, resolving, and back again                                   */
@@ -246,7 +244,6 @@ export function Screener() {
   // Stable for the whole transition, or the animation would restart under the
   // reviewer: it reads the pending reading from state rather than closing over it.
   const settle = React.useCallback(() => {
-    setPicks({})
     setState((current) => {
       const resolution = current.pending
       if (!resolution) return { ...current, phase: "resolved" }
@@ -256,6 +253,8 @@ export function Screener() {
         past: current.query.conditions.length > 0 ? [...current.past, current.query] : current.past,
         pending: null,
         phase: "resolved",
+        picks: {},
+        pinnedFilter: null,
       }
     })
   }, [])
@@ -346,6 +345,10 @@ export function Screener() {
                 conditions={conditions}
                 picks={picks}
                 onPick={pickFilter}
+                pinned={pinnedFilter}
+                onPinnedChange={(attribute) =>
+                  setState((current) => ({ ...current, pinnedFilter: attribute }))
+                }
                 className="min-w-0 flex-1"
               />
 
@@ -442,6 +445,7 @@ export function Screener() {
               )}
             >
               <ExplorerTree
+                seed={tree}
                 conditions={conditions}
                 onApply={applyTicks}
                 onClose={() => setView("sentence")}

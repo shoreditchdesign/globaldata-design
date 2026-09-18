@@ -41,6 +41,8 @@ export function QuickFilters({
   conditions,
   picks,
   onPick,
+  pinned,
+  onPinnedChange,
   className,
 }: {
   /** The query as it stands, so a chip shows what is already in it. */
@@ -48,6 +50,13 @@ export function QuickFilters({
   /** What has been ticked into the line in the box but not resolved yet. */
   picks: Record<string, string[]>
   onPick: (attribute: string, values: string[]) => void
+  /**
+   * The one dropdown a frame is holding open. A popover that shuts the moment
+   * the pointer leaves cannot be captured, and these screens are reviewed as
+   * screenshots as much as in the browser.
+   */
+  pinned?: string | null
+  onPinnedChange?: (attribute: string | null) => void
   className?: string
 }) {
   const held = React.useMemo(() => {
@@ -74,6 +83,8 @@ export function QuickFilters({
           conditions={conditions}
           values={shownFor(attribute)}
           onPick={(values) => onPick(attribute, values)}
+          pinned={pinned === attribute}
+          onOpenChange={(open) => onPinnedChange?.(open ? attribute : null)}
         />
       ))}
       {total > 0 ? (
@@ -90,12 +101,17 @@ function FilterChip({
   conditions,
   values,
   onPick,
+  pinned,
+  onOpenChange,
 }: {
   attribute: string
   conditions: Condition[]
   /** This attribute's values, whether ticked here or already in the query. */
   values: string[]
   onPick: (values: string[]) => void
+  /** Held open by the frame, so a screenshot can catch it. */
+  pinned?: boolean
+  onOpenChange?: (open: boolean) => void
 }) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
@@ -123,9 +139,10 @@ function FilterChip({
 
   return (
     <Popover
-      open={open}
+      open={open || pinned}
       onOpenChange={(next) => {
         setOpen(next)
+        onOpenChange?.(next)
         if (!next) setSearch("")
       }}
     >
@@ -147,7 +164,18 @@ function FilterChip({
         </button>
       </PopoverTrigger>
 
-      <PopoverContent align="start" className="w-[300px] p-0">
+      <PopoverContent
+        align="start"
+        className="w-[300px] p-0"
+        // A pinned dropdown stays put when the pointer or the focus leaves it,
+        // so it can be photographed; the chip and Escape still close it.
+        onInteractOutside={(event) => {
+          if (pinned) event.preventDefault()
+        }}
+        onFocusOutside={(event) => {
+          if (pinned) event.preventDefault()
+        }}
+      >
         <div className="border-hairline border-b p-2">
           <div className="relative">
             <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
