@@ -198,20 +198,28 @@ export function ResultsPane({
                       over the right-hand end of the name, and an unseen button
                       there swallowed every click meant for the row.
                     */}
-                    <Button
-                      variant="outline"
-                      size="xs"
-                      onClick={() => onOpenRecord(row.id)}
-                      tabIndex={0}
-                      className={cn(
-                        "absolute top-1/2 right-3 h-6 -translate-y-1/2 opacity-0 transition-opacity duration-100",
-                        "pointer-events-none group-hover/row:pointer-events-auto group-hover/row:opacity-100",
-                        "focus-visible:pointer-events-auto focus-visible:opacity-100",
-                        "motion-reduce:transition-none",
-                      )}
-                    >
-                      Open
-                    </Button>
+                    {/*
+                      The centring lives on this span, never on the button. The
+                      button presses by a transform of its own, and a transform
+                      replaces rather than adds to one already there — so
+                      centring it by `-translate-y-1/2` made it leap half its
+                      own height the moment it was pressed.
+                    */}
+                    <span className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center">
+                      <Button
+                        variant="outline"
+                        size="xs"
+                        onClick={() => onOpenRecord(row.id)}
+                        className={cn(
+                          "h-6 opacity-0 transition-opacity duration-100",
+                          "pointer-events-none group-hover/row:pointer-events-auto group-hover/row:opacity-100",
+                          "focus-visible:pointer-events-auto focus-visible:opacity-100",
+                          "motion-reduce:transition-none",
+                        )}
+                      >
+                        Open
+                      </Button>
+                    </span>
                   </td>
                   <Cell>{row.company}</Cell>
                   <Cell>{row.indication}</Cell>
