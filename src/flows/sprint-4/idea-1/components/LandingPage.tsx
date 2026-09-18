@@ -60,6 +60,8 @@ export function LandingPage({
   // under the field and its place under the columns; and whatever the switch
   // brings in starts where the title's move puts it, travelling up or down with
   // the title as it fades in, so it never lands on top of the title mid-move.
+  // The pills are the exception: they wait for the move to settle before fading
+  // in, so the filter box gliding up past them never crosses them.
   const sectionRef = React.useRef<HTMLElement>(null)
   const lastTops = React.useRef<{ title?: number; summary?: number }>({})
   const lastMode = React.useRef(mode)
@@ -104,6 +106,16 @@ export function LandingPage({
     const title = section.querySelector("[data-flip='title']")
     if (title && titleOffset !== 0) slide(title, titleOffset)
     section.querySelectorAll("[data-flip='stack']").forEach((element) => slide(element, titleOffset, true))
+    section.querySelectorAll("[data-flip='after']").forEach((element) => {
+      element.getAnimations().forEach((animation) => animation.cancel())
+      element.animate([{ opacity: 0 }, { opacity: 1 }], {
+        ...timing,
+        delay: motion.reflow,
+        duration: motion.settle,
+        // Held clear through the move, so they never show before their turn.
+        fill: "backwards",
+      })
+    })
 
     const summary = section.querySelector("[data-flip='summary']")
     if (summary && now.summary !== undefined) {
@@ -212,7 +224,7 @@ export function LandingPage({
                 )}
               >
                 {filterBox ? <div data-flip="summary">{filterBox}</div> : null}
-                <div data-flip="stack">
+                <div data-flip="after">
                   <SearchPills
                     filters={filters}
                     layout="centered"
