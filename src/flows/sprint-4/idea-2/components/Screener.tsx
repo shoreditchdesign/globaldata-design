@@ -353,49 +353,54 @@ export function Screener() {
 
 
 
-              {!composing && !resolving && query.raw ? (
-                <p className="text-muted-foreground mt-3.5 min-w-0 truncate text-xs">
-                  {query.edited ? "Edited since it was read from" : "Read from"}{" "}
-                  <span className="text-brand-ink">{query.raw}</span>
-                </p>
-              ) : null}
+              {/*
+                What the query was read from on the left, what can be done about
+                it on the right, on one line — the two stacked left a band of
+                empty space under whichever was shorter.
+              */}
+              <div className="mt-3 flex items-end justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  {!composing && !resolving && query.raw ? (
+                    <p className="text-muted-foreground min-w-0 truncate text-xs">
+                      {query.edited ? "Edited since it was read from" : "Read from"}{" "}
+                      <span className="text-brand-ink">{query.raw}</span>
+                    </p>
+                  ) : null}
 
-              {!composing && !resolving && notes.length > 0 ? (
-                <Notes notes={notes} />
-              ) : null}
+                  {!composing && !resolving && notes.length > 0 ? <Notes notes={notes} /> : null}
+                </div>
 
-              {/* What the query costs, and what can be done about it, in the
-                  corner of the field it belongs to rather than on the rail. */}
-              <div className="mt-3 flex items-center justify-end gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={undo}
-                  disabled={past.length === 0 || resolving}
-                  className="text-muted-foreground hover:bg-accent"
-                >
-                  <RotateCcwIcon />
-                  Undo
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearAll}
-                  disabled={(empty && !draft.trim()) || resolving}
-                  className="text-muted-foreground hover:bg-accent"
-                >
-                  Clear all
-                </Button>
-                {composing ? (
-                  <Button size="sm" onClick={() => submit(draft)} disabled={!draft.trim() || resolving}>
-                    Resolve
-                    <CornerDownLeftIcon />
+                <div className="flex shrink-0 items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={undo}
+                    disabled={past.length === 0 || resolving}
+                    className="text-muted-foreground hover:bg-accent"
+                  >
+                    <RotateCcwIcon />
+                    Undo
                   </Button>
-                ) : (
-                  <Button size="sm" variant="secondary" onClick={editAsText} disabled={resolving}>
-                    Edit
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearAll}
+                    disabled={(empty && !draft.trim()) || resolving}
+                    className="text-muted-foreground hover:bg-accent"
+                  >
+                    Clear all
                   </Button>
-                )}
+                  {composing ? (
+                    <Button size="sm" onClick={() => submit(draft)} disabled={!draft.trim() || resolving}>
+                      Resolve
+                      <CornerDownLeftIcon />
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="secondary" onClick={editAsText} disabled={resolving}>
+                      Edit
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
 
