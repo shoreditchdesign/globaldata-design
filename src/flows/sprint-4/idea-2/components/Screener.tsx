@@ -400,7 +400,13 @@ export function Screener() {
                       <CornerDownLeftIcon />
                     </Button>
                   ) : (
-                    <Button size="sm" variant="secondary" onClick={editAsText} disabled={resolving}>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={editAsText}
+                      disabled={resolving}
+                      className="text-brand hover:text-brand-strong"
+                    >
                       Edit
                     </Button>
                   )}
