@@ -556,11 +556,14 @@ function Notes({
               key={suggestion.value}
               type="button"
               onClick={() => onAdd(suggestion.attribute, suggestion.value)}
-              className="bg-surface-panel border-border hover:border-edge hover:bg-accent hover:text-foreground inline-flex h-6 items-center gap-1.5 rounded-md border pr-2 pl-1.5 text-xs transition-colors"
+              // The washed brand the canvas gave its suggestions: something to
+              // add, in the query's own colour, without the fill of a value
+              // that is already on.
+              className="bg-brand-tint border-brand-border text-foreground hover:border-brand-ink/30 hover:shadow-panel inline-flex h-6 items-center gap-1.5 rounded-md border pr-2 pl-1.5 text-xs transition-[border-color,box-shadow]"
             >
-              <PlusIcon className="text-muted-foreground size-3" />
+              <PlusIcon className="text-brand-ink size-3" />
               {suggestion.value}
-              <span className="text-muted-foreground">{suggestion.attribute}</span>
+              <span className="text-brand-ink/70">{suggestion.attribute}</span>
             </button>
           ))}
         </div>
