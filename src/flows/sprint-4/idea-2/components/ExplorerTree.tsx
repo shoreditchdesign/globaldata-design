@@ -254,7 +254,7 @@ export function ExplorerTree({
         as a title row and a search row. Change one height and change the other.
       */}
       <div className="bg-surface-panel border-edge h-21 shrink-0 border-b">
-        <div className="flex h-12 items-center gap-1 px-(--text-inset)">
+        <div className="flex h-12 items-center gap-1 px-4">
           <p className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
             Explorer
           </p>
@@ -278,7 +278,7 @@ export function ExplorerTree({
           </Button>
         </div>
 
-        <div className="flex flex-1 items-start px-(--text-inset) pb-2">
+        <div className="flex flex-1 items-start px-4 pb-2">
           <div className="relative w-full">
             <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
             <Input
@@ -301,7 +301,7 @@ export function ExplorerTree({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto px-(--text-inset) pt-2 pb-2">
+      <div className="min-h-0 flex-1 overflow-auto px-4 pt-2 pb-2">
         {attributes.map((attribute) => {
           const values = valuesByAttribute[attribute] ?? []
           const hit = searchHit(attribute, values, search)
@@ -381,7 +381,7 @@ export function ExplorerTree({
         Nothing the tree does reaches the table until this rail is used, so the
         count under the sentence never moves while a branch is being read.
       */}
-      <div className="border-edge bg-surface-panel flex h-12 shrink-0 items-center justify-between gap-3 border-t px-(--text-inset)">
+      <div className="border-edge bg-surface-panel flex h-12 shrink-0 items-center justify-between gap-3 border-t px-4">
         <p className="text-muted-foreground min-w-0 truncate text-xs">
           <span className="tabular-nums">{ticked === 0 ? "Nothing ticked" : `${ticked} ticked`}</span>
           {/* The modifier is unguessable, so it is named once, where the ticks
