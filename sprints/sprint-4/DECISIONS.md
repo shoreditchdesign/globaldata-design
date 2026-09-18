@@ -171,3 +171,13 @@ Austin reversed the two greys added earlier the same day, and both reversals hol
 **`Open` took clicks while it was invisible.** The control sits over the right-hand end of the drug name and fades in on row hover, but it kept its pointer events at zero opacity, so every click landing on that part of a name hit a button nobody could see and nothing happened. It now takes no clicks until it is shown, by hover or by keyboard focus, and it is a little taller so the target is worth aiming at. The name reserves its width permanently, as before, because animating that room is what made Sprint 3's rows reflow under the cursor.
 
 **A new shadow, `shadow-float`.** The explorer card needed to read as in front of the page rather than resting on it, and `shadow-raised` was not carrying that at this size. `float` is the same shape carried further — a 32px spread at 0.18 against `raised`'s 24px at 0.1 — and the card's edge steps up from `border` to `border-edge` with it. It is a fourth step on an existing ladder rather than a new idea, and only this card uses it so far.
+
+## 2026-09-18 — Idea 2, the frames between the frames
+
+**Four intermediate states are addressable.** `filter-open` and `filter-ticked` are a quick filter's dropdown open and then holding two values, with the line above written as they were ticked. `explorer-expanded` and `explorer-ticked` are branches opened and values ticked in the tree, with the rail counting them and nothing applied. `explorer-open` is renamed in its title to say what it is: the tree with every branch shut.
+
+None of them is a mock. The ticks are seeded into the same state the screen edits, so pressing Resolve or Apply filters from one of these frames does what it would have done had you clicked your way there.
+
+**A dropdown can be pinned open.** A popover that closes the moment focus leaves it cannot be screenshotted, and these screens are reviewed as captures into Figma as much as in the browser. A frame naming a pinned filter holds that dropdown open through an outside click or a focus change; the chip itself and Escape still close it, and resolving clears the pin. `pinnedFilter` lives in the screen's state, so the address bar follows it like everything else.
+
+**The empty grid takes the tint too.** It was white until the first row landed and then turned faintly blue, which made the empty state look like a different surface from the one it was about to become.

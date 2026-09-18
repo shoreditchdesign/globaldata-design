@@ -38,6 +38,8 @@ export interface ScreenerState {
   phase: Phase
   /** What is in the composer, whether it has been resolved or not. */
   draft: string
+  /** What the quick filter bar has ticked into the line but not resolved. */
+  picks: Record<string, string[]>
   /** The last attempt, when it produced no query at all. */
   failure: Resolution | null
   /** The query being read, held for the length of the resolve animation. */
@@ -48,6 +50,20 @@ export interface ScreenerState {
    * up in the filtered set, so a query that drops the drug closes the drawer.
    */
   recordId: string | null
+  /**
+   * A quick filter's dropdown, held open by the frame rather than by the
+   * pointer. A popover that shuts the moment focus leaves it cannot be
+   * screenshotted, and these frames exist to be captured.
+   */
+  pinnedFilter: string | null
+  /** What the explorer is showing before anything is applied, when a frame seeds it. */
+  tree: TreeSeed | null
+}
+
+/** Branches open and values ticked in the explorer, with nothing applied yet. */
+export interface TreeSeed {
+  expanded: string[]
+  ticks: Record<string, string[]>
 }
 
 export const blankQuery: Query = { conditions: [], raw: "", resolution: null, edited: false }
@@ -202,10 +218,13 @@ const base: ScreenerState = {
   past: [],
   phase: "compose",
   draft: "",
+  picks: {},
   failure: null,
   pending: null,
   view: "sentence",
   recordId: null,
+  pinnedFilter: null,
+  tree: null,
 }
 
 const resolved: ScreenerState = {
@@ -270,6 +289,18 @@ function pullApart(): Pick<ScreenerState, "query" | "past"> {
   return { query: { ...before, conditions: arranged.conditions, edited: true }, past: [before] }
 }
 
+/**
+ * The intermediate frames: a dropdown open, branches opened, values ticked but
+ * not applied. They are states of the same screen, seeded rather than mocked —
+ * the ticks below are the values the next step applies, not a picture of them.
+ */
+const stageTicks = { "Development Stage": ["Phase II", "Phase III"] }
+const treeTicks = {
+  "Development Stage": ["Phase III"],
+  "Drug Geography": ["Europe"],
+  "Molecule Type": ["Monoclonal Antibody"],
+}
+
 export const initialStates: Record<string, ScreenerState> = {
   start: base,
   "explorer-open": { ...base, view: "explorer" },
@@ -283,6 +314,26 @@ export const initialStates: Record<string, ScreenerState> = {
     ...pullApart(),
     phase: "resolved",
     draft: pulledApartPrompt,
+  },
+  "filter-open": { ...base, pinnedFilter: "Development Stage" },
+  "filter-ticked": {
+    ...base,
+    pinnedFilter: "Development Stage",
+    picks: stageTicks,
+    draft: "Development Stage is Phase II or Phase III",
+  },
+  "explorer-expanded": {
+    ...base,
+    view: "explorer",
+    tree: { expanded: ["Development Stage", "Drug Geography"], ticks: {} },
+  },
+  "explorer-ticked": {
+    ...base,
+    view: "explorer",
+    tree: {
+      expanded: ["Development Stage", "Drug Geography", "Molecule Type"],
+      ticks: treeTicks,
+    },
   },
   partial: {
     ...base,
@@ -301,10 +352,14 @@ export function initialState(slug: string): ScreenerState {
  * so landing on a deep link never rewrites it.
  */
 export function slugFor(state: ScreenerState): string {
-  const { query, view, phase, draft, recordId } = state
+  const { query, view, phase, draft, recordId, pinnedFilter, tree } = state
 
   // The drawer only ever holds a drug the query matches, so it outranks the rest.
   if (recordId && query.conditions.length > 0) return "record"
+
+  // A frame held open for capture names itself, whatever else is true.
+  if (pinnedFilter) return Object.keys(state.picks).length > 0 ? "filter-ticked" : "filter-open"
+  if (tree) return Object.keys(tree.ticks).length > 0 ? "explorer-ticked" : "explorer-expanded"
 
   if (query.conditions.length === 0) {
     if (view === "explorer") return "explorer-open"
