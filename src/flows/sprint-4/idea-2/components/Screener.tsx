@@ -331,30 +331,35 @@ export function Screener() {
                 {railOpen ? "Collapse filters" : "Show filters"}
               </Button>
 
-              {composing ? (
-                <Composer
-                  value={draft}
-                  onChange={(value) => setState((current) => ({ ...current, draft: value }))}
-                  onSubmit={() => submit(draft)}
-                  onCancel={
-                    empty ? undefined : () => setState((current) => ({ ...current, phase: "resolved" }))
-                  }
-                  onSuggestion={applySuggestion}
-                  failure={failure}
-                  showActions={false}
-                />
-              ) : resolving && pending ? (
-                <Resolving resolution={pending} onDone={settle} />
-              ) : (
-                <QuerySentence
-                  conditions={conditions}
-                  handlers={handlers}
-                  suggestions={query.edited ? [] : (query.resolution?.suggestions ?? [])}
-                  onAddSuggestion={addSuggestion}
-                />
-              )}
-
-
+              {/*
+                The collapse control floats in this corner, so what is being
+                typed or read stops short of it rather than running under it on
+                the first line.
+              */}
+              <div className="pr-32">
+                {composing ? (
+                  <Composer
+                    value={draft}
+                    onChange={(value) => setState((current) => ({ ...current, draft: value }))}
+                    onSubmit={() => submit(draft)}
+                    onCancel={
+                      empty ? undefined : () => setState((current) => ({ ...current, phase: "resolved" }))
+                    }
+                    onSuggestion={applySuggestion}
+                    failure={failure}
+                    showActions={false}
+                  />
+                ) : resolving && pending ? (
+                  <Resolving resolution={pending} onDone={settle} />
+                ) : (
+                  <QuerySentence
+                    conditions={conditions}
+                    handlers={handlers}
+                    suggestions={query.edited ? [] : (query.resolution?.suggestions ?? [])}
+                    onAddSuggestion={addSuggestion}
+                  />
+                )}
+              </div>
 
               {/*
                 What the query was read from on the left, what can be done about
