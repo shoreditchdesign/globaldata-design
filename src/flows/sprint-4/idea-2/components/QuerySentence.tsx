@@ -12,7 +12,7 @@ import {
   type DropTarget,
 } from "@/flows/sprint-4/idea-2/arrange"
 import { type Condition } from "@/flows/sprint-4/idea-2/data"
-import { attributeWord, clauseWords, operatorWord } from "@/flows/sprint-4/idea-2/grammar"
+import { attributeWord, clauseWords, continues, operatorWord } from "@/flows/sprint-4/idea-2/grammar"
 import {
   type Resolved,
   useArrange,
@@ -158,6 +158,7 @@ function LogicWord({
  */
 function ClauseSpan({
   condition,
+  carriesOn,
   first,
   comma,
   handlers,
@@ -166,6 +167,8 @@ function ClauseSpan({
   track,
 }: {
   condition: Condition
+  /** The clause before was the same attribute, kept where this one drops. */
+  carriesOn: boolean
   first: boolean
   /** Another condition follows. The comma rides inside this clause's nowrap unit. */
   comma: boolean
@@ -192,9 +195,10 @@ function ClauseSpan({
     >
       {first ? null : (
         <>
-          {/* How this condition meets the ones before it — the join the logic
-              gate draws as a node. */}
-          <LogicWord lit={landed === "link"}>{condition.link}</LogicWord>{" "}
+          {/* How this condition meets the ones before it. A clause on the same
+              attribute is the same breath, so it reads `but` and does not name
+              the attribute again. */}
+          <LogicWord lit={landed === "link"}>{carriesOn ? "but" : condition.link}</LogicWord>{" "}
         </>
       )}
       <span
@@ -232,7 +236,7 @@ function ClauseSpan({
             tintClass,
           )}
         >
-          {attributeWord(condition)}{" "}
+          {carriesOn ? null : <>{attributeWord(condition)} </>}
           {/*
             The operator carries the meaning in colour rather than in weight:
             the brand for a clause that keeps rows, the negation tone for one
@@ -407,8 +411,9 @@ export function QuerySentence({
           {i > 0 ? " " : null}
           <ClauseSpan
             condition={condition}
+            carriesOn={continues(condition, conditions[i - 1])}
             first={i === 0}
-            comma={i < conditions.length - 1}
+            comma={i < conditions.length - 1 && !continues(conditions[i + 1], condition)}
             handlers={handlers}
             removable={conditions.length > 1}
             arrangeable={arrange}

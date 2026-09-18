@@ -44,12 +44,28 @@ export function clauseWords(condition: Condition) {
   return `${attributeWord(condition)} ${operatorWord(condition)} ${condition.values.join(` ${condition.join} `)}`
 }
 
+/**
+ * Whether a clause carries on from the one before it: the same attribute, kept
+ * and then dropped. `Molecule Type is Small Molecule but is not Peptide` says
+ * in one breath what naming the attribute twice says in two.
+ */
+export function continues(condition: Condition, previous?: Condition) {
+  return Boolean(previous && previous.attribute === condition.attribute && previous.mode !== condition.mode)
+}
+
 /** The query written back out as a line of English the resolver reads again. */
 export function conditionsToProse(conditions: Condition[]) {
   if (conditions.length === 0) return ""
   return conditions
-    .map((condition, i) => (i === 0 ? clauseWords(condition) : `${condition.link} ${clauseWords(condition)}`))
-    .join(", ")
+    .map((condition, i) => {
+      if (i === 0) return clauseWords(condition)
+      if (continues(condition, conditions[i - 1])) {
+        return `but ${operatorWord(condition)} ${condition.values.join(` ${condition.join} `)}`
+      }
+      return `, ${condition.link} ${clauseWords(condition)}`
+    })
+    .join(" ")
+    .replace(/\s+,/g, ",")
 }
 
 /**

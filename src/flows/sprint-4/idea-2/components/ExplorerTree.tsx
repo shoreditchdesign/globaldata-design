@@ -192,18 +192,24 @@ export function ExplorerTree({
    * how the tree says `is not` without a second control: the sentence has a
    * word to press for it, and the tree has the modifier.
    */
-  const [dropping, setDropping] = React.useState<Set<string>>(() => new Set())
+  const [dropping, setDropping] = React.useState<Record<string, string[]>>(() => droppedFrom(conditions))
+  // A query arriving from elsewhere brings its own polarity with it.
+  const dropSeed = React.useMemo(() => droppedFrom(conditions), [conditions])
+  const [dropSynced, setDropSynced] = React.useState(dropSeed)
+  if (dropSynced !== dropSeed) {
+    setDropSynced(dropSeed)
+    setDropping(dropSeed)
+  }
+
   /** Alt is read on the way down, since the change event does not carry it. */
   const altDown = React.useRef(false)
 
   /** Which attributes the query excludes, so their ticks read as a minus. */
-  const excluded = React.useMemo(() => {
-    const dropped = new Set(
-      conditions.filter((condition) => condition.mode === "is not").map((c) => c.attribute),
-    )
-    for (const attribute of dropping) dropped.add(attribute)
-    return dropped
-  }, [conditions, dropping])
+  /** Whether one value is ticked to be dropped rather than kept. */
+  const isDropped = React.useCallback(
+    (attribute: string, value: string) => dropping[attribute]?.includes(value) ?? false,
+    [dropping],
+  )
 
   const dirty = !sameTicks(draft, seed)
   const ticked = Object.values(draft).reduce((sum, values) => sum + values.length, 0)
@@ -217,23 +223,25 @@ export function ExplorerTree({
     })
 
   const tick = (attribute: string, value: string) => {
-    if (altDown.current) {
-      setDropping((current) => new Set(current).add(attribute))
-    }
+    const dropped = altDown.current
+    setDropping((current) => {
+      const held = current[attribute] ?? []
+      const next = dropped
+        ? held.includes(value)
+          ? held
+          : [...held, value]
+        : held.filter((entry) => entry !== value)
+      const updated = { ...current, [attribute]: next }
+      if (next.length === 0) delete updated[attribute]
+      return updated
+    })
     setDraft((current) => {
       const values = current[attribute] ?? []
       const next = values.includes(value)
         ? values.filter((entry) => entry !== value)
         : [...values, value]
       const updated = { ...current, [attribute]: next }
-      if (next.length === 0) {
-        delete updated[attribute]
-        setDropping((dropped) => {
-          const rest = new Set(dropped)
-          rest.delete(attribute)
-          return rest
-        })
-      }
+      if (next.length === 0) delete updated[attribute]
       return updated
     })
   }
@@ -340,7 +348,7 @@ export function ExplorerTree({
                           nested={matched !== null}
                           count={counts[value.label] ?? 0}
                           checked={tickShown(attribute, value.label)}
-                          excluded={excluded.has(attribute)}
+                          excluded={isDropped(attribute, value.label)}
                           onAlt={(alt) => (altDown.current = alt)}
                           onCheck={() => tick(attribute, value.label)}
                         />
@@ -352,7 +360,7 @@ export function ExplorerTree({
                                 label={child.label}
                                 count={counts[child.label] ?? 0}
                                 checked={tickShown(attribute, child.label)}
-                                excluded={excluded.has(attribute)}
+                                excluded={isDropped(attribute, value.label)}
                                 onAlt={(alt) => (altDown.current = alt)}
                                 onCheck={() => tick(attribute, child.label)}
                               />
@@ -558,44 +566,59 @@ function sameTicks(a: Record<string, string[]>, b: Record<string, string[]>) {
 }
 
 /**
- * Ticks written back into the query, on top of what is already there. A
- * condition the query holds keeps its own words — its join, whether it excludes,
- * how it meets the rest — and only its values change, so unticking `Austria`
- * under an excluded geography removes that value and leaves the exclusion
- * standing. An attribute the query did not have joins the end as a plain `and`,
- * in the order the product lists its attributes, and one left with nothing
- * ticked leaves the query.
+ * Ticks written back into the query, on top of what is already there. An
+ * attribute can hold both polarities at once — small molecules but not
+ * peptides — so it writes up to two clauses: what it keeps, then what it drops.
+ * A clause the query already holds keeps its own join and link; a new one joins
+ * the end with a plain `and`, in the order the product lists its attributes.
  */
 function applyTicks(
   conditions: Condition[],
   draft: Record<string, string[]>,
-  dropping: Set<string>,
+  dropping: Record<string, string[]>,
 ): Condition[] {
-  const seen = new Set<string>()
-  const kept = conditions
-    .map((condition) => {
-      const values = draft[condition.attribute]
-      if (!values || values.length === 0) return null
-      // Several conditions can share an attribute. The first takes the ticks;
-      // the rest go, since the tree draws one branch per attribute.
-      if (seen.has(condition.attribute)) return null
-      seen.add(condition.attribute)
-      const mode = dropping.has(condition.attribute) ? "is not" : condition.mode
-      return { ...condition, values, mode }
-    })
-    .filter((condition): condition is Condition => condition !== null)
+  const held = new Map(conditions.map((condition) => [condition.id, condition]))
+  const attributes = Object.keys(draft)
+    .filter((attribute) => (draft[attribute] ?? []).length > 0)
+    .sort((a, b) => drugAttributeOrder.indexOf(a) - drugAttributeOrder.indexOf(b))
 
-  const added = Object.entries(draft)
-    .filter(([attribute, values]) => values.length > 0 && !seen.has(attribute))
-    .sort(([a], [b]) => drugAttributeOrder.indexOf(a) - drugAttributeOrder.indexOf(b))
-    .map(([attribute, values]): Condition => ({
-      id: attribute,
-      attribute,
-      values,
-      join: "or",
-      mode: dropping.has(attribute) ? "is not" : "is",
-      link: "and",
-    }))
+  const next: Condition[] = []
+  for (const attribute of attributes) {
+    const values = draft[attribute] ?? []
+    const dropped = dropping[attribute] ?? []
+    const kept = values.filter((value) => !dropped.includes(value))
+    const excluded = values.filter((value) => dropped.includes(value))
 
-  return [...kept, ...added]
+    if (kept.length > 0) {
+      const before = held.get(attribute)
+      next.push({
+        ...(before ?? { join: "or", link: "and" }),
+        id: attribute,
+        attribute,
+        mode: "is",
+        values: kept,
+      } as Condition)
+    }
+    if (excluded.length > 0) {
+      const before = held.get(`${attribute}~not`)
+      next.push({
+        ...(before ?? { join: "or", link: "and" }),
+        id: `${attribute}~not`,
+        attribute,
+        mode: "is not",
+        values: excluded,
+      } as Condition)
+    }
+  }
+  return next
+}
+
+/** Which values the query is dropping, per attribute. */
+function droppedFrom(conditions: Condition[]): Record<string, string[]> {
+  const dropped: Record<string, string[]> = {}
+  for (const condition of conditions) {
+    if (condition.mode !== "is not") continue
+    dropped[condition.attribute] = [...(dropped[condition.attribute] ?? []), ...condition.values]
+  }
+  return dropped
 }

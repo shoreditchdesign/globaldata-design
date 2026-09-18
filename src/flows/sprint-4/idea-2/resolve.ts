@@ -252,7 +252,7 @@ const stopwords = new Set(
     "outside minus never apart besides targeting target targets taken take using used given filed " +
     "classed classified under via administered delivered marketed sold made acting described typed " +
     "whose type route molecule stage phase geography therapy area indication attribute " +
-    "results query search screen screener thanks ok"
+    "results query search screen screener thanks ok but"
   ).split(" "),
 )
 
@@ -519,7 +519,9 @@ export function resolveQuery(raw: string): Resolution {
     }
   }
 
-  const chosen = new Map<string, { values: string[]; exclude: boolean; link: "and" | "or" }>()
+  // Keyed by attribute *and* polarity: `small molecules but not peptides` is one
+  // attribute kept and dropped in the same breath, which is two conditions.
+  const chosen = new Map<string, { attribute: string; values: string[]; exclude: boolean; link: "and" | "or" }>()
   const notes: Note[] = []
   const read: ReadSpan[] = []
   let previousAttribute: string | undefined
@@ -535,19 +537,19 @@ export function resolveQuery(raw: string): Resolution {
     if (!span.attribute) return
 
     const isNegated = negated.has(index)
-    let current = chosen.get(span.attribute)
+    const key = `${span.attribute}|${isNegated ? "not" : "is"}`
+    let current = chosen.get(key)
     if (!current) {
       // A lone `or` between two different attributes is the one join the
       // typed words can set; everything else meets the query with `and`.
       const gap = words(text.slice(previousEnd, span.start))
       const link = previousAttribute && gap.includes("or") && !gap.includes("and") ? "or" : "and"
-      current = { values: [], exclude: false, link }
-      chosen.set(span.attribute, current)
+      current = { attribute: span.attribute, values: [], exclude: isNegated, link }
+      chosen.set(key, current)
     }
     for (const value of span.values) {
       if (!current.values.includes(value)) current.values.push(value)
     }
-    current.exclude = current.exclude || isNegated
     previousAttribute = span.attribute
     previousEnd = span.end
 
@@ -563,9 +565,9 @@ export function resolveQuery(raw: string): Resolution {
 
   /* Conditions in the order they were typed, which is the order the logic gate
      evaluates them — reordering would change what an `or` means. */
-  const conditions: Condition[] = [...chosen.entries()].map(([attribute, picked]) => ({
-    id: attribute,
-    attribute,
+  const conditions: Condition[] = [...chosen.values()].map((picked) => ({
+    id: picked.exclude ? `${picked.attribute}~not` : picked.attribute,
+    attribute: picked.attribute,
     values: picked.values,
     join: "or",
     mode: picked.exclude ? "is not" : "is",
