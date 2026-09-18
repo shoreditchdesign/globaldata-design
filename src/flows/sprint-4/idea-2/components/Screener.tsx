@@ -65,7 +65,20 @@ const TREE_WIDTH = 560
 export function Screener() {
   const slug = usePathname().split("/").pop() ?? ""
   const [state, setState] = React.useState<ScreenerState>(() => initialState(slug))
-  const { query, past, phase, draft, picks, failure, pending, view, recordId, pinnedFilter, tree } = state
+  const {
+    query,
+    past,
+    phase,
+    draft,
+    picks,
+    drops,
+    failure,
+    pending,
+    view,
+    recordId,
+    pinnedFilter,
+    tree,
+  } = state
   const { conditions } = query
 
   const reseed = React.useCallback((next: string) => setState(initialState(next)), [])
@@ -147,18 +160,20 @@ export function Screener() {
    * resolved query reads in, and Resolve then reads that line like any other.
    */
   const pickFilter = React.useCallback(
-    (attribute: string, values: string[]) =>
+    (attribute: string, values: string[], dropped: string[]) =>
       setState((current) => {
         const next = { ...current.picks, [attribute]: values }
-        if (values.length === 0) next[attribute] = []
+        const nextDrops = { ...current.drops, [attribute]: dropped }
+        if (dropped.length === 0) delete nextDrops[attribute]
 
         // The bar adds to the query rather than replacing it: the line it writes
         // is what the query already holds with this attribute's values swapped
         // in, and Resolve reads that line like any other.
-        const built = mergePicks(current.query.conditions, next)
+        const built = mergePicks(current.query.conditions, next, nextDrops)
         return {
           ...current,
           picks: next,
+          drops: nextDrops,
           draft: built.length > 0 ? conditionsToProse(built) : "",
           phase: "compose",
           failure: null,
@@ -182,6 +197,7 @@ export function Screener() {
           phase: conditions.length === 0 ? "compose" : "resolved",
           draft: raw,
           picks: {},
+          drops: {},
           tree: null,
           failure: null,
         }
@@ -222,6 +238,7 @@ export function Screener() {
       past: [...current.past, current.query],
       draft: "",
       picks: {},
+      drops: {},
       failure: null,
       phase: "compose",
     }))
@@ -253,6 +270,7 @@ export function Screener() {
         pending: null,
         phase: "resolved",
         picks: {},
+        drops: {},
         pinnedFilter: null,
       }
     })
@@ -350,6 +368,7 @@ export function Screener() {
               <QuickFilters
                 conditions={conditions}
                 picks={picks}
+                drops={drops}
                 onPick={pickFilter}
                 pinned={pinnedFilter}
                 onPinnedChange={(attribute) =>
@@ -477,37 +496,60 @@ export function Screener() {
 }
 
 /**
- * The query with the bar's ticks folded in. A condition already in the query
- * keeps its own words and only its values change, so ticking a value under an
- * excluded attribute adds to the exclusion rather than flipping it; one left
- * with nothing ticked leaves. Anything new joins the end with a plain `and`, in
- * the order the product lists its attributes, so the line reads the way a typed
- * query resolves.
+ * The query with the bar's ticks folded in. An attribute can keep some values
+ * and drop others, so it writes up to two clauses — what it keeps, then what it
+ * drops — the same shape the explorer applies. A clause the query already holds
+ * keeps its own join and link; a new one joins the end with a plain `and`, in
+ * the order the product lists its attributes.
  */
-function mergePicks(conditions: Condition[], picks: Record<string, string[]>): Condition[] {
-  const kept = conditions
-    .map((condition) => {
-      const picked = picks[condition.attribute]
-      if (!picked) return condition
-      if (picked.length === 0) return null
-      return { ...condition, values: picked }
-    })
-    .filter((condition): condition is Condition => condition !== null)
+function mergePicks(
+  conditions: Condition[],
+  picks: Record<string, string[]>,
+  drops: Record<string, string[]>,
+): Condition[] {
+  const held = new Map(conditions.map((condition) => [condition.id, condition]))
+  const attributes = Array.from(
+    new Set([...conditions.map((condition) => condition.attribute), ...Object.keys(picks)]),
+  ).sort((a, b) => drugAttributeOrder.indexOf(a) - drugAttributeOrder.indexOf(b))
 
-  const held = new Set(conditions.map((condition) => condition.attribute))
-  const added = Object.entries(picks)
-    .filter(([attribute, values]) => values.length > 0 && !held.has(attribute))
-    .sort(([a], [b]) => drugAttributeOrder.indexOf(a) - drugAttributeOrder.indexOf(b))
-    .map(([attribute, values]): Condition => ({
-      id: attribute,
-      attribute,
-      values,
-      join: "or" as const,
-      mode: "is" as const,
-      link: "and" as const,
-    }))
+  const next: Condition[] = []
+  for (const attribute of attributes) {
+    const picked = picks[attribute]
+    const values =
+      picked ??
+      conditions.filter((condition) => condition.attribute === attribute).flatMap((c) => c.values)
+    if (values.length === 0) continue
 
-  return [...kept, ...added]
+    const dropped = picked
+      ? (drops[attribute] ?? [])
+      : conditions
+          .filter((condition) => condition.attribute === attribute && condition.mode === "is not")
+          .flatMap((c) => c.values)
+    const kept = values.filter((value) => !dropped.includes(value))
+    const excluded = values.filter((value) => dropped.includes(value))
+
+    if (kept.length > 0) {
+      const before = held.get(attribute)
+      next.push({
+        ...(before ?? { join: "or" as const, link: "and" as const }),
+        id: attribute,
+        attribute,
+        mode: "is" as const,
+        values: kept,
+      })
+    }
+    if (excluded.length > 0) {
+      const before = held.get(`${attribute}~not`)
+      next.push({
+        ...(before ?? { join: "or" as const, link: "and" as const }),
+        id: `${attribute}~not`,
+        attribute,
+        mode: "is not" as const,
+        values: excluded,
+      })
+    }
+  }
+  return next
 }
 
 /** One line under the sentence: the reviewer's own words, then what became of them. */

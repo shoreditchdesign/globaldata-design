@@ -229,3 +229,9 @@ One attribute can now do both at once: `Molecule Type is Small Molecule but is n
 **The resolver reads it back.** It used to fold an attribute into a single condition with one exclude flag, so `small molecules but not peptides` would have negated the lot. It now buckets by attribute *and* polarity, and `but` joins the resolver's grammar words, so a sentence the screen writes is a sentence it can read again — which is the rule the whole idea rests on.
 
 **Polarity is per value everywhere.** In the tree and in the filter dropdowns a value is ticked blue or minused red on its own, option-click chooses which, and a chip goes red only when everything under it is excluded.
+
+## 2026-09-18 — Idea 2, the modifier works in the bar too
+
+Option-click excluded a value in the explorer but not in a quick filter's dropdown, where it quietly ticked an include and wrote it into the line — so the gesture appeared to do nothing but pre-fill the box. The bar now reads the modifier the same way, holds which of its ticks are exclusions, and writes the pair of clauses the explorer writes: `Molecule Type is Small Molecule but is not Peptide`. The rail names it once, beside the count, as the explorer's does.
+
+Removing this also cleared out the last of the drag frames: `pulled-apart` had gone from the flow when dragging was switched off, but `slugFor` still named it whenever an attribute appeared twice — which mixed polarity now does on purpose, so a legitimate query was addressing a frame that no longer existed.
