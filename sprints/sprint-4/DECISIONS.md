@@ -235,3 +235,9 @@ One attribute can now do both at once: `Molecule Type is Small Molecule but is n
 Option-click excluded a value in the explorer but not in a quick filter's dropdown, where it quietly ticked an include and wrote it into the line — so the gesture appeared to do nothing but pre-fill the box. The bar now reads the modifier the same way, holds which of its ticks are exclusions, and writes the pair of clauses the explorer writes: `Molecule Type is Small Molecule but is not Peptide`. The rail names it once, beside the count, as the explorer's does.
 
 Removing this also cleared out the last of the drag frames: `pulled-apart` had gone from the flow when dragging was switched off, but `slugFor` still named it whenever an attribute appeared twice — which mixed polarity now does on purpose, so a legitimate query was addressing a frame that no longer existed.
+
+## 2026-09-18 — Idea 2, two clauses that agree become one
+
+Flip the `is not` half of `Molecule Type is Small Molecule but is not Peptide` back to `is`, and the query would hold two clauses saying the same kind of thing about one attribute. They now fold into one: `Molecule Type is Small Molecule or Peptide`. The values are unioned into the first of the pair, which keeps its own join and its place in the order, and the second clause goes.
+
+Only a clause joined with `and` is folded in. In a query read left to right an `or` between two clauses means something else, and merging it would quietly change the set rather than tidy the sentence. The merge runs in `normaliseConditions`, which every edit already passes through, so it holds however the duplicate arrived — the sentence's own toggle, the tree, or the filter bar.

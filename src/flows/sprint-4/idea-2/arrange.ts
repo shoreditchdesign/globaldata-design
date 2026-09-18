@@ -19,8 +19,38 @@ import { matchingRows, type Condition } from "@/flows/sprint-4/idea-2/data"
  * against the whole sample, which keeps everything.
  */
 export function normaliseConditions(conditions: Condition[]) {
-  if (conditions.length === 0 || conditions[0].link === "and") return conditions
-  return [{ ...conditions[0], link: "and" as const }, ...conditions.slice(1)]
+  const merged = mergeTwins(conditions)
+  if (merged.length === 0 || merged[0].link === "and") return merged
+  return [{ ...merged[0], link: "and" as const }, ...merged.slice(1)]
+}
+
+/**
+ * Two clauses that say the same thing about one attribute become one.
+ *
+ * `Molecule Type is Small Molecule but is not Peptide` is two conditions
+ * because the polarities differ; flip the second back and the query would read
+ * `is Small Molecule, and Molecule Type is Peptide` — a duplicate line saying
+ * what one clause says better as `is Small Molecule or Peptide`. The values are
+ * unioned into the first of the pair, which keeps its own join and its place in
+ * the order.
+ *
+ * Only a clause joined with `and` is folded in. One joined with `or` means
+ * something else in a query read left to right, and merging it would quietly
+ * change the set.
+ */
+function mergeTwins(conditions: Condition[]) {
+  const next: Condition[] = []
+  for (const condition of conditions) {
+    const twin = next.find(
+      (held) => held.attribute === condition.attribute && held.mode === condition.mode,
+    )
+    if (!twin || condition.link === "or") {
+      next.push(condition)
+      continue
+    }
+    twin.values = [...twin.values, ...condition.values.filter((value) => !twin.values.includes(value))]
+  }
+  return next.map((condition) => ({ ...condition }))
 }
 
 /**
