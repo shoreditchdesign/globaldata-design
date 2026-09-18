@@ -54,10 +54,15 @@ export function LandingPage({
         <SearchTabs mode={mode} onModeChange={onModeChange} />
       </div>
 
-      <section className="mx-auto flex w-full max-w-4xl flex-1 translate-y-[18px] flex-col items-center justify-center px-8 py-16">
+      {/*
+        Centred a little above the middle by padding more below than above. It
+        may shrink below its content, so on a short window the pills' well
+        gives up its empty space before the page is made to scroll.
+      */}
+      <section className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col items-center justify-center px-8 pt-6 pb-16">
         <div className="text-center">
           <h1 className="text-2xl font-semibold tracking-tight">Drug Database</h1>
-          <p className="text-muted-foreground mx-auto mt-2 max-w-md text-sm leading-6 text-balance">
+          <p className="text-muted-foreground mx-auto mt-2 max-w-md text-sm leading-5 text-balance">
             Describe any key search metrics such as Therapy Area, Classification, Geography,
             Route of Administration etc.
           </p>
@@ -100,12 +105,20 @@ export function LandingPage({
         </form>
 
         {/*
-          The well keeps the pills' height so the centred search never moves.
+          The well keeps the pills' height so the centred search never moves,
+          and is the one thing that shrinks when the window is too short for it.
           Once a filter exists its box sits above the pills and the stack hangs
           past the well, scrolling the page rather than pushing the search up.
         */}
         <div className="relative mt-5 h-72 w-full">
-          <div className="absolute inset-x-0 top-0 flex flex-col gap-5 pb-16">
+          {/* A filter box sits 8px under the query that built it, pulled up inside the
+              well rather than moving it, so the search stays put. */}
+          <div
+            className={cn(
+              "absolute inset-x-0 flex flex-col gap-5 pb-16",
+              filterBox ? "-top-3" : "top-0",
+            )}
+          >
             {filterBox}
             <SearchPills
               filters={filters}
