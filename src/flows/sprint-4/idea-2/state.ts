@@ -42,6 +42,8 @@ export interface ScreenerState {
   picks: Record<string, string[]>
   /** Which of those ticks are exclusions rather than inclusions. */
   drops: Record<string, string[]>
+  /** Whether the filter rail under the box is showing. */
+  railOpen: boolean
   /** The last attempt, when it produced no query at all. */
   failure: Resolution | null
   /** The query being read, held for the length of the resolve animation. */
@@ -228,6 +230,7 @@ const base: ScreenerState = {
   draft: "",
   picks: {},
   drops: {},
+  railOpen: true,
   failure: null,
   pending: null,
   view: "sentence",

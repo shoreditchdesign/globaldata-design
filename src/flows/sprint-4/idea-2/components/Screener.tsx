@@ -2,14 +2,20 @@
 
 import * as React from "react"
 import { usePathname } from "next/navigation"
-import { CornerDownLeftIcon, RotateCcwIcon } from "lucide-react"
+import {
+  ChevronUpIcon,
+  CornerDownLeftIcon,
+  FolderTreeIcon,
+  RotateCcwIcon,
+  SlidersHorizontalIcon,
+  TableIcon,
+} from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { useDeepLink } from "@/hooks/use-deep-link"
 import { motion } from "@/components/prototype/motion"
 import { ProductChrome } from "@/components/prototype/ProductChrome"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { Composer } from "@/flows/sprint-4/idea-2/components/Composer"
 import { ExplorerTree } from "@/flows/sprint-4/idea-2/components/ExplorerTree"
 import { QuerySentence } from "@/flows/sprint-4/idea-2/components/QuerySentence"
@@ -72,6 +78,7 @@ export function Screener() {
     draft,
     picks,
     drops,
+    railOpen,
     failure,
     pending,
     view,
@@ -205,18 +212,10 @@ export function Screener() {
     [],
   )
 
-  /**
-   * True once the tree has finished opening, so its shadow is not clipped. A
-   * screen seeded with the explorer already open never animates, so it starts
-   * settled rather than waiting for a transition that will not come.
-   */
-  const [treeSettled, setTreeSettled] = React.useState(view === "explorer")
+  /** What the grid is sorted by, said in the head both panes share. */
+  const [sortLabel, setSortLabel] = React.useState<string | null>(null)
 
-  const setView = (next: View) =>
-    setState((current) => {
-      setTreeSettled(false)
-      return { ...current, view: next }
-    })
+  const setView = (next: View) => setState((current) => ({ ...current, view: next }))
 
   const undo = () =>
     setState((current) => {
@@ -315,12 +314,19 @@ export function Screener() {
       <ProductChrome activeArea="Drugs" body="column" className={insetVars}>
         <section className="shrink-0 px-(--box-gutter) pt-5 pb-4">
           <div className="bg-surface-panel border-border shadow-raised flex flex-col overflow-hidden rounded-xl border">
-            <div className="min-w-0 flex-1 px-(--box-pad) pt-4 pb-3.5">
-              <div className="mb-3 flex items-center gap-3">
-                <span className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
-                  Drug screener
-                </span>
-              </div>
+            <div className="relative min-w-0 flex-1 px-(--box-pad) pt-4 pb-3.5">
+              {/* The rail can be tucked away when the query grows tall, so the
+                  chips do not push the sentence up the screen. */}
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => setState((current) => ({ ...current, railOpen: !current.railOpen }))}
+                aria-label={railOpen ? "Hide the filters" : "Show the filters"}
+                aria-expanded={railOpen}
+                className="text-muted-foreground hover:text-foreground absolute top-3 right-3 z-10"
+              >
+                {railOpen ? <ChevronUpIcon className="size-4" /> : <SlidersHorizontalIcon className="size-4" />}
+              </Button>
 
               {composing ? (
                 <Composer
@@ -357,42 +363,10 @@ export function Screener() {
               {!composing && !resolving && notes.length > 0 ? (
                 <Notes notes={notes} />
               ) : null}
-            </div>
 
-            {/*
-              The rail: the filters on the left, and what the query costs and
-              what can be done about it on the right. One grey band across the
-              foot of the card, so the three ways in all end in the same place.
-            */}
-            <div className="bg-surface-chrome border-edge flex items-center gap-3 border-t px-(--box-pad) py-2.5">
-              <QuickFilters
-                conditions={conditions}
-                picks={picks}
-                drops={drops}
-                onPick={pickFilter}
-                pinned={pinnedFilter}
-                onPinnedChange={(attribute) =>
-                  setState((current) => ({ ...current, pinnedFilter: attribute }))
-                }
-                className="min-w-0 flex-1"
-              />
-
-              <div className="flex shrink-0 items-center gap-2">
-                <p className="text-muted-foreground text-xs tabular-nums">
-                  {resolving ? (
-                    "resolving…"
-                  ) : (
-                    <>
-                      <span className="text-foreground font-medium">
-                        {rows.length.toLocaleString("en-GB")}
-                      </span>{" "}
-                      of {sample.length.toLocaleString("en-GB")} sampled
-                    </>
-                  )}
-                </p>
-
-                <Separator orientation="vertical" className="h-5" />
-
+              {/* What the query costs, and what can be done about it, in the
+                  corner of the field it belongs to rather than on the rail. */}
+              <div className="mt-3 flex items-center justify-end gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -418,80 +392,161 @@ export function Screener() {
                     <CornerDownLeftIcon />
                   </Button>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={editAsText}
-                    disabled={resolving}
-                    className="text-brand hover:text-brand-strong px-2 text-xs font-medium underline-offset-2 hover:underline"
-                  >
+                  <Button size="sm" variant="secondary" onClick={editAsText} disabled={resolving}>
                     Edit
-                  </button>
+                  </Button>
                 )}
+              </div>
+            </div>
+
+            {/*
+              The rail: the filters, and nothing else. It opens and closes by
+              height from the button in the corner of the field above, because a
+              query withseven chips on two rows pushes the sentence up the page.
+            */}
+            <div
+              inert={!railOpen}
+              style={{ transitionDuration: `${motion.reflow}ms` }}
+              className={cn(
+                "ease-settle bg-surface-chrome border-edge grid overflow-hidden border-t transition-[grid-template-rows,opacity] motion-reduce:transition-none",
+                railOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] border-transparent opacity-0",
+              )}
+            >
+              <div className="min-h-0">
+                <div className="px-(--box-pad) py-2.5">
+                  <QuickFilters
+                    conditions={conditions}
+                    picks={picks}
+                    drops={drops}
+                    onPick={pickFilter}
+                    pinned={pinnedFilter}
+                    onPinnedChange={(attribute) =>
+                      setState((current) => ({ ...current, pinnedFilter: attribute }))
+                    }
+                  />
+                </div>
               </div>
             </div>
           </div>
         </section>
 
         {/*
-          The split, as two cards on the page rather than two halves of one
-          plane: the explorer is always mounted and opens by width, so it closes
-          as smoothly as it opens, and the results take whatever is left. The
-          inner tree holds its width throughout, so its rows slide into view
-          rather than reflowing. Reduced motion gets the end state at once.
+          One card, two panes. The head belongs to both: it says what the query
+          found and which view is showing it, and the explorer and the grid are
+          siblings underneath. Two cards each with their own head put the
+          control that opens the tree inside the pane it was not opening.
+
+          The tree is always mounted and opens by width, so it closes as
+          smoothly as it opens; it holds its own width throughout, so its rows
+          slide into view rather than reflowing. Reduced motion gets the end
+          state at once.
         */}
-        <div className="flex min-h-0 flex-1 gap-4 px-(--box-gutter) pb-5">
-          <div
-            inert={!explorer}
-            onTransitionEnd={(event) => {
-              if (event.propertyName === "width") setTreeSettled(explorer)
-            }}
-            style={{
-              width: explorer ? TREE_WIDTH : 0,
-              marginRight: explorer ? 0 : "-1rem",
-              transitionDuration: `${motion.reflow}ms`,
-            }}
-            className={cn(
-              "ease-settle shrink-0 transition-[width] motion-reduce:transition-none",
-              // The width is animated by clipping, which clips the card's shadow
-              // with it. Once the pane has arrived there is nothing to clip, so
-              // the clip is lifted and the shadow reads.
-              treeSettled ? "overflow-visible" : "overflow-hidden",
-            )}
-          >
-            <div
-              style={{
-                width: TREE_WIDTH,
-                transitionDuration: `${motion.settle}ms`,
-                transitionDelay: explorer ? `${motion.handover}ms` : "0ms",
-              }}
-              className={cn(
-                "ease-settle h-full transition-opacity motion-reduce:transition-none",
-                explorer ? "opacity-100" : "opacity-0",
-              )}
-            >
-              <ExplorerTree
-                seed={tree}
-                conditions={conditions}
-                onApply={applyTicks}
-                onClose={() => setView("sentence")}
-                className="border-edge shadow-float h-full overflow-hidden rounded-xl border"
+        <div className="flex min-h-0 flex-1 px-(--box-gutter) pb-5">
+          <section className="bg-surface-panel border-border shadow-raised flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border">
+            <div className="bg-surface-panel border-edge flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4">
+              <div className="bg-muted flex items-center gap-0.5 rounded-lg p-0.5">
+                <ViewTab active={!explorer} onClick={() => setView("sentence")}>
+                  <TableIcon className="size-3.5" />
+                  Standard
+                </ViewTab>
+                <ViewTab active={explorer} onClick={() => setView("explorer")}>
+                  <FolderTreeIcon className="size-3.5" />
+                  Explorer
+                </ViewTab>
+              </div>
+
+              <div className="flex min-w-0 items-baseline gap-2">
+                {empty ? (
+                  <p className="text-muted-foreground text-[16px]">No results yet</p>
+                ) : (
+                  <>
+                    <p className="text-foreground text-[16px] font-medium tabular-nums">
+                      {rows.length.toLocaleString("en-GB")}
+                    </p>
+                    <p className="text-muted-foreground truncate text-xs tabular-nums">
+                      of {sample.length.toLocaleString("en-GB")} sampled
+                      {sortLabel ? ` · sorted by ${sortLabel}` : ""}
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="flex min-h-0 flex-1">
+              <div
+                inert={!explorer}
+                style={{
+                  width: explorer ? TREE_WIDTH : 0,
+                  transitionDuration: `${motion.reflow}ms`,
+                }}
+                className={cn(
+                  "ease-settle border-edge shrink-0 overflow-hidden transition-[width] motion-reduce:transition-none",
+                  explorer && "border-r",
+                )}
+              >
+                <div
+                  style={{
+                    width: TREE_WIDTH,
+                    transitionDuration: `${motion.settle}ms`,
+                    transitionDelay: explorer ? `${motion.handover}ms` : "0ms",
+                  }}
+                  className={cn(
+                    "ease-settle h-full transition-opacity motion-reduce:transition-none",
+                    explorer ? "opacity-100" : "opacity-0",
+                  )}
+                >
+                  <ExplorerTree
+                    seed={tree}
+                    conditions={conditions}
+                    onApply={applyTicks}
+                    onClose={() => setView("sentence")}
+                    className="h-full"
+                  />
+                </div>
+              </div>
+
+              <ResultsPane
+                rows={rows}
+                active={!empty}
+                onOpenRecord={openRecord}
+                onSortChange={setSortLabel}
+                className="min-w-0 flex-1"
               />
             </div>
-          </div>
-
-          <ResultsPane
-            rows={rows}
-            active={!empty}
-            onOpenRecord={openRecord}
-            explorerOpen={explorer}
-            onToggleExplorer={() => setView(explorer ? "sentence" : "explorer")}
-            className="border-border shadow-raised min-w-0 flex-1 overflow-hidden rounded-xl border"
-          />
+          </section>
         </div>
 
         <RecordDrawer row={record} onClose={closeRecord} />
       </ProductChrome>
     </ArrangeProvider>
+  )
+}
+
+/**
+ * One option of the view toggle in the head of the results. Selected is a white
+ * segment lifted off a muted track, with no brand in it.
+ */
+function ViewTab({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "flex h-6 cursor-pointer items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-[background-color,color,box-shadow]",
+        active ? "bg-surface-panel text-foreground shadow-panel" : "text-muted-foreground hover:text-foreground",
+      )}
+    >
+      {children}
+    </button>
   )
 }
 
