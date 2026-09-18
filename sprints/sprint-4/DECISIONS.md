@@ -160,6 +160,8 @@ Austin reversed the two greys added earlier the same day, and both reversals hol
 
 **A filter applied from the explorer is a fresh search, not an edit.** What is ticked becomes the whole query: every attribute joined with `and`, its own values with `or`, in the product's order, and the line in the box is rewritten to match. A typed query's exclusions and `or` links do not survive it. That is Austin's call and it is the honest reading of a button that says Apply filters on a panel showing the whole taxonomy — the alternative, quietly keeping a `not` the tree has no way to show, was worse. The quick filter bar works the same way: if a line is already in the box, the first tick clears it and builds its own from scratch.
 
+*Reversed the same day; see "every way in adds to the query" below.*
+
 **Edit sits where Resolve sits.** The rail's right end holds one action: Resolve while a line is being written, Edit once it has resolved, as a blue link rather than a second button. The duplicate Edit beside the "Read from" line is gone, and that line is now just what the query was read from.
 
 **The heads are pinned to one height.** The results toolbar is 48px, two pixels above and below the Standard / Explorer toggle, and its column heads are 36px. The explorer's head is 84px — its title row and its search row — so the two panes' chrome ends on the same line, measured rather than eyeballed. The search field carries its own bottom padding, so it clears the head's rule.
@@ -181,3 +183,9 @@ None of them is a mock. The ticks are seeded into the same state the screen edit
 **A dropdown can be pinned open.** A popover that closes the moment focus leaves it cannot be screenshotted, and these screens are reviewed as captures into Figma as much as in the browser. A frame naming a pinned filter holds that dropdown open through an outside click or a focus change; the chip itself and Escape still close it, and resolving clears the pin. `pinnedFilter` lives in the screen's state, so the address bar follows it like everything else.
 
 **The empty grid takes the tint too.** It was white until the first row landed and then turned faintly blue, which made the empty state look like a different surface from the one it was about to become.
+
+## 2026-09-18 — Idea 2, every way in adds to the query
+
+**Ticking adds and unticking removes, wherever it happens.** Applying from the explorer no longer restarts the search: a condition the query already holds keeps its own words and only its values change, so unticking Austria under an excluded geography takes that value out and leaves `is not` standing, and ticking Europe there adds to the exclusion rather than flipping it. An attribute the query did not have joins the end with a plain `and`; one left with nothing ticked leaves the query. The quick filter bar works the same way: the line it writes is the query with that attribute's values swapped in, and Resolve reads that line like any other. Starting again is what Clear all is for.
+
+**A tick the reviewer clears now clears.** The boxes were answering to the reveal sequence that staggers a resolved query into the tree, not to the ticks themselves, so unticking a value left the box drawn while the query behind it had already moved. The draft decides what is drawn; the sequence only decides when a tick that arrived with a resolve is drawn.

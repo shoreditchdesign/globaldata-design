@@ -149,14 +149,13 @@ export function Screener() {
   const pickFilter = React.useCallback(
     (attribute: string, values: string[]) =>
       setState((current) => {
-        // Nothing has been ticked yet, so a line already in the box was typed or
-        // read back from a query. The bar starts its own rather than appending
-        // to someone else's sentence.
-        const building = Object.keys(current.picks).length > 0
-        const next = { ...(building ? current.picks : {}), [attribute]: values }
-        if (values.length === 0) delete next[attribute]
+        const next = { ...current.picks, [attribute]: values }
+        if (values.length === 0) next[attribute] = []
 
-        const built = quickConditions(next)
+        // The bar adds to the query rather than replacing it: the line it writes
+        // is what the query already holds with this attribute's values swapped
+        // in, and Resolve reads that line like any other.
+        const built = mergePicks(current.query.conditions, next)
         return {
           ...current,
           picks: next,
@@ -471,14 +470,28 @@ export function Screener() {
 }
 
 /**
- * The bar's ticks as conditions, in the order the product lists its attributes,
- * so the line it writes reads the same way a typed query resolves.
+ * The query with the bar's ticks folded in. A condition already in the query
+ * keeps its own words and only its values change, so ticking a value under an
+ * excluded attribute adds to the exclusion rather than flipping it; one left
+ * with nothing ticked leaves. Anything new joins the end with a plain `and`, in
+ * the order the product lists its attributes, so the line reads the way a typed
+ * query resolves.
  */
-function quickConditions(picks: Record<string, string[]>): Condition[] {
-  return Object.entries(picks)
-    .filter(([, values]) => values.length > 0)
+function mergePicks(conditions: Condition[], picks: Record<string, string[]>): Condition[] {
+  const kept = conditions
+    .map((condition) => {
+      const picked = picks[condition.attribute]
+      if (!picked) return condition
+      if (picked.length === 0) return null
+      return { ...condition, values: picked }
+    })
+    .filter((condition): condition is Condition => condition !== null)
+
+  const held = new Set(conditions.map((condition) => condition.attribute))
+  const added = Object.entries(picks)
+    .filter(([attribute, values]) => values.length > 0 && !held.has(attribute))
     .sort(([a], [b]) => drugAttributeOrder.indexOf(a) - drugAttributeOrder.indexOf(b))
-    .map(([attribute, values]) => ({
+    .map(([attribute, values]): Condition => ({
       id: attribute,
       attribute,
       values,
@@ -486,6 +499,8 @@ function quickConditions(picks: Record<string, string[]>): Condition[] {
       mode: "is" as const,
       link: "and" as const,
     }))
+
+  return [...kept, ...added]
 }
 
 /** One line under the sentence: the reviewer's own words, then what became of them. */
