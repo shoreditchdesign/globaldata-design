@@ -420,7 +420,7 @@ export function QuerySentence({
   return (
     <p
       ref={container as React.RefObject<HTMLParagraphElement | null>}
-      className="max-w-[74ch] text-[22px] leading-[2.23] font-normal tracking-[-0.01em]"
+      className="text-[22px] leading-[2.23] font-normal tracking-[-0.01em]"
     >
       {conditions.map((condition, i) => (
         <React.Fragment key={condition.id}>
