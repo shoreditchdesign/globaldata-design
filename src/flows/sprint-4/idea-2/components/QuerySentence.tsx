@@ -185,13 +185,14 @@ function ClauseSpan({
   const mergeTarget = drag?.target?.kind === "merge" && drag.target.id === condition.id
 
   return (
-    // The join and the clause it introduces wrap as one unit, so a line never
-    // ends on a dangling `and` with its condition on the next. Inline-block, so
-    // the settle after a drop can move it as one piece.
+    // A clause wraps inside itself: twelve values joined by `or` have to run on
+    // to the next line rather than off the edge of the field. What never splits
+    // is smaller than the clause — the head word and each `or` with the pill it
+    // introduces — so a line can end on a value but never on a dangling `or`.
     <span
       ref={track}
       data-condition={condition.id}
-      className={cn("inline-block whitespace-nowrap transition-opacity", dragged && "opacity-40")}
+      className={cn("transition-opacity", dragged && "opacity-40")}
     >
       {first ? null : (
         <>
@@ -203,7 +204,7 @@ function ClauseSpan({
       )}
       <span
         className={cn(
-          "group/clause relative -mx-1 rounded-md px-1 whitespace-nowrap",
+          "group/clause relative -mx-1 rounded-md px-1",
           tintClass,
           (mergeTarget || landed === "clause") && "bg-brand-wash ring-brand-border ring-1",
         )}
@@ -232,7 +233,7 @@ function ClauseSpan({
             // underlining it: the rule sat too close to the pill beside it, and
             // a control the pointer is on should read as more, not less. The
             // operator keeps its own colour throughout.
-            "text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 -mx-1 cursor-pointer rounded-md px-1 outline-none focus-visible:ring-3",
+            "text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 -mx-1 cursor-pointer rounded-md px-1 whitespace-nowrap outline-none focus-visible:ring-3",
             tintClass,
           )}
         >
@@ -248,13 +249,18 @@ function ClauseSpan({
         </button>{" "}
         {condition.values.map((value, i) => (
           <React.Fragment key={value}>
-            {i > 0 ? (
-              <>
-                {" "}
-                <LogicWord lit={landed === "join"}>{condition.join}</LogicWord>{" "}
-              </>
-            ) : null}
-            <ValuePill condition={condition} value={value} handlers={handlers} arrangeable={arrangeable} />
+            {/* The break opportunity lives out here, between the groups. Inside
+                one, the `or` and the value it introduces travel together, so a
+                wrap never leaves the word at the end of a line on its own. */}
+            {i > 0 ? " " : null}
+            <span className="whitespace-nowrap">
+              {i > 0 ? (
+                <>
+                  <LogicWord lit={landed === "join"}>{condition.join}</LogicWord>{" "}
+                </>
+              ) : null}
+              <ValuePill condition={condition} value={value} handlers={handlers} arrangeable={arrangeable} />
+            </span>
           </React.Fragment>
         ))}
         {comma ? <span className="-ml-0.5">,</span> : null}
