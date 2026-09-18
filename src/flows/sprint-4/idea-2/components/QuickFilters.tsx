@@ -136,8 +136,13 @@ function FilterChip({
   pinned?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
-  const [open, setOpen] = React.useState(false)
+  // Which dropdown is open is the bar's business, not each chip's: only one
+  // is open at a time, and opening another hands the pin over, which is the one
+  // way an open dropdown closes without being dismissed.
+  const open = pinned ?? false
   const [search, setSearch] = React.useState("")
+  /** Set by the two things that may close it: the chip, and Escape. */
+  const dismissing = React.useRef(false)
 
   const counts = React.useMemo(
     () => facetCounts(conditions, attribute, attribute),
@@ -175,9 +180,15 @@ function FilterChip({
 
   return (
     <Popover
-      open={open || pinned}
+      open={open}
       onOpenChange={(next) => {
-        setOpen(next)
+        // Closing is ignored unless it was asked for. Everything else that
+        // would shut a popover — a click anywhere in the page, focus going to
+        // a browser extension, another window taking over — happens while
+        // these screens are being captured into Figma, and the picture is of
+        // the dropdown.
+        if (!next && !dismissing.current) return
+        dismissing.current = false
         onOpenChange?.(next)
         if (!next) setSearch("")
       }}
@@ -185,6 +196,9 @@ function FilterChip({
       <PopoverTrigger asChild>
         <button
           type="button"
+          onPointerDown={() => {
+            dismissing.current = true
+          }}
           className={cn(
             "flex h-7 cursor-pointer items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors",
             // A chip holding values is the thing you pressed and it is on, so it
@@ -205,14 +219,8 @@ function FilterChip({
       <PopoverContent
         align="start"
         className="w-[300px] p-0"
-        /*
-          A pinned dropdown survives losing focus — which is what a screenshot
-          extension, the devtools or another window takes — so it can be
-          captured. A click in the page is a person dismissing it, so that
-          still closes it, as do the chip and Escape. Nothing is locked open.
-        */
-        onFocusOutside={(event) => {
-          if (pinned) event.preventDefault()
+        onEscapeKeyDown={() => {
+          dismissing.current = true
         }}
       >
         <div className="border-hairline border-b p-2">
