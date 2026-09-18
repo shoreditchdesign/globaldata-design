@@ -40,6 +40,7 @@ const quickAttributes = [
 export function QuickFilters({
   conditions,
   picks,
+  drops,
   onPick,
   pinned,
   onPinnedChange,
@@ -49,7 +50,9 @@ export function QuickFilters({
   conditions: Condition[]
   /** What has been ticked into the line in the box but not resolved yet. */
   picks: Record<string, string[]>
-  onPick: (attribute: string, values: string[]) => void
+  /** Which ticked values are exclusions, before they are resolved. */
+  drops: Record<string, string[]>
+  onPick: (attribute: string, values: string[], dropped: string[]) => void
   /**
    * The one dropdown a frame is holding open. A popover that shuts the moment
    * the pointer leaves cannot be captured, and these screens are reviewed as
@@ -80,6 +83,7 @@ export function QuickFilters({
   // A chip shows what is being built, and falls back to what the query already
   // holds, so the bar never contradicts the sentence above it.
   const shownFor = (attribute: string) => picks[attribute] ?? held[attribute] ?? []
+  const droppedFor = (attribute: string) => drops[attribute] ?? dropped[attribute] ?? []
   const total = quickAttributes.reduce((sum, attribute) => sum + shownFor(attribute).length, 0)
 
   return (
@@ -91,16 +95,19 @@ export function QuickFilters({
           key={attribute}
           attribute={attribute}
           conditions={conditions}
-          dropped={dropped[attribute] ?? []}
+          dropped={droppedFor(attribute)}
           values={shownFor(attribute)}
-          onPick={(values) => onPick(attribute, values)}
+          onPick={(values, droppedValues) => onPick(attribute, values, droppedValues)}
           pinned={pinned === attribute}
           onOpenChange={(open) => onPinnedChange?.(open ? attribute : null)}
         />
       ))}
       {total > 0 ? (
-        <span className="text-muted-foreground text-xs tabular-nums">
-          {total} {total === 1 ? "filter" : "filters"}
+        <span className="text-muted-foreground text-xs">
+          <span className="tabular-nums">
+            {total} {total === 1 ? "filter" : "filters"}
+          </span>
+          <span className="text-muted-foreground/70"> · ⌥ click to exclude</span>
         </span>
       ) : null}
     </div>
@@ -122,7 +129,7 @@ function FilterChip({
   dropped: string[]
   /** This attribute's values, whether ticked here or already in the query. */
   values: string[]
-  onPick: (values: string[]) => void
+  onPick: (values: string[], dropped: string[]) => void
   /** Held open by the frame, so a screenshot can catch it. */
   pinned?: boolean
   onOpenChange?: (open: boolean) => void
@@ -148,8 +155,21 @@ function FilterChip({
     ? options.filter((option) => option.label.toLowerCase().includes(search.toLowerCase()))
     : options
 
-  const tick = (value: string) =>
-    onPick(values.includes(value) ? values.filter((entry) => entry !== value) : [...values, value])
+  // Alt is read on the way down, since the change event does not carry it —
+  // the same modifier the explorer uses, so one gesture means exclude wherever
+  // a box is ticked.
+  const altDown = React.useRef(false)
+
+  const tick = (value: string) => {
+    const on = values.includes(value)
+    const nextValues = on ? values.filter((entry) => entry !== value) : [...values, value]
+    const nextDropped = on
+      ? dropped.filter((entry) => entry !== value)
+      : altDown.current
+        ? [...dropped, value]
+        : dropped.filter((entry) => entry !== value)
+    onPick(nextValues, nextDropped)
+  }
 
   return (
     <Popover
@@ -217,6 +237,8 @@ function FilterChip({
                 <TickBox
                   checked={values.includes(option.label)}
                   excluded={dropped.includes(option.label)}
+                  onPointerDown={(event) => (altDown.current = event.altKey)}
+                  onKeyDown={(event) => (altDown.current = event.altKey)}
                   onCheckedChange={() => tick(option.label)}
                   className="shrink-0"
                 />

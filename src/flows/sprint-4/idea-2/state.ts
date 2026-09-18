@@ -12,7 +12,7 @@
  * show a query or a count the screen would not have produced on its own.
  */
 
-import { applyDrop, newConditionId, normaliseConditions } from "@/flows/sprint-4/idea-2/arrange"
+import { newConditionId, normaliseConditions } from "@/flows/sprint-4/idea-2/arrange"
 import { matchingRows, type Condition } from "@/flows/sprint-4/idea-2/data"
 import { resolveQuery, type Resolution } from "@/flows/sprint-4/idea-2/resolve"
 
@@ -40,6 +40,8 @@ export interface ScreenerState {
   draft: string
   /** What the quick filter bar has ticked into the line but not resolved. */
   picks: Record<string, string[]>
+  /** Which of those ticks are exclusions rather than inclusions. */
+  drops: Record<string, string[]>
   /** The last attempt, when it produced no query at all. */
   failure: Resolution | null
   /** The query being read, held for the length of the resolve animation. */
@@ -225,6 +227,7 @@ const base: ScreenerState = {
   phase: "compose",
   draft: "",
   picks: {},
+  drops: {},
   failure: null,
   pending: null,
   view: "sentence",
@@ -271,30 +274,6 @@ function buildFromSuggestions() {
 
 const built = buildFromSuggestions()
 
-/** Read, then one value dragged out of its group. */
-export const pulledApartPrompt = "small molecules in europe or north america"
-const pulledApartRead = resolveQuery(pulledApartPrompt)
-
-/**
- * North America dragged out of the geography group and dropped straight after
- * it, by the same `applyDrop` a drag calls. It joins with `or`, so the query
- * now reads (small molecules in Europe) or anything in North America. Undo
- * puts it back.
- */
-function pullApart(): Pick<ScreenerState, "query" | "past"> {
-  const before = queryFrom(pulledApartRead)
-  const source = before.conditions.find((condition) => condition.attribute === "Drug Geography")
-  const arranged =
-    source &&
-    applyDrop(
-      before.conditions,
-      { kind: "value", id: source.id, value: "North America" },
-      { kind: "gap", index: before.conditions.indexOf(source) + 1 },
-    )
-  if (!arranged) return { query: before, past: [] }
-  return { query: { ...before, conditions: arranged.conditions, edited: true }, past: [before] }
-}
-
 /**
  * The intermediate frames: a dropdown open, branches opened, values ticked but
  * not applied. They are states of the same screen, seeded rather than mocked —
@@ -316,12 +295,6 @@ export const initialStates: Record<string, ScreenerState> = {
   sentence: resolved,
   explorer: { ...resolved, view: "explorer" },
   record: { ...resolved, recordId: matchingRows(worked.conditions)[0]?.id ?? null },
-  "pulled-apart": {
-    ...base,
-    ...pullApart(),
-    phase: "resolved",
-    draft: pulledApartPrompt,
-  },
   "filter-open": { ...base, pinnedFilter: "Development Stage" },
   "filter-ticked": {
     ...base,
@@ -377,10 +350,6 @@ export function slugFor(state: ScreenerState): string {
   // Read from a sentence or built node by node.
   if (view === "explorer") return query.raw ? "explorer" : "explorer-applied"
   if (phase !== "resolved") return "typed"
-
-  // A value pulled out of its group leaves the same attribute in two conditions.
-  const attributes = query.conditions.map((condition) => condition.attribute)
-  if (new Set(attributes).size < attributes.length) return "pulled-apart"
 
   // Only while the reading still describes the query. The first edit answers
   // the note, and the screen stops showing it.
