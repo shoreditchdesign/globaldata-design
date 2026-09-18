@@ -3,7 +3,7 @@
 import * as React from "react"
 import { usePathname } from "next/navigation"
 import {
-  ChevronUpIcon,
+  ChevronsDownUpIcon,
   CornerDownLeftIcon,
   FolderTreeIcon,
   RotateCcwIcon,
@@ -319,13 +319,13 @@ export function Screener() {
                   chips do not push the sentence up the screen. */}
               <Button
                 variant="ghost"
-                size="icon-sm"
+                size="sm"
                 onClick={() => setState((current) => ({ ...current, railOpen: !current.railOpen }))}
-                aria-label={railOpen ? "Hide the filters" : "Show the filters"}
                 aria-expanded={railOpen}
-                className="text-muted-foreground hover:text-foreground absolute top-3 right-3 z-10"
+                className="text-muted-foreground hover:bg-accent absolute top-2.5 right-3 z-10 text-[13px]"
               >
-                {railOpen ? <ChevronUpIcon className="size-4" /> : <SlidersHorizontalIcon className="size-4" />}
+                {railOpen ? <ChevronsDownUpIcon /> : <SlidersHorizontalIcon />}
+                {railOpen ? "Collapse filters" : "Show filters"}
               </Button>
 
               {composing ? (
