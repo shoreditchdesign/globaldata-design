@@ -241,3 +241,13 @@ Removing this also cleared out the last of the drag frames: `pulled-apart` had g
 Flip the `is not` half of `Molecule Type is Small Molecule but is not Peptide` back to `is`, and the query would hold two clauses saying the same kind of thing about one attribute. They now fold into one: `Molecule Type is Small Molecule or Peptide`. The values are unioned into the first of the pair, which keeps its own join and its place in the order, and the second clause goes.
 
 Only a clause joined with `and` is folded in. In a query read left to right an `or` between two clauses means something else, and merging it would quietly change the set rather than tidy the sentence. The merge runs in `normaliseConditions`, which every edit already passes through, so it holds however the duplicate arrived — the sentence's own toggle, the tree, or the filter bar.
+
+## 2026-09-18 — Idea 2, one card for the results
+
+**The explorer and the grid are one card now, with one head between them.** The head carries the Standard / Explorer toggle on the left and what the query found on the right, and the tree and the grid sit under it as siblings. As two cards, each with its own head, the toggle that opened the tree lived in the grid's own head rather than the tree's — the control sat in the pane it was not opening. The tree still opens by width inside the shared card, always mounted so it closes as smoothly as it opens, and reduced motion still gets the end state at once. The results pane gave up its own toolbar; it now reports what it is sorted by up to the head it shares with the tree.
+
+**The count reads larger.** The number is 16px now, with the sample size and what the grid is sorted by beside it at 12px, where the whole line used to sit at 12px together. It is the one number on the screen a reviewer is actually reading, so it is the one that earns the size.
+
+**The box lost its `DRUG SCREENER` label and took its own controls.** Undo, Clear all and Resolve — or Edit, once the query has resolved — now sit in the bottom-right corner of the field itself, rather than on the grey rail underneath it.
+
+**The rail can be tucked away.** A button in the top-right corner of the field collapses the filter chips by height, on the same motion vocabulary as the tree with its own reduced-motion path, because a query with seven chips across two rows pushes the sentence up the page. Undo, Clear all and Resolve stay visible whether the rail is open or shut. `railOpen` lives in the screen's state atom like everything else.
