@@ -193,11 +193,15 @@ function ClauseSpan({
       ref={track}
       data-condition={condition.id}
       className={cn(
-        // A clause is a line of its own: `and Drug Geography is …` starts where
-        // the clause before it ended, not halfway across the line. It only
-        // wraps inside itself, when one attribute holds more values than the
-        // field is wide.
-        carriesOn ? "transition-opacity" : "block transition-opacity",
+        /*
+          Clauses run on while they fit, and a clause that does not fit the room
+          left on a line moves to the next one whole rather than breaking across
+          the two. Once it has a line to itself and still does not fit — one
+          attribute holding more values than the field is wide — it wraps
+          inside itself. That is what an inline-block capped at the full width
+          does, and why the clause is not simply inline.
+        */
+        "inline-block max-w-full align-baseline transition-opacity",
         dragged && "opacity-40",
       )}
     >
