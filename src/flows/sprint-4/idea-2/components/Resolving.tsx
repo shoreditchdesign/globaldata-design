@@ -51,7 +51,7 @@ export function Resolving({
         <p
           aria-live="polite"
           className={cn(
-            "ease-settle col-start-1 row-start-1 max-w-[74ch] text-[22px] leading-[2.05] tracking-[-0.01em] transition-opacity duration-200 motion-reduce:transition-none",
+            "ease-settle col-start-1 row-start-1 max-w-[74ch] text-[22px] leading-[2.23] tracking-[-0.01em] transition-opacity duration-200 motion-reduce:transition-none",
             stage >= 2 ? "opacity-0" : "opacity-100",
           )}
         >

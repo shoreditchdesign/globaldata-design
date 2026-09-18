@@ -196,25 +196,40 @@ function ClauseSpan({
       )}
       <span
         className={cn(
-          "group/clause hover:bg-accent hover:ring-border relative -mx-1 rounded-md px-1 whitespace-nowrap hover:ring-1",
+          "group/clause relative -mx-1 rounded-md px-1 whitespace-nowrap",
           tintClass,
           (mergeTarget || landed === "clause") && "bg-brand-wash ring-brand-border ring-1",
         )}
       >
-        {/* The attribute names the clause and is the handle for the whole
-            condition, so a group of values can be reordered as a group. */}
-        <LogicWord
-          onDragStart={
+        {/*
+          The head of the clause — the attribute and whether it keeps or drops —
+          is one control: hovering underlines it, pressing it flips `is` and
+          `is not`. Underlined rather than filled, so the only fill in the
+          sentence stays the values, and padded so the rule stops short of the
+          pill beside it. It is also the handle the whole condition drags by.
+        */}
+        <button
+          type="button"
+          onClick={() => handlers.onSetMode(condition.id, negated ? "is" : "is not")}
+          onPointerDown={
             arrangeable && context
-              ? (event) => context.beginDrag(event, { kind: "condition", id: condition.id }, clauseLabel(condition))
+              ? (event) => {
+                  event.preventDefault()
+                  context.beginDrag(event, { kind: "condition", id: condition.id }, clauseLabel(condition))
+                }
               : undefined
           }
+          aria-label={`${condition.attribute}: ${negated ? "excluding" : "including"} these values`}
+          className={cn(
+            "focus-visible:ring-ring/50 -mx-1 rounded-md px-1 underline-offset-[5px] outline-none hover:underline focus-visible:ring-3",
+            tintClass,
+            negated
+              ? "text-foreground decoration-foreground/70 font-semibold"
+              : "text-muted-foreground hover:text-foreground decoration-muted-foreground",
+          )}
         >
-          {attributeWord(condition)}
-        </LogicWord>{" "}
-        {/* Keeping or dropping. The only thing separating the two is this word,
-            so an excluded clause carries it at full strength. */}
-        <LogicWord negated={negated}>{operatorWord(condition)}</LogicWord>{" "}
+          {attributeWord(condition)} {operatorWord(condition)}
+        </button>{" "}
         {condition.values.map((value, i) => (
           <React.Fragment key={value}>
             {i > 0 ? (
@@ -372,7 +387,7 @@ export function QuerySentence({
   return (
     <p
       ref={container as React.RefObject<HTMLParagraphElement | null>}
-      className="max-w-[74ch] text-[22px] leading-[2.05] font-normal tracking-[-0.01em]"
+      className="max-w-[74ch] text-[22px] leading-[2.23] font-normal tracking-[-0.01em]"
     >
       {conditions.map((condition, i) => (
         <React.Fragment key={condition.id}>
