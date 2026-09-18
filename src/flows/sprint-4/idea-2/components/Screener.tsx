@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { usePathname } from "next/navigation"
-import { CornerDownLeftIcon, PlusIcon, RotateCcwIcon } from "lucide-react"
+import { CornerDownLeftIcon, RotateCcwIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { useDeepLink } from "@/hooks/use-deep-link"
@@ -319,18 +319,25 @@ export function Screener() {
               ) : resolving && pending ? (
                 <Resolving resolution={pending} onDone={settle} />
               ) : (
-                <QuerySentence conditions={conditions} handlers={handlers} />
+                <QuerySentence
+                  conditions={conditions}
+                  handlers={handlers}
+                  suggestions={query.edited ? [] : (query.resolution?.suggestions ?? [])}
+                  onAddSuggestion={addSuggestion}
+                />
               )}
 
-              {!composing && !resolving && notes.length > 0 ? (
-                <Notes notes={notes} resolution={query.resolution} onAdd={addSuggestion} />
-              ) : null}
+
 
               {!composing && !resolving && query.raw ? (
-                <p className="text-muted-foreground mt-2 min-w-0 truncate text-xs">
+                <p className="text-muted-foreground mt-3.5 min-w-0 truncate text-xs">
                   {query.edited ? "Edited since it was read from" : "Read from"}{" "}
                   <span className="text-brand-ink">{query.raw}</span>
                 </p>
+              ) : null}
+
+              {!composing && !resolving && notes.length > 0 ? (
+                <Notes notes={notes} />
               ) : null}
             </div>
 
@@ -518,57 +525,25 @@ function unplacedNote(resolution: Resolution): NoteLine[] {
 }
 
 /**
- * What the reading missed, in one line above the line it was read from. It was
+ * What the reading missed, in one line under the line it was read from. It was
  * a grey card explaining itself in a sentence; no interface talks like that.
- * The phrase it could not place, `not found`, and the nearest thing it does
- * have as something to press.
+ * The nearest value it does have is offered in the sentence itself, faded into
+ * the clause it would become, rather than listed here.
  */
-function Notes({
-  notes,
-  resolution,
-  onAdd,
-}: {
-  notes: NoteLine[]
-  resolution: Resolution | null
-  onAdd: (attribute: string, value: string) => void
-}) {
-  const suggestions = resolution?.suggestions ?? []
+function Notes({ notes }: { notes: NoteLine[] }) {
   const phrases = Array.from(new Set(notes.flatMap((note) => note.phrases)))
+  if (phrases.length === 0) return null
 
   return (
-    <div className="mt-3.5 space-y-1.5 text-xs">
-      {phrases.length > 0 ? (
-        <p className="text-muted-foreground">
-          {phrases.map((phrase, i) => (
-            <React.Fragment key={phrase}>
-              {i > 0 ? ", " : null}
-              <span className="text-foreground">{phrase}</span>
-            </React.Fragment>
-          ))}{" "}
-          not found.
-        </p>
-      ) : null}
-      {suggestions.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-          <span className="text-brand-ink font-medium">Suggested</span>
-          {suggestions.map((suggestion) => (
-            <button
-              key={suggestion.value}
-              type="button"
-              onClick={() => onAdd(suggestion.attribute, suggestion.value)}
-              // The washed brand the canvas gave its suggestions: something to
-              // add, in the query's own colour, without the fill of a value
-              // that is already on.
-              className="bg-brand-tint border-brand-border text-foreground hover:border-brand-ink/30 hover:shadow-panel inline-flex h-6 items-center gap-1.5 rounded-md border pr-2 pl-1.5 text-xs transition-[border-color,box-shadow]"
-            >
-              <PlusIcon className="text-brand-ink size-3" />
-              {suggestion.value}
-              <span className="text-brand-ink/70">{suggestion.attribute}</span>
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
+    <p className="text-muted-foreground mt-1.5 text-xs">
+      {phrases.map((phrase, i) => (
+        <React.Fragment key={phrase}>
+          {i > 0 ? ", " : null}
+          <span className="text-foreground">{phrase}</span>
+        </React.Fragment>
+      ))}{" "}
+      not found.
+    </p>
   )
 }
 
