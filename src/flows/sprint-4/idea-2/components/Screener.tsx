@@ -402,10 +402,10 @@ export function Screener() {
                   ) : (
                     <Button
                       size="sm"
-                      variant="secondary"
+                      variant="ghost"
                       onClick={editAsText}
                       disabled={resolving}
-                      className="text-brand hover:text-brand-strong"
+                      className="text-brand hover:text-brand-strong hover:bg-accent"
                     >
                       Edit
                     </Button>
