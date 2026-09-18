@@ -249,56 +249,48 @@ export function ExplorerTree({
   return (
     <section className={cn("bg-surface-chrome flex min-h-0 flex-col", className)}>
       {/*
-        The head of the tree is built to the same line as the head of the
-        results across the split: the toolbar's 44px and the column heads' 36px,
-        as a title row and a search row. Change one height and change the other.
+        One row, the height of the grid's column heads across the split, so the
+        two panes under the shared head start their content on the same line.
+        The card's own head names the view, so the tree does not name itself.
       */}
-      <div className="bg-surface-panel border-edge h-21 shrink-0 border-b">
-        <div className="flex h-12 items-center gap-1 px-4">
-          <p className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
-            Explorer
-          </p>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => (allOpen ? setExpanded(new Set()) : setExpanded(new Set(everyKey)))}
-            aria-label={allOpen ? "Collapse every branch" : "Expand every branch"}
-            className="text-muted-foreground hover:text-foreground ml-auto"
-          >
-            {allOpen ? <ChevronsDownUpIcon className="size-4" /> : <ChevronsUpDownIcon className="size-4" />}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={onClose}
-            aria-label="Close the explorer"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <XIcon className="size-4" />
-          </Button>
+      <div className="bg-surface-panel border-edge flex h-9 shrink-0 items-center gap-1 border-b px-4">
+        <div className="relative min-w-0 flex-1">
+          <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search"
+            className="bg-surface-sunken h-7 pr-7 pl-8 text-[13px]"
+          />
+          {search ? (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              aria-label="Clear the search"
+              className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 absolute top-1/2 right-1.5 flex size-5 -translate-y-1/2 cursor-pointer items-center justify-center rounded outline-none focus-visible:ring-2"
+            >
+              <XIcon className="size-3.5" />
+            </button>
+          ) : null}
         </div>
-
-        <div className="flex flex-1 items-start px-4 pb-2">
-          <div className="relative w-full">
-            <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
-            <Input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search"
-              className="bg-surface-sunken h-7 pr-7 pl-8 text-[13px]"
-            />
-            {search ? (
-              <button
-                type="button"
-                onClick={() => setSearch("")}
-                aria-label="Clear the search"
-                className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 absolute top-1/2 right-1.5 flex size-5 -translate-y-1/2 items-center justify-center rounded outline-none focus-visible:ring-2"
-              >
-                <XIcon className="size-3.5" />
-              </button>
-            ) : null}
-          </div>
-        </div>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => (allOpen ? setExpanded(new Set()) : setExpanded(new Set(everyKey)))}
+          aria-label={allOpen ? "Collapse every branch" : "Expand every branch"}
+          className="text-muted-foreground hover:text-foreground size-7"
+        >
+          {allOpen ? <ChevronsDownUpIcon className="size-4" /> : <ChevronsUpDownIcon className="size-4" />}
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onClose}
+          aria-label="Close the explorer"
+          className="text-muted-foreground hover:text-foreground size-7"
+        >
+          <XIcon className="size-4" />
+        </Button>
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto px-4 pt-2 pb-2">
