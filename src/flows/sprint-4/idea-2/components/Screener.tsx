@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { usePathname } from "next/navigation"
-import { CornerDownLeftIcon, RotateCcwIcon } from "lucide-react"
+import { CornerDownLeftIcon, PlusIcon, RotateCcwIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { useDeepLink } from "@/hooks/use-deep-link"
@@ -536,7 +536,7 @@ function Notes({
   const phrases = Array.from(new Set(notes.flatMap((note) => note.phrases)))
 
   return (
-    <div className="mt-3.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs">
+    <div className="mt-3.5 space-y-1.5 text-xs">
       {phrases.length > 0 ? (
         <p className="text-muted-foreground">
           {phrases.map((phrase, i) => (
@@ -548,17 +548,23 @@ function Notes({
           not found.
         </p>
       ) : null}
-      {suggestions.map((suggestion) => (
-        <button
-          key={suggestion.value}
-          type="button"
-          onClick={() => onAdd(suggestion.attribute, suggestion.value)}
-          className="bg-surface-panel border-border hover:border-edge hover:bg-accent hover:text-foreground inline-flex h-6 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors"
-        >
-          {suggestion.value}
-          <span className="text-muted-foreground">{suggestion.attribute}</span>
-        </button>
-      ))}
+      {suggestions.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+          <span className="text-brand-ink font-medium">Suggested</span>
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion.value}
+              type="button"
+              onClick={() => onAdd(suggestion.attribute, suggestion.value)}
+              className="bg-surface-panel border-border hover:border-edge hover:bg-accent hover:text-foreground inline-flex h-6 items-center gap-1.5 rounded-md border pr-2 pl-1.5 text-xs transition-colors"
+            >
+              <PlusIcon className="text-muted-foreground size-3" />
+              {suggestion.value}
+              <span className="text-muted-foreground">{suggestion.attribute}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   )
 }
