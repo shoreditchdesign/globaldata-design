@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { TickBox } from "@/flows/sprint-4/idea-2/components/TickBox"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { excludeModifier, useExcludeModifierLabel } from "@/flows/sprint-4/idea-2/modifier"
 import {
   childrenByValue,
   facetCounts,
@@ -85,6 +86,7 @@ export function QuickFilters({
   const shownFor = (attribute: string) => picks[attribute] ?? held[attribute] ?? []
   const droppedFor = (attribute: string) => drops[attribute] ?? dropped[attribute] ?? []
   const total = quickAttributes.reduce((sum, attribute) => sum + shownFor(attribute).length, 0)
+  const modifierLabel = useExcludeModifierLabel()
 
   return (
     <div
@@ -109,7 +111,7 @@ export function QuickFilters({
           <span className="tabular-nums">
             {total} {total === 1 ? "filter" : "filters"}
           </span>
-          <span className="text-muted-foreground/70"> · ⌥ click to exclude</span>
+          <span className="text-muted-foreground/70"> · {modifierLabel}</span>
         </span>
       ) : null}
     </div>
@@ -162,9 +164,9 @@ function FilterChip({
     ? options.filter((option) => option.label.toLowerCase().includes(search.toLowerCase()))
     : options
 
-  // Alt is read on the way down, since the change event does not carry it —
-  // the same modifier the explorer uses, so one gesture means exclude wherever
-  // a box is ticked.
+  // Read on the way down, since the change event drops the modifier — the same
+  // gesture the explorer uses, so one thing means exclude wherever a box is
+  // ticked.
   const altDown = React.useRef(false)
 
   const tick = (value: string) => {
@@ -202,9 +204,11 @@ function FilterChip({
           className={cn(
             "flex h-7 cursor-pointer items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors",
             // A chip holding values is the thing you pressed and it is on, so it
-            // takes the primary fill rather than a tint with a badge on it.
+            // takes the primary fill rather than a tint with a badge on it. An
+            // excluding chip takes the washed negation instead: solid red beside
+            // solid blue was two strong colours arguing across one rail.
             values.length > 0 && dropped.length === values.length
-              ? "bg-negative-ink border-negative-ink text-background"
+              ? "bg-negative border-negative-border text-negative-ink hover:border-negative-ink/40"
               : values.length > 0
               ? "bg-brand border-brand text-primary-foreground hover:bg-brand-strong hover:border-brand-strong"
               : "bg-surface-panel border-border text-muted-foreground hover:text-foreground hover:border-edge",
@@ -247,8 +251,8 @@ function FilterChip({
                 <TickBox
                   checked={values.includes(option.label)}
                   excluded={dropped.includes(option.label)}
-                  onPointerDown={(event) => (altDown.current = event.altKey)}
-                  onKeyDown={(event) => (altDown.current = event.altKey)}
+                  onPointerDown={(event) => (altDown.current = excludeModifier(event))}
+                  onKeyDown={(event) => (altDown.current = excludeModifier(event))}
                   onCheckedChange={() => tick(option.label)}
                   className="shrink-0"
                 />

@@ -7,33 +7,20 @@ import { cn } from "@/lib/utils"
 import { StageBadge } from "@/components/prototype/StageBadge"
 import { Button } from "@/components/ui/button"
 import { stageOrder, type DrugRow } from "@/flows/sprint-4/idea-2/data"
+import { lockedColumn, resultColumns } from "@/flows/sprint-4/idea-2/columns"
 
-const columns = [
-  { key: "name", label: "Drug Name" },
-  { key: "company", label: "Company" },
-  { key: "indication", label: "Indication" },
-  { key: "stage", label: "Development Stage" },
-  { key: "country", label: "Drug Geography" },
-  { key: "moleculeType", label: "Molecule Type" },
-  { key: "route", label: "Route of Administration" },
-  { key: "descriptor", label: "Drug Descriptor" },
-] as const
-
-type ColumnKey = (typeof columns)[number]["key"]
-type Sort = { key: ColumnKey; dir: "asc" | "desc" }
+type Sort = { key: string; dir: "asc" | "desc" }
 
 /** Rows drawn at once. The count above says how many there are in all. */
 const PAGE = 100
 
-function compareRows(a: DrugRow, b: DrugRow, key: ColumnKey) {
+function compareRows(a: DrugRow, b: DrugRow, key: string) {
   if (key === "stage") {
     return (stageOrder.get(a.stage) ?? Infinity) - (stageOrder.get(b.stage) ?? Infinity)
   }
-  return a[key].localeCompare(b[key])
+  const column = resultColumns.find((entry) => entry.key === key)
+  return column ? column.value(a).localeCompare(column.value(b)) : 0
 }
-
-/** `Antiinflammatory Therapy` in a cell is mostly the word Therapy. */
-const shortDescriptor = (descriptor: string) => descriptor.replace(/ Therapy$/, "")
 
 /**
  * Before anything is asked. The heads stay, so the grid is recognisably the
@@ -68,6 +55,9 @@ function EmptyState() {
 export function ResultsPane({
   rows,
   active,
+  hidden,
+  order,
+  pinned,
   onOpenRecord,
   onSortChange,
   className,
@@ -77,14 +67,58 @@ export function ResultsPane({
   active: boolean
   /** `Open` on a drug name: the whole record, in a drawer over a scrim. */
   onOpenRecord: (id: string) => void
+  /** Columns the Columns menu has switched off. */
+  hidden: string[]
+  /** The order the Columns menu has them in. */
+  order: string[]
+  /** Columns held against the left edge while the grid scrolls sideways. */
+  pinned: string[]
   /** Reported so the card's head can say what the rows are sorted by. */
   onSortChange?: (label: string | null) => void
   className?: string
 }) {
   const [sort, setSort] = React.useState<Sort | null>(null)
+  // Pinned columns lead, in the order they were pinned; the rest follow in the
+  // order the Columns menu holds them.
+  const columns = React.useMemo(() => {
+    const shownColumns = order
+      .map((key) => resultColumns.find((column) => column.key === key))
+      .filter((column): column is (typeof resultColumns)[number] => Boolean(column))
+      .filter((column) => !hidden.includes(column.key))
+    const held = shownColumns.filter((column) => pinned.includes(column.key))
+    return [...held, ...shownColumns.filter((column) => !pinned.includes(column.key))]
+  }, [hidden, order, pinned])
+
+  /*
+    A pinned column sticks at the width of everything pinned before it, and the
+    table lays itself out, so the offsets have to be measured rather than
+    assumed. Read after layout and kept in state, so the lanes hold while the
+    grid scrolls sideways.
+  */
+  const headRow = React.useRef<HTMLTableRowElement>(null)
+  const [offsets, setOffsets] = React.useState<number[]>([])
+  const pinnedCount = columns.filter((column) => pinned.includes(column.key)).length
+  React.useLayoutEffect(() => {
+    const cells = headRow.current?.children
+    if (!cells) return
+    const next: number[] = []
+    let left = 0
+    for (let i = 0; i < pinnedCount; i += 1) {
+      next.push(left)
+      left += (cells[i] as HTMLElement).getBoundingClientRect().width
+    }
+    setOffsets((current) =>
+      current.length === next.length && current.every((value, i) => value === next[i]) ? current : next,
+    )
+  }, [columns, pinnedCount, rows])
+
+  const lane = (i: number) =>
+    i < pinnedCount
+      ? { className: "sticky z-10", style: { left: offsets[i] ?? 0 } }
+      : { className: undefined, style: undefined }
 
   React.useEffect(() => {
-    const label = sort ? (columns.find((column) => column.key === sort.key)?.label ?? null) : null
+    const label = sort ? (resultColumns.find((column) => column.key === sort.key)?.label ?? null) : null
     onSortChange?.(label && `${label}, ${sort?.dir === "asc" ? "A–Z" : "Z–A"}`)
   }, [sort, onSortChange])
 
@@ -94,7 +128,7 @@ export function ResultsPane({
     return [...rows].sort((a, b) => factor * compareRows(a, b, sort.key))
   }, [rows, sort])
 
-  const cycle = (key: ColumnKey) =>
+  const cycle = (key: string) =>
     setSort((current) =>
       current?.key !== key ? { key, dir: "asc" } : current.dir === "asc" ? { key, dir: "desc" } : null,
     )
@@ -102,16 +136,20 @@ export function ResultsPane({
 
   const head = (
     <thead className="sticky top-0 z-20">
-      <tr className="bg-surface-panel">
+      <tr className="bg-surface-panel" ref={headRow}>
         {columns.map((column, i) => {
           const isSorted = active && sort?.key === column.key
+          const held = lane(i)
           return (
             <th
               key={column.key}
               aria-sort={isSorted ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+              style={held.style}
               className={cn(
                 "bg-surface-panel text-muted-foreground border-edge h-11 border-b px-3 text-left text-[10px] font-medium tracking-[0.08em] whitespace-nowrap uppercase",
-                i === 0 && "sticky left-0 z-10 border-r pl-(--text-inset)",
+                held.className,
+                i === 0 && "pl-(--text-inset)",
+                i === pinnedCount - 1 && "border-r",
                 i === columns.length - 1 && "pr-(--text-inset)",
               )}
             >
@@ -183,53 +221,73 @@ export function ResultsPane({
                     i % 2 === 1 ? "bg-surface-page" : "bg-surface-chrome",
                   )}
                 >
-                  <td className="border-hairline sticky left-0 z-10 border-r bg-inherit py-2.5 pr-3 pl-(--text-inset) font-medium whitespace-nowrap">
-                    {/*
-                      The name keeps the button's width permanently rather than
-                      on hover. Sprint 3 Idea 2 animated that room in and the
-                      row reflowed under a moving cursor, dropping the hover
-                      between the mouse arriving and the click landing.
-                    */}
-                    <span className="block pr-16">{row.name}</span>
-                    {/*
-                      Shown on hover anywhere in the row, and reachable by
-                      keyboard at all times, so the record is never a mouse-only
-                      door. It takes no clicks while it is invisible: it sits
-                      over the right-hand end of the name, and an unseen button
-                      there swallowed every click meant for the row.
-                    */}
-                    {/*
-                      The centring lives on this span, never on the button. The
-                      button presses by a transform of its own, and a transform
-                      replaces rather than adds to one already there — so
-                      centring it by `-translate-y-1/2` made it leap half its
-                      own height the moment it was pressed.
-                    */}
-                    <span className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center">
-                      <Button
-                        variant="outline"
-                        size="xs"
-                        onClick={() => onOpenRecord(row.id)}
+                  {columns.map((column, c) =>
+                    column.key === lockedColumn ? (
+                      <td
+                        key={column.key}
+                        style={lane(c).style}
                         className={cn(
-                          "h-6 opacity-0 transition-opacity duration-100",
-                          "pointer-events-none group-hover/row:pointer-events-auto group-hover/row:opacity-100",
-                          "focus-visible:pointer-events-auto focus-visible:opacity-100",
-                          "motion-reduce:transition-none",
+                          "border-hairline bg-inherit py-2.5 pr-3 font-medium whitespace-nowrap",
+                          lane(c).className,
+                          c === 0 && "pl-(--text-inset)",
+                          c === pinnedCount - 1 && "border-r",
+                          c > 0 && "pl-3",
                         )}
                       >
-                        Open
-                      </Button>
-                    </span>
-                  </td>
-                  <Cell>{row.company}</Cell>
-                  <Cell>{row.indication}</Cell>
-                  <td className="px-3 py-2.5">
-                    <StageBadge stage={row.stage} />
-                  </td>
-                  <Cell>{row.country}</Cell>
-                  <Cell>{row.moleculeType}</Cell>
-                  <Cell>{row.route}</Cell>
-                  <Cell className="pr-(--text-inset)">{shortDescriptor(row.descriptor)}</Cell>
+                        {/*
+                          The name keeps the button's width permanently rather
+                          than on hover: making room on hover reflowed the row
+                          under the cursor and swallowed the click.
+                        */}
+                        <span className="block pr-16">{column.value(row)}</span>
+                        {/*
+                          The centring lives on this span, never on the button.
+                          The button presses by a transform of its own, and a
+                          transform replaces rather than adds to one already
+                          there.
+                        */}
+                        <span className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center">
+                          <Button
+                            variant="outline"
+                            size="xs"
+                            onClick={() => onOpenRecord(row.id)}
+                            className={cn(
+                              "h-6 opacity-0 transition-opacity duration-100",
+                              "pointer-events-none group-hover/row:pointer-events-auto group-hover/row:opacity-100",
+                              "focus-visible:pointer-events-auto focus-visible:opacity-100",
+                              "motion-reduce:transition-none",
+                            )}
+                          >
+                            Open
+                          </Button>
+                        </span>
+                      </td>
+                    ) : column.key === "stage" ? (
+                      <td
+                        key={column.key}
+                        style={lane(c).style}
+                        className={cn(
+                          "bg-inherit px-3 py-2.5",
+                          lane(c).className,
+                          c === pinnedCount - 1 && "border-hairline border-r",
+                        )}
+                      >
+                        <StageBadge stage={row.stage} />
+                      </td>
+                    ) : (
+                      <Cell
+                        key={column.key}
+                        style={lane(c).style}
+                        className={cn(
+                          lane(c).className,
+                          c === pinnedCount - 1 && "border-hairline border-r",
+                          c === columns.length - 1 && "pr-(--text-inset)",
+                        )}
+                      >
+                        {column.value(row)}
+                      </Cell>
+                    ),
+                  )}
                 </tr>
               ))
             )}
@@ -240,11 +298,20 @@ export function ResultsPane({
   )
 }
 
-function Cell({ children, className }: { children: React.ReactNode; className?: string }) {
+function Cell({
+  children,
+  className,
+  style,
+}: {
+  children: React.ReactNode
+  className?: string
+  style?: React.CSSProperties
+}) {
   return (
     <td
+      style={style}
       className={cn(
-        "text-muted-foreground px-3 py-2.5 whitespace-nowrap",
+        "text-muted-foreground bg-inherit px-3 py-2.5 whitespace-nowrap",
         className,
       )}
     >
