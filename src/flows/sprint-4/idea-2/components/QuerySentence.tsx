@@ -346,11 +346,16 @@ export function QuerySentence({
   conditions,
   handlers,
   arrangeable = true,
+  suggestions = [],
+  onAddSuggestion,
 }: {
   conditions: Condition[]
   handlers: QueryHandlers
   /** Off for the resolve animation, which draws the sentence but must not edit it. */
   arrangeable?: boolean
+  /** Nearest values for phrases the reading could not place, offered in place. */
+  suggestions?: { attribute: string; value: string }[]
+  onAddSuggestion?: (attribute: string, value: string) => void
 }) {
   const context = useArrange()
   const { container, track } = useReflow(context?.landed?.token)
@@ -383,6 +388,24 @@ export function QuerySentence({
             track={track(condition.id)}
           />
         </React.Fragment>
+      ))}
+      {/*
+        A phrase the reading could not place, offered as the clause it would
+        have been: faded into the line rather than listed under it, the way the
+        composer ghosts the rest of a query. Pressing it makes it real.
+      */}
+      {suggestions.map((suggestion) => (
+        <span key={`${suggestion.attribute}:${suggestion.value}`} className="whitespace-nowrap">
+          {" "}
+          <button
+            type="button"
+            onClick={() => onAddSuggestion?.(suggestion.attribute, suggestion.value)}
+            className="text-muted-foreground/70 hover:text-foreground focus-visible:ring-ring/50 -mx-1 rounded-md px-1 transition-colors outline-none focus-visible:ring-3"
+          >
+            and {suggestion.attribute} is{" "}
+            <span className="text-brand-ink/60 font-medium">{suggestion.value}</span>
+          </button>
+        </span>
       ))}
     </p>
   )

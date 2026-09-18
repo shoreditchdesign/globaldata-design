@@ -193,3 +193,11 @@ None of them is a mock. The ticks are seeded into the same state the screen edit
 ## 2026-09-18 — Idea 2, the partial read says less
 
 The callout for what a reading missed was a grey card with a sentence in it: the phrase, an em dash, and "no condition in this screener matches that, so it was left out". No interface talks like that. It is now one line above the line it was read from, with no card around it: the phrases it could not place, `not found.`, and the nearest thing it does have as a button you can press. The disclosure survives, which `CLAUDE.md` requires; the explanation of itself does not.
+
+## 2026-09-18 — Idea 2, the suggestion moves into the sentence
+
+**A nearest value is offered where it would land.** Rather than a pill listed under the query, the suggestion is drawn as the clause it would become — `and Drug Descriptor is Immunosuppressant Therapy` — faded into the end of the sentence, the same move the composer makes when it ghosts the rest of a query you are typing. Pressing it makes it real. One mechanic now covers both halves of the reading: what the words would complete to, and what a phrase would have been.
+
+**What could not be placed sits under the words it came from.** The `not found` line moved below `Read from`, so the order reads: the query, then what it was read from, then what that reading missed.
+
+**`autofill` is a frame.** The ghost completion could only be seen by typing into the box, which made it invisible in review and impossible to capture. `/sprint-4/idea-2/autofill` opens on half a common query with the rest ghosted after the caret.

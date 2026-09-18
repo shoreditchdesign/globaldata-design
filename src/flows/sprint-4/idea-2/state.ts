@@ -197,6 +197,12 @@ export const workedPrompt =
 const partialPrompt =
   "late stage immunosuppressives for rheumatoid arthritis or psoriasis in Europe from Pfizer"
 
+/**
+ * Enough of a common query for the composer to ghost the rest of it. The frame
+ * exists so the completion can be reviewed without typing into the box.
+ */
+export const autofillPrompt = "oral small"
+
 export const suggestedQueries = [
   workedPrompt,
   "oral small molecules in europe or north america",
@@ -306,6 +312,7 @@ export const initialStates: Record<string, ScreenerState> = {
   "explorer-open": { ...base, view: "explorer" },
   "explorer-applied": { ...base, ...built, phase: "resolved", view: "explorer" },
   typed: { ...base, draft: workedPrompt },
+  autofill: { ...base, draft: autofillPrompt },
   sentence: resolved,
   explorer: { ...resolved, view: "explorer" },
   record: { ...resolved, recordId: matchingRows(worked.conditions)[0]?.id ?? null },
@@ -363,6 +370,7 @@ export function slugFor(state: ScreenerState): string {
 
   if (query.conditions.length === 0) {
     if (view === "explorer") return "explorer-open"
+    if (draft === autofillPrompt) return "autofill"
     return draft.trim() ? "typed" : "start"
   }
 

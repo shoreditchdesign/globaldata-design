@@ -85,6 +85,13 @@ export const sprint4Idea2: Flow = {
       component: Screener,
     },
     {
+      slug: "autofill",
+      title: "Completing as you type",
+      note: "Half a common query typed, with the rest of it ghosted after the caret. Tab or Right Arrow takes it.",
+      viewport: "desktop",
+      component: Screener,
+    },
+    {
       slug: "sentence",
       title: "Query as a sentence",
       note: "Four conditions, 41 of 1,440 sampled drugs, and the grid holding the 41 rows at full width.",
@@ -108,7 +115,7 @@ export const sprint4Idea2: Flow = {
     {
       slug: "partial",
       title: "Read partly",
-      note: "Three conditions placed and 23 drugs found. `immunosuppressives` is offered as its nearest value rather than assumed, and Pfizer is named as its own product area.",
+      note: "Three conditions placed and 23 drugs found. What it could not place is named under the line it was read from, and the nearest value it does have is offered faded into the sentence, a click short of being real.",
       viewport: "desktop",
       component: Screener,
     },
