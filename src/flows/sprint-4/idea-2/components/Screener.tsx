@@ -325,7 +325,7 @@ export function Screener() {
                 // A ghost button fills while it reports itself expanded, and this
                 // one reports the rail. It says its state in its label instead,
                 // so it rests like Undo and Clear all and fills only on hover.
-                className="text-muted-foreground hover:bg-accent aria-expanded:bg-transparent aria-expanded:text-muted-foreground absolute top-2.5 right-3 z-10 text-[13px]"
+                className="text-muted-foreground hover:bg-accent aria-expanded:bg-transparent aria-expanded:text-muted-foreground aria-expanded:hover:bg-accent aria-expanded:hover:text-foreground absolute top-2.5 right-3 z-10 text-[13px]"
               >
                 {railOpen ? <ChevronsDownUpIcon /> : <SlidersHorizontalIcon />}
                 {railOpen ? "Collapse filters" : "Show filters"}
