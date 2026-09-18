@@ -180,7 +180,7 @@ Austin reversed the two greys added earlier the same day, and both reversals hol
 
 None of them is a mock. The ticks are seeded into the same state the screen edits, so pressing Resolve or Apply filters from one of these frames does what it would have done had you clicked your way there.
 
-**A dropdown can be pinned open.** A popover that closes the moment focus leaves it cannot be screenshotted, and these screens are reviewed as captures into Figma as much as in the browser. A frame naming a pinned filter holds that dropdown open through an outside click or a focus change; the chip itself and Escape still close it, and resolving clears the pin. `pinnedFilter` lives in the screen's state, so the address bar follows it like everything else.
+**A dropdown can be pinned open.** A popover that closes the moment focus leaves it cannot be screenshotted, and these screens are reviewed as captures into Figma as much as in the browser. A frame naming a pinned filter holds that dropdown open when focus leaves the page — which is what a capture extension, the devtools or another window takes — while a click in the page still dismisses it, along with the chip and Escape. Losing focus is a tool doing its work; a click is a person, and nothing is locked open. Resolving clears the pin. `pinnedFilter` lives in the screen's state, so the address bar follows it like everything else.
 
 **The empty grid takes the tint too.** It was white until the first row landed and then turned faintly blue, which made the empty state look like a different surface from the one it was about to become.
 
