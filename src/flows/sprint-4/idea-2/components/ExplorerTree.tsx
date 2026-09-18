@@ -445,7 +445,7 @@ function Row({
         disabled={!onToggle}
         aria-expanded={open}
         aria-label={open === undefined ? undefined : `${open ? "Collapse" : "Expand"} ${label}`}
-        className="flex size-5 shrink-0 items-center justify-center rounded disabled:cursor-default"
+        className="flex size-5 shrink-0 cursor-pointer items-center justify-center rounded disabled:cursor-default"
       >
         <ChevronRightIcon
           className={cn(
@@ -471,7 +471,7 @@ function Row({
         type="button"
         onClick={onCheck ?? onToggle}
         className={cn(
-          "flex min-w-0 flex-1 items-center gap-1.5 text-left text-[13px]",
+          "flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 text-left text-[13px]",
           tall ? "py-2.5" : "py-1.5",
         )}
       >

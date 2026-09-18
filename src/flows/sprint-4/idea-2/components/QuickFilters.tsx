@@ -150,7 +150,7 @@ function FilterChip({
         <button
           type="button"
           className={cn(
-            "flex h-7 items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors",
+            "flex h-7 cursor-pointer items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors",
             // A chip holding values is the thing you pressed and it is on, so it
             // takes the primary fill rather than a tint with a badge on it.
             values.length > 0
