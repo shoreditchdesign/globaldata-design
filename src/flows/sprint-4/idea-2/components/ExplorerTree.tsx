@@ -28,7 +28,7 @@ import {
 import { cn } from "@/lib/utils"
 import { motion, usePrefersReducedMotion } from "@/components/prototype/motion"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import { TickBox } from "@/flows/sprint-4/idea-2/components/TickBox"
 import { Input } from "@/components/ui/input"
 import {
   attributeDefs,
@@ -187,6 +187,15 @@ export function ExplorerTree({
   )
   const allOpen = everyKey.every((key) => expanded.has(key))
 
+  /** Which attributes the query excludes, so their ticks read as a minus. */
+  const excluded = React.useMemo(
+    () =>
+      new Set(
+        conditions.filter((condition) => condition.mode === "is not").map((c) => c.attribute),
+      ),
+    [conditions],
+  )
+
   const dirty = !sameTicks(draft, seed)
   const ticked = Object.values(draft).reduce((sum, values) => sum + values.length, 0)
 
@@ -311,6 +320,7 @@ export function ExplorerTree({
                           nested={matched !== null}
                           count={counts[value.label] ?? 0}
                           checked={tickShown(attribute, value.label)}
+                          excluded={excluded.has(attribute)}
                           onCheck={() => tick(attribute, value.label)}
                         />
                         {children.length > 0 && valueOpen ? (
@@ -321,6 +331,7 @@ export function ExplorerTree({
                                 label={child.label}
                                 count={counts[child.label] ?? 0}
                                 checked={tickShown(attribute, child.label)}
+                                excluded={excluded.has(attribute)}
                                 onCheck={() => tick(attribute, child.label)}
                               />
                             ))}
@@ -409,6 +420,7 @@ function Row({
   active,
   nested,
   checked,
+  excluded,
   onCheck,
 }: {
   label: string
@@ -425,6 +437,8 @@ function Row({
   /** The search matched something inside this branch rather than the row itself. */
   nested?: boolean
   checked?: boolean
+  /** Its condition drops the rows it matches, so the mark is a minus. */
+  excluded?: boolean
   onCheck?: () => void
 }) {
   return (
@@ -459,11 +473,12 @@ function Row({
 
       {/* Beside the label it belongs to, not out at the panel's edge. */}
       {onCheck ? (
-        <Checkbox
-          checked={checked}
+        <TickBox
+          checked={checked ?? false}
+          excluded={excluded}
           onCheckedChange={onCheck}
           aria-label={label}
-          className="border-muted-foreground/50 bg-background shrink-0"
+          className="shrink-0"
         />
       ) : null}
 

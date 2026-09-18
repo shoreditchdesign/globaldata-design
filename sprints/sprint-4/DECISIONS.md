@@ -207,3 +207,9 @@ The callout for what a reading missed was a grey card with a sentence in it: the
 The head of a clause is one control — the attribute and its operator — and pressing it flips `is` and `is not`. Hovering underlines it in the brand rather than filling it, so the only fill in the sentence stays the values.
 
 The operator carries the difference in colour instead of weight: `is` in `brand-ink`, `is not` in `negative-ink`. Bolding the negation made an excluded clause shout across the line, and the design system already keeps a tone for negation that an included filter must never wear. The attribute beside it stays muted, so the coloured word is the one that changes what the query does.
+
+## 2026-09-18 — Idea 2, an excluded value is ticked as a minus
+
+Flip a clause to `is not` in the sentence and the other two ways now say the same thing: the values under it carry a minus rather than a tick, in the negation tone, and the filter chip holding them wears that tone instead of the brand. A value under an exclusion is not unticked — it was chosen and then excluded — and a plain tick in the tree or the dropdown claimed the opposite of what the sentence said.
+
+The registry's checkbox hard-codes its tick, so `TickBox` wraps the Radix primitive and swaps the mark rather than editing a generated component. It keeps the shadcn box's own shape, focus ring and disabled behaviour, and takes `selected` for a kept value, exactly as the registry does.

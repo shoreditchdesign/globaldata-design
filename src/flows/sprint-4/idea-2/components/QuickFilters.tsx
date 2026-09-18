@@ -4,7 +4,7 @@ import * as React from "react"
 import { ChevronDownIcon, SearchIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { Checkbox } from "@/components/ui/checkbox"
+import { TickBox } from "@/flows/sprint-4/idea-2/components/TickBox"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import {
@@ -81,6 +81,9 @@ export function QuickFilters({
           key={attribute}
           attribute={attribute}
           conditions={conditions}
+          excluded={conditions.some(
+            (condition) => condition.attribute === attribute && condition.mode === "is not",
+          )}
           values={shownFor(attribute)}
           onPick={(values) => onPick(attribute, values)}
           pinned={pinned === attribute}
@@ -100,12 +103,15 @@ function FilterChip({
   attribute,
   conditions,
   values,
+  excluded,
   onPick,
   pinned,
   onOpenChange,
 }: {
   attribute: string
   conditions: Condition[]
+  /** The query drops what this attribute matches rather than keeping it. */
+  excluded?: boolean
   /** This attribute's values, whether ticked here or already in the query. */
   values: string[]
   onPick: (values: string[]) => void
@@ -153,7 +159,9 @@ function FilterChip({
             "flex h-7 cursor-pointer items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors",
             // A chip holding values is the thing you pressed and it is on, so it
             // takes the primary fill rather than a tint with a badge on it.
-            values.length > 0
+            values.length > 0 && excluded
+              ? "bg-negative-ink border-negative-ink text-background"
+              : values.length > 0
               ? "bg-brand border-brand text-primary-foreground hover:bg-brand-strong hover:border-brand-strong"
               : "bg-surface-panel border-border text-muted-foreground hover:text-foreground hover:border-edge",
           )}
@@ -198,10 +206,11 @@ function FilterChip({
                 key={option.label}
                 className="hover:bg-accent flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-[13px]"
               >
-                <Checkbox
+                <TickBox
                   checked={values.includes(option.label)}
+                  excluded={excluded}
                   onCheckedChange={() => tick(option.label)}
-                  className="border-muted-foreground/50 bg-background shrink-0"
+                  className="shrink-0"
                 />
                 <span className={cn("min-w-0 flex-1 truncate", option.child && "text-muted-foreground pl-3")}>
                   {option.label}
