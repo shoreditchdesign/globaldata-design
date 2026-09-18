@@ -360,14 +360,18 @@ export function Screener() {
               */}
               <div className="mt-3 flex items-end justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  {!composing && !resolving && query.raw ? (
+                  {!composing && !resolving && (query.raw || notes.length > 0) ? (
                     <p className="text-muted-foreground min-w-0 truncate text-xs">
-                      {query.edited ? "Edited since it was read from" : "Read from"}{" "}
-                      <span className="text-brand-ink">{query.raw}</span>
+                      {query.raw ? (
+                        <>
+                          {query.edited ? "Edited since it was read from" : "Read from"}{" "}
+                          <span className="text-brand-ink">{query.raw}</span>
+                        </>
+                      ) : null}
+                      {query.raw && notes.length > 0 ? <span className="px-1.5">·</span> : null}
+                      <Notes notes={notes} />
                     </p>
                   ) : null}
-
-                  {!composing && !resolving && notes.length > 0 ? <Notes notes={notes} /> : null}
                 </div>
 
                 <div className="flex shrink-0 items-center gap-1">
@@ -627,17 +631,18 @@ function unplacedNote(resolution: Resolution): NoteLine[] {
 }
 
 /**
- * What the reading missed, in one line under the line it was read from. It was
- * a grey card explaining itself in a sentence; no interface talks like that.
- * The nearest value it does have is offered in the sentence itself, faded into
- * the clause it would become, rather than listed here.
+ * What the reading missed, on the end of the line it was read from. It was a
+ * grey card explaining itself in a sentence, then a line of its own under the
+ * query; both were more room than one unplaced phrase deserves. The nearest
+ * value it does have is offered in the sentence itself, faded into the clause
+ * it would become, rather than named here.
  */
 function Notes({ notes }: { notes: NoteLine[] }) {
   const phrases = Array.from(new Set(notes.flatMap((note) => note.phrases)))
   if (phrases.length === 0) return null
 
   return (
-    <p className="text-muted-foreground mt-1.5 text-xs">
+    <>
       {phrases.map((phrase, i) => (
         <React.Fragment key={phrase}>
           {i > 0 ? ", " : null}
@@ -645,7 +650,7 @@ function Notes({ notes }: { notes: NoteLine[] }) {
         </React.Fragment>
       ))}{" "}
       not found.
-    </p>
+    </>
   )
 }
 
