@@ -7,6 +7,7 @@ import { ProductChrome } from "@/components/prototype/ProductChrome"
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { useDeepLink } from "@/hooks/use-deep-link"
 import { LandingPage } from "@/flows/sprint-4/idea-1/components/LandingPage"
+import { ManualSearch } from "@/flows/sprint-4/idea-1/components/ManualSearch"
 import { ResolvedFilters } from "@/flows/sprint-4/idea-1/components/ResolvedFilters"
 import { ResultsPage } from "@/flows/sprint-4/idea-1/components/ResultsPage"
 import { SearchPanel } from "@/flows/sprint-4/idea-1/components/SearchPanel"
@@ -198,7 +199,8 @@ export function PrototypeShell() {
       onAdd={addFilter}
       onClear={clearFilters}
       onSearch={state.showResults ? undefined : search}
-      onClose={state.showResults ? undefined : closeFilters}
+      // Manual always shows the box, so it has nothing to close back to.
+      onClose={state.showResults || state.mode === "manual" ? undefined : closeFilters}
       // On the results page the box is a band above the grid, not a card.
       variant={state.showResults ? "band" : "card"}
     />
@@ -252,7 +254,18 @@ export function PrototypeShell() {
         onResolve={submitQuery}
         filters={state.filters}
         hasResolvedFilters={Boolean(state.submittedQuery || state.path)}
-        filterBox={state.submittedQuery || state.path ? filterBox : null}
+        filterBox={state.mode === "manual" || state.submittedQuery || state.path ? filterBox : null}
+        manual={
+          <ManualSearch
+            layout="wide"
+            filters={state.filters}
+            activeCategory={state.manualCategory}
+            activeAttribute={state.manualAttribute}
+            onOpenCategory={openCategory}
+            onOpenAttribute={openAttribute}
+            onToggleValue={pickValueAt}
+          />
+        }
         pending={state.pending}
         onScanDone={settleQuery}
       />

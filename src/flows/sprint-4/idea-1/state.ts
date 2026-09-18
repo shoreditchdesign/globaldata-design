@@ -70,6 +70,12 @@ const valuesState = (): Sprint4Idea1State => ({
   activeAttribute: "Therapy Area / Indication",
 })
 
+/** Manual chosen on the landing page: the Miller columns with the filter box beneath. */
+const manualState = (): Sprint4Idea1State => ({
+  ...startState(),
+  mode: "manual",
+})
+
 const pickedPath: SearchPath = {
   area: "Drugs",
   attribute: "Therapy Area / Indication",
@@ -106,6 +112,8 @@ export function initialState(slug: string): Sprint4Idea1State {
   switch (slug) {
     case "values":
       return valuesState()
+    case "manual":
+      return manualState()
     case "picked":
       return pickedState()
     case "results":
@@ -124,6 +132,7 @@ export function initialState(slug: string): Sprint4Idea1State {
 export function slugFor(state: Sprint4Idea1State) {
   if (state.showResults) return "results"
   if (state.pending) return "resolving"
+  if (state.mode === "manual") return "manual"
   if (state.submittedQuery) return "filters"
   if (state.path) return "picked"
   return state.activeAttribute ? "values" : "start"

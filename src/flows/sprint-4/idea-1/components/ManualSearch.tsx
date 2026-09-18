@@ -15,15 +15,16 @@ import {
 } from "@/flows/sprint-4/idea-1/data"
 import { cn } from "@/lib/utils"
 
-/** The panel fits two columns; deeper paths fold into the breadcrumb. */
-const VISIBLE_COLUMNS = 2
-
 /**
  * Manual search as Miller columns, after Sprint 3 Idea 2's filter panel:
  * filter area, then attribute, then values. Drilling in adds a column beside
  * the last rather than replacing it, and ticking a value writes it into the
- * same filter box the quick search builds. Its open path is its own, so opening
+ * same filters the quick search builds. Its open path is its own, so opening
  * a column never opens the pills.
+ *
+ * The results panel fits two columns, and deeper paths fold into the
+ * breadcrumb. On the landing page the `wide` layout shows all three
+ * levels at once, each a fixed third, filling left to right as the path deepens.
  */
 export function ManualSearch({
   filters,
@@ -32,6 +33,7 @@ export function ManualSearch({
   onOpenCategory,
   onOpenAttribute,
   onToggleValue,
+  layout = "panel",
 }: {
   filters: ResolvedFilter[]
   activeCategory: ProductArea | null
@@ -39,7 +41,9 @@ export function ManualSearch({
   onOpenCategory: (category: ProductArea) => void
   onOpenAttribute: (attribute: string) => void
   onToggleValue: (area: ProductArea, attribute: string, value: string) => void
+  layout?: "panel" | "wide"
 }) {
+  const visibleColumns = layout === "wide" ? 3 : 2
   const [query, setQuery] = React.useState("")
   // Follows the path to its deepest column unless a crumb slides it back.
   const [leftIndex, setLeftIndex] = React.useState(Number.POSITIVE_INFINITY)
@@ -97,10 +101,10 @@ export function ManualSearch({
   }
 
   const path = [activeCategory, activeAttribute].filter(Boolean) as string[]
-  const maxLeft = Math.max(0, columns.length - VISIBLE_COLUMNS)
+  const maxLeft = Math.max(0, columns.length - visibleColumns)
   const start = Math.min(leftIndex, maxLeft)
   const needle = query.trim().toLowerCase()
-  const visible = columns.slice(start, start + VISIBLE_COLUMNS).map((column) =>
+  const visible = columns.slice(start, start + visibleColumns).map((column) =>
     needle
       ? { ...column, items: column.items.filter((item) => item.label.toLowerCase().includes(needle)) }
       : column,
@@ -172,7 +176,15 @@ export function ManualSearch({
             <MillerColumn
               key={column.key}
               column={column}
-              className="[&>div:first-child]:border-t-0"
+              className={cn(
+                "[&>div:first-child]:border-t-0",
+                // A third each, so the first column never stretches across the pane alone.
+                layout === "wide" && "flex-none basis-1/3",
+                // Ruled off from the empty thirds still to fill, which share its grey.
+                layout === "wide" &&
+                  visible.length < visibleColumns &&
+                  "border-edge last:border-r",
+              )}
               onOpen={(label) => {
                 setLeftIndex(Number.POSITIVE_INFINITY)
                 if (depth === 0) onOpenCategory(label as ProductArea)

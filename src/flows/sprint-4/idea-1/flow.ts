@@ -28,6 +28,13 @@ export const sprint4Idea1: Flow = {
       component: Start,
     },
     {
+      slug: "manual",
+      title: "Manual search",
+      note: "Manual lifts the title under the tabs and puts the Miller columns, three at a time, in place of the query field and pills, with the filter box always beneath them.",
+      viewport: "desktop",
+      component: Start,
+    },
+    {
       slug: "picked",
       title: "Filter from a path",
       note: "Picking a value builds the same filter box as a resolved query, holding one filter for the path.",
