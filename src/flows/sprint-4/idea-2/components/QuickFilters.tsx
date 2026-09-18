@@ -103,7 +103,9 @@ export function QuickFilters({
         />
       ))}
       {total > 0 ? (
-        <span className="text-muted-foreground text-xs">
+        // Pushed to the far end of the rail, so the chips read as one run and
+        // the count is not mistaken for another of them.
+        <span className="text-muted-foreground ml-auto pl-2 text-xs">
           <span className="tabular-nums">
             {total} {total === 1 ? "filter" : "filters"}
           </span>
