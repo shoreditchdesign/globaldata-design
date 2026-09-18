@@ -213,3 +213,9 @@ The operator carries the difference in colour instead of weight: `is` in `brand-
 Flip a clause to `is not` in the sentence and the other two ways now say the same thing: the values under it carry a minus rather than a tick, in the negation tone, and the filter chip holding them wears that tone instead of the brand. A value under an exclusion is not unticked — it was chosen and then excluded — and a plain tick in the tree or the dropdown claimed the opposite of what the sentence said.
 
 The registry's checkbox hard-codes its tick, so `TickBox` wraps the Radix primitive and swaps the mark rather than editing a generated component. It keeps the shadcn box's own shape, focus ring and disabled behaviour, and takes `selected` for a kept value, exactly as the registry does.
+
+## 2026-09-18 — Idea 2, excluding from the tree
+
+Option-clicking a box in the explorer ticks it as an exclusion: the mark is the minus, the attribute joins the query as `is not`, and the sentence says so. The sentence has a word you press to negate a clause and the quick filter has the chip it inherits, so the tree needed a way of its own that did not cost it a second control per row.
+
+The modifier is unguessable, so it is named once — `⌥ click to exclude`, beside the count of what is ticked in the rail at the foot — rather than beside every box. Alt is read on the pointer going down, since the change event does not carry it, and unticking the last value of an attribute forgets that it was excluding.

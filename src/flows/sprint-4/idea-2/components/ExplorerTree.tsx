@@ -187,14 +187,23 @@ export function ExplorerTree({
   )
   const allOpen = everyKey.every((key) => expanded.has(key))
 
+  /**
+   * Which attributes the ticks below are excluding. Option-clicking a box is
+   * how the tree says `is not` without a second control: the sentence has a
+   * word to press for it, and the tree has the modifier.
+   */
+  const [dropping, setDropping] = React.useState<Set<string>>(() => new Set())
+  /** Alt is read on the way down, since the change event does not carry it. */
+  const altDown = React.useRef(false)
+
   /** Which attributes the query excludes, so their ticks read as a minus. */
-  const excluded = React.useMemo(
-    () =>
-      new Set(
-        conditions.filter((condition) => condition.mode === "is not").map((c) => c.attribute),
-      ),
-    [conditions],
-  )
+  const excluded = React.useMemo(() => {
+    const dropped = new Set(
+      conditions.filter((condition) => condition.mode === "is not").map((c) => c.attribute),
+    )
+    for (const attribute of dropping) dropped.add(attribute)
+    return dropped
+  }, [conditions, dropping])
 
   const dirty = !sameTicks(draft, seed)
   const ticked = Object.values(draft).reduce((sum, values) => sum + values.length, 0)
@@ -207,16 +216,27 @@ export function ExplorerTree({
       return next
     })
 
-  const tick = (attribute: string, value: string) =>
+  const tick = (attribute: string, value: string) => {
+    if (altDown.current) {
+      setDropping((current) => new Set(current).add(attribute))
+    }
     setDraft((current) => {
       const values = current[attribute] ?? []
       const next = values.includes(value)
         ? values.filter((entry) => entry !== value)
         : [...values, value]
       const updated = { ...current, [attribute]: next }
-      if (next.length === 0) delete updated[attribute]
+      if (next.length === 0) {
+        delete updated[attribute]
+        setDropping((dropped) => {
+          const rest = new Set(dropped)
+          rest.delete(attribute)
+          return rest
+        })
+      }
       return updated
     })
+  }
 
   return (
     <section className={cn("bg-surface-chrome flex min-h-0 flex-col", className)}>
@@ -321,6 +341,7 @@ export function ExplorerTree({
                           count={counts[value.label] ?? 0}
                           checked={tickShown(attribute, value.label)}
                           excluded={excluded.has(attribute)}
+                          onAlt={(alt) => (altDown.current = alt)}
                           onCheck={() => tick(attribute, value.label)}
                         />
                         {children.length > 0 && valueOpen ? (
@@ -332,6 +353,7 @@ export function ExplorerTree({
                                 count={counts[child.label] ?? 0}
                                 checked={tickShown(attribute, child.label)}
                                 excluded={excluded.has(attribute)}
+                                onAlt={(alt) => (altDown.current = alt)}
                                 onCheck={() => tick(attribute, child.label)}
                               />
                             ))}
@@ -352,16 +374,19 @@ export function ExplorerTree({
         count under the sentence never moves while a branch is being read.
       */}
       <div className="border-edge bg-surface-panel flex h-12 shrink-0 items-center justify-between gap-3 border-t px-(--text-inset)">
-        <span className="text-muted-foreground text-xs tabular-nums">
-          {ticked === 0 ? "Nothing ticked" : `${ticked} ticked`}
-        </span>
+        <p className="text-muted-foreground min-w-0 truncate text-xs">
+          <span className="tabular-nums">{ticked === 0 ? "Nothing ticked" : `${ticked} ticked`}</span>
+          {/* The modifier is unguessable, so it is named once, where the ticks
+              are counted, rather than beside every box. */}
+          <span className="text-muted-foreground/70"> · ⌥ click to exclude</span>
+        </p>
         <div className="flex items-center gap-2">
           {dirty ? (
             <Button variant="ghost" size="sm" onClick={() => setDraft(seed)}>
               Reset
             </Button>
           ) : null}
-          <Button size="sm" disabled={!dirty} onClick={() => onApply(applyTicks(conditions, draft))}>
+          <Button size="sm" disabled={!dirty} onClick={() => onApply(applyTicks(conditions, draft, dropping))}>
             Apply filters
           </Button>
         </div>
@@ -421,6 +446,7 @@ function Row({
   nested,
   checked,
   excluded,
+  onAlt,
   onCheck,
 }: {
   label: string
@@ -439,6 +465,8 @@ function Row({
   checked?: boolean
   /** Its condition drops the rows it matches, so the mark is a minus. */
   excluded?: boolean
+  /** Whether the pointer that is about to tick this box is holding Alt. */
+  onAlt?: (alt: boolean) => void
   onCheck?: () => void
 }) {
   return (
@@ -476,6 +504,8 @@ function Row({
         <TickBox
           checked={checked ?? false}
           excluded={excluded}
+          onPointerDown={(event) => onAlt?.(event.altKey)}
+          onKeyDown={(event) => onAlt?.(event.altKey)}
           onCheckedChange={onCheck}
           aria-label={label}
           className="shrink-0"
@@ -536,7 +566,11 @@ function sameTicks(a: Record<string, string[]>, b: Record<string, string[]>) {
  * in the order the product lists its attributes, and one left with nothing
  * ticked leaves the query.
  */
-function applyTicks(conditions: Condition[], draft: Record<string, string[]>): Condition[] {
+function applyTicks(
+  conditions: Condition[],
+  draft: Record<string, string[]>,
+  dropping: Set<string>,
+): Condition[] {
   const seen = new Set<string>()
   const kept = conditions
     .map((condition) => {
@@ -546,7 +580,8 @@ function applyTicks(conditions: Condition[], draft: Record<string, string[]>): C
       // the rest go, since the tree draws one branch per attribute.
       if (seen.has(condition.attribute)) return null
       seen.add(condition.attribute)
-      return { ...condition, values }
+      const mode = dropping.has(condition.attribute) ? "is not" : condition.mode
+      return { ...condition, values, mode }
     })
     .filter((condition): condition is Condition => condition !== null)
 
@@ -558,7 +593,7 @@ function applyTicks(conditions: Condition[], draft: Record<string, string[]>): C
       attribute,
       values,
       join: "or",
-      mode: "is",
+      mode: dropping.has(attribute) ? "is not" : "is",
       link: "and",
     }))
 
