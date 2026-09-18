@@ -228,7 +228,7 @@ function ClauseSpan({
             // underlining it: the rule sat too close to the pill beside it, and
             // a control the pointer is on should read as more, not less. The
             // operator keeps its own colour throughout.
-            "text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 -mx-1 rounded-md px-1 outline-none focus-visible:ring-3",
+            "text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 -mx-1 cursor-pointer rounded-md px-1 outline-none focus-visible:ring-3",
             tintClass,
           )}
         >
@@ -427,7 +427,7 @@ export function QuerySentence({
           <button
             type="button"
             onClick={() => onAddSuggestion?.(suggestion.attribute, suggestion.value)}
-            className="text-muted-foreground/70 hover:text-foreground focus-visible:ring-ring/50 -mx-1 rounded-md px-1 transition-colors outline-none focus-visible:ring-3"
+            className="text-muted-foreground/70 hover:text-foreground focus-visible:ring-ring/50 -mx-1 cursor-pointer rounded-md px-1 transition-colors outline-none focus-visible:ring-3"
           >
             and {suggestion.attribute} is{" "}
             <span className="text-brand-ink/60 font-medium">{suggestion.value}</span>

@@ -118,7 +118,7 @@ export function ResultsPane({
                   type="button"
                   onClick={() => cycle(column.key)}
                   className={cn(
-                    "group/sort inline-flex items-center gap-1 uppercase",
+                    "group/sort inline-flex cursor-pointer items-center gap-1 uppercase",
                     isSorted ? "text-foreground" : "hover:text-foreground",
                   )}
                 >
@@ -281,7 +281,7 @@ function ViewTab({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "flex h-6 items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-[background-color,color,box-shadow]",
+        "flex h-6 cursor-pointer items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-[background-color,color,box-shadow]",
         active ? "bg-surface-panel text-foreground shadow-panel" : "text-muted-foreground hover:text-foreground",
       )}
     >
