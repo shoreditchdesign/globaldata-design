@@ -60,8 +60,8 @@ export function LandingPage({
   // under the field and its place under the columns; and whatever the switch
   // brings in starts where the title's move puts it, travelling up or down with
   // the title as it fades in, so it never lands on top of the title mid-move.
-  // The pills are the exception: they wait for the move to settle before fading
-  // in, so the filter box gliding up past them never crosses them.
+  // The pills are the exception: they wait until the move has all but settled
+  // before fading in, so the filter box gliding up past them never crosses them.
   const sectionRef = React.useRef<HTMLElement>(null)
   const lastTops = React.useRef<{ title?: number; summary?: number }>({})
   const lastMode = React.useRef(mode)
@@ -110,8 +110,10 @@ export function LandingPage({
       element.getAnimations().forEach((animation) => animation.cancel())
       element.animate([{ opacity: 0 }, { opacity: 1 }], {
         ...timing,
-        delay: motion.reflow,
-        duration: motion.settle,
+        // The move reads as settled well before it formally ends, so the pills
+        // come back at the settle mark and quickly, rather than after all of it.
+        delay: motion.settle,
+        duration: motion.quick,
         // Held clear through the move, so they never show before their turn.
         fill: "backwards",
       })
@@ -145,8 +147,9 @@ export function LandingPage({
       <section
         ref={sectionRef}
         className={cn(
-          "mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col px-8 pt-6",
-          manualMode ? "pb-8" : "items-center justify-center pb-16",
+          "mx-auto flex min-h-0 w-full flex-1 flex-col px-8 pt-6",
+          // Manual widens so the three Miller columns span more of the page.
+          manualMode ? "max-w-7xl pb-8" : "max-w-4xl items-center justify-center pb-16",
         )}
       >
         <div data-flip="title" className="text-center">
@@ -165,7 +168,8 @@ export function LandingPage({
             >
               {manual}
             </div>
-            <div data-flip="summary" className="mt-2 shrink-0">
+            {/* Held at Quick's width (52rem) as the columns widen, so it only glides. */}
+            <div data-flip="summary" className="mx-auto mt-2 w-full max-w-208 shrink-0">
               {filterBox}
             </div>
           </>
