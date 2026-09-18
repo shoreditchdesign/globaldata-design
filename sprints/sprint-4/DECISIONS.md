@@ -219,3 +219,13 @@ The registry's checkbox hard-codes its tick, so `TickBox` wraps the Radix primit
 Option-clicking a box in the explorer ticks it as an exclusion: the mark is the minus, the attribute joins the query as `is not`, and the sentence says so. The sentence has a word you press to negate a clause and the quick filter has the chip it inherits, so the tree needed a way of its own that did not cost it a second control per row.
 
 The modifier is unguessable, so it is named once — `⌥ click to exclude`, beside the count of what is ticked in the rail at the foot — rather than beside every box. Alt is read on the pointer going down, since the change event does not carry it, and unticking the last value of an attribute forgets that it was excluding.
+
+## 2026-09-18 — Idea 2, keeping and dropping the same attribute
+
+One attribute can now do both at once: `Molecule Type is Small Molecule but is not Peptide or Recombinant Protein`. The values are blue ticks and red minuses in the same branch, and the clause reads as one breath rather than naming the attribute twice.
+
+**In the model it is two conditions.** The query is an ordered list of conditions, each with one polarity, so an attribute that keeps and drops writes two: `Molecule Type` and `Molecule Type~not`. Nothing about the evaluator changed — it still folds left to right — and the sentence collapses the pair when it draws them: the second clause reads `but is not …` and does not repeat the attribute, and no comma separates them.
+
+**The resolver reads it back.** It used to fold an attribute into a single condition with one exclude flag, so `small molecules but not peptides` would have negated the lot. It now buckets by attribute *and* polarity, and `but` joins the resolver's grammar words, so a sentence the screen writes is a sentence it can read again — which is the rule the whole idea rests on.
+
+**Polarity is per value everywhere.** In the tree and in the filter dropdowns a value is ticked blue or minused red on its own, option-click chooses which, and a chip goes red only when everything under it is excluded.

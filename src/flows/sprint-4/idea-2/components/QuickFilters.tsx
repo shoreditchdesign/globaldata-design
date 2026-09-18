@@ -67,6 +67,16 @@ export function QuickFilters({
     return values
   }, [conditions])
 
+  /** Which of an attribute's values the query drops rather than keeps. */
+  const dropped = React.useMemo(() => {
+    const values: Record<string, string[]> = {}
+    for (const condition of conditions) {
+      if (condition.mode !== "is not") continue
+      values[condition.attribute] = [...(values[condition.attribute] ?? []), ...condition.values]
+    }
+    return values
+  }, [conditions])
+
   // A chip shows what is being built, and falls back to what the query already
   // holds, so the bar never contradicts the sentence above it.
   const shownFor = (attribute: string) => picks[attribute] ?? held[attribute] ?? []
@@ -81,9 +91,7 @@ export function QuickFilters({
           key={attribute}
           attribute={attribute}
           conditions={conditions}
-          excluded={conditions.some(
-            (condition) => condition.attribute === attribute && condition.mode === "is not",
-          )}
+          dropped={dropped[attribute] ?? []}
           values={shownFor(attribute)}
           onPick={(values) => onPick(attribute, values)}
           pinned={pinned === attribute}
@@ -103,15 +111,15 @@ function FilterChip({
   attribute,
   conditions,
   values,
-  excluded,
+  dropped,
   onPick,
   pinned,
   onOpenChange,
 }: {
   attribute: string
   conditions: Condition[]
-  /** The query drops what this attribute matches rather than keeping it. */
-  excluded?: boolean
+  /** Which of this attribute's values the query drops rather than keeps. */
+  dropped: string[]
   /** This attribute's values, whether ticked here or already in the query. */
   values: string[]
   onPick: (values: string[]) => void
@@ -159,7 +167,7 @@ function FilterChip({
             "flex h-7 cursor-pointer items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors",
             // A chip holding values is the thing you pressed and it is on, so it
             // takes the primary fill rather than a tint with a badge on it.
-            values.length > 0 && excluded
+            values.length > 0 && dropped.length === values.length
               ? "bg-negative-ink border-negative-ink text-background"
               : values.length > 0
               ? "bg-brand border-brand text-primary-foreground hover:bg-brand-strong hover:border-brand-strong"
@@ -208,7 +216,7 @@ function FilterChip({
               >
                 <TickBox
                   checked={values.includes(option.label)}
-                  excluded={excluded}
+                  excluded={dropped.includes(option.label)}
                   onCheckedChange={() => tick(option.label)}
                   className="shrink-0"
                 />
