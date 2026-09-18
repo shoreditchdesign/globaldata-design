@@ -110,7 +110,7 @@ export function ResultsPane({
               key={column.key}
               aria-sort={isSorted ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
               className={cn(
-                "bg-surface-panel text-muted-foreground border-edge h-9 border-b px-3 text-left text-[10px] font-medium tracking-[0.08em] whitespace-nowrap uppercase",
+                "bg-surface-panel text-muted-foreground border-edge h-11 border-b px-3 text-left text-[10px] font-medium tracking-[0.08em] whitespace-nowrap uppercase",
                 i === 0 && "sticky left-0 z-10 border-r pl-(--text-inset)",
                 i === columns.length - 1 && "pr-(--text-inset)",
               )}
