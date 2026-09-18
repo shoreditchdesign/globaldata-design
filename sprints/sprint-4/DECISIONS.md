@@ -201,3 +201,9 @@ The callout for what a reading missed was a grey card with a sentence in it: the
 **What could not be placed sits under the words it came from.** The `not found` line moved below `Read from`, so the order reads: the query, then what it was read from, then what that reading missed.
 
 **`autofill` is a frame.** The ghost completion could only be seen by typing into the box, which made it invisible in review and impossible to capture. `/sprint-4/idea-2/autofill` opens on half a common query with the rest ghosted after the caret.
+
+## 2026-09-18 — Idea 2, the clause head says keep or drop in colour
+
+The head of a clause is one control — the attribute and its operator — and pressing it flips `is` and `is not`. Hovering underlines it in the brand rather than filling it, so the only fill in the sentence stays the values.
+
+The operator carries the difference in colour instead of weight: `is` in `brand-ink`, `is not` in `negative-ink`. Bolding the negation made an excluded clause shout across the line, and the design system already keeps a tone for negation that an included filter must never wear. The attribute beside it stays muted, so the coloured word is the one that changes what the query does.

@@ -224,14 +224,19 @@ function ClauseSpan({
           }
           aria-label={`${condition.attribute}: ${negated ? "excluding" : "including"} these values`}
           className={cn(
-            "focus-visible:ring-ring/50 -mx-1 rounded-md px-1 underline-offset-[5px] outline-none hover:underline focus-visible:ring-3",
+            "text-muted-foreground focus-visible:ring-ring/50 decoration-brand -mx-1 rounded-md px-1 underline-offset-[5px] outline-none hover:underline focus-visible:ring-3",
             tintClass,
-            negated
-              ? "text-foreground decoration-foreground/70 font-semibold"
-              : "text-muted-foreground hover:text-foreground decoration-muted-foreground",
           )}
         >
-          {attributeWord(condition)} {operatorWord(condition)}
+          {attributeWord(condition)}{" "}
+          {/*
+            The operator carries the meaning in colour rather than in weight:
+            the brand for a clause that keeps rows, the negation tone for one
+            that drops them. Bolding it made the clause shout across the line.
+          */}
+          <span className={negated ? "text-negative-ink" : "text-brand-ink"}>
+            {operatorWord(condition)}
+          </span>
         </button>{" "}
         {condition.values.map((value, i) => (
           <React.Fragment key={value}>
