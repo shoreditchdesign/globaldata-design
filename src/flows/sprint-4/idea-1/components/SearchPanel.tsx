@@ -3,6 +3,7 @@ import { ArrowRightIcon } from "lucide-react"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { Button } from "@/components/ui/button"
+import { DictateButton } from "@/flows/sprint-4/idea-1/components/DictateButton"
 import { ManualSearch } from "@/flows/sprint-4/idea-1/components/ManualSearch"
 import { ScanningQuery } from "@/flows/sprint-4/idea-1/components/ScanningQuery"
 import { SearchPills } from "@/flows/sprint-4/idea-1/components/SearchPills"
@@ -26,6 +27,7 @@ export function SearchPanel({
   pending,
   onModeChange,
   onQueryChange,
+  onDictate,
   onResolve,
   onScanDone,
   onCategoryChange,
@@ -45,6 +47,8 @@ export function SearchPanel({
   pending: Resolution | null
   onModeChange: (mode: SearchMode) => void
   onQueryChange: (query: string) => void
+  /** Dictated speech, appended to whatever is already in the field. */
+  onDictate: (text: string) => void
   onResolve: () => void
   onScanDone: () => void
   onCategoryChange: (category: ProductArea) => void
@@ -123,7 +127,7 @@ export function SearchPanel({
               />
               {pending ? <ScanningQuery resolution={pending} onDone={onScanDone} multiline /> : null}
             </div>
-            <div className="mt-2 flex justify-end">
+            <div className="mt-2 flex items-center justify-end gap-1">
               <Button
                 type="submit"
                 size="icon-sm"
@@ -133,6 +137,7 @@ export function SearchPanel({
               >
                 <ArrowRightIcon />
               </Button>
+              <DictateButton onText={onDictate} disabled={resolving} size="icon-sm" />
             </div>
           </form>
 

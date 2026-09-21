@@ -5,6 +5,7 @@ import { ArrowRightIcon, SearchIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { motion, usePrefersReducedMotion } from "@/components/prototype/motion"
+import { DictateButton } from "@/flows/sprint-4/idea-1/components/DictateButton"
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { SearchTabs } from "@/flows/sprint-4/idea-1/components/SearchTabs"
 import { SearchPills } from "@/flows/sprint-4/idea-1/components/SearchPills"
@@ -20,6 +21,7 @@ export function LandingPage({
   activeCategory,
   onModeChange,
   onQueryChange,
+  onDictate,
   onCategoryChange,
   activeAttribute,
   onAttributeChange,
@@ -37,6 +39,8 @@ export function LandingPage({
   activeCategory: ProductArea | null
   onModeChange: (mode: SearchMode) => void
   onQueryChange: (query: string) => void
+  /** Dictated speech, appended to whatever is already in the field. */
+  onDictate: (text: string) => void
   onCategoryChange: (category: ProductArea) => void
   activeAttribute: string | null
   onAttributeChange: (attribute: string) => void
@@ -210,6 +214,7 @@ export function LandingPage({
               >
                 <ArrowRightIcon />
               </Button>
+              <DictateButton onText={onDictate} disabled={resolving} />
             </form>
 
             {/*
