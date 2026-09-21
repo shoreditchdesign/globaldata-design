@@ -73,7 +73,7 @@ const valuesState = (): Sprint4Idea1State => ({
   filters: [emptyPathFilter("Companies", "Company Name")],
 })
 
-/** Manual chosen on the landing page: the Miller columns with the filter box beneath. */
+/** Advanced chosen on the landing page: the Miller columns with the filter box beneath. */
 const manualState = (): Sprint4Idea1State => ({
   ...startState(),
   mode: "manual",

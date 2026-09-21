@@ -207,7 +207,7 @@ export function PrototypeShell() {
       onAdd={addFilter}
       onClear={clearFilters}
       onSearch={state.showResults ? undefined : search}
-      // Manual always shows the box, so it has nothing to close back to.
+      // Advanced always shows the box, so it has nothing to close back to.
       onClose={state.showResults || state.mode === "manual" ? undefined : closeFilters}
       // On the results page the box is a band above the grid, not a card.
       variant={state.showResults ? "band" : "card"}

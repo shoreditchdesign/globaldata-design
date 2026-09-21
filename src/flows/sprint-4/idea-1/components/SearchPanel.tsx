@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils"
 
 /**
  * The results page's left panel. Quick search is the landing search, narrowed:
- * the natural-language field and the pill cascade. Manual search is Miller
+ * the natural-language field and the pill cascade. Advanced search is Miller
  * columns. All three feed the filter box to the right.
  */
 export function SearchPanel({
@@ -71,7 +71,7 @@ export function SearchPanel({
   return (
     <aside
       aria-label="Search"
-      // Manual search widens the panel to hold two Miller columns side by side.
+      // Advanced search widens the panel to hold two Miller columns side by side.
       // Quick is wider than the rail needs for its field, so the commonly used
       // filters pair up on a line and have room to take a count without the row
       // rewrapping — the same slack the landing page's column gives them.
