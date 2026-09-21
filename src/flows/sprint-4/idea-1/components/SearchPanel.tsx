@@ -141,6 +141,7 @@ export function SearchPanel({
 
           <div className="mt-4">
             <SearchPills
+              layout="panel"
               filters={filters}
               activeCategory={activeCategory}
               activeAttribute={activeAttribute}

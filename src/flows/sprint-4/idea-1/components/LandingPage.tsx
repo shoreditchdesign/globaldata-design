@@ -233,6 +233,7 @@ export function LandingPage({
                 {filterBox ? <div data-flip="summary">{filterBox}</div> : null}
                 <div data-flip="after">
                   <SearchPills
+                    layout="centered"
                     filters={filters}
                     activeCategory={activeCategory}
                     activeAttribute={activeAttribute}
