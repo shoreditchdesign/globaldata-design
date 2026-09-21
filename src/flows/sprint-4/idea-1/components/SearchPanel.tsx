@@ -128,6 +128,7 @@ export function SearchPanel({
               {pending ? <ScanningQuery resolution={pending} onDone={onScanDone} multiline /> : null}
             </div>
             <div className="mt-2 flex items-center justify-end gap-1">
+              <DictateButton onText={onDictate} disabled={resolving} size="icon-sm" />
               <Button
                 type="submit"
                 size="icon-sm"
@@ -137,7 +138,6 @@ export function SearchPanel({
               >
                 <ArrowRightIcon />
               </Button>
-              <DictateButton onText={onDictate} disabled={resolving} size="icon-sm" />
             </div>
           </form>
 
