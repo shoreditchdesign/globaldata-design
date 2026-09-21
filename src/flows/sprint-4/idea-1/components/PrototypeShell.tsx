@@ -81,6 +81,13 @@ export function PrototypeShell() {
 
   const setMode = (mode: SearchMode) => setState((current) => ({ ...current, mode }))
   const setQuery = (query: string) => setState((current) => ({ ...current, query }))
+  // Dictation adds to the query rather than replacing it, so a session spoken
+  // in several goes builds one request — the arrow still resolves it.
+  const appendQuery = (text: string) =>
+    setState((current) => ({
+      ...current,
+      query: current.query.trim() ? `${current.query.trim()} ${text}` : text,
+    }))
   const toggleCategory = (category: ProductArea) =>
     setState((current) => ({
       ...current,
@@ -222,6 +229,7 @@ export function PrototypeShell() {
               pending={state.pending}
               onModeChange={setMode}
               onQueryChange={setQuery}
+              onDictate={appendQuery}
               onResolve={submitQuery}
               onScanDone={settleQuery}
               onCategoryChange={toggleCategory}
@@ -247,6 +255,7 @@ export function PrototypeShell() {
         activeCategory={state.activeCategory}
         onModeChange={setMode}
         onQueryChange={setQuery}
+        onDictate={appendQuery}
         onCategoryChange={toggleCategory}
         activeAttribute={state.activeAttribute}
         onAttributeChange={toggleAttribute}
