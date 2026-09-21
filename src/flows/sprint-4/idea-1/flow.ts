@@ -16,14 +16,14 @@ export const sprint4Idea1: Flow = {
     {
       slug: "start",
       title: "Start",
-      note: "A natural-language starting point with the incumbent's top-level search areas.",
+      note: "A natural-language starting point, with the ten commonly used filters under the search.",
       viewport: "desktop",
       component: Start,
     },
     {
       slug: "values",
-      title: "Attribute values",
-      note: "Drugs → Therapy Area / Indication opens a third layer of pills with that attribute's values.",
+      title: "Picking a value",
+      note: "A pill starts its clause in the filter box and opens that clause's own value selector, so the value is chosen where the filter lives rather than in a further layer of pills.",
       viewport: "desktop",
       component: Start,
     },
@@ -37,7 +37,7 @@ export const sprint4Idea1: Flow = {
     {
       slug: "picked",
       title: "Filter from a path",
-      note: "Picking a value builds the same filter box as a resolved query, holding one filter for the path.",
+      note: "A value chosen builds the same filter box as a resolved query, holding one filter for it.",
       viewport: "desktop",
       component: Start,
     },

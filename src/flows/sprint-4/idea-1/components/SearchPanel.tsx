@@ -21,8 +21,6 @@ import { cn } from "@/lib/utils"
 export function SearchPanel({
   mode,
   query,
-  activeCategory,
-  activeAttribute,
   filters,
   pending,
   onModeChange,
@@ -30,8 +28,7 @@ export function SearchPanel({
   onDictate,
   onResolve,
   onScanDone,
-  onAttributeOpen,
-  onValuePick,
+  onStartFilter,
   manualCategory,
   manualAttribute,
   onOpenCategory,
@@ -40,8 +37,6 @@ export function SearchPanel({
 }: {
   mode: SearchMode
   query: string
-  activeCategory: ProductArea | null
-  activeAttribute: string | null
   filters: ResolvedFilter[]
   pending: Resolution | null
   onModeChange: (mode: SearchMode) => void
@@ -50,8 +45,7 @@ export function SearchPanel({
   onDictate: (text: string) => void
   onResolve: () => void
   onScanDone: () => void
-  onAttributeOpen: (area: ProductArea, attribute: string) => void
-  onValuePick: (value: string) => void
+  onStartFilter: (area: ProductArea, attribute: string) => void
   manualCategory: ProductArea | null
   manualAttribute: string | null
   onOpenCategory: (category: ProductArea) => void
@@ -143,10 +137,7 @@ export function SearchPanel({
             <SearchPills
               layout="panel"
               filters={filters}
-              activeCategory={activeCategory}
-              activeAttribute={activeAttribute}
-              onAttributeOpen={onAttributeOpen}
-              onValuePick={onValuePick}
+              onStartFilter={onStartFilter}
             />
           </div>
         </div>

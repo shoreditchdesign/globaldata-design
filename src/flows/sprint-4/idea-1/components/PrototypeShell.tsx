@@ -14,6 +14,7 @@ import { SearchPanel } from "@/flows/sprint-4/idea-1/components/SearchPanel"
 import {
   activeProductArea,
   definitionFor,
+  emptyPathFilter,
   pathFilter,
   type FilterId,
   type FilterJoin,
@@ -88,14 +89,21 @@ export function PrototypeShell() {
       ...current,
       query: current.query.trim() ? `${current.query.trim()} ${text}` : text,
     }))
-  // The pills are one flat list now, so a pill carries its own area: opening one
-  // sets both halves of the path, and pressing the open pill closes it again.
-  const openPillAttribute = (area: ProductArea, attribute: string) =>
-    setState((current) =>
-      current.activeCategory === area && current.activeAttribute === attribute
-        ? { ...current, activeCategory: null, activeAttribute: null }
-        : { ...current, activeCategory: area, activeAttribute: attribute },
-    )
+  // A pill starts its clause in the filter box and hands it the open selector,
+  // so the value is chosen where the filter lives. A clause already in the box
+  // is reopened rather than started again.
+  const startPillFilter = (area: ProductArea, attribute: string) =>
+    setState((current) => {
+      const started = emptyPathFilter(area, attribute)
+      const existing = current.filters.some((filter) => filter.id === started.id)
+      return {
+        ...current,
+        filters: existing ? current.filters : [...current.filters, started],
+        picking: started.id,
+      }
+    })
+  const setPicking = (id: FilterId, open: boolean) =>
+    setState((current) => ({ ...current, picking: open ? id : null }))
   // Miller columns open rather than toggle: clicking the open row keeps it open.
   const openCategory = (category: ProductArea) =>
     setState((current) => ({
@@ -105,12 +113,6 @@ export function PrototypeShell() {
     }))
   const openAttribute = (attribute: string) =>
     setState((current) => ({ ...current, manualAttribute: attribute }))
-  const pickValue = (value: string) =>
-    setState((current) =>
-      current.activeCategory && current.activeAttribute
-        ? toggleValueAt(current, current.activeCategory, current.activeAttribute, value)
-        : current,
-    )
   const pickValueAt = (area: ProductArea, attribute: string, value: string) =>
     setState((current) => toggleValueAt(current, area, attribute, value))
   const submitQuery = () =>
@@ -162,7 +164,10 @@ export function PrototypeShell() {
         const values = filter.values.includes(value)
           ? filter.values.filter((item) => item !== value)
           : [...filter.values, value]
-        return values.length > 0 ? [{ ...filter, values }] : []
+        // The clause under the open selector stays even when it is emptied —
+        // unticking the last value would otherwise take the selector with it.
+        if (values.length === 0 && current.picking !== id) return []
+        return [{ ...filter, values }]
       }),
     }))
   const removeFilter = (id: FilterId) =>
@@ -186,9 +191,8 @@ export function PrototypeShell() {
       ...current,
       pending: null,
       showResults: true,
-      // The results page opens with its pills closed.
-      activeCategory: null,
-      activeAttribute: null,
+      // The results page opens with no selector hanging open.
+      picking: null,
     }))
 
   const filterBox = (
@@ -202,6 +206,8 @@ export function PrototypeShell() {
       onRemove={removeFilter}
       onAdd={addFilter}
       onClear={clearFilters}
+      picking={state.picking}
+      onPickingChange={setPicking}
       onSearch={state.showResults ? undefined : search}
       // Manual always shows the box, so it has nothing to close back to.
       onClose={state.showResults || state.mode === "manual" ? undefined : closeFilters}
@@ -220,8 +226,6 @@ export function PrototypeShell() {
             <SearchPanel
               mode={state.mode}
               query={state.query}
-              activeCategory={state.activeCategory}
-              activeAttribute={state.activeAttribute}
               filters={state.filters}
               pending={state.pending}
               onModeChange={setMode}
@@ -229,8 +233,7 @@ export function PrototypeShell() {
               onDictate={appendQuery}
               onResolve={submitQuery}
               onScanDone={settleQuery}
-              onAttributeOpen={openPillAttribute}
-              onValuePick={pickValue}
+              onStartFilter={startPillFilter}
               manualCategory={state.manualCategory}
               manualAttribute={state.manualAttribute}
               onOpenCategory={openCategory}
@@ -248,17 +251,18 @@ export function PrototypeShell() {
       <LandingPage
         mode={state.mode}
         query={state.query}
-        activeCategory={state.activeCategory}
         onModeChange={setMode}
         onQueryChange={setQuery}
         onDictate={appendQuery}
-        activeAttribute={state.activeAttribute}
-        onAttributeOpen={openPillAttribute}
-        onValuePick={pickValue}
+        onStartFilter={startPillFilter}
         onResolve={submitQuery}
         filters={state.filters}
         hasResolvedFilters={Boolean(state.submittedQuery || state.path)}
-        filterBox={state.mode === "manual" || state.submittedQuery || state.path ? filterBox : null}
+        filterBox={
+          state.mode === "manual" || state.submittedQuery || state.filters.length > 0
+            ? filterBox
+            : null
+        }
         manual={
           <ManualSearch
             layout="wide"

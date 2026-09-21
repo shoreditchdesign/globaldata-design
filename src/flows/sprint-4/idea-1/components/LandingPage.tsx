@@ -18,13 +18,10 @@ import { cn } from "@/lib/utils"
 export function LandingPage({
   mode,
   query,
-  activeCategory,
   onModeChange,
   onQueryChange,
   onDictate,
-  activeAttribute,
-  onAttributeOpen,
-  onValuePick,
+  onStartFilter,
   onResolve,
   hasResolvedFilters,
   filters,
@@ -35,14 +32,11 @@ export function LandingPage({
 }: {
   mode: SearchMode
   query: string
-  activeCategory: ProductArea | null
   onModeChange: (mode: SearchMode) => void
   onQueryChange: (query: string) => void
   /** Dictated speech, appended to whatever is already in the field. */
   onDictate: (text: string) => void
-  activeAttribute: string | null
-  onAttributeOpen: (area: ProductArea, attribute: string) => void
-  onValuePick: (value: string) => void
+  onStartFilter: (area: ProductArea, attribute: string) => void
   onResolve: () => void
   hasResolvedFilters: boolean
   filters: ResolvedFilter[]
@@ -235,10 +229,7 @@ export function LandingPage({
                   <SearchPills
                     layout="centered"
                     filters={filters}
-                    activeCategory={activeCategory}
-                    activeAttribute={activeAttribute}
-                    onAttributeOpen={onAttributeOpen}
-                    onValuePick={onValuePick}
+                    onStartFilter={onStartFilter}
                   />
                 </div>
               </div>
