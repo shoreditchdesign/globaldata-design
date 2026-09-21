@@ -27,13 +27,14 @@ import {
  */
 
 /**
- * The five the bar carries, in the product's own order.
+ * What each rail carries.
  *
- * Eight was the whole of the pairing analysis, which made the bar a second
- * filter panel. Five is the ones people reach for first, and the rest of the
- * taxonomy is a click away in the tree.
+ * The landing page offers the five people reach for first, as a way in rather
+ * than a panel. The results rail carries every attribute the pairing analysis
+ * covers, because by then the work is refining, and the less common ones should
+ * not be reachable only through the tree.
  */
-const quickAttributes = [
+const commonAttributes = [
   "Therapy Area / Indication",
   "Development Stage",
   "Drug Geography",
@@ -41,10 +42,18 @@ const quickAttributes = [
   "Route of Administration",
 ]
 
+const allAttributes = [
+  ...commonAttributes,
+  "Drug Descriptor",
+  "Mechanism of Action",
+  "Target",
+]
+
 export function QuickFilters({
   conditions,
   picks,
   drops,
+  scope = "common",
   onPick,
   pinned,
   onPinnedChange,
@@ -56,6 +65,8 @@ export function QuickFilters({
   picks: Record<string, string[]>
   /** Which ticked values are exclusions, before they are resolved. */
   drops: Record<string, string[]>
+  /** `common` is the landing page's five; `all` is the results rail's eight. */
+  scope?: "common" | "all"
   onPick: (attribute: string, values: string[], dropped: string[]) => void
   /**
    * The one dropdown a frame is holding open. A popover that shuts the moment
@@ -66,6 +77,8 @@ export function QuickFilters({
   onPinnedChange?: (attribute: string | null) => void
   className?: string
 }) {
+  const quickAttributes = scope === "all" ? allAttributes : commonAttributes
+
   const held = React.useMemo(() => {
     const values: Record<string, string[]> = {}
     for (const condition of conditions) {
@@ -94,7 +107,7 @@ export function QuickFilters({
   return (
     <div className={cn("flex flex-wrap items-center gap-x-2 gap-y-1.5", className)}>
       <span className="text-muted-foreground mr-1 text-[10px] font-medium tracking-[0.08em] uppercase">
-        Commonly used filters
+        {scope === "all" ? "Filters" : "Commonly used filters"}
       </span>
       {quickAttributes.map((attribute) => (
         <FilterChip

@@ -235,8 +235,14 @@ export function Screener() {
     />
   )
 
-  const filters = (
-    <QuickFilters conditions={conditions} picks={picks} drops={drops} onPick={pickFilter} pinned={pinnedFilter}
+  const filters = (scope: "common" | "all") => (
+    <QuickFilters
+      conditions={conditions}
+      picks={picks}
+      drops={drops}
+      scope={scope}
+      onPick={pickFilter}
+      pinned={pinnedFilter}
       onPinnedChange={(attribute) => setState((current) => ({ ...current, pinnedFilter: attribute }))}
     />
   )
@@ -306,7 +312,7 @@ export function Screener() {
               </div>
 
               <div className="bg-surface-chrome border-edge border-t">
-                <div className="px-(--box-pad) py-2.5">{filters}</div>
+                <div className="px-(--box-pad) py-2.5">{filters("common")}</div>
               </div>
             </div>
           </div>
@@ -366,7 +372,7 @@ export function Screener() {
             )}
           >
             <div className="min-h-0">
-              <div className="px-(--box-pad) py-2.5">{filters}</div>
+              <div className="px-(--box-pad) py-2.5">{filters("all")}</div>
             </div>
           </div>
         </div>
