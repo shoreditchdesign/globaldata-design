@@ -142,13 +142,10 @@ function FilterChip({
   pinned?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
-  // Which dropdown is open is the bar's business, not each chip's: only one
-  // is open at a time, and opening another hands the pin over, which is the one
-  // way an open dropdown closes without being dismissed.
-  const open = pinned ?? false
+  // The chip holds its own open state so the popover can close the way any
+  // popover does, and a frame can still hold one open by naming it.
+  const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
-  /** Set by the two things that may close it: the chip, and Escape. */
-  const dismissing = React.useRef(false)
 
   const counts = React.useMemo(
     () => facetCounts(conditions, attribute, attribute),
@@ -186,15 +183,9 @@ function FilterChip({
 
   return (
     <Popover
-      open={open}
+      open={open || Boolean(pinned)}
       onOpenChange={(next) => {
-        // Closing is ignored unless it was asked for. Everything else that
-        // would shut a popover — a click anywhere in the page, focus going to
-        // a browser extension, another window taking over — happens while
-        // these screens are being captured into Figma, and the picture is of
-        // the dropdown.
-        if (!next && !dismissing.current) return
-        dismissing.current = false
+        setOpen(next)
         onOpenChange?.(next)
         if (!next) setSearch("")
       }}
@@ -202,9 +193,6 @@ function FilterChip({
       <PopoverTrigger asChild>
         <button
           type="button"
-          onPointerDown={() => {
-            dismissing.current = true
-          }}
           className={cn(
             "flex h-7 cursor-pointer items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors",
             // A chip holding values is the thing you pressed and it is on, so it
@@ -227,9 +215,6 @@ function FilterChip({
       <PopoverContent
         align="start"
         className="w-[300px] p-0"
-        onEscapeKeyDown={() => {
-          dismissing.current = true
-        }}
       >
         <div className="border-hairline border-b p-2">
           <div className="relative">
