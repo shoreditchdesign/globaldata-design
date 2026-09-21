@@ -514,10 +514,10 @@ export function Screener() {
 
               <div className="flex min-w-0 items-center gap-3">
                 {empty ? (
-                  <p className="text-muted-foreground text-[16px]">No results yet</p>
+                  <p className="text-muted-foreground text-xs">No results yet</p>
                 ) : (
                   <>
-                    <p className="text-foreground text-[16px] font-medium tabular-nums">
+                    <p className="text-brand text-[16px] font-medium tabular-nums">
                       {rows.length.toLocaleString("en-GB")}
                     </p>
                     <p className="text-muted-foreground truncate text-xs tabular-nums">
