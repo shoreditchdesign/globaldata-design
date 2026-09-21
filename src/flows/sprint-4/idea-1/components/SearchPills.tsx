@@ -38,7 +38,7 @@ export function SearchPills({
   const head = (
     <h2
       id="common-filters"
-      className={cn("text-muted-foreground/70 flex h-8 shrink-0 items-center", headType)}
+      className={cn("text-muted-foreground/70", headType, centred && "text-center")}
     >
       Commonly used filters
     </h2>
@@ -64,32 +64,19 @@ export function SearchPills({
     )
   })
 
-  /*
-    Centred, the head runs in the row beside the first pill, and a copy of it
-    closes the row. The copy is what keeps the pills centred: without it they
-    would centre on what is left of the row after the head and sit visibly right
-    of the search above them. In the panel there is no room beside a 316px
-    column, so the head goes over the pills instead.
-  */
-  if (centred) {
-    return (
+  // The head names the group from above it, so the pills have the row to
+  // themselves and centre on it — centred under the landing search, left-aligned
+  // down the results panel.
+  return (
+    <div className="flex w-full flex-col gap-2">
+      {head}
       <nav
         aria-labelledby="common-filters"
-        className="flex w-full flex-wrap items-center justify-center gap-2"
+        className={cn(
+          "flex flex-wrap items-center gap-2",
+          centred ? "justify-center" : "justify-start",
+        )}
       >
-        {head}
-        {pills}
-        <span aria-hidden className={cn("invisible h-8 shrink-0", headType)}>
-          Commonly used filters
-        </span>
-      </nav>
-    )
-  }
-
-  return (
-    <div className="flex w-full flex-col gap-1">
-      {head}
-      <nav aria-labelledby="common-filters" className="flex flex-wrap items-center gap-2">
         {pills}
       </nav>
     </div>
