@@ -335,11 +335,26 @@ export function definitionFor(id: FilterId) {
   ) as FilterDefinition
 }
 
+/** The clause an area and attribute belong to, whether a query or a pill built it. */
+export function filterIdFor(area: ProductArea, attribute: string): FilterId {
+  const pathId: FilterId = `${area}/${attribute}`
+  return authoredPaths[pathId] ?? pathId
+}
+
 /** The single filter a pill path describes: area, then attribute, then value. */
 export function pathFilter(area: ProductArea, attribute: string, value: string): ResolvedFilter {
-  const pathId: FilterId = `${area}/${attribute}`
-  const { id, label } = definitionFor(authoredPaths[pathId] ?? pathId)
+  const { id, label } = definitionFor(filterIdFor(area, attribute))
   return { id, label, values: [value], excluded: false, join: "or", link: "and" }
+}
+
+/**
+ * The clause a pill starts: the attribute, with no value chosen yet. The value
+ * is picked in the filter box, from the clause's own selector, rather than from
+ * a further layer of pills.
+ */
+export function emptyPathFilter(area: ProductArea, attribute: string): ResolvedFilter {
+  const { id, label } = definitionFor(filterIdFor(area, attribute))
+  return { id, label, values: [], excluded: false, join: "or", link: "and" }
 }
 
 function valueShare(definition: FilterDefinition, value: string) {
@@ -353,7 +368,10 @@ export const baseDrugCount = 285_529
  * A deterministic stand-in for a server count, built from authored per-value
  * shares. `resultsFor` reconciles it with the rows the grid can show.
  */
-export function estimatedCountFor(filters: ResolvedFilter[]) {
+export function estimatedCountFor(all: ResolvedFilter[]) {
+  // A clause whose value is still being picked narrows nothing yet, so it is
+  // not counted as narrowing everything away.
+  const filters = all.filter((filter) => filter.values.length > 0)
   if (filters.length === 0) return baseDrugCount
 
   const combinedShare = filters.reduce((total, filter, index) => {
