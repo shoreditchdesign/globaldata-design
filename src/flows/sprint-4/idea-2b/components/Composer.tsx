@@ -1,13 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { ArrowRightIcon, CornerDownLeftIcon, TriangleAlertIcon } from "lucide-react"
+import { CornerDownLeftIcon, TriangleAlertIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { nextExample } from "@/flows/sprint-4/idea-2b/examples"
 import { knownAttributes, type Resolution } from "@/flows/sprint-4/idea-2b/resolve"
-import { suggestedQueries } from "@/flows/sprint-4/idea-2b/state"
 
 /** The demo shortcut. Typed anywhere in the box, it becomes the next example. */
 const trigger = "$$"
@@ -60,7 +59,6 @@ export function Composer({
   onSuggestion,
   failure,
   note,
-  showSuggestions,
   showActions = true,
 }: {
   value: string
@@ -76,7 +74,6 @@ export function Composer({
   note?: string
   /** Off when Resolve lives in the card's own footer rather than under the field. */
   showActions?: boolean
-  showSuggestions?: boolean
 }) {
   const field = React.useRef<HTMLTextAreaElement>(null)
   const [caret, setCaret] = React.useState(0)
@@ -193,23 +190,7 @@ export function Composer({
 
       {failure ? <Failure failure={failure} onSuggestion={onSuggestion} /> : null}
 
-      {showSuggestions ? (
-        <div className="mt-4">
-          <div className="flex flex-col items-start gap-1">
-            {suggestedQueries.map((query) => (
-              <button
-                key={query}
-                type="button"
-                onClick={() => onChange(query)}
-                className="text-foreground/80 hover:bg-accent hover:text-foreground group -mx-1.5 flex items-center gap-2 rounded-md px-1.5 py-1 text-left text-[13px] transition-colors"
-              >
-                <ArrowRightIcon className="text-muted-foreground group-hover:text-foreground size-3.5 shrink-0" />
-                {query}
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : null}
+
 
       <div className="mt-4 flex items-center gap-2">
         {showActions ? (

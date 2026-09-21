@@ -36,6 +36,7 @@ import {
   type Condition,
 } from "@/flows/sprint-4/idea-2b/data"
 import { insetVars, negationVars } from "@/flows/sprint-4/idea-2b/inset"
+import { conditionsToProse } from "@/flows/sprint-4/idea-2b/grammar"
 import { resolveQuery, type Resolution } from "@/flows/sprint-4/idea-2b/resolve"
 import {
   initialState,
@@ -140,7 +141,12 @@ export function Screener() {
     }))
   }
 
-  /** A quick filter ticked. It applies where it is ticked, like any filter. */
+  /**
+   * A quick filter ticked. Nothing runs yet: what is ticked is written into the
+   * field as the query it stands for, and Search reads that line like any other.
+   * So the box always says what the screen is about to look for, whether the
+   * words were typed or clicked.
+   */
   const pickFilter = React.useCallback(
     (attribute: string, values: string[], dropped: string[]) =>
       setState((current) => {
@@ -152,9 +158,7 @@ export function Screener() {
           ...current,
           picks: nextPicks,
           drops: nextDrops,
-          query: { ...current.query, conditions: built },
-          past: [...current.past, current.query],
-          phase: built.length === 0 ? "compose" : "resolved",
+          draft: built.length > 0 ? conditionsToProse(built) : "",
           failure: null,
         }
       }),
@@ -227,7 +231,6 @@ export function Screener() {
       onSubmit={() => submit(draft)}
       onSuggestion={applySuggestion}
       failure={failure}
-      showSuggestions={!asked}
       showActions={false}
     />
   )
@@ -325,7 +328,14 @@ export function Screener() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setState((current) => ({ ...current, railOpen: !current.railOpen }))}
+              onClick={() =>
+                setState((current) => ({
+                  ...current,
+                  railOpen: !current.railOpen,
+                  // A dropdown belongs to the rail it hangs from.
+                  pinnedFilter: null,
+                }))
+              }
               aria-expanded={railOpen}
               className="text-muted-foreground hover:bg-accent aria-expanded:bg-transparent aria-expanded:text-muted-foreground aria-expanded:hover:bg-accent aria-expanded:hover:text-foreground absolute top-2.5 right-3 z-10 text-[13px]"
             >
