@@ -29,8 +29,8 @@ export const sprint4Idea1: Flow = {
     },
     {
       slug: "manual",
-      title: "Manual search",
-      note: "Manual lifts the title under the tabs and puts the Miller columns, three at a time, in place of the query field and pills, with the filter box always beneath them.",
+      title: "Advanced search",
+      note: "Advanced search lifts the title under the tabs and puts the Miller columns, three at a time, in place of the query field and pills, with the filter box always beneath them.",
       viewport: "desktop",
       component: Start,
     },

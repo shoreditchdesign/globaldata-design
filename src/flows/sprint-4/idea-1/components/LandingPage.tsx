@@ -40,9 +40,9 @@ export function LandingPage({
   onResolve: () => void
   hasResolvedFilters: boolean
   filters: ResolvedFilter[]
-  /** The filter box: once a search or a pill path has built one, and always in Manual. */
+  /** The filter box: once a search or a pill path has built one, and always in Advanced. */
   filterBox: React.ReactNode
-  /** Manual search in its wide layout, which takes the place of the query field and pills. */
+  /** Advanced search in its wide layout, which takes the place of the query field and pills. */
   manual: React.ReactNode
   pending: Resolution | null
   onScanDone: () => void
@@ -50,7 +50,7 @@ export function LandingPage({
   const hasQuery = query.trim().length > 0
   const resolving = Boolean(pending)
 
-  // Switching between Quick and Manual moves things rather than swapping them.
+  // Switching between Quick and Advanced moves things rather than swapping them.
   // Each tracked element is measured either side of the switch and eased from
   // where it was: the title slides; the filter box glides between its place
   // under the field and its place under the columns; and whatever the switch
@@ -137,14 +137,14 @@ export function LandingPage({
         Quick search is centred a little above the middle by padding more below
         than above. It may shrink below its content, so on a short window the
         pills' well gives up its empty space before the page is made to scroll.
-        Manual search runs top down instead: the title under the tabs, the Miller
+        Advanced search runs top down instead: the title under the tabs, the Miller
         columns filling the page, and the filter box always beneath them.
       */}
       <section
         ref={sectionRef}
         className={cn(
           "mx-auto flex min-h-0 w-full flex-1 flex-col px-8 pt-6",
-          // Manual widens so the three Miller columns span more of the page.
+          // Advanced widens so the three Miller columns span more of the page.
           // Quick is wider than its search field: the field and the filter box
           // are held at 56rem inside it, and the extra room is the pills', so a
           // count arriving on one has somewhere to grow without the row
