@@ -23,6 +23,12 @@ export interface Sprint4Idea1State {
   /** The manual search's Miller path, kept apart so the pills stay closed. */
   manualCategory: ProductArea | null
   manualAttribute: string | null
+  /**
+   * Once the box is on screen it stays there, empty if need be, until it is
+   * closed. Taking the last clause out is editing the filters, not finishing
+   * with them, so the box must not fold up underneath the hand doing it.
+   */
+  filterBoxOpen: boolean
   /** The pill path that built the current filters, when no query did. */
   path: SearchPath | null
   /** The last query resolved into filters. Typing never changes this value. */
@@ -39,6 +45,7 @@ const startState = (): Sprint4Idea1State => ({
   query: "",
   manualCategory: null,
   manualAttribute: null,
+  filterBoxOpen: false,
   path: null,
   submittedQuery: null,
   filters: [],
@@ -51,6 +58,7 @@ const filteredState = (): Sprint4Idea1State => ({
   query: workedQuery,
   manualCategory: null,
   manualAttribute: null,
+  filterBoxOpen: true,
   path: null,
   submittedQuery: workedQuery,
   filters: initialResolvedFilters(),
@@ -61,6 +69,7 @@ const filteredState = (): Sprint4Idea1State => ({
 /** A pill pressed: its clause is in the box, waiting for a value. */
 const valuesState = (): Sprint4Idea1State => ({
   ...startState(),
+  filterBoxOpen: true,
   filters: [emptyPathFilter("Companies", "Company Name")],
 })
 
@@ -78,6 +87,7 @@ const pickedPath: SearchPath = {
 
 const pickedState = (): Sprint4Idea1State => ({
   ...startState(),
+  filterBoxOpen: true,
   path: pickedPath,
   filters: [pathFilter(pickedPath.area, pickedPath.attribute, pickedPath.value)],
 })
@@ -87,6 +97,7 @@ const resolvingState = (): Sprint4Idea1State => ({
   query: workedQuery,
   manualCategory: null,
   manualAttribute: null,
+  filterBoxOpen: false,
   path: null,
   submittedQuery: null,
   filters: [],

@@ -98,6 +98,9 @@ export function PrototypeShell() {
       const existing = current.filters.some((filter) => filter.id === started.id)
       return {
         ...current,
+        // The box opens with the first clause and stays open once it has: a
+        // pill taken off again empties the box, it does not close it.
+        filterBoxOpen: true,
         filters: existing
           ? current.filters.filter((filter) => filter.id !== started.id)
           : [...current.filters, started],
@@ -126,6 +129,7 @@ export function PrototypeShell() {
           ? {
               ...current,
               submittedQuery: current.pending.raw,
+              filterBoxOpen: true,
               filters: current.pending.filters,
               path: null,
               pending: null,
@@ -253,7 +257,7 @@ export function PrototypeShell() {
         filters={state.filters}
         hasResolvedFilters={Boolean(state.submittedQuery || state.path)}
         filterBox={
-          state.mode === "manual" || state.submittedQuery || state.filters.length > 0
+          state.mode === "manual" || state.submittedQuery || state.filterBoxOpen
             ? filterBox
             : null
         }
