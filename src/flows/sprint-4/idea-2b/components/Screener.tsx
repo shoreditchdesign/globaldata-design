@@ -269,13 +269,8 @@ export function Screener() {
         Clear all
       </Button>
       <Dictate
-        onText={(text) =>
-          setState((current) => ({
-            ...current,
-            draft: current.draft.trim() ? `${current.draft.trim()} ${text}` : text,
-            failure: null,
-          }))
-        }
+        base={draft}
+        onTranscript={(text) => setState((current) => ({ ...current, draft: text, failure: null }))}
       />
       <Button size="sm" onClick={() => submit(draft)} disabled={!draft.trim()}>
         Search
@@ -584,15 +579,20 @@ function ViewTab({
  * pressed again: Chrome ends a session at every pause, so each end builds a
  * fresh one, and only a refused microphone stops it for good.
  */
-function Dictate({ onText }: { onText: (text: string) => void }) {
+function Dictate({ onTranscript, base }: { onTranscript: (text: string) => void; base: string }) {
   const [listening, setListening] = React.useState(false)
+  /** Why it stopped, when it stopped for a reason worth saying. */
+  const [problem, setProblem] = React.useState<"blocked" | "offline" | null>(null)
   const engine = React.useRef<SpeechRecognitionLike | null>(null)
   const wanted = React.useRef(false)
   const listenRef = React.useRef<() => void>(() => {})
-  const onTextRef = React.useRef(onText)
+  /** What was in the field when the microphone opened, and what has been said since. */
+  const baseRef = React.useRef("")
+  const saidRef = React.useRef("")
+  const onTranscriptRef = React.useRef(onTranscript)
   React.useEffect(() => {
-    onTextRef.current = onText
-  }, [onText])
+    onTranscriptRef.current = onTranscript
+  }, [onTranscript])
 
   const supported = React.useSyncExternalStore(
     () => () => {},
@@ -613,30 +613,56 @@ function Dictate({ onText }: { onText: (text: string) => void }) {
     if (!Recogniser || !wanted.current) return
     const recogniser: SpeechRecognitionLike = new Recogniser()
     recogniser.lang = "en-GB"
-    recogniser.interimResults = false
+    // Interim results, so the words appear as they are said rather than after
+    // the recogniser has made its mind up. What is settled is kept; the tail
+    // is replaced on every event.
+    recogniser.interimResults = true
     recogniser.continuous = true
 
+    let settled = ""
+
     recogniser.onresult = (event) => {
-      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+      let interim = ""
+      for (let i = 0; i < event.results.length; i += 1) {
         const result = event.results[i]
-        if (!result.isFinal) continue
-        const said = (result[0]?.transcript ?? "").trim()
-        if (said) onTextRef.current(said.toLowerCase())
+        const said = result[0]?.transcript ?? ""
+        if (result.isFinal) settled += `${said.trim()} `
+        else interim += said
       }
+      const heard = `${settled}${interim}`.replace(/\s+/g, " ").trim()
+      saidRef.current = heard
+      const lead = baseRef.current.trim()
+      onTranscriptRef.current(heard ? (lead ? `${lead} ${heard}` : heard) : lead)
     }
+
+    /*
+      `no-speech` and `aborted` are pauses and the session restarts through
+      `onend`. The other two are not: the microphone was refused, or Chrome
+      could not reach the speech service it sends the audio to — on a VPN or
+      behind a firewall that fails every time, so retrying would spin silently.
+    */
     recogniser.onerror = (event) => {
-      if (event?.error === "not-allowed" || event?.error === "service-not-allowed") {
-        wanted.current = false
-        engine.current = null
-        setListening(false)
-      }
+      const fatal =
+        event?.error === "not-allowed" ||
+        event?.error === "service-not-allowed" ||
+        event?.error === "network"
+      if (!fatal) return
+      wanted.current = false
+      engine.current = null
+      setProblem(event?.error === "network" ? "offline" : "blocked")
+      setListening(false)
     }
+
     recogniser.onend = () => {
       engine.current = null
       if (!wanted.current) {
         setListening(false)
         return
       }
+      // A session ends at every pause. What it settled becomes part of the lead
+      // for the next one, so the words already in the field are not repeated.
+      baseRef.current = `${baseRef.current.trim()} ${saidRef.current}`.trim()
+      saidRef.current = ""
       window.setTimeout(() => listenRef.current(), 150)
     }
 
@@ -658,6 +684,9 @@ function Dictate({ onText }: { onText: (text: string) => void }) {
 
   const start = () => {
     if (!speechRecognition()) return
+    baseRef.current = base
+    saidRef.current = ""
+    setProblem(null)
     wanted.current = true
     setListening(true)
     listen()
@@ -670,14 +699,29 @@ function Dictate({ onText }: { onText: (text: string) => void }) {
       onClick={listening ? stop : start}
       disabled={!supported}
       aria-pressed={listening}
-      title={supported ? undefined : "This browser has no dictation"}
+      title={
+        !supported
+          ? "This browser has no dictation"
+          : problem === "offline"
+            ? "Chrome sends dictation to Google to transcribe, and could not reach it"
+            : problem === "blocked"
+              ? "The microphone is blocked for this site"
+              : undefined
+      }
       className={cn(
         "hover:bg-accent",
         listening ? "text-brand hover:text-brand-strong" : "text-muted-foreground",
+        problem && !listening && "text-negative-ink",
       )}
     >
       {listening ? <Level /> : <MicIcon />}
-      {listening ? "Listening" : "Dictate"}
+      {listening
+        ? "Listening"
+        : problem === "offline"
+          ? "Dictation unavailable"
+          : problem === "blocked"
+            ? "Microphone blocked"
+            : "Dictate"}
     </Button>
   )
 }
