@@ -21,7 +21,7 @@ export function LandingPage({
   onModeChange,
   onQueryChange,
   onDictate,
-  onStartFilter,
+  onToggleFilter,
   onResolve,
   hasResolvedFilters,
   filters,
@@ -36,7 +36,7 @@ export function LandingPage({
   onQueryChange: (query: string) => void
   /** Dictated speech, appended to whatever is already in the field. */
   onDictate: (text: string) => void
-  onStartFilter: (area: ProductArea, attribute: string) => void
+  onToggleFilter: (area: ProductArea, attribute: string) => void
   onResolve: () => void
   hasResolvedFilters: boolean
   filters: ResolvedFilter[]
@@ -237,7 +237,7 @@ export function LandingPage({
                   <SearchPills
                     layout="centered"
                     filters={filters}
-                    onStartFilter={onStartFilter}
+                    onToggleFilter={onToggleFilter}
                   />
                 </div>
               </div>

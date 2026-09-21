@@ -3,7 +3,6 @@ import {
   initialResolvedFilters,
   pathFilter,
   workedQuery,
-  type FilterId,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1/data"
 import type { ProductArea } from "@/components/prototype/ProductChrome"
@@ -21,11 +20,6 @@ export interface SearchPath {
 export interface Sprint4Idea1State {
   mode: SearchMode
   query: string
-  /**
-   * The clause whose value selector is open in the filter box. A pill starts a
-   * filter and hands it this, so the value is picked where the filter lives.
-   */
-  picking: FilterId | null
   /** The manual search's Miller path, kept apart so the pills stay closed. */
   manualCategory: ProductArea | null
   manualAttribute: string | null
@@ -43,7 +37,6 @@ export interface Sprint4Idea1State {
 const startState = (): Sprint4Idea1State => ({
   mode: "quick",
   query: "",
-  picking: null,
   manualCategory: null,
   manualAttribute: null,
   path: null,
@@ -56,7 +49,6 @@ const startState = (): Sprint4Idea1State => ({
 const filteredState = (): Sprint4Idea1State => ({
   mode: "quick",
   query: workedQuery,
-  picking: null,
   manualCategory: null,
   manualAttribute: null,
   path: null,
@@ -66,11 +58,11 @@ const filteredState = (): Sprint4Idea1State => ({
   showResults: false,
 })
 
-/** A pill pressed: its clause is in the box with the value selector open. */
-const valuesState = (): Sprint4Idea1State => {
-  const started = emptyPathFilter("Companies", "Company Name")
-  return { ...startState(), filters: [started], picking: started.id }
-}
+/** A pill pressed: its clause is in the box, waiting for a value. */
+const valuesState = (): Sprint4Idea1State => ({
+  ...startState(),
+  filters: [emptyPathFilter("Companies", "Company Name")],
+})
 
 /** Manual chosen on the landing page: the Miller columns with the filter box beneath. */
 const manualState = (): Sprint4Idea1State => ({
@@ -93,7 +85,6 @@ const pickedState = (): Sprint4Idea1State => ({
 const resolvingState = (): Sprint4Idea1State => ({
   mode: "quick",
   query: workedQuery,
-  picking: null,
   manualCategory: null,
   manualAttribute: null,
   path: null,
@@ -135,7 +126,10 @@ export function slugFor(state: Sprint4Idea1State) {
   if (state.pending) return "resolving"
   if (state.mode === "manual") return "manual"
   if (state.submittedQuery) return "filters"
-  if (state.picking) return "values"
-  if (state.path || state.filters.length > 0) return "picked"
+  // A clause with no value in it is a pill pressed and nothing chosen yet.
+  if (state.filters.length > 0) {
+    return state.filters.some((filter) => filter.values.length > 0) ? "picked" : "values"
+  }
+  if (state.path) return "picked"
   return "start"
 }
