@@ -282,23 +282,30 @@ export function Screener() {
     return (
       <ProductChrome activeArea="Drugs" body="column" className={cn(insetVars, negationVars)}>
         <div className="flex min-h-0 flex-1 items-center justify-center px-(--box-gutter) pb-20">
-          <div className="w-full max-w-[760px]">
+          <div className="w-[75%] min-w-[640px]">
             <h1 className="text-foreground mb-5 text-center text-[26px] font-medium tracking-tight">
               What are you looking for?
             </h1>
 
-            <div className="bg-surface-panel border-border shadow-raised rounded-xl border px-(--box-pad) pt-4 pb-3">
-              {box}
-              <div className="mt-3 flex items-center justify-end">{actions}</div>
+            {/* The same card the working state uses: the field, and the filters
+                on their own grey rail under it. */}
+            <div className="bg-surface-panel border-border shadow-raised flex flex-col overflow-hidden rounded-xl border">
+              <div className="min-w-0 flex-1 px-(--box-pad) pt-4 pb-3.5">
+                {box}
+
+                {unplaced.length > 0 ? (
+                  <p className="text-muted-foreground mt-3 text-sm">
+                    <span className="text-foreground">{unplaced.join(", ")}</span> not found.
+                  </p>
+                ) : null}
+
+                <div className="mt-3 flex items-center justify-end">{actions}</div>
+              </div>
+
+              <div className="bg-surface-chrome border-edge border-t">
+                <div className="px-(--box-pad) py-2.5">{filters}</div>
+              </div>
             </div>
-
-            {unplaced.length > 0 ? (
-              <p className="text-muted-foreground mt-3 text-sm">
-                {unplaced.join(", ")} not found.
-              </p>
-            ) : null}
-
-            <div className="mt-8">{filters}</div>
           </div>
         </div>
 
