@@ -8,6 +8,7 @@ import {
   CornerDownLeftIcon,
   DownloadIcon,
   GripVerticalIcon,
+  MicIcon,
   PinIcon,
   FolderTreeIcon,
   RotateCcwIcon,
@@ -424,6 +425,17 @@ export function Screener() {
                   >
                     Clear all
                   </Button>
+                  <Dictate
+                    disabled={resolving}
+                    onText={(text) =>
+                      setState((current) => ({
+                        ...current,
+                        draft: current.draft.trim() ? `${current.draft.trim()} ${text}` : text,
+                        phase: "compose",
+                        failure: null,
+                      }))
+                    }
+                  />
                   {composing ? (
                     <Button size="sm" onClick={() => submit(draft)} disabled={!draft.trim() || resolving}>
                       Resolve
@@ -664,6 +676,96 @@ export function Screener() {
       </ProductChrome>
     </ArrangeProvider>
   )
+}
+
+/**
+ * Speaking the query instead of typing it.
+ *
+ * The browser's own recogniser, which Chrome and Safari have and Firefox does
+ * not, so the control says it is unavailable there rather than sitting dead.
+ * What comes back is appended to whatever is in the box, and the query is still
+ * resolved by hand — dictation replaces the keyboard, not the Resolve press.
+ */
+function Dictate({ onText, disabled }: { onText: (text: string) => void; disabled?: boolean }) {
+  const [listening, setListening] = React.useState(false)
+  const engine = React.useRef<SpeechRecognitionLike | null>(null)
+  const supported = React.useSyncExternalStore(
+    () => () => {},
+    () => Boolean(speechRecognition()),
+    () => true,
+  )
+
+  const stop = () => {
+    engine.current?.stop()
+    engine.current = null
+    setListening(false)
+  }
+
+  const start = () => {
+    const Recogniser = speechRecognition()
+    if (!Recogniser) return
+    const recogniser: SpeechRecognitionLike = new Recogniser()
+    recogniser.lang = "en-GB"
+    recogniser.interimResults = false
+    recogniser.continuous = false
+    recogniser.onresult = (event) => {
+      const said = Array.from(event.results)
+        .map((result) => result[0]?.transcript ?? "")
+        .join(" ")
+        .trim()
+      if (said) onText(said.toLowerCase())
+    }
+    recogniser.onend = () => {
+      engine.current = null
+      setListening(false)
+    }
+    recogniser.onerror = recogniser.onend
+    engine.current = recogniser
+    setListening(true)
+    recogniser.start()
+  }
+
+  React.useEffect(() => () => engine.current?.abort(), [])
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={listening ? stop : start}
+      disabled={disabled || !supported}
+      aria-pressed={listening}
+      title={supported ? undefined : "This browser has no dictation"}
+      className={cn(
+        "hover:bg-accent aria-expanded:bg-transparent",
+        listening ? "text-brand hover:text-brand-strong" : "text-muted-foreground",
+      )}
+    >
+      <MicIcon className={listening ? "animate-pulse" : undefined} />
+      {listening ? "Listening" : "Dictate"}
+    </Button>
+  )
+}
+
+/** The browser's recogniser, under either of the names it goes by. */
+interface SpeechRecognitionLike {
+  lang: string
+  interimResults: boolean
+  continuous: boolean
+  onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null
+  onend: (() => void) | null
+  onerror: (() => void) | null
+  start: () => void
+  stop: () => void
+  abort: () => void
+}
+
+function speechRecognition(): (new () => SpeechRecognitionLike) | undefined {
+  if (typeof window === "undefined") return undefined
+  const scope = window as unknown as {
+    SpeechRecognition?: new () => SpeechRecognitionLike
+    webkitSpeechRecognition?: new () => SpeechRecognitionLike
+  }
+  return scope.SpeechRecognition ?? scope.webkitSpeechRecognition
 }
 
 /**
