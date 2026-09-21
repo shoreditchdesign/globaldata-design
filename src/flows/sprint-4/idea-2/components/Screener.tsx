@@ -689,6 +689,8 @@ export function Screener() {
 function Dictate({ onText, disabled }: { onText: (text: string) => void; disabled?: boolean }) {
   const [listening, setListening] = React.useState(false)
   const engine = React.useRef<SpeechRecognitionLike | null>(null)
+  /** The recogniser stops itself at every pause; this is whether we meant it to. */
+  const wanted = React.useRef(false)
   const supported = React.useSyncExternalStore(
     () => () => {},
     () => Boolean(speechRecognition()),
@@ -696,6 +698,7 @@ function Dictate({ onText, disabled }: { onText: (text: string) => void; disable
   )
 
   const stop = () => {
+    wanted.current = false
     engine.current?.stop()
     engine.current = null
     setListening(false)
@@ -707,25 +710,50 @@ function Dictate({ onText, disabled }: { onText: (text: string) => void; disable
     const recogniser: SpeechRecognitionLike = new Recogniser()
     recogniser.lang = "en-GB"
     recogniser.interimResults = false
-    recogniser.continuous = false
+    recogniser.continuous = true
     recogniser.onresult = (event) => {
-      const said = Array.from(event.results)
-        .map((result) => result[0]?.transcript ?? "")
-        .join(" ")
-        .trim()
-      if (said) onText(said.toLowerCase())
+      // Only what the recogniser has settled on, from where this batch starts,
+      // or a long dictation would repeat everything said so far.
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const result = event.results[i]
+        if (!result.isFinal) continue
+        const said = (result[0]?.transcript ?? "").trim()
+        if (said) onText(said.toLowerCase())
+      }
     }
+    // Chrome ends the session at a pause even when it is told to keep going, so
+    // it is started again until the button is pressed a second time.
     recogniser.onend = () => {
+      if (!wanted.current) {
+        engine.current = null
+        setListening(false)
+        return
+      }
+      try {
+        recogniser.start()
+      } catch {
+        engine.current = null
+        setListening(false)
+      }
+    }
+    recogniser.onerror = () => {
+      wanted.current = false
       engine.current = null
       setListening(false)
     }
-    recogniser.onerror = recogniser.onend
     engine.current = recogniser
+    wanted.current = true
     setListening(true)
     recogniser.start()
   }
 
-  React.useEffect(() => () => engine.current?.abort(), [])
+  React.useEffect(
+    () => () => {
+      wanted.current = false
+      engine.current?.abort()
+    },
+    [],
+  )
 
   return (
     <Button
@@ -740,18 +768,43 @@ function Dictate({ onText, disabled }: { onText: (text: string) => void; disable
         listening ? "text-brand hover:text-brand-strong" : "text-muted-foreground",
       )}
     >
-      <MicIcon className={listening ? "animate-pulse" : undefined} />
+      {listening ? <Level /> : <MicIcon />}
       {listening ? "Listening" : "Dictate"}
     </Button>
   )
 }
 
+/**
+ * Three bars keeping time while the recogniser is open. It is not reading the
+ * microphone — nothing here meters sound — it is saying the session is live,
+ * which is what a reader needs to know before they speak.
+ */
+function Level() {
+  return (
+    <span aria-hidden className="flex h-3.5 items-end gap-[2px]">
+      {[0, 120, 240].map((delay) => (
+        <span
+          key={delay}
+          style={{ animationDelay: `${delay}ms`, animationDuration: `${motion.hold}ms` }}
+          className="bg-brand h-full w-[2px] origin-bottom animate-[levels_900ms_ease-in-out_infinite] rounded-full motion-reduce:animate-none motion-reduce:h-1/2"
+        />
+      ))}
+    </span>
+  )
+}
+
 /** The browser's recogniser, under either of the names it goes by. */
+interface SpeechResultLike extends ArrayLike<{ transcript: string }> {
+  isFinal: boolean
+}
+
 interface SpeechRecognitionLike {
   lang: string
   interimResults: boolean
   continuous: boolean
-  onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null
+  onresult:
+    | ((event: { resultIndex: number; results: ArrayLike<SpeechResultLike> }) => void)
+    | null
   onend: (() => void) | null
   onerror: (() => void) | null
   start: () => void
