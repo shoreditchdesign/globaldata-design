@@ -22,9 +22,8 @@ export function LandingPage({
   onModeChange,
   onQueryChange,
   onDictate,
-  onCategoryChange,
   activeAttribute,
-  onAttributeChange,
+  onAttributeOpen,
   onValuePick,
   onResolve,
   hasResolvedFilters,
@@ -41,9 +40,8 @@ export function LandingPage({
   onQueryChange: (query: string) => void
   /** Dictated speech, appended to whatever is already in the field. */
   onDictate: (text: string) => void
-  onCategoryChange: (category: ProductArea) => void
   activeAttribute: string | null
-  onAttributeChange: (attribute: string) => void
+  onAttributeOpen: (area: ProductArea, attribute: string) => void
   onValuePick: (value: string) => void
   onResolve: () => void
   hasResolvedFilters: boolean
@@ -236,11 +234,9 @@ export function LandingPage({
                 <div data-flip="after">
                   <SearchPills
                     filters={filters}
-                    layout="centered"
                     activeCategory={activeCategory}
                     activeAttribute={activeAttribute}
-                    onCategoryChange={onCategoryChange}
-                    onAttributeChange={onAttributeChange}
+                    onAttributeOpen={onAttributeOpen}
                     onValuePick={onValuePick}
                   />
                 </div>
