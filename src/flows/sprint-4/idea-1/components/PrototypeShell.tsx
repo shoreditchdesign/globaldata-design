@@ -89,21 +89,20 @@ export function PrototypeShell() {
       ...current,
       query: current.query.trim() ? `${current.query.trim()} ${text}` : text,
     }))
-  // A pill starts its clause in the filter box and hands it the open selector,
-  // so the value is chosen where the filter lives. A clause already in the box
-  // is reopened rather than started again.
-  const startPillFilter = (area: ProductArea, attribute: string) =>
+  // A pill puts its clause in the filter box, waiting for a value, and takes it
+  // out again when pressed a second time. The value is chosen from the clause's
+  // own selector, which the reader opens when they are ready.
+  const togglePillFilter = (area: ProductArea, attribute: string) =>
     setState((current) => {
       const started = emptyPathFilter(area, attribute)
       const existing = current.filters.some((filter) => filter.id === started.id)
       return {
         ...current,
-        filters: existing ? current.filters : [...current.filters, started],
-        picking: started.id,
+        filters: existing
+          ? current.filters.filter((filter) => filter.id !== started.id)
+          : [...current.filters, started],
       }
     })
-  const setPicking = (id: FilterId, open: boolean) =>
-    setState((current) => ({ ...current, picking: open ? id : null }))
   // Miller columns open rather than toggle: clicking the open row keeps it open.
   const openCategory = (category: ProductArea) =>
     setState((current) => ({
@@ -164,9 +163,8 @@ export function PrototypeShell() {
         const values = filter.values.includes(value)
           ? filter.values.filter((item) => item !== value)
           : [...filter.values, value]
-        // The clause under the open selector stays even when it is emptied —
-        // unticking the last value would otherwise take the selector with it.
-        if (values.length === 0 && current.picking !== id) return []
+        // An emptied clause stays, back at Select value. Its pill is what puts
+        // it in the box and what takes it out, so unticking a value must not.
         return [{ ...filter, values }]
       }),
     }))
@@ -191,8 +189,6 @@ export function PrototypeShell() {
       ...current,
       pending: null,
       showResults: true,
-      // The results page opens with no selector hanging open.
-      picking: null,
     }))
 
   const filterBox = (
@@ -206,8 +202,6 @@ export function PrototypeShell() {
       onRemove={removeFilter}
       onAdd={addFilter}
       onClear={clearFilters}
-      picking={state.picking}
-      onPickingChange={setPicking}
       onSearch={state.showResults ? undefined : search}
       // Manual always shows the box, so it has nothing to close back to.
       onClose={state.showResults || state.mode === "manual" ? undefined : closeFilters}
@@ -233,7 +227,7 @@ export function PrototypeShell() {
               onDictate={appendQuery}
               onResolve={submitQuery}
               onScanDone={settleQuery}
-              onStartFilter={startPillFilter}
+              onToggleFilter={togglePillFilter}
               manualCategory={state.manualCategory}
               manualAttribute={state.manualAttribute}
               onOpenCategory={openCategory}
@@ -254,7 +248,7 @@ export function PrototypeShell() {
         onModeChange={setMode}
         onQueryChange={setQuery}
         onDictate={appendQuery}
-        onStartFilter={startPillFilter}
+        onToggleFilter={togglePillFilter}
         onResolve={submitQuery}
         filters={state.filters}
         hasResolvedFilters={Boolean(state.submittedQuery || state.path)}

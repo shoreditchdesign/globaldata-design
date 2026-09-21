@@ -22,8 +22,8 @@ export const sprint4Idea1: Flow = {
     },
     {
       slug: "values",
-      title: "Picking a value",
-      note: "A pill starts its clause in the filter box and opens that clause's own value selector, so the value is chosen where the filter lives rather than in a further layer of pills.",
+      title: "A pill pressed",
+      note: "A pill puts its clause in the filter box at Select value, and pressing it again takes the clause out. The value is chosen from the clause's own selector rather than from a further layer of pills.",
       viewport: "desktop",
       component: Start,
     },

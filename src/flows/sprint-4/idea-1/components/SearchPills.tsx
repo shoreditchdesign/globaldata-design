@@ -15,21 +15,20 @@ import { cn } from "@/lib/utils"
  * attributes people reach for are a short list, so they are the list — ten of
  * them, taken from across the areas rather than under any one.
  *
- * Pressing one starts its clause in the filter box and opens that clause's own
- * value selector. Nothing opens under the pills: the filter is the thing being
- * built, so it is the thing that should be under the cursor while the value is
- * chosen, and a pill whose clause is already in the box reopens it rather than
- * starting a second one.
+ * Pressing one puts its clause in the filter box, waiting for a value, and
+ * pressing it again takes the clause out. Nothing opens under the pills: the
+ * filter is the thing being built, so the value is chosen from the clause's own
+ * selector, when the reader is ready, rather than from a further layer here.
  */
 export function SearchPills({
   layout,
   filters,
-  onStartFilter,
+  onToggleFilter,
 }: {
   layout: "centered" | "panel"
   /** The filters in the box, however they were built, counted onto the pills. */
   filters: ResolvedFilter[]
-  onStartFilter: (area: ProductArea, attribute: string) => void
+  onToggleFilter: (area: ProductArea, attribute: string) => void
 }) {
   const centred = layout === "centered"
   const headType = "text-[10px] font-medium tracking-[0.08em] uppercase"
@@ -67,7 +66,8 @@ export function SearchPills({
               <button
                 key={`${area}/${attribute}`}
                 type="button"
-                onClick={() => onStartFilter(area, attribute)}
+                aria-pressed={Boolean(filter)}
+                onClick={() => onToggleFilter(area, attribute)}
                 className={cn(
                   "bg-surface-panel border-border hover:bg-accent inline-flex h-8 items-center rounded-full border px-3.5 text-[13px] transition-[color,background-color,border-color]",
                   filter &&

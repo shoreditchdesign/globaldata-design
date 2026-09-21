@@ -33,8 +33,6 @@ export function ResolvedFilters({
   onClear,
   onSearch,
   onClose,
-  picking,
-  onPickingChange,
   variant = "card",
 }: {
   filters: ResolvedFilter[]
@@ -50,9 +48,6 @@ export function ResolvedFilters({
   onSearch?: () => void
   /** Clears the filters and closes the box. Omitted where the box is always shown. */
   onClose?: () => void
-  /** The clause whose value selector is open — a pill started it, or it was pressed. */
-  picking: FilterId | null
-  onPickingChange: (id: FilterId, open: boolean) => void
   /**
    * `card` on the landing page, with Add filter and the search in a footer.
    * `band` on the results page: a flush strip whose actions, add and clear,
@@ -103,8 +98,6 @@ export function ResolvedFilters({
               onJoinChange={onJoinChange}
               onToggleValue={onToggleValue}
               onRemove={onRemove}
-              picking={picking === filter.id}
-              onPickingChange={(open) => onPickingChange(filter.id, open)}
             />
           </div>
         ))}
@@ -222,17 +215,12 @@ function FilterClause({
   onJoinChange,
   onToggleValue,
   onRemove,
-  picking,
-  onPickingChange,
 }: {
   filter: ResolvedFilter
   onModeChange: (id: FilterId, excluded: boolean) => void
   onJoinChange: (id: FilterId, join: FilterJoin) => void
   onToggleValue: (id: FilterId, value: string) => void
   onRemove: (id: FilterId) => void
-  /** This clause's value selector is the open one. */
-  picking: boolean
-  onPickingChange: (open: boolean) => void
 }) {
   const definition = definitionFor(filter.id)
 
@@ -270,8 +258,6 @@ function FilterClause({
           filter={filter}
           options={definition.options}
           onToggleValue={onToggleValue}
-          open={picking}
-          onOpenChange={onPickingChange}
           className="text-muted-foreground border-r border-current/10"
         >
           Select value
@@ -290,9 +276,6 @@ function FilterClause({
             filter={filter}
             options={definition.options}
             onToggleValue={onToggleValue}
-            // Only the first carries the pill's selector; the rest are ordinary.
-            open={index === 0 ? picking : undefined}
-            onOpenChange={index === 0 ? onPickingChange : undefined}
             className={cn(
               index < filter.values.length - 1 ? "border-r-0" : "border-r border-current/10",
             )}
@@ -319,21 +302,17 @@ function ValueMenu({
   filter,
   options,
   onToggleValue,
-  open,
-  onOpenChange,
   className,
   children,
 }: {
   filter: ResolvedFilter
   options: string[]
   onToggleValue: (id: FilterId, value: string) => void
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
   className?: string
   children: React.ReactNode
 }) {
   return (
-    <DropdownMenu open={open} onOpenChange={onOpenChange}>
+    <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={`Choose ${filter.label}`}
         className={cn(

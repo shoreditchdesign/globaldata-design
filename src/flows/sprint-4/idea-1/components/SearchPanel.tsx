@@ -28,7 +28,7 @@ export function SearchPanel({
   onDictate,
   onResolve,
   onScanDone,
-  onStartFilter,
+  onToggleFilter,
   manualCategory,
   manualAttribute,
   onOpenCategory,
@@ -45,7 +45,7 @@ export function SearchPanel({
   onDictate: (text: string) => void
   onResolve: () => void
   onScanDone: () => void
-  onStartFilter: (area: ProductArea, attribute: string) => void
+  onToggleFilter: (area: ProductArea, attribute: string) => void
   manualCategory: ProductArea | null
   manualAttribute: string | null
   onOpenCategory: (category: ProductArea) => void
@@ -137,7 +137,7 @@ export function SearchPanel({
             <SearchPills
               layout="panel"
               filters={filters}
-              onStartFilter={onStartFilter}
+              onToggleFilter={onToggleFilter}
             />
           </div>
         </div>
