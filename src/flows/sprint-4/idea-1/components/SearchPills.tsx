@@ -20,12 +20,14 @@ import { cn } from "@/lib/utils"
  * and why opening one shows its values and nothing else.
  */
 export function SearchPills({
+  layout,
   filters,
   activeCategory,
   activeAttribute,
   onAttributeOpen,
   onValuePick,
 }: {
+  layout: "centered" | "panel"
   /** The filters in the box, however they were built, counted onto the pills. */
   filters: ResolvedFilter[]
   activeCategory: ProductArea | null
@@ -33,6 +35,7 @@ export function SearchPills({
   onAttributeOpen: (area: ProductArea, attribute: string) => void
   onValuePick: (value: string) => void
 }) {
+  const justify = layout === "centered" ? "justify-center" : "justify-start"
   const paths = filters.map((filter) => ({ ...pathOf(filter.id), values: filter.values.length }))
   // A pill counts the values its filter holds.
   const attributeCount = (area: ProductArea, attribute: string) =>
@@ -44,11 +47,18 @@ export function SearchPills({
 
   return (
     <div className="w-full">
-      <h2 className="text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase">
-        Commonly used filters
-      </h2>
-
-      <nav aria-label="Commonly used filters" className="mt-2 flex flex-wrap gap-2">
+      {/* The head rides in the row as its first item, so it sits beside the
+          first pill rather than over a row that is centred away from it. */}
+      <nav
+        aria-labelledby="common-filters"
+        className={cn("flex flex-wrap items-center gap-2", justify)}
+      >
+        <h2
+          id="common-filters"
+          className="text-muted-foreground flex h-8 items-center text-[10px] font-medium tracking-[0.08em] uppercase"
+        >
+          Commonly used filters
+        </h2>
         {commonAttributes.map(({ area, attribute }) => {
           const active = activeCategory === area && activeAttribute === attribute
           const inactive = activeAttribute !== null && !active
@@ -84,7 +94,10 @@ export function SearchPills({
           key={`${activeCategory}/${activeAttribute}`}
           id={`search-attribute-${slugify(activeAttribute)}`}
           aria-label={`${activeAttribute} values`}
-          className="animate-in fade-in slide-in-from-top-2 mt-4 flex flex-wrap gap-2 duration-300"
+          className={cn(
+            "animate-in fade-in slide-in-from-top-2 mt-4 flex flex-wrap gap-2 duration-300",
+            justify,
+          )}
         >
           {searchAttributeValues(activeCategory, activeAttribute).map((value) => {
             const selected = Boolean(openFilter?.values.includes(value))
