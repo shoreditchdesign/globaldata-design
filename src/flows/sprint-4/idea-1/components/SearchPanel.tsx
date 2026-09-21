@@ -30,8 +30,7 @@ export function SearchPanel({
   onDictate,
   onResolve,
   onScanDone,
-  onCategoryChange,
-  onAttributeChange,
+  onAttributeOpen,
   onValuePick,
   manualCategory,
   manualAttribute,
@@ -51,8 +50,7 @@ export function SearchPanel({
   onDictate: (text: string) => void
   onResolve: () => void
   onScanDone: () => void
-  onCategoryChange: (category: ProductArea) => void
-  onAttributeChange: (attribute: string) => void
+  onAttributeOpen: (area: ProductArea, attribute: string) => void
   onValuePick: (value: string) => void
   manualCategory: ProductArea | null
   manualAttribute: string | null
@@ -144,11 +142,9 @@ export function SearchPanel({
           <div className="mt-4">
             <SearchPills
               filters={filters}
-              layout="panel"
               activeCategory={activeCategory}
               activeAttribute={activeAttribute}
-              onCategoryChange={onCategoryChange}
-              onAttributeChange={onAttributeChange}
+              onAttributeOpen={onAttributeOpen}
               onValuePick={onValuePick}
             />
           </div>

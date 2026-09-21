@@ -88,17 +88,14 @@ export function PrototypeShell() {
       ...current,
       query: current.query.trim() ? `${current.query.trim()} ${text}` : text,
     }))
-  const toggleCategory = (category: ProductArea) =>
-    setState((current) => ({
-      ...current,
-      activeCategory: current.activeCategory === category ? null : category,
-      activeAttribute: null,
-    }))
-  const toggleAttribute = (attribute: string) =>
-    setState((current) => ({
-      ...current,
-      activeAttribute: current.activeAttribute === attribute ? null : attribute,
-    }))
+  // The pills are one flat list now, so a pill carries its own area: opening one
+  // sets both halves of the path, and pressing the open pill closes it again.
+  const openPillAttribute = (area: ProductArea, attribute: string) =>
+    setState((current) =>
+      current.activeCategory === area && current.activeAttribute === attribute
+        ? { ...current, activeCategory: null, activeAttribute: null }
+        : { ...current, activeCategory: area, activeAttribute: attribute },
+    )
   // Miller columns open rather than toggle: clicking the open row keeps it open.
   const openCategory = (category: ProductArea) =>
     setState((current) => ({
@@ -232,8 +229,7 @@ export function PrototypeShell() {
               onDictate={appendQuery}
               onResolve={submitQuery}
               onScanDone={settleQuery}
-              onCategoryChange={toggleCategory}
-              onAttributeChange={toggleAttribute}
+              onAttributeOpen={openPillAttribute}
               onValuePick={pickValue}
               manualCategory={state.manualCategory}
               manualAttribute={state.manualAttribute}
@@ -256,9 +252,8 @@ export function PrototypeShell() {
         onModeChange={setMode}
         onQueryChange={setQuery}
         onDictate={appendQuery}
-        onCategoryChange={toggleCategory}
         activeAttribute={state.activeAttribute}
-        onAttributeChange={toggleAttribute}
+        onAttributeOpen={openPillAttribute}
         onValuePick={pickValue}
         onResolve={submitQuery}
         filters={state.filters}
