@@ -145,7 +145,11 @@ export function LandingPage({
         className={cn(
           "mx-auto flex min-h-0 w-full flex-1 flex-col px-8 pt-6",
           // Manual widens so the three Miller columns span more of the page.
-          manualMode ? "max-w-7xl pb-8" : "max-w-4xl items-center justify-center pb-16",
+          // Quick is wider than its search field: the field and the filter box
+          // are held at 56rem inside it, and the extra room is the pills', so a
+          // count arriving on one has somewhere to grow without the row
+          // rewrapping under the cursor.
+          manualMode ? "max-w-7xl pb-8" : "max-w-5xl items-center justify-center pb-16",
         )}
       >
         <div data-flip="title" className="text-center">
@@ -173,7 +177,7 @@ export function LandingPage({
           <>
             <form
               data-flip="stack"
-              className="bg-surface-panel border-border focus-within:border-ring mt-7 flex min-h-16 w-full items-center gap-3 rounded-xl border px-4 transition-colors"
+              className="bg-surface-panel border-border focus-within:border-ring mx-auto mt-7 flex min-h-16 w-full max-w-4xl items-center gap-3 rounded-xl border px-4 transition-colors"
               onSubmit={(event) => {
                 event.preventDefault()
                 if (hasQuery && !resolving) onResolve()
@@ -224,7 +228,11 @@ export function LandingPage({
                   filterBox ? "-top-3" : "top-0",
                 )}
               >
-                {filterBox ? <div data-flip="summary">{filterBox}</div> : null}
+                {filterBox ? (
+                  <div data-flip="summary" className="mx-auto w-full max-w-4xl">
+                    {filterBox}
+                  </div>
+                ) : null}
                 <div data-flip="after">
                   <SearchPills
                     layout="centered"

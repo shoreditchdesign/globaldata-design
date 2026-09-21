@@ -90,14 +90,7 @@ export function SearchPills({
   )
 }
 
-/**
- * A small count on a pill: how many values its clause holds.
- *
- * The slot is there whether or not there is a count in it. A pill that widens
- * when its first value lands can push the pill after it onto the next line, and
- * the row rewraps under the cursor — so every pill carries the space for a
- * count from the start and none of them change width when one arrives.
- */
+/** A small count on a pill: how many values its clause holds. */
 function FilterCount({
   count,
   inverted,
@@ -106,15 +99,13 @@ function FilterCount({
   /** On a started clause's dark fill, the count takes a dark treatment of its own. */
   inverted: boolean
 }) {
-  const empty = count === 0
+  if (count === 0) return null
   return (
     <span
-      aria-hidden={empty}
-      aria-label={empty ? undefined : `${count} value${count === 1 ? "" : "s"} applied`}
+      aria-label={`${count} value${count === 1 ? "" : "s"} applied`}
       className={cn(
         "ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-none font-medium tabular-nums",
-        empty && "invisible",
-        !empty && (inverted ? "bg-background/20 text-background" : "bg-brand-tint text-brand-ink"),
+        inverted ? "bg-background/20 text-background" : "bg-brand-tint text-brand-ink",
       )}
     >
       {count}
