@@ -203,6 +203,7 @@ export function LandingPage({
                 />
                 {pending ? <ScanningQuery resolution={pending} onDone={onScanDone} /> : null}
               </div>
+              <DictateButton onText={onDictate} disabled={resolving} />
               <Button
                 type="submit"
                 size="icon-lg"
@@ -214,7 +215,6 @@ export function LandingPage({
               >
                 <ArrowRightIcon />
               </Button>
-              <DictateButton onText={onDictate} disabled={resolving} />
             </form>
 
             {/*
