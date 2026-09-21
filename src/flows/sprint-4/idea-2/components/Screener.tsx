@@ -689,6 +689,12 @@ export function Screener() {
 function Dictate({ onText, disabled }: { onText: (text: string) => void; disabled?: boolean }) {
   const [listening, setListening] = React.useState(false)
   const engine = React.useRef<SpeechRecognitionLike | null>(null)
+  const onTextRef = React.useRef(onText)
+  React.useEffect(() => {
+    onTextRef.current = onText
+  }, [onText])
+  /** The restart calls back into this, so it is held rather than recursed. */
+  const listenRef = React.useRef<() => void>(() => {})
   /** The recogniser stops itself at every pause; this is whether we meant it to. */
   const wanted = React.useRef(false)
   const supported = React.useSyncExternalStore(
@@ -699,18 +705,28 @@ function Dictate({ onText, disabled }: { onText: (text: string) => void; disable
 
   const stop = () => {
     wanted.current = false
-    engine.current?.stop()
+    const running = engine.current
     engine.current = null
     setListening(false)
+    running?.stop()
   }
 
-  const start = () => {
+  /*
+    One session per stretch of speech, however many the browser opens.
+
+    Chrome ends a session at every pause and raises `no-speech` with it, and a
+    session that has ended cannot be started again, so each end builds a fresh
+    recogniser while the button is still on. Only a refusal of the microphone
+    ends it for good; everything else is a pause.
+  */
+  const listen = React.useCallback(() => {
     const Recogniser = speechRecognition()
-    if (!Recogniser) return
+    if (!Recogniser || !wanted.current) return
     const recogniser: SpeechRecognitionLike = new Recogniser()
     recogniser.lang = "en-GB"
     recogniser.interimResults = false
     recogniser.continuous = true
+
     recogniser.onresult = (event) => {
       // Only what the recogniser has settled on, from where this batch starts,
       // or a long dictation would repeat everything said so far.
@@ -718,33 +734,40 @@ function Dictate({ onText, disabled }: { onText: (text: string) => void; disable
         const result = event.results[i]
         if (!result.isFinal) continue
         const said = (result[0]?.transcript ?? "").trim()
-        if (said) onText(said.toLowerCase())
+        if (said) onTextRef.current(said.toLowerCase())
       }
     }
-    // Chrome ends the session at a pause even when it is told to keep going, so
-    // it is started again until the button is pressed a second time.
-    recogniser.onend = () => {
-      if (!wanted.current) {
+
+    recogniser.onerror = (event) => {
+      if (event?.error === "not-allowed" || event?.error === "service-not-allowed") {
+        wanted.current = false
         engine.current = null
+        setListening(false)
+      }
+    }
+
+    recogniser.onend = () => {
+      engine.current = null
+      if (!wanted.current) {
         setListening(false)
         return
       }
-      try {
-        recogniser.start()
-      } catch {
-        engine.current = null
-        setListening(false)
-      }
+      window.setTimeout(() => listenRef.current(), 150)
     }
-    recogniser.onerror = () => {
-      wanted.current = false
-      engine.current = null
-      setListening(false)
-    }
+
     engine.current = recogniser
+    recogniser.start()
+  }, [])
+
+  React.useEffect(() => {
+    listenRef.current = listen
+  }, [listen])
+
+  const start = () => {
+    if (!speechRecognition()) return
     wanted.current = true
     setListening(true)
-    recogniser.start()
+    listen()
   }
 
   React.useEffect(
@@ -806,7 +829,7 @@ interface SpeechRecognitionLike {
     | ((event: { resultIndex: number; results: ArrayLike<SpeechResultLike> }) => void)
     | null
   onend: (() => void) | null
-  onerror: (() => void) | null
+  onerror: ((event: { error?: string }) => void) | null
   start: () => void
   stop: () => void
   abort: () => void
