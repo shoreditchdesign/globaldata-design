@@ -72,9 +72,12 @@ export function SearchPanel({
     <aside
       aria-label="Search"
       // Manual search widens the panel to hold two Miller columns side by side.
+      // Quick is wider than the rail needs for its field, so the commonly used
+      // filters pair up on a line and have room to take a count without the row
+      // rewrapping — the same slack the landing page's column gives them.
       className={cn(
         "bg-surface-chrome border-edge flex shrink-0 flex-col border-r",
-        mode === "manual" ? "w-[528px]" : "w-[340px]",
+        mode === "manual" ? "w-[528px]" : "w-[420px]",
       )}
     >
       <div className="shrink-0 px-3 pt-3">
@@ -83,7 +86,7 @@ export function SearchPanel({
           onModeChange={onModeChange}
           // The quick panel's inner width, held when manual search widens the
           // panel so the tabs stay put, left-aligned, rather than stretching.
-          className="flex w-[316px] [&>button]:flex-1"
+          className="flex w-[396px] [&>button]:flex-1"
         />
       </div>
 
