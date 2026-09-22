@@ -166,19 +166,27 @@ export function Screener() {
     [],
   )
 
-  /** The tree's rail, applied. */
+  /**
+   * The tree's rail, applied. The field takes the query back as plain words, so
+   * a walk through the tree leaves the box saying what the screen is showing,
+   * exactly as a typed search would.
+   */
   const applyTicks = React.useCallback(
     (next: Condition[]) =>
-      setState((current) => ({
-        ...current,
-        query: { ...current.query, conditions: next },
-        past: [...current.past, current.query],
-        phase: next.length === 0 ? "compose" : "resolved",
-        picks: {},
-        drops: {},
-        tree: null,
-        failure: null,
-      })),
+      setState((current) => {
+        const raw = next.length > 0 ? conditionsToProse(next) : ""
+        return {
+          ...current,
+          query: { conditions: next, raw, resolution: null },
+          past: [...current.past, current.query],
+          phase: next.length === 0 ? "compose" : "resolved",
+          draft: raw,
+          picks: {},
+          drops: {},
+          tree: null,
+          failure: null,
+        }
+      }),
     [],
   )
 
