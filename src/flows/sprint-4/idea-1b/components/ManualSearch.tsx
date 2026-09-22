@@ -22,9 +22,12 @@ import { cn } from "@/lib/utils"
  * same filters the quick search builds. Its open path is its own, so opening
  * a column never opens the pills.
  *
- * The results panel fits two columns, and deeper paths fold into the
- * breadcrumb. On the landing page the `wide` layout shows all three
- * levels at once, each a fixed third, filling left to right as the path deepens.
+ * All three levels are on screen at once wherever it sits, each a fixed third
+ * filling left to right as the path deepens: across the page on the landing
+ * screen, and across the narrower pane the results panel gives it. The panel is
+ * sized so those thirds clear the column floor rather than making the strip
+ * scroll — the value column is the one being read, and having to slide the
+ * areas out of the way to reach it made a three-step path feel like six.
  */
 export function ManualSearch({
   filters,
@@ -33,7 +36,6 @@ export function ManualSearch({
   onOpenCategory,
   onOpenAttribute,
   onToggleValue,
-  layout = "panel",
 }: {
   filters: ResolvedFilter[]
   activeCategory: ProductArea | null
@@ -41,9 +43,8 @@ export function ManualSearch({
   onOpenCategory: (category: ProductArea) => void
   onOpenAttribute: (attribute: string) => void
   onToggleValue: (area: ProductArea, attribute: string, value: string) => void
-  layout?: "panel" | "wide"
 }) {
-  const visibleColumns = layout === "wide" ? 3 : 2
+  const visibleColumns = 3
   const [query, setQuery] = React.useState("")
   // Follows the path to its deepest column unless a crumb slides it back.
   const [leftIndex, setLeftIndex] = React.useState(Number.POSITIVE_INFINITY)
@@ -179,11 +180,9 @@ export function ManualSearch({
               className={cn(
                 "[&>div:first-child]:border-t-0",
                 // A third each, so the first column never stretches across the pane alone.
-                layout === "wide" && "flex-none basis-1/3",
+                "flex-none basis-1/3",
                 // Ruled off from the empty thirds still to fill, which share its grey.
-                layout === "wide" &&
-                  visible.length < visibleColumns &&
-                  "border-edge last:border-r",
+                visible.length < visibleColumns && "border-edge last:border-r",
               )}
               onOpen={(label) => {
                 setLeftIndex(Number.POSITIVE_INFINITY)
