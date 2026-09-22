@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { MicIcon } from "lucide-react"
+import { LoaderCircleIcon, MicIcon } from "lucide-react"
 
 import { motion } from "@/components/prototype/motion"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,9 @@ import { cn } from "@/lib/utils"
  *
  * The browser's own recogniser, which Chrome and Safari have and Firefox does
  * not, so the control says it is unavailable there rather than sitting dead.
+ * Where Chrome can transcribe on the device it does, installing the language
+ * pack on the first press: its cloud service fails with `network` on some
+ * machines that are otherwise online, and on-device needs no network at all.
  * What comes back is appended to whatever is in the field, and the query is
  * still resolved by hand — dictation replaces the keyboard, not the go arrow.
  *
@@ -30,6 +33,14 @@ export function DictateButton({
   size?: "icon-lg" | "icon-sm"
 }) {
   const [listening, setListening] = React.useState(false)
+  /** The on-device language pack installing, on the first press. */
+  const [preparing, setPreparing] = React.useState(false)
+  /** Why it stopped, when it stopped for a reason worth saying. */
+  const [problem, setProblem] = React.useState<"blocked" | "offline" | null>(null)
+  /** Whether sessions run on the device; decided once per press. */
+  const local = React.useRef(false)
+  /** Sessions that ended within a second of starting, back to back. */
+  const quickEnds = React.useRef(0)
   const engine = React.useRef<SpeechRecognitionLike | null>(null)
   const onTextRef = React.useRef(onText)
   React.useEffect(() => {
@@ -58,18 +69,30 @@ export function DictateButton({
 
     Chrome ends a session at every pause and raises `no-speech` with it, and a
     session that has ended cannot be started again, so each end builds a fresh
-    recogniser while the button is still on. Only a refusal of the microphone
-    ends it for good; everything else is a pause.
+    recogniser while the button is still on. A refused microphone, an
+    unreachable service or a missing microphone ends it for good, and so do
+    sessions that keep dying the moment they open — restarting those is what
+    made the microphone blink without ever hearing anything.
   */
   const listen = React.useCallback(() => {
     const Recogniser = speechRecognition()
     if (!Recogniser || !wanted.current) return
+    const fail = (reason: "blocked" | "offline") => {
+      wanted.current = false
+      engine.current = null
+      setProblem(reason)
+      setListening(false)
+    }
     const recogniser: SpeechRecognitionLike = new Recogniser()
-    recogniser.lang = "en-GB"
+    recogniser.lang = LANG
     recogniser.interimResults = false
     recogniser.continuous = true
+    if (local.current) recogniser.processLocally = true
+    const opened = performance.now()
+    let heard = false
 
     recogniser.onresult = (event) => {
+      heard = true
       // Only what the recogniser has settled on, from where this batch starts,
       // or a long dictation would repeat everything said so far.
       for (let i = event.resultIndex; i < event.results.length; i += 1) {
@@ -81,11 +104,9 @@ export function DictateButton({
     }
 
     recogniser.onerror = (event) => {
-      if (event?.error === "not-allowed" || event?.error === "service-not-allowed") {
-        wanted.current = false
-        engine.current = null
-        setListening(false)
-      }
+      const error = event?.error ?? ""
+      if (error === "not-allowed" || error === "service-not-allowed") fail("blocked")
+      else if (fatalErrors.has(error)) fail("offline")
     }
 
     recogniser.onend = () => {
@@ -94,19 +115,39 @@ export function DictateButton({
         setListening(false)
         return
       }
+      quickEnds.current = !heard && performance.now() - opened < 1000 ? quickEnds.current + 1 : 0
+      if (quickEnds.current >= 3) {
+        fail("offline")
+        return
+      }
       window.setTimeout(() => listenRef.current(), 150)
     }
 
     engine.current = recogniser
-    recogniser.start()
+    try {
+      recogniser.start()
+    } catch {
+      fail("offline")
+    }
   }, [])
 
   React.useEffect(() => {
     listenRef.current = listen
   }, [listen])
 
-  const start = () => {
-    if (!speechRecognition()) return
+  const start = async () => {
+    const Recogniser = speechRecognition()
+    if (!Recogniser) return
+    setProblem(null)
+    quickEnds.current = 0
+    setPreparing(true)
+    const mode = await preferredMode(Recogniser)
+    setPreparing(false)
+    if (mode === "none") {
+      setProblem("offline")
+      return
+    }
+    local.current = mode === "local"
     wanted.current = true
     setListening(true)
     listen()
@@ -131,16 +172,35 @@ export function DictateButton({
       variant="ghost"
       size={size}
       onClick={listening ? stop : start}
-      disabled={disabled || !supported}
+      disabled={disabled || !supported || preparing}
       aria-pressed={listening}
-      aria-label={listening ? "Stop dictating" : "Dictate this search"}
-      title={supported ? undefined : "This browser has no dictation"}
+      aria-label={
+        listening ? "Stop dictating" : preparing ? "Preparing dictation" : "Dictate this search"
+      }
+      title={
+        !supported
+          ? "This browser has no dictation"
+          : preparing
+            ? "Preparing dictation"
+            : problem === "offline"
+              ? "Dictation could not reach a speech service"
+              : problem === "blocked"
+                ? "The microphone is blocked for this site"
+                : undefined
+      }
       className={cn(
         "rounded-full",
         listening ? "text-brand hover:text-brand-strong" : "text-muted-foreground",
+        problem && !listening && "text-negative-ink",
       )}
     >
-      {listening ? <Level /> : <MicIcon />}
+      {listening ? (
+        <Level />
+      ) : preparing ? (
+        <LoaderCircleIcon className="animate-spin motion-reduce:animate-none" />
+      ) : (
+        <MicIcon />
+      )}
     </Button>
   )
 }
@@ -171,6 +231,8 @@ interface SpeechResultLike extends ArrayLike<{ transcript: string }> {
 
 interface SpeechRecognitionLike {
   lang: string
+  /** Chrome's on-device recognition, where the language pack is installed. */
+  processLocally?: boolean
   interimResults: boolean
   continuous: boolean
   onresult: ((event: { resultIndex: number; results: ArrayLike<SpeechResultLike> }) => void) | null
@@ -181,11 +243,47 @@ interface SpeechRecognitionLike {
   abort: () => void
 }
 
-function speechRecognition(): (new () => SpeechRecognitionLike) | undefined {
+interface AvailabilityOptions {
+  langs: string[]
+  processLocally: boolean
+}
+
+interface RecogniserClass {
+  new (): SpeechRecognitionLike
+  available?: (options: AvailabilityOptions) => Promise<string>
+  install?: (options: AvailabilityOptions) => Promise<boolean>
+}
+
+const LANG = "en-GB"
+
+/** Errors that mean no session will work, so restarting would only spin. */
+const fatalErrors = new Set(["network", "audio-capture", "language-not-supported"])
+
+/**
+ * On the device where Chrome can, installing the pack if it has to; the cloud
+ * service where it cannot; nothing where neither is there. Safari has no
+ * `available`, and goes straight to its own recogniser.
+ */
+async function preferredMode(Recogniser: RecogniserClass): Promise<"local" | "cloud" | "none"> {
+  if (!Recogniser.available) return "cloud"
+  try {
+    const onDevice = await Recogniser.available({ langs: [LANG], processLocally: true })
+    if (onDevice === "available") return "local"
+    if ((onDevice === "downloadable" || onDevice === "downloading") && Recogniser.install) {
+      if (await Recogniser.install({ langs: [LANG], processLocally: true })) return "local"
+    }
+    const cloud = await Recogniser.available({ langs: [LANG], processLocally: false })
+    return cloud === "unavailable" ? "none" : "cloud"
+  } catch {
+    return "cloud"
+  }
+}
+
+function speechRecognition(): RecogniserClass | undefined {
   if (typeof window === "undefined") return undefined
   const scope = window as unknown as {
-    SpeechRecognition?: new () => SpeechRecognitionLike
-    webkitSpeechRecognition?: new () => SpeechRecognitionLike
+    SpeechRecognition?: RecogniserClass
+    webkitSpeechRecognition?: RecogniserClass
   }
   return scope.SpeechRecognition ?? scope.webkitSpeechRecognition
 }

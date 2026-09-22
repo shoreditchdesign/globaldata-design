@@ -9,6 +9,7 @@ import {
   DownloadIcon,
   FolderTreeIcon,
   GripVerticalIcon,
+  LoaderCircleIcon,
   MicIcon,
   PinIcon,
   RotateCcwIcon,
@@ -578,11 +579,21 @@ function ViewTab({
  * Chrome and Safari have and Firefox does not. It stays open until it is
  * pressed again: Chrome ends a session at every pause, so each end builds a
  * fresh one, and only a refused microphone stops it for good.
+ *
+ * Where Chrome can transcribe on the device it does, installing the language
+ * pack on the first press: its cloud service fails with `network` on some
+ * machines that are otherwise online, and on-device needs no network at all.
  */
 function Dictate({ onTranscript, base }: { onTranscript: (text: string) => void; base: string }) {
   const [listening, setListening] = React.useState(false)
   /** Why it stopped, when it stopped for a reason worth saying. */
   const [problem, setProblem] = React.useState<"blocked" | "offline" | null>(null)
+  /** The on-device language pack installing, on the first press. */
+  const [preparing, setPreparing] = React.useState(false)
+  /** Whether sessions run on the device; decided once per press. */
+  const local = React.useRef(false)
+  /** Sessions that ended within a second of starting, back to back. */
+  const quickEnds = React.useRef(0)
   const engine = React.useRef<SpeechRecognitionLike | null>(null)
   const wanted = React.useRef(false)
   const listenRef = React.useRef<() => void>(() => {})
@@ -612,7 +623,10 @@ function Dictate({ onTranscript, base }: { onTranscript: (text: string) => void;
     const Recogniser = speechRecognition()
     if (!Recogniser || !wanted.current) return
     const recogniser: SpeechRecognitionLike = new Recogniser()
-    recogniser.lang = "en-GB"
+    recogniser.lang = LANG
+    if (local.current) recogniser.processLocally = true
+    const opened = performance.now()
+    let spoke = false
     // Interim results, so the words appear as they are said rather than after
     // the recogniser has made its mind up. What is settled is kept; the tail
     // is replaced on every event.
@@ -622,6 +636,7 @@ function Dictate({ onTranscript, base }: { onTranscript: (text: string) => void;
     let settled = ""
 
     recogniser.onresult = (event) => {
+      spoke = true
       let interim = ""
       for (let i = 0; i < event.results.length; i += 1) {
         const result = event.results[i]
@@ -635,28 +650,36 @@ function Dictate({ onTranscript, base }: { onTranscript: (text: string) => void;
       onTranscriptRef.current(heard ? (lead ? `${lead} ${heard}` : heard) : lead)
     }
 
-    /*
-      `no-speech` and `aborted` are pauses and the session restarts through
-      `onend`. The other two are not: the microphone was refused, or Chrome
-      could not reach the speech service it sends the audio to — on a VPN or
-      behind a firewall that fails every time, so retrying would spin silently.
-    */
-    recogniser.onerror = (event) => {
-      const fatal =
-        event?.error === "not-allowed" ||
-        event?.error === "service-not-allowed" ||
-        event?.error === "network"
-      if (!fatal) return
+    const fail = (reason: "blocked" | "offline") => {
       wanted.current = false
       engine.current = null
-      setProblem(event?.error === "network" ? "offline" : "blocked")
+      setProblem(reason)
       setListening(false)
+    }
+
+    /*
+      `no-speech` and `aborted` are pauses and the session restarts through
+      `onend`. The rest are not: the microphone was refused or is missing, or
+      the speech service could not be reached — on a VPN or behind a firewall
+      that fails every time, so retrying would spin silently.
+    */
+    recogniser.onerror = (event) => {
+      const error = event?.error ?? ""
+      if (error === "not-allowed" || error === "service-not-allowed") fail("blocked")
+      else if (fatalErrors.has(error)) fail("offline")
     }
 
     recogniser.onend = () => {
       engine.current = null
       if (!wanted.current) {
         setListening(false)
+        return
+      }
+      // Sessions that die the moment they open, back to back, will not start
+      // working; restarting them is what made the microphone blink.
+      quickEnds.current = !spoke && performance.now() - opened < 1000 ? quickEnds.current + 1 : 0
+      if (quickEnds.current >= 3) {
+        fail("offline")
         return
       }
       // A session ends at every pause. What it settled becomes part of the lead
@@ -667,7 +690,11 @@ function Dictate({ onTranscript, base }: { onTranscript: (text: string) => void;
     }
 
     engine.current = recogniser
-    recogniser.start()
+    try {
+      recogniser.start()
+    } catch {
+      fail("offline")
+    }
   }, [])
 
   React.useEffect(() => {
@@ -682,11 +709,21 @@ function Dictate({ onTranscript, base }: { onTranscript: (text: string) => void;
     [],
   )
 
-  const start = () => {
-    if (!speechRecognition()) return
+  const start = async () => {
+    const Recogniser = speechRecognition()
+    if (!Recogniser) return
+    setProblem(null)
+    quickEnds.current = 0
+    setPreparing(true)
+    const mode = await preferredMode(Recogniser)
+    setPreparing(false)
+    if (mode === "none") {
+      setProblem("offline")
+      return
+    }
+    local.current = mode === "local"
     baseRef.current = base
     saidRef.current = ""
-    setProblem(null)
     wanted.current = true
     setListening(true)
     listen()
@@ -697,13 +734,13 @@ function Dictate({ onTranscript, base }: { onTranscript: (text: string) => void;
       variant="ghost"
       size="sm"
       onClick={listening ? stop : start}
-      disabled={!supported}
+      disabled={!supported || preparing}
       aria-pressed={listening}
       title={
         !supported
           ? "This browser has no dictation"
           : problem === "offline"
-            ? "Chrome sends dictation to Google to transcribe, and could not reach it"
+            ? "Dictation could not reach a speech service"
             : problem === "blocked"
               ? "The microphone is blocked for this site"
               : undefined
@@ -714,9 +751,17 @@ function Dictate({ onTranscript, base }: { onTranscript: (text: string) => void;
         problem && !listening && "text-negative-ink",
       )}
     >
-      {listening ? <Level /> : <MicIcon />}
+      {listening ? (
+        <Level />
+      ) : preparing ? (
+        <LoaderCircleIcon className="animate-spin motion-reduce:animate-none" />
+      ) : (
+        <MicIcon />
+      )}
       {listening
         ? "Listening"
+        : preparing
+          ? "Preparing"
         : problem === "offline"
           ? "Dictation unavailable"
           : problem === "blocked"
@@ -747,6 +792,8 @@ interface SpeechResultLike extends ArrayLike<{ transcript: string }> {
 
 interface SpeechRecognitionLike {
   lang: string
+  /** Chrome's on-device recognition, where the language pack is installed. */
+  processLocally?: boolean
   interimResults: boolean
   continuous: boolean
   onresult: ((event: { resultIndex: number; results: ArrayLike<SpeechResultLike> }) => void) | null
@@ -757,11 +804,47 @@ interface SpeechRecognitionLike {
   abort: () => void
 }
 
-function speechRecognition(): (new () => SpeechRecognitionLike) | undefined {
+interface AvailabilityOptions {
+  langs: string[]
+  processLocally: boolean
+}
+
+interface RecogniserClass {
+  new (): SpeechRecognitionLike
+  available?: (options: AvailabilityOptions) => Promise<string>
+  install?: (options: AvailabilityOptions) => Promise<boolean>
+}
+
+const LANG = "en-GB"
+
+/** Errors that mean no session will work, so restarting would only spin. */
+const fatalErrors = new Set(["network", "audio-capture", "language-not-supported"])
+
+/**
+ * On the device where Chrome can, installing the pack if it has to; the cloud
+ * service where it cannot; nothing where neither is there. Safari has no
+ * `available`, and goes straight to its own recogniser.
+ */
+async function preferredMode(Recogniser: RecogniserClass): Promise<"local" | "cloud" | "none"> {
+  if (!Recogniser.available) return "cloud"
+  try {
+    const onDevice = await Recogniser.available({ langs: [LANG], processLocally: true })
+    if (onDevice === "available") return "local"
+    if ((onDevice === "downloadable" || onDevice === "downloading") && Recogniser.install) {
+      if (await Recogniser.install({ langs: [LANG], processLocally: true })) return "local"
+    }
+    const cloud = await Recogniser.available({ langs: [LANG], processLocally: false })
+    return cloud === "unavailable" ? "none" : "cloud"
+  } catch {
+    return "cloud"
+  }
+}
+
+function speechRecognition(): RecogniserClass | undefined {
   if (typeof window === "undefined") return undefined
   const scope = window as unknown as {
-    SpeechRecognition?: new () => SpeechRecognitionLike
-    webkitSpeechRecognition?: new () => SpeechRecognitionLike
+    SpeechRecognition?: RecogniserClass
+    webkitSpeechRecognition?: RecogniserClass
   }
   return scope.SpeechRecognition ?? scope.webkitSpeechRecognition
 }
