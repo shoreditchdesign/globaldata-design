@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ArrowRightIcon } from "lucide-react"
+import { ArrowRightIcon, PanelLeftCloseIcon, PanelLeftOpenIcon } from "lucide-react"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { Button } from "@/components/ui/button"
@@ -17,6 +17,12 @@ import { cn } from "@/lib/utils"
  * The results page's left panel. Quick search is the landing search, narrowed:
  * the natural-language field and the pill cascade. Advanced search is Miller
  * columns. All three feed the filter box to the right.
+ *
+ * It collapses to a rail, because reading the grid and refining the search are
+ * two different sittings: the panel is 420px of a 1440px screen, and once the
+ * filters are right the reader wants the columns, not the controls that built
+ * them. Collapsed is a view preference, not part of the query, so it is held
+ * here rather than in the prototype state and no screen seeds into it.
  */
 export function SearchPanel({
   mode,
@@ -54,6 +60,7 @@ export function SearchPanel({
 }) {
   const hasQuery = query.trim().length > 0
   const resolving = Boolean(pending)
+  const [collapsed, setCollapsed] = React.useState(false)
   const fieldRef = React.useRef<HTMLTextAreaElement>(null)
 
   // The field hugs its text, growing a line at a time as the query wraps.
@@ -68,6 +75,28 @@ export function SearchPanel({
     if (hasQuery && !resolving) onResolve()
   }
 
+  // Collapsed, the panel keeps its surface and its edge so the grid still reads
+  // as sitting beside something, and holds nothing but the way back.
+  if (collapsed) {
+    return (
+      <aside
+        aria-label="Search"
+        className="bg-surface-chrome border-edge flex w-11 shrink-0 flex-col items-center border-r px-2 pt-3"
+      >
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Show the search panel"
+          onClick={() => setCollapsed(false)}
+          className="text-muted-foreground"
+        >
+          <PanelLeftOpenIcon />
+        </Button>
+      </aside>
+    )
+  }
+
   return (
     <aside
       aria-label="Search"
@@ -80,14 +109,25 @@ export function SearchPanel({
         mode === "manual" ? "w-[528px]" : "w-[420px]",
       )}
     >
-      <div className="shrink-0 px-3 pt-3">
+      <div className="flex shrink-0 items-center gap-2 px-3 pt-3">
         <SearchTabs
           mode={mode}
           onModeChange={onModeChange}
-          // The quick panel's inner width, held when manual search widens the
-          // panel so the tabs stay put, left-aligned, rather than stretching.
-          className="flex w-[396px] [&>button]:flex-1"
+          // The quick panel's inner width less the collapse button beside them,
+          // held when manual search widens the panel so the tabs stay put,
+          // left-aligned, rather than stretching.
+          className="flex w-[360px] [&>button]:flex-1"
         />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Hide the search panel"
+          onClick={() => setCollapsed(true)}
+          className="text-muted-foreground ml-auto"
+        >
+          <PanelLeftCloseIcon />
+        </Button>
       </div>
 
       {mode === "quick" ? (
