@@ -5,6 +5,7 @@ import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { Button } from "@/components/ui/button"
 import { DictateButton } from "@/flows/sprint-4/idea-1b/components/DictateButton"
 import { ManualSearch } from "@/flows/sprint-4/idea-1b/components/ManualSearch"
+import { ReadNotice } from "@/flows/sprint-4/idea-1b/components/ReadNotice"
 import { ScanningQuery } from "@/flows/sprint-4/idea-1b/components/ScanningQuery"
 import { SearchPills } from "@/flows/sprint-4/idea-1b/components/SearchPills"
 import { SearchTabs } from "@/flows/sprint-4/idea-1b/components/SearchTabs"
@@ -23,6 +24,7 @@ export function SearchPanel({
   query,
   filters,
   pending,
+  unread,
   onModeChange,
   onQueryChange,
   onDictate,
@@ -39,6 +41,8 @@ export function SearchPanel({
   query: string
   filters: ResolvedFilter[]
   pending: Resolution | null
+  /** What the last read could not place, said under the field. */
+  unread: Resolution | null
   onModeChange: (mode: SearchMode) => void
   onQueryChange: (query: string) => void
   /** Dictated speech, appended to whatever is already in the field. */
@@ -135,6 +139,8 @@ export function SearchPanel({
               </Button>
             </div>
           </form>
+
+          {unread ? <ReadNotice resolution={unread} className="mt-2 px-1 text-xs" /> : null}
 
           <div className="mt-4">
             <SearchPills
