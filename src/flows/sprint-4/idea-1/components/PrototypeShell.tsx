@@ -263,7 +263,6 @@ export function PrototypeShell() {
         }
         manual={
           <ManualSearch
-            layout="wide"
             filters={state.filters}
             activeCategory={state.manualCategory}
             activeAttribute={state.manualAttribute}
