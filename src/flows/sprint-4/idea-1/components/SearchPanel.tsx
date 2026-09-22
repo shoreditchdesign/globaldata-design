@@ -100,13 +100,18 @@ export function SearchPanel({
   return (
     <aside
       aria-label="Search"
-      // Advanced search widens the panel to hold two Miller columns side by side.
+      // Advanced search widens the panel to hold all three Miller columns side
+      // by side, the way the landing page shows them: 800px is three thirds of
+      // 266px against a 260px column floor, so area, attribute and value are
+      // all readable at once and nothing has to be slid out of the way. That is
+      // over half a laptop screen, which is what the collapse is for — the
+      // panel is wide while the search is being built and gone once it is.
       // Quick is wider than the rail needs for its field, so the commonly used
       // filters pair up on a line and have room to take a count without the row
       // rewrapping — the same slack the landing page's column gives them.
       className={cn(
         "bg-surface-chrome border-edge flex shrink-0 flex-col border-r",
-        mode === "manual" ? "w-[528px]" : "w-[420px]",
+        mode === "manual" ? "w-[800px]" : "w-[420px]",
       )}
     >
       <div className="flex shrink-0 items-center gap-2 px-3 pt-3">
