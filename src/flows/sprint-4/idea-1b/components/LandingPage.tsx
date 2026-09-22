@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { motion, usePrefersReducedMotion } from "@/components/prototype/motion"
 import { DictateButton } from "@/flows/sprint-4/idea-1b/components/DictateButton"
 import type { ProductArea } from "@/components/prototype/ProductChrome"
+import { ReadNotice } from "@/flows/sprint-4/idea-1b/components/ReadNotice"
 import { SearchTabs } from "@/flows/sprint-4/idea-1b/components/SearchTabs"
 import { SearchPills } from "@/flows/sprint-4/idea-1b/components/SearchPills"
 import { ScanningQuery } from "@/flows/sprint-4/idea-1b/components/ScanningQuery"
@@ -28,6 +29,7 @@ export function LandingPage({
   filterBox,
   manual,
   pending,
+  unread,
   onScanDone,
 }: {
   mode: SearchMode
@@ -45,6 +47,8 @@ export function LandingPage({
   /** Advanced search in its wide layout, which takes the place of the query field and pills. */
   manual: React.ReactNode
   pending: Resolution | null
+  /** What the last read could not place, said under the field. */
+  unread: Resolution | null
   onScanDone: () => void
 }) {
   const hasQuery = query.trim().length > 0
@@ -225,9 +229,15 @@ export function LandingPage({
               <div
                 className={cn(
                   "absolute inset-x-0 flex flex-col gap-5 pb-16",
-                  filterBox ? "-top-3" : "top-0",
+                  filterBox || unread ? "-top-3" : "top-0",
                 )}
               >
+                {unread ? (
+                  <ReadNotice
+                    resolution={unread}
+                    className={cn("mx-auto w-full max-w-4xl px-4 text-sm", filterBox && "-mb-2")}
+                  />
+                ) : null}
                 {filterBox ? (
                   <div data-flip="summary" className="mx-auto w-full max-w-4xl">
                     {filterBox}

@@ -21,7 +21,10 @@ import {
   type FilterLink,
 } from "@/flows/sprint-4/idea-1b/data"
 import { resultsFor } from "@/flows/sprint-4/idea-1b/results"
-import { resolveQuery as resolveNaturalLanguage } from "@/flows/sprint-4/idea-1b/resolve"
+import {
+  resolveQuery as resolveNaturalLanguage,
+  type Resolution,
+} from "@/flows/sprint-4/idea-1b/resolve"
 import {
   initialState,
   slugFor,
@@ -69,6 +72,11 @@ function toggleValueAt(
   return { ...current, path, filters }
 }
 
+/** Whether a read left words it could not place, or asked for something unbuilt. */
+function leftOver(resolution: Resolution) {
+  return resolution.unplaced.length > 0 || resolution.notes.length > 0
+}
+
 /**
  * The living shell for Sprint 4 Idea 1: the landing search until a search
  * runs, then the results page. The shared product chrome stays constant.
@@ -81,13 +89,16 @@ export function PrototypeShell() {
   useDeepLink(slugFor(state), reseed)
 
   const setMode = (mode: SearchMode) => setState((current) => ({ ...current, mode }))
-  const setQuery = (query: string) => setState((current) => ({ ...current, query }))
+  // A changed query is a new question, so what the last one left unread goes.
+  const setQuery = (query: string) =>
+    setState((current) => ({ ...current, query, unread: null }))
   // Dictation adds to the query rather than replacing it, so a session spoken
   // in several goes builds one request — the arrow still resolves it.
   const appendQuery = (text: string) =>
     setState((current) => ({
       ...current,
       query: current.query.trim() ? `${current.query.trim()} ${text}` : text,
+      unread: null,
     }))
   // A pill puts its clause in the filter box, waiting for a value, and takes it
   // out again when pressed a second time. The value is chosen from the clause's
@@ -120,7 +131,11 @@ export function PrototypeShell() {
   const submitQuery = () =>
     setState((current) => {
       const resolution = resolveNaturalLanguage(current.query)
-      return resolution.ok ? { ...current, pending: resolution } : current
+      // A read that placed nothing leaves the filters alone and says why,
+      // rather than swallowing the request.
+      return resolution.ok
+        ? { ...current, pending: resolution, unread: null }
+        : { ...current, unread: resolution }
     })
   const settleQuery = React.useCallback(
     () =>
@@ -133,6 +148,8 @@ export function PrototypeShell() {
               filters: current.pending.filters,
               path: null,
               pending: null,
+              // Anything the read could not place is said once it has settled.
+              unread: leftOver(current.pending) ? current.pending : null,
             }
           : current,
       ),
@@ -226,6 +243,7 @@ export function PrototypeShell() {
               query={state.query}
               filters={state.filters}
               pending={state.pending}
+              unread={state.unread}
               onModeChange={setMode}
               onQueryChange={setQuery}
               onDictate={appendQuery}
@@ -273,6 +291,7 @@ export function PrototypeShell() {
           />
         }
         pending={state.pending}
+        unread={state.unread}
         onScanDone={settleQuery}
       />
     </ProductChrome>

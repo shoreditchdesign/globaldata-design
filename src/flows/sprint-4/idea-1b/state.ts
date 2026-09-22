@@ -36,6 +36,12 @@ export interface Sprint4Idea1bState {
   filters: ResolvedFilter[]
   /** A synchronous resolution held on screen while its phrases are scanned. */
   pending: Resolution | null
+  /**
+   * The last read that left something behind: a query nothing in it could be
+   * placed from, or one that settled with words it could not place. Cleared
+   * when the query changes or a later read places everything.
+   */
+  unread: Resolution | null
   /** Set once a search runs; the results then follow the filters as they change. */
   showResults: boolean
 }
@@ -50,6 +56,7 @@ const startState = (): Sprint4Idea1bState => ({
   submittedQuery: null,
   filters: [],
   pending: null,
+  unread: null,
   showResults: false,
 })
 
@@ -63,6 +70,7 @@ const filteredState = (): Sprint4Idea1bState => ({
   submittedQuery: workedQuery,
   filters: initialResolvedFilters(),
   pending: null,
+  unread: null,
   showResults: false,
 })
 
@@ -102,6 +110,7 @@ const resolvingState = (): Sprint4Idea1bState => ({
   submittedQuery: null,
   filters: [],
   pending: resolveQuery(workedQuery),
+  unread: null,
   showResults: false,
 })
 
