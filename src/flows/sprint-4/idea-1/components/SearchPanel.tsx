@@ -3,6 +3,7 @@ import { ArrowRightIcon } from "lucide-react"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { Button } from "@/components/ui/button"
+import { DictateButton } from "@/flows/sprint-4/idea-1/components/DictateButton"
 import { ManualSearch } from "@/flows/sprint-4/idea-1/components/ManualSearch"
 import { ScanningQuery } from "@/flows/sprint-4/idea-1/components/ScanningQuery"
 import { SearchPills } from "@/flows/sprint-4/idea-1/components/SearchPills"
@@ -14,23 +15,20 @@ import { cn } from "@/lib/utils"
 
 /**
  * The results page's left panel. Quick search is the landing search, narrowed:
- * the natural-language field and the pill cascade. Manual search is Miller
+ * the natural-language field and the pill cascade. Advanced search is Miller
  * columns. All three feed the filter box to the right.
  */
 export function SearchPanel({
   mode,
   query,
-  activeCategory,
-  activeAttribute,
   filters,
   pending,
   onModeChange,
   onQueryChange,
+  onDictate,
   onResolve,
   onScanDone,
-  onCategoryChange,
-  onAttributeChange,
-  onValuePick,
+  onToggleFilter,
   manualCategory,
   manualAttribute,
   onOpenCategory,
@@ -39,17 +37,15 @@ export function SearchPanel({
 }: {
   mode: SearchMode
   query: string
-  activeCategory: ProductArea | null
-  activeAttribute: string | null
   filters: ResolvedFilter[]
   pending: Resolution | null
   onModeChange: (mode: SearchMode) => void
   onQueryChange: (query: string) => void
+  /** Dictated speech, appended to whatever is already in the field. */
+  onDictate: (text: string) => void
   onResolve: () => void
   onScanDone: () => void
-  onCategoryChange: (category: ProductArea) => void
-  onAttributeChange: (attribute: string) => void
-  onValuePick: (value: string) => void
+  onToggleFilter: (area: ProductArea, attribute: string) => void
   manualCategory: ProductArea | null
   manualAttribute: string | null
   onOpenCategory: (category: ProductArea) => void
@@ -75,10 +71,13 @@ export function SearchPanel({
   return (
     <aside
       aria-label="Search"
-      // Manual search widens the panel to hold two Miller columns side by side.
+      // Advanced search widens the panel to hold two Miller columns side by side.
+      // Quick is wider than the rail needs for its field, so the commonly used
+      // filters pair up on a line and have room to take a count without the row
+      // rewrapping — the same slack the landing page's column gives them.
       className={cn(
         "bg-surface-chrome border-edge flex shrink-0 flex-col border-r",
-        mode === "manual" ? "w-[528px]" : "w-[340px]",
+        mode === "manual" ? "w-[528px]" : "w-[420px]",
       )}
     >
       <div className="shrink-0 px-3 pt-3">
@@ -87,7 +86,7 @@ export function SearchPanel({
           onModeChange={onModeChange}
           // The quick panel's inner width, held when manual search widens the
           // panel so the tabs stay put, left-aligned, rather than stretching.
-          className="flex w-[316px] [&>button]:flex-1"
+          className="flex w-[396px] [&>button]:flex-1"
         />
       </div>
 
@@ -123,7 +122,8 @@ export function SearchPanel({
               />
               {pending ? <ScanningQuery resolution={pending} onDone={onScanDone} multiline /> : null}
             </div>
-            <div className="mt-2 flex justify-end">
+            <div className="mt-2 flex items-center justify-end gap-1">
+              <DictateButton onText={onDictate} disabled={resolving} size="icon-sm" />
               <Button
                 type="submit"
                 size="icon-sm"
@@ -138,13 +138,9 @@ export function SearchPanel({
 
           <div className="mt-4">
             <SearchPills
-              filters={filters}
               layout="panel"
-              activeCategory={activeCategory}
-              activeAttribute={activeAttribute}
-              onCategoryChange={onCategoryChange}
-              onAttributeChange={onAttributeChange}
-              onValuePick={onValuePick}
+              filters={filters}
+              onToggleFilter={onToggleFilter}
             />
           </div>
         </div>

@@ -5,6 +5,7 @@ import { ArrowRightIcon, SearchIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { motion, usePrefersReducedMotion } from "@/components/prototype/motion"
+import { DictateButton } from "@/flows/sprint-4/idea-1/components/DictateButton"
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { SearchTabs } from "@/flows/sprint-4/idea-1/components/SearchTabs"
 import { SearchPills } from "@/flows/sprint-4/idea-1/components/SearchPills"
@@ -17,13 +18,10 @@ import { cn } from "@/lib/utils"
 export function LandingPage({
   mode,
   query,
-  activeCategory,
   onModeChange,
   onQueryChange,
-  onCategoryChange,
-  activeAttribute,
-  onAttributeChange,
-  onValuePick,
+  onDictate,
+  onToggleFilter,
   onResolve,
   hasResolvedFilters,
   filters,
@@ -34,19 +32,17 @@ export function LandingPage({
 }: {
   mode: SearchMode
   query: string
-  activeCategory: ProductArea | null
   onModeChange: (mode: SearchMode) => void
   onQueryChange: (query: string) => void
-  onCategoryChange: (category: ProductArea) => void
-  activeAttribute: string | null
-  onAttributeChange: (attribute: string) => void
-  onValuePick: (value: string) => void
+  /** Dictated speech, appended to whatever is already in the field. */
+  onDictate: (text: string) => void
+  onToggleFilter: (area: ProductArea, attribute: string) => void
   onResolve: () => void
   hasResolvedFilters: boolean
   filters: ResolvedFilter[]
-  /** The filter box: once a search or a pill path has built one, and always in Manual. */
+  /** The filter box: once a search or a pill path has built one, and always in Advanced. */
   filterBox: React.ReactNode
-  /** Manual search in its wide layout, which takes the place of the query field and pills. */
+  /** Advanced search in its wide layout, which takes the place of the query field and pills. */
   manual: React.ReactNode
   pending: Resolution | null
   onScanDone: () => void
@@ -54,7 +50,7 @@ export function LandingPage({
   const hasQuery = query.trim().length > 0
   const resolving = Boolean(pending)
 
-  // Switching between Quick and Manual moves things rather than swapping them.
+  // Switching between Quick and Advanced moves things rather than swapping them.
   // Each tracked element is measured either side of the switch and eased from
   // where it was: the title slides; the filter box glides between its place
   // under the field and its place under the columns; and whatever the switch
@@ -141,15 +137,19 @@ export function LandingPage({
         Quick search is centred a little above the middle by padding more below
         than above. It may shrink below its content, so on a short window the
         pills' well gives up its empty space before the page is made to scroll.
-        Manual search runs top down instead: the title under the tabs, the Miller
+        Advanced search runs top down instead: the title under the tabs, the Miller
         columns filling the page, and the filter box always beneath them.
       */}
       <section
         ref={sectionRef}
         className={cn(
           "mx-auto flex min-h-0 w-full flex-1 flex-col px-8 pt-6",
-          // Manual widens so the three Miller columns span more of the page.
-          manualMode ? "max-w-7xl pb-8" : "max-w-4xl items-center justify-center pb-16",
+          // Advanced widens so the three Miller columns span more of the page.
+          // Quick is wider than its search field: the field and the filter box
+          // are held at 56rem inside it, and the extra room is the pills', so a
+          // count arriving on one has somewhere to grow without the row
+          // rewrapping under the cursor.
+          manualMode ? "max-w-7xl pb-8" : "max-w-5xl items-center justify-center pb-16",
         )}
       >
         <div data-flip="title" className="text-center">
@@ -177,7 +177,7 @@ export function LandingPage({
           <>
             <form
               data-flip="stack"
-              className="bg-surface-panel border-border focus-within:border-ring mt-7 flex min-h-16 w-full items-center gap-3 rounded-xl border px-4 transition-colors"
+              className="bg-surface-panel border-border focus-within:border-ring mx-auto mt-7 flex min-h-16 w-full max-w-4xl items-center gap-3 rounded-xl border px-4 transition-colors"
               onSubmit={(event) => {
                 event.preventDefault()
                 if (hasQuery && !resolving) onResolve()
@@ -199,6 +199,7 @@ export function LandingPage({
                 />
                 {pending ? <ScanningQuery resolution={pending} onDone={onScanDone} /> : null}
               </div>
+              <DictateButton onText={onDictate} disabled={resolving} />
               <Button
                 type="submit"
                 size="icon-lg"
@@ -227,16 +228,16 @@ export function LandingPage({
                   filterBox ? "-top-3" : "top-0",
                 )}
               >
-                {filterBox ? <div data-flip="summary">{filterBox}</div> : null}
+                {filterBox ? (
+                  <div data-flip="summary" className="mx-auto w-full max-w-4xl">
+                    {filterBox}
+                  </div>
+                ) : null}
                 <div data-flip="after">
                   <SearchPills
-                    filters={filters}
                     layout="centered"
-                    activeCategory={activeCategory}
-                    activeAttribute={activeAttribute}
-                    onCategoryChange={onCategoryChange}
-                    onAttributeChange={onAttributeChange}
-                    onValuePick={onValuePick}
+                    filters={filters}
+                    onToggleFilter={onToggleFilter}
                   />
                 </div>
               </div>

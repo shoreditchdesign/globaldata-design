@@ -1,7 +1,7 @@
 import type { SearchMode } from "@/flows/sprint-4/idea-1/state"
 import { cn } from "@/lib/utils"
 
-/** Quick search or manual search, as a segmented control. */
+/** Quick search or advanced search, as a segmented control. */
 export function SearchTabs({
   mode,
   onModeChange,
@@ -24,7 +24,7 @@ export function SearchTabs({
         Quick search
       </SearchTab>
       <SearchTab active={mode === "manual"} onClick={() => onModeChange("manual")}>
-        Manual search
+        Advanced search
       </SearchTab>
     </div>
   )
