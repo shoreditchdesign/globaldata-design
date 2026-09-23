@@ -3,6 +3,7 @@ import {
   definitionFor,
   filterDefinitions,
   filterIdFor,
+  geographyChildren,
   searchAttributeLabels,
   searchAttributeValues,
   type FilterId,
@@ -73,6 +74,12 @@ interface Matcher {
   patterns: string[]
   /** Words that, immediately before this phrase, mean it is not this value. */
   notAfter?: string[]
+  /**
+   * A second clause the same phrase fills. "Janus Kinase" names the targets
+   * and the mechanism at once, and reading it as only one of the two would
+   * answer half the question.
+   */
+  also?: { id: FilterId; values: string[] }
 }
 
 /**
@@ -121,6 +128,12 @@ const synonyms: Record<string, string[]> = {
   "stage:Withdrawn (Marketed)": ["withdrawn", "pulled"],
   "stage:Archived (Marketed)": ["archived", "discontinued"],
 
+  "geography:Europe": ["european", "eu"],
+  "geography:North America": ["north american"],
+  "geography:Asia-Pacific": ["asia", "apac", "asian"],
+  "geography:Latin America": ["latam", "south america", "latin american"],
+  "geography:Middle East & Africa": ["middle east", "middle east and africa", "africa", "african"],
+
   "geography:Austria": ["austrian"],
   "geography:Italy": ["italian"],
   "geography:Germany": ["german"],
@@ -160,18 +173,32 @@ const synonyms: Record<string, string[]> = {
   "target:Actin Gamma Enteric Smooth Muscle": ["actg2", "actin gamma", "actin gamma 2"],
   "target:Cyclooxygenase 2": ["cox 2", "cox2", "ptgs2"],
   "target:Cyclooxygenase 1": ["cox 1", "cox1", "ptgs1"],
-  "target:Interleukin 17A": ["il 17", "il17", "il 17a", "interleukin 17"],
+  "target:Interleukin 17A": ["il 17a", "il17a"],
+  "target:Janus Kinase 1": ["jak1", "jak 1"],
+  "target:Janus Kinase 2": ["jak2", "jak 2"],
   "target:Janus Kinase 3": ["jak3", "jak 3"],
   "target:Vitamin D Receptor": ["vdr"],
   "target:ATP Citrate Lyase": ["acly"],
   "target:Sodium Glucose Cotransporter 2": ["sglt2", "sglt 2"],
   "target:Survival Motor Neuron 1": ["smn1"],
+  "target:Beta 3 Adrenergic Receptor": ["beta 3", "adrb3"],
+  "target:Thrombopoietin Receptor": ["tpo receptor", "mpl"],
+  "target:Thyroid Hormone Receptor": ["thyroid receptor"],
 
   "Drugs/Mechanism of Action:Cyclooxygenase Inhibitor": ["cox inhibitor", "cox inhibitors"],
   "Drugs/Mechanism of Action:Interleukin 17A Antagonist": ["il 17 antagonist", "il 17 antagonists"],
   "Drugs/Mechanism of Action:Janus Kinase Inhibitor": ["jak inhibitor", "jak inhibitors"],
   "Drugs/Mechanism of Action:Proton Pump Inhibitor": ["ppi", "ppis", "proton pump inhibitors"],
   "Drugs/Mechanism of Action:SGLT2 Inhibitor": ["sglt2 inhibitors", "sglt 2 inhibitor", "sglt 2 inhibitors"],
+  "Drugs/Mechanism of Action:Glucocorticoid Receptor Agonist": [
+    "corticosteroid",
+    "corticosteroids",
+    "steroid",
+    "steroids",
+  ],
+  "Drugs/Mechanism of Action:Beta 3 Adrenergic Agonist": ["beta 3 agonist", "beta 3 agonists"],
+  "Drugs/Mechanism of Action:Thrombopoietin Receptor Agonist": ["tpo agonist", "tpo agonists"],
+  "Drugs/Mechanism of Action:Thyroid Hormone Receptor Agonist": ["thyroid hormone agonist"],
 
   "drug-type:Generic": ["generics", "generic drug", "generic drugs"],
   "drug-type:Branded": ["brand", "brands", "branded drug", "branded drugs"],
@@ -197,6 +224,9 @@ const synonyms: Record<string, string[]> = {
   "descriptor:Antipsoriatic Therapy": ["antipsoriatic", "antipsoriatics", "psoriasis"],
   "descriptor:Antiulcer Therapy": ["antiulcer", "anti ulcer", "ulcer", "ulcers"],
   "descriptor:Antianginal Therapy": ["antianginal", "antianginals", "angina"],
+  "descriptor:Antispasmodic Therapy": ["antispasmodic", "antispasmodics"],
+  "descriptor:Haemostatic Therapy": ["haemostatic", "hemostatic", "haemostatics"],
+  "descriptor:Hormone Replacement Therapy": ["hrt", "hormone replacement"],
 
   "Drugs/Gene Therapy Vector:Adeno Associated Virus (AAV)": ["aav", "adeno associated virus"],
   "Drugs/Gene Therapy Vector:Lentivirus": ["lentiviral"],
@@ -210,6 +240,13 @@ const synonyms: Record<string, string[]> = {
 
   "Drugs by Manufacturer/Manufacturer:Teva Pharmaceutical": ["teva"],
   "Drugs by Manufacturer/Manufacturer:Sun Pharmaceutical": ["sun pharma", "sun pharmaceuticals"],
+  "Drugs by Manufacturer/Manufacturer:Dr. Reddy's Laboratories": ["dr reddys", "reddys"],
+  "Drugs by Manufacturer/Manufacturer:Glenmark Pharmaceuticals": ["glenmark"],
+  "Drugs by Manufacturer/Manufacturer:Hikma Pharmaceuticals": ["hikma"],
+  "Drugs by Manufacturer/Manufacturer:Zydus Lifesciences": ["zydus"],
+  "Drugs by Manufacturer/Manufacturer:Alkem Laboratories": ["alkem"],
+  "Drugs by Manufacturer/Manufacturer:Esperion Therapeutics": ["esperion"],
+  "Drugs by Manufacturer/Manufacturer:Aurobindo Pharma": ["aurobindo"],
 }
 
 /** Phrases that name more than one stage at once. */
@@ -257,6 +294,61 @@ const compounds: Matcher[] = [
 ]
 
 /**
+ * Families: a protein named without its number, and a mechanism named by the
+ * kind of thing it acts on.
+ *
+ * The taxonomy carries Janus Kinase 1, 2 and 3, and nobody types the number —
+ * they type "Janus Kinase", or "JAK", and mean the family and the drugs that
+ * inhibit it. So the phrase fills both clauses, the targets and the mechanism,
+ * which is what the words name. A phrase that does pick a variant out, or the
+ * inhibitor by itself, is longer and still wins over these.
+ */
+const familyMatchers: Matcher[] = [
+  {
+    id: "target",
+    values: ["Janus Kinase 1", "Janus Kinase 2", "Janus Kinase 3"],
+    patterns: ["janus kinase", "janus kinases", "jak", "jaks", "jak family", "jak pathway"],
+    also: { id: "Drugs/Mechanism of Action", values: ["Janus Kinase Inhibitor"] },
+  },
+  {
+    id: "target",
+    values: ["Interleukin 17A"],
+    patterns: ["interleukin 17", "interleukins 17", "il 17", "il17"],
+    also: { id: "Drugs/Mechanism of Action", values: ["Interleukin 17A Antagonist"] },
+  },
+  {
+    id: "target",
+    values: ["Cyclooxygenase 1", "Cyclooxygenase 2"],
+    patterns: ["cyclooxygenase", "cyclooxygenases", "cox", "prostaglandin synthase"],
+    also: { id: "Drugs/Mechanism of Action", values: ["Cyclooxygenase Inhibitor"] },
+  },
+  {
+    // Every mechanism in the taxonomy that works by binding a receptor. Named
+    // this way it is a mechanism and nothing else, so it fills one clause.
+    id: "Drugs/Mechanism of Action",
+    values: [
+      "Vitamin D Receptor Agonist",
+      "Glucocorticoid Receptor Agonist",
+      "Beta 3 Adrenergic Agonist",
+      "Thrombopoietin Receptor Agonist",
+      "Thyroid Hormone Receptor Agonist",
+    ],
+    patterns: [
+      "receptor based mechanism",
+      "receptor based mechanisms",
+      "receptor based",
+      "receptor mechanism",
+      "receptor mechanisms",
+      "receptor agonist",
+      "receptor agonists",
+      "receptor mediated",
+      "acts on a receptor",
+      "receptor binding",
+    ],
+  },
+]
+
+/**
  * Words that mean something real in the product and nothing here. Reported
  * with a reason rather than as gibberish.
  */
@@ -289,10 +381,10 @@ const unbuilt: { patterns: string[]; note: string }[] = [
   },
   {
     patterns: [
-      "novartis", "roche", "boehringer", "boehringer ingelheim", "astrazeneca", "sanofi", "bayer",
-      "gsk", "merck", "abbvie", "lilly", "takeda", "amgen",
+      "roche", "boehringer", "boehringer ingelheim", "gsk", "merck", "abbvie", "lilly", "takeda",
+      "amgen", "johnson", "bristol myers squibb", "bms",
     ],
-    note: "Manufacturers in this sample are Pfizer, Teva, Sun Pharmaceutical and Sandoz.",
+    note: "That company makes nothing in this sample. Drugs by Manufacturer lists the ones that do.",
   },
   {
     patterns: ["phase iv", "phase 4", "phase four"],
@@ -323,7 +415,12 @@ const stopwords = new Set(
     "via administered delivered marketed sold made acting described typed whose type types route " +
     "molecule molecules stage stages phase geography area indication attribute results query " +
     "search screen thanks ok but well both either neither where what which like such etc into " +
-    "across currently have has had do does can could would should any every each"
+    "across currently have has had do does can could would should any every each " +
+    // The verbs people put between a drug and the thing it acts on, and the
+    // words they use to say what they want done with a search they already have.
+    "works work working acts act against affect affects affecting hits inhibit inhibits " +
+    "inhibiting block blocks blocking mediated developed developing develop swap swapping " +
+    "instead narrow narrowing still same another add keep built build run ran"
   ).split(" "),
 )
 
@@ -400,7 +497,7 @@ function buildMatchers() {
     if (words) claim(id, label, [plain(code), plain(words)])
   }
 
-  return [...built, ...compounds]
+  return [...built, ...compounds, ...familyMatchers]
 }
 
 /* -------------------------------------------------------------------------- */
@@ -428,6 +525,8 @@ interface RawSpan {
   /** Absent for grammar: a heading, or a word read in another phrase's service. */
   id?: FilterId
   values: string[]
+  /** The second clause a family phrase fills alongside its own. */
+  also?: { id: FilterId; values: string[] }
   note?: string
 }
 
@@ -442,7 +541,7 @@ function pickSpans(text: string) {
           const before = text.slice(0, start).trimEnd()
           if (matcher.notAfter.some((word) => before.endsWith(word))) continue
         }
-        candidates.push({ start, end, id: matcher.id, values: matcher.values })
+        candidates.push({ start, end, id: matcher.id, values: matcher.values, also: matcher.also })
       }
     }
   }
@@ -634,6 +733,30 @@ export function resolveQuery(raw: string): Resolution {
     for (const value of span.values) if (!bucket.includes(value)) bucket.push(value)
     previous = { index, id: span.id }
 
+    // A family phrase fills the clause its words also name. It meets the query
+    // with `and`, because it is one phrase read twice over, not a second
+    // condition someone asked for.
+    if (span.also) {
+      const alsoId = span.also.id
+      let extra = clauses.get(alsoId)
+      if (!extra) {
+        extra = {
+          id: alsoId,
+          kept: [],
+          negated: [],
+          keptJoin: "or",
+          negatedJoin: "or",
+          link: "and",
+          first: span.start + 0.5,
+        }
+        clauses.set(alsoId, extra)
+      }
+      const alsoBucket = isNegated ? extra.negated : extra.kept
+      for (const value of span.also.values) {
+        if (!alsoBucket.includes(value)) alsoBucket.push(value)
+      }
+    }
+
     read.push({
       start: map[span.start],
       end: map[span.end - 1] + 1,
@@ -663,6 +786,30 @@ export function resolveQuery(raw: string): Resolution {
       first: clause.first,
     }
   })
+
+  /* Geography is the one attribute with a level above its values, so it is the
+     one where a kept value and an excluded one can both stand: Austria is
+     inside Europe, and dropping "not Austria" would answer a wider question
+     than the one asked. The box draws one clause per attribute, so the
+     exclusion takes a clause of its own beside the region. */
+  const geography = clauses.get("geography")
+  if (geography && geography.kept.length > 0) {
+    const inside = geography.negated.filter((value) =>
+      geography.kept.some((region) => geographyChildren(region).includes(value)),
+    )
+    if (inside.length > 0) {
+      const definition = definitionFor("geography-excluded")
+      filters.push({
+        id: definition.id,
+        label: definition.label,
+        values: inside,
+        excluded: true,
+        join: "or",
+        link: "and",
+        first: geography.first + 0.5,
+      })
+    }
+  }
 
   // Clauses run in typing order, which is the order an `or` is read in. When
   // every clause is one of the authored five and all of them meet with `and`,

@@ -9,10 +9,11 @@ import { MillerColumn, type ColumnModel } from "@/flows/sprint-4/idea-1b/compone
 import {
   pathOf,
   searchAttributeLabels,
-  searchAttributeValueCounts,
+  searchAttributeValues,
   searchCategories,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1b/data"
+import { valueCountsFor } from "@/flows/sprint-4/idea-1b/results"
 import { cn } from "@/lib/utils"
 
 /**
@@ -78,7 +79,7 @@ export function ManualSearch({
       wide: true,
       items: attributes.map((attribute) => ({
         label: attribute,
-        count: searchAttributeValueCounts(activeCategory, attribute).length,
+        count: searchAttributeValues(activeCategory, attribute).length,
         drillable: true,
       })),
       open: activeAttribute ?? undefined,
@@ -91,7 +92,7 @@ export function ManualSearch({
       key: `values:${activeCategory}/${activeAttribute}`,
       level: activeAttribute,
       unit: activeCategory === "Drugs" ? "Drugs" : "Records",
-      items: searchAttributeValueCounts(activeCategory, activeAttribute).map(({ value, count }) => ({
+      items: valueCountsFor(activeCategory, activeAttribute).map(({ value, count }) => ({
         label: value,
         count,
       })),

@@ -16,7 +16,13 @@ interface AttributeSpec {
   label: string
   /** The clause label, in the sentence case the filter box uses. */
   filterLabel: string
-  values: ValueCounts
+  values: readonly string[]
+  /**
+   * Authored counts, for the attributes the drug sample cannot count: the
+   * areas outside Drugs, and Expiry Date, which is drawn but never evaluated.
+   * Everything else is counted off the sample itself, in `results.ts`.
+   */
+  counts?: Readonly<Record<string, number>>
 }
 
 const drugNames = [
@@ -30,135 +36,197 @@ const casNumbers = [
   "864070-44-0", "477600-75-2", "161796-78-7", "1922968-73-7",
 ]
 
-const attribute = (label: string, filterLabel: string, values: ValueCounts): AttributeSpec => ({
+const attribute = (
+  label: string,
+  filterLabel: string,
+  values: readonly string[],
+): AttributeSpec => ({ label, filterLabel, values })
+
+/** An attribute the sample cannot count, so its values carry authored counts. */
+const counted = (label: string, filterLabel: string, values: ValueCounts): AttributeSpec => ({
   label,
   filterLabel,
-  values,
+  values: values.map(([value]) => value),
+  counts: Object.fromEntries(values),
 })
 
+/* -------------------------------------------------------------------------- */
+/* Geography                                                                   */
+/* -------------------------------------------------------------------------- */
+
 /**
- * Every search area's attributes and their values, copied from Sprint 3 Idea
- * 1's authored hierarchy so Idea 1 remains self-contained. The counts are that
- * prototype's authored per-value counts; like there, they are illustrative.
+ * Geography is two levels, not one. The incumbent's flat country list made
+ * "available in Europe" unaskable, so the regions sit above the countries and
+ * every country belongs to one: a drug sold in Austria is thereby sold in
+ * Europe, and a search can name either. Region names follow Idea 2b's, so the
+ * two directions answer the same words. Mexico sits under Latin America here,
+ * which is how the country list reads once Brazil is its only other member.
+ */
+export const geographyRegions: readonly { region: string; countries: readonly string[] }[] = [
+  {
+    region: "Europe",
+    countries: [
+      "Austria", "Italy", "Germany", "France", "Spain", "United Kingdom", "Poland", "Sweden",
+      "Denmark",
+    ],
+  },
+  { region: "North America", countries: ["United States", "Canada"] },
+  { region: "Asia-Pacific", countries: ["Japan", "India"] },
+  { region: "Latin America", countries: ["Brazil", "Mexico"] },
+  { region: "Middle East & Africa", countries: ["South Africa"] },
+]
+
+export const geographyRegionNames = geographyRegions.map(({ region }) => region)
+
+/** The countries, in the order the incumbent's list has always printed them. */
+export const geographyCountries = [
+  "Austria", "Italy", "Germany", "France", "Spain", "United Kingdom", "United States", "Canada",
+  "Japan", "India", "Brazil", "Mexico", "Poland", "Sweden", "Denmark", "South Africa",
+]
+
+const regionByCountry = new Map<string, string>(
+  geographyRegions.flatMap(({ region, countries }) =>
+    countries.map((country) => [country, region] as const),
+  ),
+)
+
+/** The region a country sits in, or nothing when the value is already a region. */
+export function regionOf(country: string) {
+  return regionByCountry.get(country)
+}
+
+/** The countries under a region. A country has none: the tree is two deep. */
+export function geographyChildren(value: string): readonly string[] {
+  return geographyRegions.find(({ region }) => region === value)?.countries ?? []
+}
+
+/* -------------------------------------------------------------------------- */
+/* The taxonomy                                                                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Every search area's attributes and their values. Drugs carries the taxonomy
+ * the sample is built from, so every value listed here is a value some row can
+ * hold and every count beside one is the rows that hold it.
  */
 const searchAttributes: Record<ProductArea, AttributeSpec[]> = {
   Companies: [
-    attribute("Company Name", "Company name", [["Pfizer", 1], ["Novartis", 1], ["Sandoz", 1], ["Teva Pharmaceutical", 1]]),
-    attribute("Headquarters Country", "Headquarters country", [["United States", 4_812], ["Switzerland", 1_204], ["India", 2_930], ["Germany", 1_866]]),
-    attribute("Company Type", "Company type", [["Pharmaceutical", 6_140], ["Biotechnology", 4_318], ["Generic Manufacturer", 2_209], ["Contract Research", 1_105]]),
+    counted("Company Name", "Company name", [["Pfizer", 1], ["Novartis", 1], ["Sandoz", 1], ["Teva Pharmaceutical", 1]]),
+    counted("Headquarters Country", "Headquarters country", [["United States", 4_812], ["Switzerland", 1_204], ["India", 2_930], ["Germany", 1_866]]),
+    counted("Company Type", "Company type", [["Pharmaceutical", 6_140], ["Biotechnology", 4_318], ["Generic Manufacturer", 2_209], ["Contract Research", 1_105]]),
   ],
   Drugs: [
-    attribute("Drug Name", "Drug name", drugNames.map((name) => [name, 1] as const)),
+    attribute("Drug Name", "Drug name", drugNames),
     attribute("Therapy Area / Indication", "Therapy area / indication", [
-      ["Cardiovascular", 20], ["Central Nervous System", 3], ["Dermatology", 126],
-      ["Ear Nose Throat Disorders", 32], ["Gastrointestinal", 25], ["Genetic Disorders", 17],
-      ["Genito Urinary System", 54], ["Hermatological Disorders", 19], ["Hormonal Disorders", 17],
-      ["Immunology", 9], ["Infectious Disease", 102], ["Metabolic Disorders", 59],
-      ["Musculoskeletal Disorders", 276],
+      "Cardiovascular", "Central Nervous System", "Dermatology", "Ear Nose Throat Disorders",
+      "Gastrointestinal", "Genetic Disorders", "Genito Urinary System",
+      "Hermatological Disorders", "Hormonal Disorders", "Immunology", "Infectious Disease",
+      "Metabolic Disorders", "Musculoskeletal Disorders",
     ]),
     attribute("Development Stage", "Developmental stage", [
-      ["Marketed", 3], ["Pipeline", 12], ["Phase I", 14_210], ["Phase II", 11_707],
-      ["Phase III", 9_137], ["Pre-registration", 1_104], ["Withdrawn (Marketed)", 857],
-      ["Archived (Marketed)", 571],
+      "Marketed", "Pipeline", "Phase I", "Phase II", "Phase III", "Pre-registration",
+      "Withdrawn (Marketed)", "Archived (Marketed)",
     ]),
     attribute("Drug Geography", "Drug geography", [
-      ["Austria", 25_698], ["Italy", 14_276], ["Germany", 59_961], ["France", 51_395],
-      ["Spain", 31_408], ["United Kingdom", 42_829], ["United States", 125_633],
-      ["Canada", 34_263], ["Japan", 45_684], ["India", 37_119], ["Brazil", 22_842],
-      ["Mexico", 17_132], ["Poland", 14_276], ["Sweden", 11_421], ["Denmark", 8_566],
-      ["South Africa", 8_566],
+      ...geographyRegionNames,
+      ...geographyCountries,
     ]),
     attribute("Route of Administration", "Route of administration", [
-      ["Oral", 174_173], ["Intravenous", 51_395], ["Subcutaneous", 25_698],
-      ["Topical", 19_987], ["Inhaled", 14_276],
+      "Oral", "Intravenous", "Subcutaneous", "Topical", "Inhaled",
     ]),
     attribute("Molecule Type", "Molecule type", [
-      ["Small Molecule", 211_291], ["Monoclonal Antibody", 34_263], ["Peptide", 19_987],
-      ["Recombinant Protein", 11_421], ["Gene Therapy", 8_566],
+      "Small Molecule", "Monoclonal Antibody", "Peptide", "Recombinant Protein", "Gene Therapy",
     ]),
     attribute("Target", "Target", [
-      ["Actin Gamma Enteric Smooth Muscle", 8_066], ["Cyclooxygenase 2", 3_431],
-      ["Cyclooxygenase 1", 2_220], ["Interleukin 17A", 1_614], ["Janus Kinase 3", 807],
-      ["Vitamin D Receptor", 504], ["ATP Citrate Lyase", 431], ["HCN Channel", 388],
-      ["Sodium Glucose Cotransporter 2", 1_042], ["NS5B Polymerase", 733],
-      ["Hydrogen Potassium ATPase", 1_318], ["Survival Motor Neuron 1", 96],
+      "Actin Gamma Enteric Smooth Muscle", "Cyclooxygenase 2", "Cyclooxygenase 1",
+      "Interleukin 17A", "Janus Kinase 1", "Janus Kinase 2", "Janus Kinase 3",
+      "Vitamin D Receptor", "ATP Citrate Lyase", "HCN Channel",
+      "Sodium Glucose Cotransporter 2", "NS5B Polymerase", "Hydrogen Potassium ATPase",
+      "Survival Motor Neuron 1", "Glucocorticoid Receptor", "Beta 3 Adrenergic Receptor",
+      "Thrombopoietin Receptor", "Thyroid Hormone Receptor",
     ]),
     attribute("Mechanism of Action", "Mechanism of action", [
-      ["Cyclooxygenase Inhibitor", 22_842], ["Interleukin 17A Antagonist", 4_283],
-      ["Janus Kinase Inhibitor", 3_426], ["Proton Pump Inhibitor", 5_711],
-      ["SGLT2 Inhibitor", 2_855], ["Polymerase Inhibitor", 4_568],
-      ["Vitamin D Receptor Agonist", 1_713], ["ATP Citrate Lyase Inhibitor", 856],
-      ["If Current Inhibitor", 571], ["Gene Replacement", 285],
+      "Cyclooxygenase Inhibitor", "Interleukin 17A Antagonist", "Janus Kinase Inhibitor",
+      "Proton Pump Inhibitor", "SGLT2 Inhibitor", "Polymerase Inhibitor",
+      "Vitamin D Receptor Agonist", "ATP Citrate Lyase Inhibitor", "If Current Inhibitor",
+      "Gene Replacement", "Glucocorticoid Receptor Agonist", "Beta 3 Adrenergic Agonist",
+      "Thrombopoietin Receptor Agonist", "Thyroid Hormone Receptor Agonist",
     ]),
     attribute("ATC Classification", "ATC classification", [
-      ["M01A — Antiinflammatory and Antirheumatic, Non-Steroids", 25_698],
-      ["N02B — Other Analgesics and Antipyretics", 14_276],
-      ["L04A — Immunosuppressants", 17_132],
-      ["A02B — Drugs for Peptic Ulcer and GORD", 11_421],
-      ["A10B — Blood Glucose Lowering Drugs", 14_276],
-      ["C01E — Other Cardiac Preparations", 5_711],
-      ["C10A — Lipid Modifying Agents", 12_849],
-      ["D05A — Antipsoriatics for Topical Use", 4_283],
-      ["J05A — Direct Acting Antivirals", 8_566],
-      ["M09A — Other Musculoskeletal Drugs", 2_855],
+      "M01A — Antiinflammatory and Antirheumatic, Non-Steroids",
+      "N02B — Other Analgesics and Antipyretics",
+      "L04A — Immunosuppressants",
+      "A02B — Drugs for Peptic Ulcer and GORD",
+      "A10B — Blood Glucose Lowering Drugs",
+      "C01E — Other Cardiac Preparations",
+      "C10A — Lipid Modifying Agents",
+      "D05A — Antipsoriatics for Topical Use",
+      "J05A — Direct Acting Antivirals",
+      "M09A — Other Musculoskeletal Drugs",
+      "R01A — Decongestants and Other Nasal Preparations",
+      "G04B — Urologicals",
+      "B02B — Vitamin K and Other Haemostatics",
+      "H03A — Thyroid Preparations",
     ]),
-    attribute("Drug Type", "Drug type", [
-      ["Generic", 88_514], ["Branded", 148_475], ["Biosimilar", 11_421], ["Orphan", 19_987],
-    ]),
-    attribute("Mono/Combination Drug", "Mono/combination drug", [["Mono", 259_831], ["Combination", 25_698]]),
+    attribute("Drug Type", "Drug type", ["Generic", "Branded", "Biosimilar", "Orphan"]),
+    attribute("Mono/Combination Drug", "Mono/combination drug", ["Mono", "Combination"]),
     attribute("Drug Descriptor", "Drug descriptor", [
-      ["Antiinflammatory Therapy", 32_550], ["Immunosuppressant Therapy", 12_849],
-      ["Antiviral Therapy", 17_132], ["Antidiabetic Therapy", 14_276],
-      ["Antihyperlipidaemic Therapy", 11_421], ["Antipsoriatic Therapy", 5_711],
-      ["Antiulcer Therapy", 8_566], ["Antianginal Therapy", 4_283], ["Gene Therapy", 2_855],
+      "Antiinflammatory Therapy", "Immunosuppressant Therapy", "Antiviral Therapy",
+      "Antidiabetic Therapy", "Antihyperlipidaemic Therapy", "Antipsoriatic Therapy",
+      "Antiulcer Therapy", "Antianginal Therapy", "Gene Therapy", "Antispasmodic Therapy",
+      "Haemostatic Therapy", "Hormone Replacement Therapy",
     ]),
     attribute("Gene Therapy Vector", "Gene therapy vector", [
-      ["Adeno Associated Virus (AAV)", 2_855], ["Lentivirus", 1_713], ["Adenovirus", 1_142],
-      ["None", 279_819],
+      "Adeno Associated Virus (AAV)", "Lentivirus", "Adenovirus", "None",
     ]),
     attribute("Application Type", "Application type", [
-      ["Abbreviated New Drug Application", 88_514], ["New Drug Application", 74_237],
-      ["Biologics License Application", 25_698],
+      "Abbreviated New Drug Application", "New Drug Application", "Biologics License Application",
     ]),
-    attribute("CAS Number", "CAS number", casNumbers.map((cas) => [cas, 1] as const)),
-    attribute("Expiry Date", "Expiry date", [
+    attribute("CAS Number", "CAS number", casNumbers),
+    counted("Expiry Date", "Expiry date", [
       ["Before 2025", 41_212], ["9 Mar 2025 and 10 Apr 2025", 1_284], ["Rest of 2025", 9_637],
       ["2026", 12_408], ["2027 or later", 88_207],
     ]),
     attribute("Marketing Status", "Marketing status", [
-      ["Marketed", 98_410], ["Not Marketed", 171_318], ["Filed", 6_852], ["Withdrawn", 5_139],
-      ["Discontinued", 3_810],
+      "Marketed", "Not Marketed", "Filed", "Withdrawn", "Discontinued",
     ]),
   ],
   "Licensing Opportunities": [
-    attribute("Deal Type", "Deal type", [["Licensing", 3_412], ["Co-development", 1_890], ["Distribution", 1_204], ["Option to License", 655]]),
-    attribute("Deal Status", "Deal status", [["Available", 2_118], ["Under Negotiation", 946], ["Completed", 3_884], ["Terminated", 412]]),
-    attribute("Deal Value", "Deal value", [["Under $10M", 1_902], ["$10M–$50M", 2_441], ["$50M–$250M", 1_338], ["Over $250M", 487]]),
+    counted("Deal Type", "Deal type", [["Licensing", 3_412], ["Co-development", 1_890], ["Distribution", 1_204], ["Option to License", 655]]),
+    counted("Deal Status", "Deal status", [["Available", 2_118], ["Under Negotiation", 946], ["Completed", 3_884], ["Terminated", 412]]),
+    counted("Deal Value", "Deal value", [["Under $10M", 1_902], ["$10M–$50M", 2_441], ["$50M–$250M", 1_338], ["Over $250M", 487]]),
   ],
   "Regulatory Milestones": [
-    attribute("Regulatory Body", "Regulatory body", [["FDA", 12_804], ["EMA", 9_331], ["PMDA", 4_106], ["MHRA", 3_218]]),
-    attribute("Milestone Type", "Milestone type", [["Filing Accepted", 8_112], ["Approval", 6_940], ["Complete Response Letter", 1_204], ["Withdrawal", 688]]),
-    attribute("Milestone Year", "Milestone year", [["2023", 5_120], ["2024", 5_866], ["2025", 6_204], ["2026", 2_118]]),
+    counted("Regulatory Body", "Regulatory body", [["FDA", 12_804], ["EMA", 9_331], ["PMDA", 4_106], ["MHRA", 3_218]]),
+    counted("Milestone Type", "Milestone type", [["Filing Accepted", 8_112], ["Approval", 6_940], ["Complete Response Letter", 1_204], ["Withdrawal", 688]]),
+    counted("Milestone Year", "Milestone year", [["2023", 5_120], ["2024", 5_866], ["2025", 6_204], ["2026", 2_118]]),
   ],
   "Sales and Forecast": [
-    attribute("Sales Region", "Sales region", [["North America", 18_440], ["Europe", 15_202], ["Asia Pacific", 12_118], ["Rest of World", 6_330]]),
-    attribute("Forecast Year", "Forecast year", [["2025", 9_880], ["2026", 9_880], ["2027", 9_880], ["2028", 9_880]]),
-    attribute("Revenue Band", "Revenue band", [["Under $50M", 14_220], ["$50M–$500M", 9_118], ["$500M–$1Bn", 3_404], ["Over $1Bn", 1_866]]),
+    counted("Sales Region", "Sales region", [["North America", 18_440], ["Europe", 15_202], ["Asia Pacific", 12_118], ["Rest of World", 6_330]]),
+    counted("Forecast Year", "Forecast year", [["2025", 9_880], ["2026", 9_880], ["2027", 9_880], ["2028", 9_880]]),
+    counted("Revenue Band", "Revenue band", [["Under $50M", 14_220], ["$50M–$500M", 9_118], ["$500M–$1Bn", 3_404], ["Over $1Bn", 1_866]]),
   ],
   "Drugs by Manufacturer": [
-    attribute("Manufacturer", "Manufacturer", [["Pfizer", 2_204], ["Teva Pharmaceutical", 3_118], ["Sun Pharmaceutical", 2_440], ["Sandoz", 1_890]]),
-    attribute("Manufacturing Site Country", "Manufacturing site country", [["United States", 8_112], ["India", 11_204], ["Ireland", 2_118], ["China", 6_440]]),
-    attribute("Production Stage", "Production stage", [["API", 9_118], ["Formulation", 12_204], ["Packaging", 7_330], ["Distribution", 5_112]]),
+    // The companies the sample actually names, so a manufacturer in the grid
+    // can also be filtered on rather than being reported as outside the sample.
+    attribute("Manufacturer", "Manufacturer", [
+      "Pfizer", "Novartis", "Sandoz", "Teva Pharmaceutical", "Sun Pharmaceutical", "Cipla",
+      "Dr. Reddy's Laboratories", "Zydus Lifesciences", "Glenmark Pharmaceuticals",
+      "Hikma Pharmaceuticals", "Alkem Laboratories", "Krka", "LEO Pharma", "Servier", "Lupin",
+      "Aurobindo Pharma", "Viatris", "Bayer", "AstraZeneca", "Sanofi", "Esperion Therapeutics",
+    ]),
+    counted("Manufacturing Site Country", "Manufacturing site country", [["United States", 8_112], ["India", 11_204], ["Ireland", 2_118], ["China", 6_440]]),
+    counted("Production Stage", "Production stage", [["API", 9_118], ["Formulation", 12_204], ["Packaging", 7_330], ["Distribution", 5_112]]),
   ],
   NPV: [
-    attribute("NPV Band", "NPV band", [["Under $25M", 6_204], ["$25M–$55M", 4_118], ["$55M–$250M", 2_890], ["Over $250M", 1_204]]),
-    attribute("Discount Rate", "Discount rate", [["8%", 3_118], ["10%", 6_440], ["12%", 3_204], ["15%", 1_654]]),
-    attribute("Peak Sales Year", "Peak sales year", [["2027", 3_440], ["2028", 4_118], ["2029", 3_890], ["2030", 2_968]]),
+    counted("NPV Band", "NPV band", [["Under $25M", 6_204], ["$25M–$55M", 4_118], ["$55M–$250M", 2_890], ["Over $250M", 1_204]]),
+    counted("Discount Rate", "Discount rate", [["8%", 3_118], ["10%", 6_440], ["12%", 3_204], ["15%", 1_654]]),
+    counted("Peak Sales Year", "Peak sales year", [["2027", 3_440], ["2028", 4_118], ["2029", 3_890], ["2030", 2_968]]),
   ],
   "Advanced Company Watchlist": [
-    attribute("Watchlist", "Watchlist", [["My Watchlist", 42], ["Oncology Leaders", 118], ["Generics Majors", 64], ["Emerging Biotech", 96]]),
-    attribute("Alert Type", "Alert type", [["Price Change", 204], ["Pipeline Update", 418], ["Regulatory Event", 266], ["M&A Activity", 88]]),
-    attribute("Added", "Added", [["Last 7 days", 24], ["Last 30 days", 88], ["Last quarter", 190], ["Last year", 412]]),
+    counted("Watchlist", "Watchlist", [["My Watchlist", 42], ["Oncology Leaders", 118], ["Generics Majors", 64], ["Emerging Biotech", 96]]),
+    counted("Alert Type", "Alert type", [["Price Change", 204], ["Pipeline Update", 418], ["Regulatory Event", 266], ["M&A Activity", 88]]),
+    counted("Added", "Added", [["Last 7 days", 24], ["Last 30 days", 88], ["Last quarter", 190], ["Last year", 412]]),
   ],
 }
 
@@ -190,12 +258,17 @@ export const commonAttributes: readonly { area: ProductArea; attribute: string }
 
 /** The third layer: the values under one area's attribute. */
 export function searchAttributeValues(area: ProductArea, label: string) {
-  return attributeSpec(area, label).values.map(([value]) => value)
+  return [...attributeSpec(area, label).values]
 }
 
-/** The third layer with the authored count beside each value. */
+/**
+ * The authored count beside each value, for the attributes the sample cannot
+ * count. `valueCountsFor` in `results.ts` is what a screen asks: it counts the
+ * sample wherever it can and falls back to this.
+ */
 export function searchAttributeValueCounts(area: ProductArea, label: string) {
-  return attributeSpec(area, label).values.map(([value, count]) => ({ value, count }))
+  const spec = attributeSpec(area, label)
+  return spec.values.map((value) => ({ value, count: spec.counts?.[value] ?? 0 }))
 }
 
 function attributeSpec(area: ProductArea, label: string) {
@@ -205,7 +278,13 @@ function attributeSpec(area: ProductArea, label: string) {
 export const workedQuery =
   "Find generic anti-inflammatory therapies targeting Actin Gamma Enteric Smooth Muscle, but exclude drugs available in Austria or Italy, as well as marketed drugs that are withdrawn or archived."
 
-type AuthoredFilterId = "target" | "drug-type" | "descriptor" | "stage" | "geography"
+type AuthoredFilterId =
+  | "target"
+  | "drug-type"
+  | "descriptor"
+  | "stage"
+  | "geography"
+  | "geography-excluded"
 /** An authored id, or `area/attribute` for a filter built from the pill path. */
 export type FilterId = AuthoredFilterId | `${ProductArea}/${string}`
 export type FilterJoin = "or" | "and"
@@ -223,10 +302,6 @@ export interface ResolvedFilter {
 
 export interface FilterDefinition extends ResolvedFilter {
   options: string[]
-  /** Share of the corpus matched by the authored values before `is not`. */
-  matchShare: number
-  /** Per-value counts, for definitions without authored values. */
-  counts?: Record<string, number>
 }
 
 const optionsOf = (label: string) => searchAttributeValues("Drugs", label)
@@ -241,7 +316,6 @@ export const filterDefinitions: FilterDefinition[] = [
     excluded: false,
     join: "or",
     link: "and",
-    matchShare: 0.04122984446680776,
   },
   {
     id: "drug-type",
@@ -251,7 +325,6 @@ export const filterDefinitions: FilterDefinition[] = [
     excluded: false,
     join: "or",
     link: "and",
-    matchShare: 0.31,
   },
   {
     id: "descriptor",
@@ -261,7 +334,6 @@ export const filterDefinitions: FilterDefinition[] = [
     excluded: false,
     join: "or",
     link: "and",
-    matchShare: 0.114,
   },
   {
     id: "stage",
@@ -271,7 +343,6 @@ export const filterDefinitions: FilterDefinition[] = [
     excluded: true,
     join: "or",
     link: "and",
-    matchShare: 0.005,
   },
   {
     id: "geography",
@@ -281,9 +352,26 @@ export const filterDefinitions: FilterDefinition[] = [
     excluded: true,
     join: "or",
     link: "and",
-    matchShare: 0.14,
   },
 ]
+
+/**
+ * Geography again, negatively. Now that a region sits above the countries,
+ * "in Europe but not Austria" is a real narrowing rather than a redundancy, and
+ * the box draws one clause per category — so the exclusion needs a clause of
+ * its own. Only the resolver builds it, from words like "excluding Austria"
+ * said of a region already chosen, which is why it is not in the list above
+ * that Add filter offers.
+ */
+const excludedGeography: FilterDefinition = {
+  id: "geography-excluded",
+  label: "Drug geography",
+  values: [],
+  options: optionsOf("Drug Geography"),
+  excluded: true,
+  join: "or",
+  link: "and",
+}
 
 export function initialResolvedFilters(): ResolvedFilter[] {
   return filterDefinitions.map(({ id, label, values, excluded, join, link }) => ({
@@ -305,11 +393,22 @@ const authoredPaths: Partial<Record<FilterId, AuthoredFilterId>> = {
   "Drugs/Drug Geography": "geography",
 }
 
+/** Where an authored clause sits in the tree, including the negative one. */
+const authoredLocations: Record<AuthoredFilterId, { area: ProductArea; attribute: string }> = {
+  target: { area: "Drugs", attribute: "Target" },
+  "drug-type": { area: "Drugs", attribute: "Drug Type" },
+  descriptor: { area: "Drugs", attribute: "Drug Descriptor" },
+  stage: { area: "Drugs", attribute: "Development Stage" },
+  geography: { area: "Drugs", attribute: "Drug Geography" },
+  "geography-excluded": { area: "Drugs", attribute: "Drug Geography" },
+}
+
 /** Where a filter sits in the pill path, whether a query or a pill built it. */
 export function pathOf(id: FilterId): { area: ProductArea; attribute: string } {
-  const pathId = (Object.keys(authoredPaths) as FilterId[]).find((key) => authoredPaths[key] === id) ?? id
-  const area = searchCategories.find((item) => pathId.startsWith(`${item}/`)) as ProductArea
-  return { area, attribute: pathId.slice(area.length + 1) }
+  const authored = authoredLocations[id as AuthoredFilterId]
+  if (authored) return authored
+  const area = searchCategories.find((item) => id.startsWith(`${item}/`)) as ProductArea
+  return { area, attribute: id.slice(area.length + 1) }
 }
 
 /** One definition for every attribute the pill path reaches without an authored one. */
@@ -320,17 +419,15 @@ const pathDefinitions: FilterDefinition[] = searchCategories.flatMap((area) =>
       id: `${area}/${spec.label}` as const,
       label: spec.filterLabel,
       values: [],
-      options: spec.values.map(([value]) => value),
+      options: [...spec.values],
       excluded: false,
       join: "or" as const,
       link: "and" as const,
-      matchShare: 0,
-      counts: Object.fromEntries(spec.values),
     })),
 )
 
 export function definitionFor(id: FilterId) {
-  return [...filterDefinitions, ...pathDefinitions].find(
+  return [excludedGeography, ...filterDefinitions, ...pathDefinitions].find(
     (definition) => definition.id === id,
   ) as FilterDefinition
 }
@@ -355,37 +452,4 @@ export function pathFilter(area: ProductArea, attribute: string, value: string):
 export function emptyPathFilter(area: ProductArea, attribute: string): ResolvedFilter {
   const { id, label } = definitionFor(filterIdFor(area, attribute))
   return { id, label, values: [], excluded: false, join: "or", link: "and" }
-}
-
-function valueShare(definition: FilterDefinition, value: string) {
-  if (definition.counts) return (definition.counts[value] ?? 0) / baseDrugCount
-  return definition.matchShare / definition.values.length
-}
-
-export const baseDrugCount = 285_529
-
-/**
- * A deterministic stand-in for a server count, built from authored per-value
- * shares. `resultsFor` reconciles it with the rows the grid can show.
- */
-export function estimatedCountFor(all: ResolvedFilter[]) {
-  // A clause whose value is still being picked narrows nothing yet, so it is
-  // not counted as narrowing everything away.
-  const filters = all.filter((filter) => filter.values.length > 0)
-  if (filters.length === 0) return baseDrugCount
-
-  const combinedShare = filters.reduce((total, filter, index) => {
-    const definition = definitionFor(filter.id)
-    const shares = filter.values.map((value) => valueShare(definition, value))
-    const combined =
-      filter.join === "and" && shares.length > 1
-        ? shares.reduce((product, share) => product * share, 1)
-        : shares.reduce((sum, share) => sum + share, 0)
-    const selectedShare = Math.min(0.98, combined)
-    const factor = filter.excluded ? 1 - selectedShare : selectedShare
-    if (index === 0) return factor
-    return filter.link === "or" ? total + factor - total * factor : total * factor
-  }, 0)
-
-  return Math.round(baseDrugCount * combinedShare)
 }
