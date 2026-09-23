@@ -163,6 +163,15 @@ const synonyms: Record<string, string[]> = {
   "Mechanism of Action:Janus Kinase Inhibitor": ["jak inhibitor", "jak inhibitors"],
   "Mechanism of Action:GLP-1 Receptor Agonist": ["glp 1 agonist", "glp 1 agonists"],
   "Mechanism of Action:SGLT2 Inhibitor": ["sglt2 inhibitors"],
+  "Mechanism of Action:Cyclooxygenase 2 Inhibitor": ["cox 2 inhibitor", "cox2 inhibitor"],
+  "Mechanism of Action:Phosphodiesterase 4 Inhibitor": ["pde4 inhibitor", "pde 4 inhibitor"],
+  "Mechanism of Action:Interleukin 23 Inhibitor": ["il 23 inhibitor", "il23 inhibitor"],
+  "Mechanism of Action:Interleukin 17A Inhibitor": ["il 17a inhibitor"],
+  "Mechanism of Action:Tumour Necrosis Factor Alpha Inhibitor": [
+    "tnf inhibitor",
+    "tnf alpha inhibitor",
+    "anti tnf",
+  ],
 
   "Drug Type:New Molecular Entity": ["nme", "nmes", "new molecular entities"],
   "Drug Type:Generic": ["generics"],
@@ -175,6 +184,82 @@ const synonyms: Record<string, string[]> = {
   "Application Type:BLA": ["biologics license application"],
   "Application Type:ANDA": ["abbreviated new drug application"],
   "Application Type:IND": ["investigational new drug"],
+}
+
+/**
+ * Families: a phrase that names a group of values rather than one of them.
+ *
+ * The taxonomy carries the numbered variants, and people type the bare
+ * protein. `Janus Kinase 1` is a value; `Janus Kinase` is what a reviewer
+ * writes, and the family is what they mean — every JAK in the list, which is
+ * also every drug carrying the Janus Kinase Inhibitor mechanism, since a
+ * target implies its mechanism in the sample. `a receptor-based mechanism`
+ * works the same way one level up, over the mechanisms rather than the
+ * targets. The numbered form still wins where it is typed, because the longer
+ * match is taken first.
+ */
+const families: Matcher[] = [
+  {
+    attribute: "Target",
+    values: ["Janus Kinase 1", "Janus Kinase 2", "Janus Kinase 3"],
+    patterns: ["janus kinase", "jak", "jak family"],
+  },
+  { attribute: "Target", values: ["Interleukin 17A"], patterns: ["interleukin 17"] },
+  { attribute: "Target", values: ["Interleukin 6 Receptor"], patterns: ["interleukin 6"] },
+  { attribute: "Target", values: ["Interleukin 4 Receptor"], patterns: ["interleukin 4"] },
+  { attribute: "Target", values: ["Cyclooxygenase 2"], patterns: ["cyclooxygenase", "cox"] },
+  { attribute: "Target", values: ["Phosphodiesterase 4"], patterns: ["phosphodiesterase", "pde"] },
+  { attribute: "Target", values: ["Endothelin Receptor A"], patterns: ["endothelin"] },
+  { attribute: "Target", values: ["Angiotensin II Receptor"], patterns: ["angiotensin"] },
+  { attribute: "Target", values: ["Dipeptidyl Peptidase 4"], patterns: ["dipeptidyl peptidase"] },
+  { attribute: "Target", values: ["Sodium Glucose Cotransporter 2"], patterns: ["sglt"] },
+  /* The same families said as a mechanism rather than as a target. Longer than
+     the bare protein, so `phosphodiesterase inhibitors` lands here and
+     `phosphodiesterase` on its own lands above. */
+  {
+    attribute: "Mechanism of Action",
+    values: ["Phosphodiesterase 4 Inhibitor"],
+    patterns: ["phosphodiesterase inhibitor", "pde inhibitor"],
+  },
+  {
+    attribute: "Mechanism of Action",
+    values: ["Cyclooxygenase 2 Inhibitor"],
+    patterns: ["cyclooxygenase inhibitor", "cox inhibitor"],
+  },
+  {
+    attribute: "Mechanism of Action",
+    values: ["Interleukin 17A Inhibitor"],
+    patterns: ["interleukin 17 inhibitor", "il 17 inhibitor"],
+  },
+  {
+    attribute: "Mechanism of Action",
+    values: receptorMechanisms(),
+    patterns: [
+      "receptor based mechanism",
+      "receptor based",
+      "receptor mechanism",
+      "receptor agonist",
+      "receptor antagonist",
+      "receptor modulator",
+      "receptor blocker",
+    ],
+  },
+]
+
+/**
+ * Every mechanism in the taxonomy that acts at a receptor, read off the
+ * taxonomy rather than listed here, so a mechanism added later joins the
+ * family without anyone remembering to add it twice. `Adrenoceptor` is one
+ * too — the word just does not carry the prefix.
+ *
+ * The bare word `receptor` is deliberately not a pattern of its own: it sits
+ * inside `Interleukin 6 Receptor` and a dozen other labels, and a phrase that
+ * has already been read as a target must not be read again as a mechanism.
+ */
+function receptorMechanisms() {
+  return (valuesByAttribute["Mechanism of Action"] ?? [])
+    .map((item) => item.label)
+    .filter((label) => /receptor|adrenoceptor/i.test(label))
 }
 
 /** Phrases that name more than one value at once. */
@@ -251,6 +336,8 @@ const stopwords = new Set(
     "compound compounds product products not no non excluding exclude except without other than " +
     "outside minus never apart besides targeting target targets taken take using used given filed " +
     "classed classified under via administered delivered marketed sold made acting described typed " +
+    "work works working act acts against hit hits block blocks blocking mechanism mechanisms " +
+    "developed develops develop receptor receptors " +
     "whose type route molecule stage phase geography therapy area indication attribute " +
     "results query search screen screener thanks ok but"
   ).split(" "),
@@ -320,7 +407,29 @@ function buildMatchers() {
     }
   }
 
-  return [...built, ...compounds]
+  const all = [...built, ...families, ...compounds].map((matcher) => ({
+    ...matcher,
+    patterns: [...matcher.patterns],
+  }))
+  return withPlurals(all)
+}
+
+/**
+ * People type `jak inhibitors` and `gene therapies`, not the singular label.
+ * Every pattern brings its own `s` along, unless that plural is already some
+ * other matcher's word — first claim wins there too, as it does above.
+ */
+function withPlurals(built: Matcher[]) {
+  const known = new Set(built.flatMap((matcher) => matcher.patterns))
+  for (const matcher of built) {
+    for (const pattern of [...matcher.patterns]) {
+      const plural = `${pattern}s`
+      if (pattern.endsWith("s") || known.has(plural)) continue
+      known.add(plural)
+      matcher.patterns.push(plural)
+    }
+  }
+  return built
 }
 
 /* -------------------------------------------------------------------------- */

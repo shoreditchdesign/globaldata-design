@@ -14,23 +14,26 @@
  * were chosen for rather than by accident.
  */
 export const examples = [
-  /* Four conditions: a mechanism, two indications joined by `or`, a stage
-     compound typed as `phase 2/3`, and a route excluded. */
-  "jak inhibitors for rheumatoid arthritis or crohn's disease, phase 2/3, not oral",
+  /* A stage, a region, a protein family typed bare, and a country taken back
+     out — four conditions, and the shape most of the sprint's questions take. */
+  "phase 3 janus kinase drugs available in europe, not austria",
+
+  /* Five conditions, to show the gate with something on it: a stage, a route,
+     a molecule, a country and a whole family of mechanisms read off one
+     phrase. */
+  "marketed oral small molecules in the united states with a receptor based mechanism",
+
+  /* Two indications joined by `or` inside one condition, and a stage compound
+     typed the way a reviewer types it. */
+  "oral small molecules for rheumatoid arthritis or psoriatic arthritis, phase 2/3",
 
   /* Resolves as far as it can and says so: `late stage` opens out into three
      phases, and `anti coagulants` is offered as Antithrombotic Therapy rather
      than assumed to be it. */
   "late stage anti coagulants for cardiology in germany or france",
 
-  /* Stage, molecule and two indications, with a geography excluded. */
-  "marketed monoclonal antibodies for plaque psoriasis or atopic dermatitis, not in the united states",
-
   /* Everything reads except the company, which is its own product area. */
-  "phase 1 or 2 gene therapies for hiv from novartis",
-
-  /* A route, a mechanism, an indication and two countries. */
-  "subcutaneous glp-1 agonists for type 2 diabetes in japan or china",
+  "phase 1 or 2 gene therapies in europe from novartis",
 
   /* Three conditions read, and NPV named as the separate product area it is. */
   "phase 3 antineoplastics in europe by npv",
