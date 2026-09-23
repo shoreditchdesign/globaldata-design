@@ -2,12 +2,13 @@
  * Static content for Sprint 4 / Idea 2 — the tucked logic gate.
  *
  * Copied from the Sprint 4 hybrid screener (commit ae56cf1) rather than
- * imported, because the directions stay independent. It is still Sprint 3 Idea 2's fixed sample of 1,440 drug rows,
- * built once at module load from weighted tables and a seeded generator, with
- * the same taxonomy. Every number on screen — the headline, the per-value counts
- * in a value picker, the running count on each node of the logic gate and the
- * rows in the grid — is counted off that one array against the query as it
- * stands, so the views of the query cannot disagree.
+ * imported, because the directions stay independent. It is still Sprint 3 Idea
+ * 2's taxonomy, over a fixed sample of 5,760 drug rows built once at module
+ * load from weighted tables and a seeded generator. Every number on screen —
+ * the headline, the per-value counts in a value picker, the running count on
+ * each node of the logic gate and the rows in the grid — is counted off that
+ * one array against the query as it stands, so the views of the query cannot
+ * disagree.
  *
  * Each condition carries its own link to the one before, as in the hybrid, because
  * the logic gate draws every join as something you can flip.
@@ -61,27 +62,28 @@ const labelsOf = (table: Weighted[]) => table.map(([label]) => label)
 /** Development stages, in pipeline order. Weighted towards the live phases. */
 const stageTable: Weighted[] = [
   ["Discovery", 8],
-  ["Preclinical", 12],
+  ["Preclinical", 11],
   ["Phase 0", 2],
-  ["Phase I", 12],
-  ["Phase II", 18],
+  ["Phase I", 13],
+  ["Phase II", 19],
   ["Phase III", 14],
   ["Phase IV", 5],
   ["Pre-registration", 4],
   ["Approved", 5],
   ["Marketed", 12],
   ["Suspended", 2],
-  ["Discontinued", 4],
+  ["Discontinued", 3],
   ["Withdrawn", 2],
 ]
 
+/** A European-led sample, because the sprint's questions are asked of Europe. */
 const regionTable: Weighted[] = [
-  ["Europe", 34],
+  ["Europe", 37],
   ["North America", 27],
-  ["Asia-Pacific", 21],
-  ["Latin America", 8],
+  ["Asia-Pacific", 20],
+  ["Latin America", 7],
   ["Middle East & Africa", 5],
-  ["Global", 5],
+  ["Global", 4],
 ]
 
 const routeTable: Weighted[] = [
@@ -100,11 +102,14 @@ const moleculeTable: Weighted[] = [
   ["Monoclonal Antibody", 20],
   ["Peptide", 11],
   ["Recombinant Protein", 8],
-  ["Oligonucleotide", 7],
+  ["Oligonucleotide", 8],
   ["Cell Therapy", 4],
   ["Gene Therapy", 4],
 ]
 
+/* Drug type and application type are the only two the generator does not pick
+   from their own table: both follow the molecule, so these list the picker's
+   values and `drugTypesFor` and `applicationTypesFor` below decide the row. */
 const drugTypeTable: Weighted[] = [
   ["New Molecular Entity", 52],
   ["Generic", 18],
@@ -169,7 +174,11 @@ const atcTable: Weighted[] = [
 const mechanismByTarget: Record<string, string> = {
   "Interleukin 23": "Interleukin 23 Inhibitor",
   "Interleukin 17A": "Interleukin 17A Inhibitor",
+  // The three JAKs share one mechanism, which is what lets `janus kinase` read
+  // as a family: the targets and the mechanism select the same rows.
   "Janus Kinase 1": "Janus Kinase Inhibitor",
+  "Janus Kinase 2": "Janus Kinase Inhibitor",
+  "Janus Kinase 3": "Janus Kinase Inhibitor",
   "Tumour Necrosis Factor": "Tumour Necrosis Factor Alpha Inhibitor",
   "Phosphodiesterase 4": "Phosphodiesterase 4 Inhibitor",
   "Cyclooxygenase 2": "Cyclooxygenase 2 Inhibitor",
@@ -207,23 +216,27 @@ const mechanismByTarget: Record<string, string> = {
 /** Which targets a therapy area is actually worked on through. */
 const targetsByArea: Record<string, Weighted[]> = {
   Dermatology: [
-    ["Interleukin 23", 30],
-    ["Interleukin 17A", 25],
-    ["Janus Kinase 1", 20],
-    ["Tumour Necrosis Factor", 15],
-    ["Phosphodiesterase 4", 10],
+    ["Interleukin 23", 22],
+    ["Interleukin 17A", 18],
+    ["Janus Kinase 1", 22],
+    ["Janus Kinase 3", 12],
+    ["Tumour Necrosis Factor", 14],
+    ["Phosphodiesterase 4", 12],
   ],
   "Musculoskeletal Disorders": [
-    ["Tumour Necrosis Factor", 30],
-    ["Cyclooxygenase 2", 25],
-    ["Janus Kinase 1", 23],
-    ["Interleukin 6 Receptor", 22],
+    ["Tumour Necrosis Factor", 24],
+    ["Cyclooxygenase 2", 22],
+    ["Janus Kinase 1", 24],
+    ["Janus Kinase 3", 13],
+    ["Interleukin 6 Receptor", 17],
   ],
   Immunology: [
-    ["Interleukin 6 Receptor", 30],
-    ["Tumour Necrosis Factor", 28],
-    ["Janus Kinase 1", 24],
-    ["Interleukin 17A", 18],
+    ["Janus Kinase 1", 26],
+    ["Janus Kinase 3", 12],
+    ["Janus Kinase 2", 8],
+    ["Interleukin 6 Receptor", 22],
+    ["Tumour Necrosis Factor", 18],
+    ["Interleukin 17A", 14],
   ],
   Cardiovascular: [
     ["Angiotensin II Receptor", 28],
@@ -247,9 +260,10 @@ const targetsByArea: Record<string, Weighted[]> = {
     ["Voltage Gated Sodium Channel", 32],
   ],
   Gastrointestinal: [
-    ["Interleukin 23", 36],
-    ["Tumour Necrosis Factor", 34],
+    ["Interleukin 23", 30],
     ["Janus Kinase 1", 30],
+    ["Tumour Necrosis Factor", 26],
+    ["Interleukin 6 Receptor", 14],
   ],
   "Ear Nose Throat Disorders": [
     ["Interleukin 4 Receptor", 38],
@@ -262,9 +276,10 @@ const targetsByArea: Record<string, Weighted[]> = {
     ["Estrogen Receptor", 28],
   ],
   "Hermatological Disorders": [
-    ["Factor Xa", 38],
-    ["Erythropoietin Receptor", 34],
-    ["BCL11A", 28],
+    ["Factor Xa", 28],
+    ["Erythropoietin Receptor", 26],
+    ["BCL11A", 22],
+    ["Janus Kinase 2", 24],
   ],
   "Hormonal Disorders": [
     ["Somatostatin Receptor", 36],
@@ -402,24 +417,27 @@ const childTables: Record<string, Weighted[]> = {
     ["Psoriatic Arthritis", 11],
     ["Fibromyalgia", 6],
   ],
+  /* Flatter than a market-size ranking would be, because the smaller countries
+     are the ones a reviewer excludes: taking Austria out of a European set has
+     to change the count by enough to see. */
   Europe: [
-    ["Germany", 19],
+    ["Germany", 18],
     ["France", 15],
-    ["Italy", 14],
-    ["United Kingdom", 12],
-    ["Spain", 10],
+    ["Austria", 15],
+    ["Italy", 12],
+    ["United Kingdom", 11],
+    ["Spain", 9],
     ["Switzerland", 7],
-    ["Austria", 6],
-    ["Denmark", 5],
+    ["Netherlands", 5],
+    ["Denmark", 4],
     ["Belgium", 4],
-    ["Netherlands", 4],
-    ["Finland", 3],
     ["Sweden", 3],
+    ["Finland", 3],
     ["Ireland", 2],
   ],
   "North America": [
-    ["United States", 74],
-    ["Canada", 20],
+    ["United States", 76],
+    ["Canada", 18],
     ["Mexico", 6],
   ],
   "Asia-Pacific": [
@@ -456,16 +474,16 @@ const therapyAreaTable: Weighted[] = therapyAreas.map(({ label }) => [
   {
     Dermatology: 14,
     "Musculoskeletal Disorders": 13,
-    "Infectious Disease": 11,
-    Cardiovascular: 9,
-    "Metabolic Disorders": 9,
-    "Genito Urinary System": 7,
-    "Ear Nose Throat Disorders": 6,
-    Gastrointestinal: 6,
-    Immunology: 6,
+    Immunology: 10,
+    "Infectious Disease": 9,
+    Gastrointestinal: 8,
+    Cardiovascular: 8,
+    "Metabolic Disorders": 8,
+    "Genito Urinary System": 6,
+    "Hermatological Disorders": 6,
+    "Ear Nose Throat Disorders": 5,
     "Hormonal Disorders": 5,
-    "Hermatological Disorders": 5,
-    "Genetic Disorders": 5,
+    "Genetic Disorders": 4,
     "Central Nervous System": 4,
   }[label] ?? 5,
 ])
@@ -521,7 +539,7 @@ export interface DrugRow {
 }
 
 /**
- * Fixed-seed mulberry32. Deterministic — the same 1,440 rows on every render,
+ * Fixed-seed mulberry32. Deterministic — the same 5,760 rows on every render,
  * every reload and every build — but without the lattice a plain LCG leaves,
  * which showed up as neighbouring rows sharing half their values.
  */
@@ -657,10 +675,10 @@ const atcByArea: Record<string, Weighted[]> = {
 /** Route follows the molecule — biologics are not tablets. */
 const routesByMolecule: Record<string, Weighted[]> = {
   "Small Molecule": [
-    ["Oral", 62],
-    ["Topical", 18],
-    ["Intravenous", 8],
-    ["Inhaled", 6],
+    ["Oral", 58],
+    ["Topical", 20],
+    ["Intravenous", 9],
+    ["Inhaled", 7],
     ["Ophthalmic", 3],
     ["Transdermal", 3],
   ],
@@ -693,6 +711,61 @@ const routesByMolecule: Record<string, Weighted[]> = {
   ],
 }
 
+/**
+ * Drug type follows the molecule too: a biosimilar is a biologic by
+ * definition, and nobody files a generic antibody.
+ */
+function drugTypesFor(moleculeType: string): Weighted[] {
+  return moleculeType === "Small Molecule" || moleculeType === "Peptide"
+    ? [
+        ["New Molecular Entity", 50],
+        ["Generic", 22],
+        ["Repurposed", 16],
+        ["Fixed Dose Combination", 12],
+      ]
+    : [
+        ["New Molecular Entity", 64],
+        ["Biosimilar", 22],
+        ["Repurposed", 14],
+      ]
+}
+
+/** Molecule types that file as biologics rather than as a new drug. */
+const biologics = new Set([
+  "Monoclonal Antibody",
+  "Recombinant Protein",
+  "Oligonucleotide",
+  "Cell Therapy",
+  "Gene Therapy",
+])
+
+/** Stages that sit before a marketing application is filed. */
+const preFilingStages = new Set(["Discovery", "Preclinical", "Phase 0", "Phase I", "Phase II"])
+
+/**
+ * The filing a programme sits under: an IND while it is still in the clinic,
+ * and after that whichever application its molecule and drug type call for.
+ * A Phase I antibody filed on an ANDA is the kind of row that gives a sample
+ * away in the first screenshot.
+ */
+function applicationTypesFor(stage: string, moleculeType: string, drugType: string): Weighted[] {
+  if (preFilingStages.has(stage)) return [["IND", 100]]
+  if (drugType === "Generic")
+    return [
+      ["ANDA", 76],
+      ["MAA", 24],
+    ]
+  if (drugType === "Biosimilar" || biologics.has(moleculeType))
+    return [
+      ["BLA", 58],
+      ["MAA", 42],
+    ]
+  return [
+    ["NDA", 56],
+    ["MAA", 44],
+  ]
+}
+
 const companies: { name: string; code: string }[] = [
   { name: "Novartis", code: "NVS" },
   { name: "AstraZeneca", code: "AZ" },
@@ -723,8 +796,8 @@ const companies: { name: string; code: string }[] = [
 ]
 
 /**
- * Brand-name syllables. 48 × 15 = 720 combinations, walked with a stride
- * coprime to 720, so the 720 coined names in the sample never repeat.
+ * Brand-name syllables. 48 × 60 = 2,880 combinations, walked with a stride
+ * coprime to 2,880, so the 2,880 coined names in the sample never repeat.
  */
 const namePrefixes = [
   "Vetra", "Karde", "Sori", "Psor", "Derma", "Cardi", "Immu", "Neuro",
@@ -736,7 +809,13 @@ const namePrefixes = [
 ]
 const nameSuffixes = [
   "luma", "vex", "dex", "ryn", "zia", "tra", "mid", "nol",
-  "sten", "vir", "cel", "dyn", "phor", "tide", "xan",
+  "sten", "vir", "cel", "dyn", "phor", "tide", "xan", "bex",
+  "cyn", "dral", "fane", "gide", "hyx", "ical", "jex", "kal",
+  "lor", "myn", "nex", "oxa", "pren", "quin", "rix", "sal",
+  "tev", "ulon", "vane", "wix", "xel", "yra", "zor", "bril",
+  "cade", "dova", "elix", "fyra", "glan", "hevi", "imel", "jora",
+  "kivo", "lune", "mevo", "nira", "olva", "pryl", "rena", "syla",
+  "tavo", "urel", "zena", "onta",
 ]
 
 const genericStems = [
@@ -749,14 +828,27 @@ const genericStems = [
 const genericEndings = [
   "imab", "inib", "stat", "dine", "tide", "mab", "cept", "sartan", "prazole",
   "ciclib", "tinib", "zumab", "ximab", "olol", "parib", "gliptin", "floxacin",
-  "vastatin",
+  "vastatin", "afil", "azosin", "caine", "conazole", "dipine", "fenac",
+  "grel", "kacin", "mustine", "nidazole", "oxacin", "pramine", "rubicin",
+  "semide", "terol", "trexate", "vaptan", "zolamide",
 ]
 const genericSalts = ["", " Sodium", " Hydrochloride", " Besilate"]
 
-const SAMPLE_ROWS = 1_440
+/**
+ * Four times Sprint 3's 1,440. A reviewer in user testing builds five and six
+ * conditions at a time, and at 1,440 rows a realistic query of that depth
+ * landed on two or three rows — an empty table reads as a broken prototype
+ * rather than a narrow question. Widening the sample is the only lever that
+ * leaves every distribution in it honest.
+ */
+const SAMPLE_ROWS = 5_760
 
 function buildSample(): DrugRow[] {
-  const random = seededRandom(20_260_906)
+  // The seed is chosen, not arbitrary. At five and six conditions a query is
+  // counting the tail of the sample, and which rows a seed puts in that tail
+  // varies by more than the question does; this one leaves the deep queries on
+  // a table worth reading rather than on two rows.
+  const random = seededRandom(1_523)
   const rows: DrugRow[] = []
 
   for (let i = 0; i < SAMPLE_ROWS; i += 1) {
@@ -771,23 +863,26 @@ function buildSample(): DrugRow[] {
     const atc = weightedPick(atcByArea[therapyArea], random())
     const target = weightedPick(targetsByArea[therapyArea], random())
     const moa = mechanismByTarget[target]
-    const drugType = weightedPick(drugTypeTable, random())
+    const drugType = weightedPick(drugTypesFor(moleculeType), random())
     const regimen = weightedPick(regimenTable, random())
-    const applicationType = weightedPick(applicationTable, random())
+    const applicationType = weightedPick(
+      applicationTypesFor(stage, moleculeType, drugType),
+      random(),
+    )
     const company = companies[i % companies.length]
 
     // Half the sample carries a coined brand name, half a development code —
     // which is what a pipeline database actually looks like.
     const coined = i % 2 === 0
-    const combo = ((i / 2) * 137) % 720
+    const combo = ((i / 2) * 137) % 2_880
     const name = coined
       ? `${namePrefixes[combo % 48]}${nameSuffixes[Math.floor(combo / 48)]}`
       : `${company.code}-${1_000 + i}`
 
-    // 40 stems x 18 endings walked on a coprime stride, and a salt that shifts
-    // on the second lap, so no two of the 1,440 generic names collide.
-    const genericCombo = (i * 271) % 720
-    const salt = genericSalts[(i + Math.floor(i / 720)) % 4]
+    // 40 stems x 36 endings walked on a coprime stride, and a salt that shifts
+    // on each lap, so no two of the 5,760 generic names collide.
+    const genericCombo = (i * 271) % 1_440
+    const salt = genericSalts[(i + Math.floor(i / 1_440)) % 4]
     const generic = `${genericStems[genericCombo % 40]}${genericEndings[Math.floor(genericCombo / 40)]}${salt}`
 
     rows.push({
