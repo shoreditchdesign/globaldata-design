@@ -236,6 +236,11 @@ function geographyValuesOf(row: DrugRow) {
 /**
  * The row values each filter tests. A filter missing here — Expiry date, and
  * the areas the drug sample does not cover — is drawn but not evaluated.
+ *
+ * Company name is the one attribute outside Drugs that is here, because every
+ * row in the sample carries the company that owns it. Its four authored values
+ * are four of the sample's own companies, so filtering by one is a real
+ * narrowing rather than a lookup into an area the sample does not hold.
  */
 const filterReaders: Partial<Record<FilterId, (row: DrugRow) => string[]>> = {
   target: (row) => [row.target],
@@ -256,6 +261,7 @@ const filterReaders: Partial<Record<FilterId, (row: DrugRow) => string[]>> = {
   "Drugs/CAS Number": (row) => [row.cas],
   "Drugs/Marketing Status": (row) => [marketingStatusFor(row)],
   "Drugs by Manufacturer/Manufacturer": (row) => [row.company],
+  "Companies/Company Name": (row) => [row.company],
 }
 
 /* -------------------------------------------------------------------------- */
