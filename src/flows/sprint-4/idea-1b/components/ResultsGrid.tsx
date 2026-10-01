@@ -10,12 +10,16 @@ import {
   DownloadIcon,
   EllipsisVerticalIcon,
   EyeOffIcon,
+  FilterIcon,
+  FilterXIcon,
+  SearchXIcon,
   MoveHorizontalIcon,
   PinIcon,
   PinOffIcon,
   type LucideIcon,
 } from "lucide-react"
 
+import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { StageBadge } from "@/components/prototype/StageBadge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -26,11 +30,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import {
+  Popover,
+  PopoverAnchor,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { ColumnManager } from "@/flows/sprint-4/idea-1b/components/ColumnManager"
+import { ValueList } from "@/flows/sprint-4/idea-1b/components/ValueList"
+import {
+  criterionPhrase,
+  definitionFor,
+  filterIdFor,
+  lastApplied,
+  type FilterId,
+  type ResolvedFilter,
+} from "@/flows/sprint-4/idea-1b/data"
 import type { DrugRow } from "@/flows/sprint-4/idea-1b/results"
 import {
   columnByKey,
+  columnFilterPath,
   columnTrack,
   hiddenColumnKeys,
   laneWidth,
@@ -100,8 +119,11 @@ function MenuAction({
   onSelect: () => void
 }) {
   return (
-    <DropdownMenuItem onSelect={onSelect}>
-      <Icon />
+    // The label reads at the grid's own 13px, in the grid's own ink: this menu
+    // opens over the rows and belongs to them. The mark beside it stays a step
+    // back, because a column of black icons competed with the table underneath.
+    <DropdownMenuItem onSelect={onSelect} className="text-[13px]">
+      <Icon className="text-muted-foreground size-3" />
       {children}
     </DropdownMenuItem>
   )
@@ -111,18 +133,38 @@ function HeaderCell({
   column,
   state,
   lanes,
+  filters,
   onAction,
+  onToggleFilterValue,
+  onPickOnlyFilterValue,
+  onClearFilter,
 }: {
   column: ColumnDef
   state: GridState
   lanes: Frozen
+  filters: ResolvedFilter[]
   onAction: (action: GridAction) => void
+  onToggleFilterValue: (area: ProductArea, attribute: string, value: string) => void
+  onPickOnlyFilterValue: (area: ProductArea, attribute: string, value: string) => void
+  onClearFilter: (id: FilterId) => void
 }) {
   const sorted = state.sort?.columnKey === column.key ? state.sort.direction : null
   const pinned = state.pinned.includes(column.key)
   const locked = column.key === "name"
   const lane = frozen(column.key, lanes, "bg-surface-panel z-[2]")
   const cellRef = React.useRef<HTMLDivElement>(null)
+
+  // The clause this column's lane is filtered by, if the taxonomy has an
+  // attribute for it and the box is holding one.
+  const path = columnFilterPath[column.key]
+  const definition = path ? definitionFor(filterIdFor(path.area, path.attribute)) : null
+  const clause = definition
+    ? filters.find((filter) => filter.id === definition.id)
+    : undefined
+  const applied = clause?.values.length ?? 0
+  const [filterOpen, setFilterOpen] = React.useState(false)
+  // Set by the menu item, read when the menu closes. See the handler below.
+  const openingFilter = React.useRef(false)
 
   // Drag the right edge to resize, as in AG Grid. Double-click returns the lane
   // to its natural width.
@@ -145,7 +187,7 @@ function HeaderCell({
     handle.addEventListener("pointercancel", stop)
   }
 
-  return (
+  const cell = (
     <div
       ref={cellRef}
       className={cn(
@@ -167,6 +209,16 @@ function HeaderCell({
         {sorted === "asc" ? <ArrowUpIcon className="size-3 shrink-0" aria-label="Sorted ascending" /> : null}
         {sorted === "desc" ? <ArrowDownIcon className="size-3 shrink-0" aria-label="Sorted descending" /> : null}
         {pinned && !locked ? <PinIcon className="size-3 shrink-0" aria-label="Pinned" /> : null}
+        {applied > 0 ? (
+          // How many values this lane is filtered by. A tint, not the accent
+          // itself: it marks a column, it is not the thing being pressed.
+          <span
+            aria-label={`${applied} ${applied === 1 ? "filter" : "filters"} applied`}
+            className="bg-brand-tint text-brand-ink ml-0.5 flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full px-1 tracking-normal tabular-nums"
+          >
+            {applied}
+          </span>
+        ) : null}
       </button>
 
       <DropdownMenu>
@@ -176,7 +228,21 @@ function HeaderCell({
         >
           <EllipsisVerticalIcon className="size-3.5" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-52">
+        <DropdownMenuContent
+          align="start"
+          className="w-52"
+          // A menu closing puts focus back on the button that opened it, and it
+          // does so after the next frame — by which time the value list is open
+          // and reads that as focus leaving it, so it closes again. Where the
+          // menu is closing in order to open the list, it hands over instead of
+          // handing back.
+          onCloseAutoFocus={(event) => {
+            if (!openingFilter.current) return
+            event.preventDefault()
+            openingFilter.current = false
+            setFilterOpen(true)
+          }}
+        >
           <MenuAction
             icon={ArrowDownAZIcon}
             onSelect={() =>
@@ -199,6 +265,26 @@ function HeaderCell({
           >
             {sorted === "desc" ? "Clear sort" : "Sort descending"}
           </MenuAction>
+          {path ? (
+            <>
+              <DropdownMenuSeparator />
+              <MenuAction
+                icon={FilterIcon}
+                onSelect={() => {
+                  openingFilter.current = true
+                }}
+              >
+                {applied > 0 ? "Edit filters" : "Add filter"}
+              </MenuAction>
+              {applied > 0 && clause ? (
+                // The clause goes, not its values one by one: there is nothing
+                // left of a filter whose last value has been unticked anyway.
+                <MenuAction icon={FilterXIcon} onSelect={() => onClearFilter(clause.id)}>
+                  Clear filters
+                </MenuAction>
+              ) : null}
+            </>
+          ) : null}
           <DropdownMenuSeparator />
           <MenuAction
             icon={pinned ? PinOffIcon : PinIcon}
@@ -231,6 +317,106 @@ function HeaderCell({
         onDoubleClick={() => onAction({ kind: "autosize", columnKey: column.key })}
         className="hover:bg-ring/60 absolute inset-y-0 -right-[3px] z-[3] w-1.5 cursor-col-resize transition-colors"
       />
+    </div>
+  )
+
+  if (!path || !definition) return cell
+
+  // Hung off the header itself, so the values drop under the lane they filter,
+  // and holding the same list the clause in the filter box opens.
+  return (
+    <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+      <PopoverAnchor asChild>{cell}</PopoverAnchor>
+      <PopoverContent align="start" className="w-72 gap-0 p-0">
+        <ValueList
+          label={definition.label}
+          options={definition.options}
+          selected={clause?.values ?? []}
+          onToggle={(value) => onToggleFilterValue(path.area, path.attribute, value)}
+          onPickOnly={(value) => {
+            onPickOnlyFilterValue(path.area, path.attribute, value)
+            setFilterOpen(false)
+          }}
+        />
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+/**
+ * What the table says when the criteria are too narrow for the sample.
+ *
+ * It is a reading of the query, not an apology for the data: the drugs are
+ * there, the criteria have ruled them all out, and the line says which criteria
+ * and out of how many. The way back is the thing the reader most likely wants —
+ * the criterion they added last — with clearing everything beside it rather
+ * than instead of it, because a query five criteria deep took minutes to build
+ * and one bad value should not cost the other four.
+ *
+ * Everything that would let them fix it by hand stays where it was: the filter
+ * bar, the chips, the search field and the column heads are all outside this
+ * and none of them are disabled.
+ */
+function NoMatches({
+  filters,
+  onRemoveCriterion,
+  onClearFilters,
+}: {
+  filters: ResolvedFilter[]
+  onRemoveCriterion: (id: FilterId) => void
+  onClearFilters: () => void
+}) {
+  // Clauses still waiting for a value rule nothing out, so they are not part of
+  // what the reader is being told narrowed the results to nothing.
+  const applied = filters.filter((filter) => filter.values.length > 0)
+  const last = lastApplied(filters)
+
+  // No criteria and no rows is a different thing — an empty sample, or a read
+  // that placed nothing — and this is not the message for it.
+  if (applied.length === 0) {
+    return (
+      <p className="text-muted-foreground sticky left-0 w-full px-6 py-16 text-center text-[13px]">
+        No drug matches these filters.
+      </p>
+    )
+  }
+
+  return (
+    <div className="sticky left-0 flex w-full flex-col items-center gap-5 px-6 py-20 text-center">
+      {/* The mark, the line, the reading, the way out — the order an empty
+          state is read in. Quiet enough not to be taken for an error: nothing
+          has gone wrong, the criteria are narrower than the data. */}
+      <SearchXIcon className="text-muted-foreground size-10" aria-hidden />
+
+      <div className="flex flex-col gap-1.5">
+        <h3 aria-live="polite" className="text-foreground text-base font-semibold">
+          No drugs match these criteria
+        </h3>
+        <p
+          aria-live="polite"
+          className="text-muted-foreground mx-auto max-w-md text-[13px] leading-5"
+        >
+          {/* Named in the order the buttons below offer them, and only where
+              both are offered: with one criterion applied there is nothing to
+              step back through. */}
+          {applied.length > 1 && last
+            ? "Try removing the last criterion or clearing all filters."
+            : "Try clearing all filters."}
+        </p>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        {/* With one criterion applied the two buttons would do the same thing,
+            so only the one that says what it does is offered. */}
+        {applied.length > 1 && last ? (
+          <Button variant="secondary" size="sm" onClick={() => onRemoveCriterion(last.id)}>
+            Remove last criterion: {criterionPhrase(last)}
+          </Button>
+        ) : null}
+        <Button size="sm" onClick={onClearFilters}>
+          Clear all filters
+        </Button>
+      </div>
     </div>
   )
 }
@@ -289,14 +475,26 @@ export function ResultsGrid({
   rows,
   resultCount,
   state,
+  filters,
   onAction,
+  onToggleFilterValue,
+  onPickOnlyFilterValue,
+  onClearFilter,
+  onClearFilters,
 }: {
   /** Rows the filters keep, before sorting — at most the first 100. */
   rows: DrugRow[]
   /** Every drug the filters match, of which `rows` are the first. */
   resultCount: number
   state: GridState
+  /** Read by the column headers: which lanes are filtered, and by how much. */
+  filters: ResolvedFilter[]
   onAction: (action: GridAction) => void
+  onToggleFilterValue: (area: ProductArea, attribute: string, value: string) => void
+  onPickOnlyFilterValue: (area: ProductArea, attribute: string, value: string) => void
+  /** Takes one column's clause out of the box entirely. */
+  onClearFilter: (id: FilterId) => void
+  onClearFilters: () => void
 }) {
   const keys = visibleColumnKeys(state)
   const lanes = frozenLanes(state, keys)
@@ -347,7 +545,8 @@ export function ResultsGrid({
                 </span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="end" className="w-[300px] gap-0 p-0">
+            {/* The same box Add filter and the value lists open in. */}
+            <PopoverContent align="end" className="w-72 gap-0 p-0">
               <ColumnManager state={state} onAction={onAction} />
             </PopoverContent>
           </Popover>
@@ -399,17 +598,15 @@ export function ResultsGrid({
                   column={columnByKey[key]}
                   state={state}
                   lanes={lanes}
+                  filters={filters}
                   onAction={onAction}
+                  onToggleFilterValue={onToggleFilterValue}
+                  onPickOnlyFilterValue={onPickOnlyFilterValue}
+                  onClearFilter={onClearFilter}
                 />
               )
             })}
           </div>
-
-          {rows.length === 0 ? (
-            <p className="text-muted-foreground sticky left-0 w-fit px-4 py-10 text-[13px]">
-              No drug matches these filters.
-            </p>
-          ) : null}
 
           {sorted.map((row) => {
             const isSelected = selected.includes(row.id)
@@ -454,6 +651,18 @@ export function ResultsGrid({
             )
           })}
         </div>
+
+        {/* Outside the lane track, so it is as wide as the grid is on screen
+            rather than as wide as the columns add up to — which is what lets it
+            centre — and stuck to the left edge so it stays put if the reader
+            scrolls the empty table sideways. */}
+        {rows.length === 0 ? (
+          <NoMatches
+            filters={filters}
+            onRemoveCriterion={onClearFilter}
+            onClearFilters={onClearFilters}
+          />
+        ) : null}
       </div>
 
       <div className="bg-surface-chrome border-edge flex h-9 shrink-0 items-center gap-4 border-t px-3 text-xs tabular-nums">

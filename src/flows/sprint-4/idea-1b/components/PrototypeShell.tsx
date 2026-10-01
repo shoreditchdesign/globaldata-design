@@ -13,7 +13,8 @@ import { ResultsPage } from "@/flows/sprint-4/idea-1b/components/ResultsPage"
 import { SearchPanel } from "@/flows/sprint-4/idea-1b/components/SearchPanel"
 import {
   activeProductArea,
-  definitionFor,
+  nextAppliedAt,
+  stampInOrder,
   emptyPathFilter,
   pathFilter,
   type FilterId,
@@ -48,7 +49,11 @@ function toggleValueAt(
   // The first path starts the filters; once there are filters, on either page,
   // a path refines them, joining a clause that tests the same thing.
   const hasFilters = current.showResults || current.submittedQuery || current.path
-  if (!hasFilters) return { ...current, path, filters: [picked] }
+  // Every branch below stamps the clause it touches: adding one and changing
+  // one are both "the most recent thing the reader did", which is what the
+  // empty state needs to be able to offer the one step back.
+  const at = nextAppliedAt(current.filters)
+  if (!hasFilters) return { ...current, path, filters: [{ ...picked, appliedAt: at }] }
   const existing = current.filters.find((filter) => filter.id === picked.id)
 
   // A value already in its filter is selected, so a second click takes it out
@@ -59,17 +64,49 @@ function toggleValueAt(
       filters: current.filters.flatMap((filter) => {
         if (filter.id !== picked.id) return [filter]
         const values = filter.values.filter((item) => item !== value)
-        return values.length > 0 ? [{ ...filter, values }] : []
+        return values.length > 0 ? [{ ...filter, values, appliedAt: at }] : []
       }),
     }
   }
 
   const filters = existing
     ? current.filters.map((filter) =>
-        filter.id === picked.id ? { ...filter, values: [...filter.values, value] } : filter,
+        filter.id === picked.id
+          ? { ...filter, values: [...filter.values, value], appliedAt: at }
+          : filter,
       )
-    : [...current.filters, picked]
+    : [...current.filters, { ...picked, appliedAt: at }]
   return { ...current, path, filters }
+}
+
+/**
+ * One value, in place of whatever that clause held.
+ *
+ * What clicking the row of a list does, as against clicking its tick box: a
+ * list is most often read to pick one thing, and picking it should not mean
+ * first clearing what a previous read left behind.
+ */
+function onlyValueAt(
+  current: Sprint4Idea1bState,
+  area: ProductArea,
+  attribute: string,
+  value: string,
+): Sprint4Idea1bState {
+  const picked = pathFilter(area, attribute, value)
+  const existing = current.filters.some((filter) => filter.id === picked.id)
+  const at = nextAppliedAt(current.filters)
+  return {
+    ...current,
+    path: { area, attribute, value },
+    // An existing clause keeps everything but its values — whether it includes
+    // or excludes, and how it joins the clause before it, were decided in the
+    // box and are not this list's to reset.
+    filters: existing
+      ? current.filters.map((filter) =>
+          filter.id === picked.id ? { ...filter, values: [value], appliedAt: at } : filter,
+        )
+      : [...current.filters, { ...picked, appliedAt: at }],
+  }
 }
 
 /** Whether a read left words it could not place, or asked for something unbuilt. */
@@ -114,7 +151,7 @@ export function PrototypeShell() {
         filterBoxOpen: true,
         filters: existing
           ? current.filters.filter((filter) => filter.id !== started.id)
-          : [...current.filters, started],
+          : [...current.filters, { ...started, appliedAt: nextAppliedAt(current.filters) }],
       }
     })
   // Miller columns open rather than toggle: clicking the open row keeps it open.
@@ -128,6 +165,8 @@ export function PrototypeShell() {
     setState((current) => ({ ...current, manualAttribute: attribute }))
   const pickValueAt = (area: ProductArea, attribute: string, value: string) =>
     setState((current) => toggleValueAt(current, area, attribute, value))
+  const pickOnlyValueAt = (area: ProductArea, attribute: string, value: string) =>
+    setState((current) => onlyValueAt(current, area, attribute, value))
   const submitQuery = () =>
     setState((current) => {
       const resolution = resolveNaturalLanguage(current.query)
@@ -145,7 +184,10 @@ export function PrototypeShell() {
               ...current,
               submittedQuery: current.pending.raw,
               filterBoxOpen: true,
-              filters: current.pending.filters,
+              // A read replaces the set, so the clauses are stamped in the order
+              // the sentence named them — the last phrase read is the last
+              // criterion applied.
+              filters: stampInOrder(current.pending.filters),
               path: null,
               pending: null,
               // Anything the read could not place is said once it has settled.
@@ -186,7 +228,7 @@ export function PrototypeShell() {
           : [...filter.values, value]
         // An emptied clause stays, back at Select value. Its pill is what puts
         // it in the box and what takes it out, so unticking a value must not.
-        return [{ ...filter, values }]
+        return [{ ...filter, values, appliedAt: nextAppliedAt(current.filters) }]
       }),
     }))
   const removeFilter = (id: FilterId) =>
@@ -194,15 +236,6 @@ export function PrototypeShell() {
       ...current,
       filters: current.filters.filter((filter) => filter.id !== id),
     }))
-  const addFilter = (id: FilterId) =>
-    setState((current) => {
-      if (current.filters.some((filter) => filter.id === id)) return current
-      const { label, values, excluded, join, link } = definitionFor(id)
-      return {
-        ...current,
-        filters: [...current.filters, { id, label, values: [...values], excluded, join, link }],
-      }
-    })
   const clearFilters = () => setState((current) => ({ ...current, filters: [] }))
   const closeFilters = () => setState(initialState("start"))
   const search = () =>
@@ -221,7 +254,8 @@ export function PrototypeShell() {
       onLinkChange={setFilterLink}
       onToggleValue={toggleFilterValue}
       onRemove={removeFilter}
-      onAdd={addFilter}
+      onPickValue={pickValueAt}
+      onPickOnlyValue={pickOnlyValueAt}
       onClear={clearFilters}
       onSearch={state.showResults ? undefined : search}
       // Advanced always shows the box, so it has nothing to close back to.
@@ -236,6 +270,10 @@ export function PrototypeShell() {
       <ProductChrome activeArea={activeProductArea} body="row">
         <ResultsPage
           filters={state.filters}
+          onToggleFilterValue={pickValueAt}
+          onPickOnlyFilterValue={pickOnlyValueAt}
+          onClearFilter={removeFilter}
+          onClearFilters={clearFilters}
           filterBox={filterBox}
           panel={
             <SearchPanel
