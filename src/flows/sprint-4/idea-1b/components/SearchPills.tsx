@@ -55,11 +55,22 @@ export function SearchPills({
         onClick={() => onToggleFilter(area, attribute)}
         className={cn(
           "bg-surface-panel border-border hover:bg-accent inline-flex h-8 items-center rounded-full border px-3.5 text-[13px] transition-[color,background-color,border-color]",
-          filter && "bg-foreground text-background border-foreground hover:bg-foreground/90",
+          // Three states told apart by two channels rather than by weight, so
+          // the row can be quiet and still legible: the fill goes white →
+          // grey → blue-washed, and the edge goes grey → grey → blue. Hover
+          // and selected sit at almost the same lightness and cannot be
+          // confused, because one is a shade and the other is a hue.
+          //
+          // The wash is also what the system reserves for a selection that is
+          // not a checked control. Solid brand is the arrow in the search
+          // field and the mode the tabs are on; the pills are a step under
+          // both, which is the order they should be read in.
+          filter &&
+            "bg-brand-tint border-brand-border text-foreground hover:bg-brand-tint hover:border-brand-ink",
         )}
       >
         {attribute}
-        <FilterCount count={filter?.values.length ?? 0} inverted={Boolean(filter)} />
+        <FilterCount count={filter?.values.length ?? 0} />
       </button>
     )
   })
@@ -83,23 +94,19 @@ export function SearchPills({
   )
 }
 
-/** A small count on a pill: how many values its clause holds. */
-function FilterCount({
-  count,
-  inverted,
-}: {
-  count: number
-  /** On a started clause's dark fill, the count takes a dark treatment of its own. */
-  inverted: boolean
-}) {
+/**
+ * A small count on a pill: how many values its clause holds.
+ *
+ * Only ever drawn on a pill that is on, since a pill that is off has no clause
+ * to count — so it takes one treatment, cut out of the wash the pill is filled
+ * with rather than tinted the same colour as it.
+ */
+function FilterCount({ count }: { count: number }) {
   if (count === 0) return null
   return (
     <span
       aria-label={`${count} value${count === 1 ? "" : "s"} applied`}
-      className={cn(
-        "ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-none font-medium tabular-nums",
-        inverted ? "bg-background/20 text-background" : "bg-brand-tint text-brand-ink",
-      )}
+      className="bg-surface-panel text-brand-ink ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-none font-medium tabular-nums"
     >
       {count}
     </span>
