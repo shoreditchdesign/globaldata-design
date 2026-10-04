@@ -298,19 +298,6 @@ export interface ResolvedFilter {
   join: FilterJoin
   /** How this category combines with the category before it. */
   link: FilterLink
-  /**
-   * When this clause was last the thing the reader did, as a sequence number.
-   *
-   * The array these sit in is the order they are drawn in — the chips and the
-   * words between them — and editing a clause leaves it where it is, so the
-   * array cannot say which one was touched last. This can, without moving
-   * anything on screen. Adding a clause stamps it; changing its values stamps
-   * it again, because that is the most recent thing the reader did.
-   *
-   * Optional, so a clause built where recency does not matter — an authored
-   * definition, a screen's seed — needs no change.
-   */
-  appliedAt?: number
 }
 
 export interface FilterDefinition extends ResolvedFilter {
@@ -455,38 +442,6 @@ export function filterIdFor(area: ProductArea, attribute: string): FilterId {
 export function pathFilter(area: ProductArea, attribute: string, value: string): ResolvedFilter {
   const { id, label } = definitionFor(filterIdFor(area, attribute))
   return { id, label, values: [value], excluded: false, join: "or", link: "and" }
-}
-
-/** The next sequence number, one past the highest any clause is carrying. */
-export function nextAppliedAt(filters: ResolvedFilter[]) {
-  return filters.reduce((top, filter) => Math.max(top, filter.appliedAt ?? 0), 0) + 1
-}
-
-/** Stamps every clause in order, for a set that arrives at once. */
-export function stampInOrder(filters: ResolvedFilter[], from = 1) {
-  return filters.map((filter, index) => ({ ...filter, appliedAt: from + index }))
-}
-
-/**
- * The criterion applied most recently, of those actually narrowing the results.
- * A clause still waiting for a value narrows nothing, so taking it away would
- * not change the count and it is not offered.
- */
-export function lastApplied(filters: ResolvedFilter[]) {
-  return filters
-    .filter((filter) => filter.values.length > 0)
-    .reduce<ResolvedFilter | null>(
-      (latest, filter) =>
-        !latest || (filter.appliedAt ?? 0) >= (latest.appliedAt ?? 0) ? filter : latest,
-      null,
-    )
-}
-
-/** How a clause reads in a sentence: its values, and whether it excludes them. */
-export function criterionPhrase(filter: ResolvedFilter) {
-  if (filter.values.length === 0) return filter.label
-  const values = filter.values.join(filter.join === "and" ? " and " : " or ")
-  return filter.excluded ? `not ${values}` : values
 }
 
 /**

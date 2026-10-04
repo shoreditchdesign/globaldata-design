@@ -1,7 +1,6 @@
 import {
   emptyPathFilter,
   initialResolvedFilters,
-  stampInOrder,
   pathFilter,
   workedQuery,
   type ResolvedFilter,
@@ -69,9 +68,7 @@ const filteredState = (): Sprint4Idea1bState => ({
   filterBoxOpen: true,
   path: null,
   submittedQuery: workedQuery,
-  // Stamped in the order the worked query names them, so a screen seeded
-  // with filters can say which was applied last just as a built one can.
-  filters: stampInOrder(initialResolvedFilters()),
+  filters: initialResolvedFilters(),
   pending: null,
   unread: null,
   showResults: false,
@@ -81,7 +78,7 @@ const filteredState = (): Sprint4Idea1bState => ({
 const valuesState = (): Sprint4Idea1bState => ({
   ...startState(),
   filterBoxOpen: true,
-  filters: stampInOrder([emptyPathFilter("Companies", "Company Name")]),
+  filters: [emptyPathFilter("Companies", "Company Name")],
 })
 
 /** Advanced chosen on the landing page: the Miller columns with the filter box beneath. */
@@ -100,7 +97,7 @@ const pickedState = (): Sprint4Idea1bState => ({
   ...startState(),
   filterBoxOpen: true,
   path: pickedPath,
-  filters: stampInOrder([pathFilter(pickedPath.area, pickedPath.attribute, pickedPath.value)]),
+  filters: [pathFilter(pickedPath.area, pickedPath.attribute, pickedPath.value)],
 })
 
 const resolvingState = (): Sprint4Idea1bState => ({
