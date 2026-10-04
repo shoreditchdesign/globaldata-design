@@ -17,8 +17,11 @@ import { cn } from "@/lib/utils"
 /**
  * The results page's chat section: the commonly used filters at its head, and
  * the query field at its foot, where a chat composer sits. Between them,
- * Advanced search's Miller columns when the switch in the field is on. All of
- * it feeds the filter box beside it.
+ * Advanced search's Miller columns when the switch is on. The switch sits in
+ * the composer's bottom-left corner, as it sits in the start screen's field,
+ * because that is where the eye already is when a search is being written;
+ * testers missed it at the panel's head. All of it feeds the filter box
+ * beside it.
  *
  * It fills whatever width the results page gives it, which is the same in
  * both modes, and collapsing it is the results page's business too, from the
@@ -110,7 +113,13 @@ export function SearchPanel({
           />
           {pending ? <ScanningQuery resolution={pending} onDone={onScanDone} multiline /> : null}
         </div>
-        <div className="mt-3 flex items-center justify-end gap-1">
+        <div className="mt-5 flex items-center gap-1">
+          <AdvancedToggle
+            mode={mode}
+            onModeChange={onModeChange}
+            disabled={resolving}
+            className="mr-auto"
+          />
           <DictateButton onText={onDictate} disabled={resolving} size="icon-sm" />
           <Button
             type="submit"
@@ -129,11 +138,8 @@ export function SearchPanel({
   return (
     <aside
       aria-label="Search"
-      className="bg-surface-chrome border-edge flex h-full w-full flex-col border-r"
+      className="bg-surface-chrome border-edge flex h-full w-full flex-col border-r pt-2"
     >
-      <div className="shrink-0 px-3 pt-5 pb-3">
-        <AdvancedToggle mode={mode} onModeChange={onModeChange} disabled={resolving} />
-      </div>
       {mode === "quick" ? (
         <div className="flex min-h-0 flex-1 flex-col">
           {/* The same header block as Advanced's, row for row: where the
