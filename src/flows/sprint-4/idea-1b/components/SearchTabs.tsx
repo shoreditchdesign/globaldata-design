@@ -1,5 +1,3 @@
-import { FilterIcon, SearchIcon, type LucideIcon } from "lucide-react"
-
 import type { SearchMode } from "@/flows/sprint-4/idea-1b/state"
 import { cn } from "@/lib/utils"
 
@@ -22,18 +20,10 @@ export function SearchTabs({
         className,
       )}
     >
-      <SearchTab
-        active={mode === "quick"}
-        onClick={() => onModeChange("quick")}
-        icon={SearchIcon}
-      >
+      <SearchTab active={mode === "quick"} onClick={() => onModeChange("quick")}>
         Quick search
       </SearchTab>
-      <SearchTab
-        active={mode === "manual"}
-        onClick={() => onModeChange("manual")}
-        icon={FilterIcon}
-      >
+      <SearchTab active={mode === "manual"} onClick={() => onModeChange("manual")}>
         Advanced search
       </SearchTab>
     </div>
@@ -43,13 +33,10 @@ export function SearchTabs({
 function SearchTab({
   active,
   onClick,
-  icon: Icon,
   children,
 }: {
   active: boolean
   onClick: () => void
-  /** What the tab searches with: the field, or the filters themselves. */
-  icon: LucideIcon
   children: React.ReactNode
 }) {
   return (
@@ -59,15 +46,12 @@ function SearchTab({
       aria-selected={active}
       onClick={onClick}
       className={cn(
-        "flex h-7 items-center justify-center gap-1.5 rounded-md px-3 text-[13px] font-medium transition-colors",
+        "flex h-7 items-center justify-center rounded-md px-3 text-[13px] font-medium transition-colors",
         active
-          // The accent the arrow in the search field is filled with, on the
-          // mode the field is in: the two are the same decision seen twice.
-          ? "bg-primary text-primary-foreground shadow-panel"
+          ? "bg-surface-panel text-foreground shadow-panel"
           : "text-muted-foreground hover:bg-accent hover:text-foreground",
       )}
     >
-      <Icon className="size-3 shrink-0" />
       {children}
     </button>
   )
