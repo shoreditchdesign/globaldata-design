@@ -265,3 +265,11 @@ Two other things settled in the same pass. The excluding filter chip takes the w
 **The chat section is a sibling of the table.** The filter box runs across the top, the status bar — count, Columns, Export — runs over both the chat section and the table, and the footer runs under both. The footer's left end holds a plain panel toggle that folds the chat section away by width, on `motion.reflow`, with no transition under reduced motion. The commonly used filters head the chat section and the query field sits at its foot, where a chat composer does.
 
 **Two deliberate departures from the Paper frame.** It still shows a See all filters link under the pills, which is gone — the pills are the shortlist and there is no all-filters affordance beside them. And it shows Add filter as a bare plus, which the client found too quiet on the call, so it is a labelled button.
+
+## 2026-10-04 — Idea 1c, one panel width, and the columns walk to a read
+
+**The chat panel is one width.** It held a quarter of the page for the pills and 800px for the Miller columns, so flipping Advanced pushed the table sideways. It holds 800px in both now, and the off state takes Advanced's header block row for row — the switch, then "Commonly used filters" where the columns put their path — with no search field, which ten pills do not need.
+
+**The Miller columns walk to a resolved query.** Sprint 3 Idea 2's agent travelled the columns to each attribute before ticking anything; 1c keeps only that walk, faster, and applies the filters before it starts so the table never waits on it.
+
+**Checkboxes.** Unticked boxes take `ring` as their edge so they read at rest, and a part-selection fills with brand and shows a bar, so no box shows a tick without its fill. Done in a 1c wrapper rather than the shared Checkbox, so Idea 1b's tested grid is untouched.
