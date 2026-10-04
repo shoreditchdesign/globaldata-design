@@ -1,9 +1,10 @@
 import type { ProductArea } from "@/components/prototype/ProductChrome"
+import { Button } from "@/components/ui/button"
 import {
   commonAttributes,
   filterIdFor,
   type ResolvedFilter,
-} from "@/flows/sprint-4/idea-1b/data"
+} from "@/flows/sprint-4/idea-1c/data"
 import { cn } from "@/lib/utils"
 
 /**
@@ -24,11 +25,14 @@ export function SearchPills({
   layout,
   filters,
   onToggleFilter,
+  onSeeAll,
 }: {
   layout: "centered" | "panel"
   /** The filters in the box, however they were built, counted onto the pills. */
   filters: ResolvedFilter[]
   onToggleFilter: (area: ProductArea, attribute: string) => void
+  /** The way to the rest of them. The ten pills are a shortlist, not the set. */
+  onSeeAll: () => void
 }) {
   const centred = layout === "centered"
   const headType = "text-[10px] font-medium tracking-[0.08em] uppercase"
@@ -89,6 +93,21 @@ export function SearchPills({
         )}
       >
         {pills}
+        {/* A word rather than an eleventh pill: it does not add a filter, it
+            goes somewhere, and it would read as one of the ten if it were
+            shaped like them. Nothing under it until the cursor is, as on
+            Reset columns in the grid's own panel, and quiet until then: the
+            pills beside it are the thing being read, and this is the way past
+            them. */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onSeeAll}
+          className="text-muted-foreground h-8 text-[13px]"
+        >
+          See all filters
+        </Button>
       </nav>
     </div>
   )

@@ -6,11 +6,11 @@ import { usePathname } from "next/navigation"
 import { ProductChrome } from "@/components/prototype/ProductChrome"
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { useDeepLink } from "@/hooks/use-deep-link"
-import { LandingPage } from "@/flows/sprint-4/idea-1b/components/LandingPage"
-import { ManualSearch } from "@/flows/sprint-4/idea-1b/components/ManualSearch"
-import { ResolvedFilters } from "@/flows/sprint-4/idea-1b/components/ResolvedFilters"
-import { ResultsPage } from "@/flows/sprint-4/idea-1b/components/ResultsPage"
-import { SearchPanel } from "@/flows/sprint-4/idea-1b/components/SearchPanel"
+import { LandingPage } from "@/flows/sprint-4/idea-1c/components/LandingPage"
+import { ManualSearch } from "@/flows/sprint-4/idea-1c/components/ManualSearch"
+import { ResolvedFilters } from "@/flows/sprint-4/idea-1c/components/ResolvedFilters"
+import { ResultsPage } from "@/flows/sprint-4/idea-1c/components/ResultsPage"
+import { SearchPanel } from "@/flows/sprint-4/idea-1c/components/SearchPanel"
 import {
   activeProductArea,
   nextAppliedAt,
@@ -20,29 +20,29 @@ import {
   type FilterId,
   type FilterJoin,
   type FilterLink,
-} from "@/flows/sprint-4/idea-1b/data"
-import { resultsFor } from "@/flows/sprint-4/idea-1b/results"
+} from "@/flows/sprint-4/idea-1c/data"
+import { resultsFor } from "@/flows/sprint-4/idea-1c/results"
 import {
   resolveQuery as resolveNaturalLanguage,
   type Resolution,
-} from "@/flows/sprint-4/idea-1b/resolve"
+} from "@/flows/sprint-4/idea-1c/resolve"
 import {
   initialState,
   slugFor,
   type SearchMode,
-  type Sprint4Idea1bState,
-} from "@/flows/sprint-4/idea-1b/state"
+  type Sprint4Idea1cState,
+} from "@/flows/sprint-4/idea-1c/state"
 
 /**
  * Ticks one value of a pill or Miller column path into the filters, or takes
  * it out again when it is already there.
  */
 function toggleValueAt(
-  current: Sprint4Idea1bState,
+  current: Sprint4Idea1cState,
   area: ProductArea,
   attribute: string,
   value: string,
-): Sprint4Idea1bState {
+): Sprint4Idea1cState {
   const path = { area, attribute, value }
   const picked = pathFilter(area, attribute, value)
 
@@ -87,11 +87,11 @@ function toggleValueAt(
  * first clearing what a previous read left behind.
  */
 function onlyValueAt(
-  current: Sprint4Idea1bState,
+  current: Sprint4Idea1cState,
   area: ProductArea,
   attribute: string,
   value: string,
-): Sprint4Idea1bState {
+): Sprint4Idea1cState {
   const picked = pathFilter(area, attribute, value)
   const existing = current.filters.some((filter) => filter.id === picked.id)
   const at = nextAppliedAt(current.filters)
@@ -120,7 +120,7 @@ function leftOver(resolution: Resolution) {
  */
 export function PrototypeShell() {
   const slug = usePathname().split("/").pop() ?? "start"
-  const [state, setState] = React.useState<Sprint4Idea1bState>(() => initialState(slug))
+  const [state, setState] = React.useState<Sprint4Idea1cState>(() => initialState(slug))
   const reseed = React.useCallback((next: string) => setState(initialState(next)), [])
 
   useDeepLink(slugFor(state), reseed)

@@ -5,9 +5,9 @@ import {
   pathFilter,
   workedQuery,
   type ResolvedFilter,
-} from "@/flows/sprint-4/idea-1b/data"
+} from "@/flows/sprint-4/idea-1c/data"
 import type { ProductArea } from "@/components/prototype/ProductChrome"
-import { resolveQuery, type Resolution } from "@/flows/sprint-4/idea-1b/resolve"
+import { resolveQuery, type Resolution } from "@/flows/sprint-4/idea-1c/resolve"
 
 export type SearchMode = "quick" | "manual"
 
@@ -18,7 +18,7 @@ export interface SearchPath {
   value: string
 }
 
-export interface Sprint4Idea1bState {
+export interface Sprint4Idea1cState {
   mode: SearchMode
   query: string
   /** The manual search's Miller path, kept apart so the pills stay closed. */
@@ -47,7 +47,7 @@ export interface Sprint4Idea1bState {
   showResults: boolean
 }
 
-const startState = (): Sprint4Idea1bState => ({
+const startState = (): Sprint4Idea1cState => ({
   mode: "quick",
   query: "",
   manualCategory: null,
@@ -61,7 +61,7 @@ const startState = (): Sprint4Idea1bState => ({
   showResults: false,
 })
 
-const filteredState = (): Sprint4Idea1bState => ({
+const filteredState = (): Sprint4Idea1cState => ({
   mode: "quick",
   query: workedQuery,
   manualCategory: null,
@@ -78,14 +78,14 @@ const filteredState = (): Sprint4Idea1bState => ({
 })
 
 /** A pill pressed: its clause is in the box, waiting for a value. */
-const valuesState = (): Sprint4Idea1bState => ({
+const valuesState = (): Sprint4Idea1cState => ({
   ...startState(),
   filterBoxOpen: true,
   filters: stampInOrder([emptyPathFilter("Companies", "Company Name")]),
 })
 
 /** Advanced chosen on the landing page: the Miller columns with the filter box beneath. */
-const manualState = (): Sprint4Idea1bState => ({
+const manualState = (): Sprint4Idea1cState => ({
   ...startState(),
   mode: "manual",
 })
@@ -96,14 +96,14 @@ const pickedPath: SearchPath = {
   value: "Musculoskeletal Disorders",
 }
 
-const pickedState = (): Sprint4Idea1bState => ({
+const pickedState = (): Sprint4Idea1cState => ({
   ...startState(),
   filterBoxOpen: true,
   path: pickedPath,
   filters: stampInOrder([pathFilter(pickedPath.area, pickedPath.attribute, pickedPath.value)]),
 })
 
-const resolvingState = (): Sprint4Idea1bState => ({
+const resolvingState = (): Sprint4Idea1cState => ({
   mode: "quick",
   query: workedQuery,
   manualCategory: null,
@@ -117,13 +117,13 @@ const resolvingState = (): Sprint4Idea1bState => ({
   showResults: false,
 })
 
-const resultsState = (): Sprint4Idea1bState => ({
+const resultsState = (): Sprint4Idea1cState => ({
   ...filteredState(),
   showResults: true,
 })
 
 /** Seed the living screen from its URL. Unknown states return to the start. */
-export function initialState(slug: string): Sprint4Idea1bState {
+export function initialState(slug: string): Sprint4Idea1cState {
   switch (slug) {
     case "values":
       return valuesState()
@@ -144,7 +144,7 @@ export function initialState(slug: string): Sprint4Idea1bState {
 }
 
 /** Keep the address bar aligned with the state currently on screen. */
-export function slugFor(state: Sprint4Idea1bState) {
+export function slugFor(state: Sprint4Idea1cState) {
   if (state.showResults) return "results"
   if (state.pending) return "resolving"
   if (state.mode === "manual") return "manual"

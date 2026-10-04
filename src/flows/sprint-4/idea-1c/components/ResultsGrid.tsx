@@ -36,8 +36,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { ColumnManager } from "@/flows/sprint-4/idea-1b/components/ColumnManager"
-import { ValueList } from "@/flows/sprint-4/idea-1b/components/ValueList"
+import { ColumnManager } from "@/flows/sprint-4/idea-1c/components/ColumnManager"
+import { ValueList } from "@/flows/sprint-4/idea-1c/components/ValueList"
 import {
   criterionPhrase,
   definitionFor,
@@ -45,8 +45,8 @@ import {
   lastApplied,
   type FilterId,
   type ResolvedFilter,
-} from "@/flows/sprint-4/idea-1b/data"
-import type { DrugRow } from "@/flows/sprint-4/idea-1b/results"
+} from "@/flows/sprint-4/idea-1c/data"
+import type { DrugRow } from "@/flows/sprint-4/idea-1c/results"
 import {
   columnByKey,
   columnFilterPath,
@@ -58,7 +58,7 @@ import {
   type ColumnDef,
   type GridAction,
   type GridState,
-} from "@/flows/sprint-4/idea-1b/grid"
+} from "@/flows/sprint-4/idea-1c/grid"
 import { cn } from "@/lib/utils"
 
 /** Frozen lanes: the select lane and anything pinned, with their left offsets. */

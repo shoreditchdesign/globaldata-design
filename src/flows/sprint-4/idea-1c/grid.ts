@@ -4,7 +4,7 @@
  * above the grid owns it, so the grid only sorts, arranges and selects.
  */
 import type { ProductArea } from "@/components/prototype/ProductChrome"
-import type { DrugRow } from "@/flows/sprint-4/idea-1b/results"
+import type { DrugRow } from "@/flows/sprint-4/idea-1c/results"
 
 export type ColumnKind = "select" | "primary" | "text" | "badge" | "tags"
 

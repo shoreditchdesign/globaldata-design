@@ -5,8 +5,8 @@ import { ChevronDownIcon, PlusIcon, XIcon } from "lucide-react"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { Button } from "@/components/ui/button"
-import { AddFilterCascade } from "@/flows/sprint-4/idea-1b/components/AddFilterCascade"
-import { ValueList } from "@/flows/sprint-4/idea-1b/components/ValueList"
+import { AddFilterCascade } from "@/flows/sprint-4/idea-1c/components/AddFilterCascade"
+import { ValueList } from "@/flows/sprint-4/idea-1c/components/ValueList"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +27,7 @@ import {
   type FilterJoin,
   type FilterLink,
   type ResolvedFilter,
-} from "@/flows/sprint-4/idea-1b/data"
+} from "@/flows/sprint-4/idea-1c/data"
 import { cn } from "@/lib/utils"
 
 /**

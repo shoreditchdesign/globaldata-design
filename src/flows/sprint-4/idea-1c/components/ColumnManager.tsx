@@ -12,13 +12,13 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
-import { TickBox } from "@/flows/sprint-4/idea-1b/components/TickBox"
+import { TickBox } from "@/flows/sprint-4/idea-1c/components/TickBox"
 import {
   columnByKey,
   hiddenColumnKeys,
   type GridAction,
   type GridState,
-} from "@/flows/sprint-4/idea-1b/grid"
+} from "@/flows/sprint-4/idea-1c/grid"
 
 /** Group headings in the panel's own label treatment rather than cmdk's. */
 const GROUP_CLASS =

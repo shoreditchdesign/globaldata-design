@@ -1,6 +1,6 @@
 import { FilterIcon, SearchIcon, type LucideIcon } from "lucide-react"
 
-import type { SearchMode } from "@/flows/sprint-4/idea-1b/state"
+import type { SearchMode } from "@/flows/sprint-4/idea-1c/state"
 import { cn } from "@/lib/utils"
 
 /** Quick search or advanced search, as a segmented control. */
@@ -34,7 +34,7 @@ export function SearchTabs({
         onClick={() => onModeChange("manual")}
         icon={FilterIcon}
       >
-        Advanced search
+        Advanced filter
       </SearchTab>
     </div>
   )

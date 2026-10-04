@@ -3,10 +3,10 @@
 import * as React from "react"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
-import { ResultsGrid } from "@/flows/sprint-4/idea-1b/components/ResultsGrid"
-import type { FilterId, ResolvedFilter } from "@/flows/sprint-4/idea-1b/data"
-import { resultsFor } from "@/flows/sprint-4/idea-1b/results"
-import { applyAction, initialGridState, type GridAction } from "@/flows/sprint-4/idea-1b/grid"
+import { ResultsGrid } from "@/flows/sprint-4/idea-1c/components/ResultsGrid"
+import type { FilterId, ResolvedFilter } from "@/flows/sprint-4/idea-1c/data"
+import { resultsFor } from "@/flows/sprint-4/idea-1c/results"
+import { applyAction, initialGridState, type GridAction } from "@/flows/sprint-4/idea-1c/grid"
 
 /**
  * The results page: the search panel on the left, and on the right the filter
