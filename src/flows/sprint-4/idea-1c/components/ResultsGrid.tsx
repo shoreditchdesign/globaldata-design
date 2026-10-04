@@ -25,6 +25,7 @@ import { motion } from "@/components/prototype/motion"
 import { StageBadge } from "@/components/prototype/StageBadge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Spinner } from "@/components/ui/spinner"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -489,6 +490,7 @@ export function ResultsGrid({
   onPickOnlyFilterValue,
   onClearFilter,
   onClearFilters,
+  loading,
   aside,
   asideOpen,
   asideWidth,
@@ -507,6 +509,8 @@ export function ResultsGrid({
   /** Takes one column's clause out of the box entirely. */
   onClearFilter: (id: FilterId) => void
   onClearFilters: () => void
+  /** A search or a filter change is being shown as work in progress. */
+  loading: boolean
   /** The chat section, beside the table. */
   aside: React.ReactNode
   asideOpen: boolean
@@ -600,103 +604,121 @@ export function ResultsGrid({
           </div>
         </div>
 
-        <div className="min-h-0 min-w-0 flex-1 overflow-auto">
-          <div className="relative w-full text-[13px]" style={{ minWidth }}>
-            <div
-              className="bg-surface-panel border-edge sticky top-0 z-20 grid h-10 border-b"
-              style={{ gridTemplateColumns: template }}
-            >
-              {keys.map((key) => {
-                if (key === "select") {
-                  const lane = frozen(key, lanes, "bg-surface-panel z-[2]")
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+          {/* The rows dim rather than vanish, so the reader keeps their place,
+              and the spinner sits over the middle of what is on screen rather
+              than the middle of the scrolled table. Under reduced motion the
+              dim is instant and the spinner stands still. */}
+          {loading ? (
+            <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
+              <Spinner className="text-muted-foreground size-5 motion-reduce:animate-none" />
+            </div>
+          ) : null}
+          <div
+            aria-busy={loading}
+            className={cn(
+              "ease-settle min-h-0 min-w-0 flex-1 overflow-auto transition-opacity motion-reduce:transition-none",
+              loading && "opacity-40",
+            )}
+            style={{ transitionDuration: `${motion.quick}ms` }}
+          >
+            <div className="relative w-full text-[13px]" style={{ minWidth }}>
+              <div
+                className="bg-surface-panel border-edge sticky top-0 z-20 grid h-10 border-b"
+                style={{ gridTemplateColumns: template }}
+              >
+                {keys.map((key) => {
+                  if (key === "select") {
+                    const lane = frozen(key, lanes, "bg-surface-panel z-[2]")
+                    return (
+                      <div
+                        key={key}
+                        className={cn("flex items-center justify-center", lane.className)}
+                        style={lane.style}
+                      >
+                        <Checkbox
+                          checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                          disabled={rows.length === 0}
+                          onCheckedChange={() =>
+                            onAction({ kind: "setSelection", ids: allSelected ? [] : rowIds })
+                          }
+                          aria-label="Select all rows"
+                        />
+                      </div>
+                    )
+                  }
                   return (
-                    <div
+                    <HeaderCell
                       key={key}
-                      className={cn("flex items-center justify-center", lane.className)}
-                      style={lane.style}
-                    >
-                      <Checkbox
-                        checked={allSelected ? true : someSelected ? "indeterminate" : false}
-                        disabled={rows.length === 0}
-                        onCheckedChange={() =>
-                          onAction({ kind: "setSelection", ids: allSelected ? [] : rowIds })
-                        }
-                        aria-label="Select all rows"
-                      />
-                    </div>
+                      column={columnByKey[key]}
+                      state={state}
+                      lanes={lanes}
+                      filters={filters}
+                      onAction={onAction}
+                      onToggleFilterValue={onToggleFilterValue}
+                      onPickOnlyFilterValue={onPickOnlyFilterValue}
+                      onClearFilter={onClearFilter}
+                    />
                   )
-                }
+                })}
+              </div>
+
+              {sorted.map((row) => {
+                const isSelected = selected.includes(row.id)
+                const fill = isSelected ? "bg-brand-tint" : "bg-surface-panel group-hover/row:bg-accent"
                 return (
-                  <HeaderCell
-                    key={key}
-                    column={columnByKey[key]}
-                    state={state}
-                    lanes={lanes}
-                    filters={filters}
-                    onAction={onAction}
-                    onToggleFilterValue={onToggleFilterValue}
-                    onPickOnlyFilterValue={onPickOnlyFilterValue}
-                    onClearFilter={onClearFilter}
-                  />
+                  <div
+                    key={row.id}
+                    aria-selected={isSelected}
+                    className={cn(
+                      "group/row border-hairline grid border-b transition-colors",
+                      isSelected ? "bg-brand-tint" : "hover:bg-accent",
+                    )}
+                    style={{ gridTemplateColumns: template }}
+                  >
+                    {keys.map((key) => {
+                      const lane = frozen(key, lanes, fill)
+                      return (
+                        <div
+                          key={key}
+                          className={cn(
+                            "flex h-10 min-w-0 items-center transition-colors",
+                            key === "select" ? "justify-center" : "px-3",
+                            lane.className,
+                          )}
+                          style={lane.style}
+                        >
+                          {key === "select" ? (
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={() => onAction({ kind: "toggleRow", id: row.id })}
+                              aria-label={`Select ${row.name}`}
+                            />
+                          ) : (
+                            <div className="min-w-0 flex-1">
+                              <Cell column={columnByKey[key]} row={row} />
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
                 )
               })}
             </div>
 
-            {sorted.map((row) => {
-              const isSelected = selected.includes(row.id)
-              const fill = isSelected ? "bg-brand-tint" : "bg-surface-panel group-hover/row:bg-accent"
-              return (
-                <div
-                  key={row.id}
-                  aria-selected={isSelected}
-                  className={cn(
-                    "group/row border-hairline grid border-b transition-colors",
-                    isSelected ? "bg-brand-tint" : "hover:bg-accent",
-                  )}
-                  style={{ gridTemplateColumns: template }}
-                >
-                  {keys.map((key) => {
-                    const lane = frozen(key, lanes, fill)
-                    return (
-                      <div
-                        key={key}
-                        className={cn(
-                          "flex h-10 min-w-0 items-center transition-colors",
-                          key === "select" ? "justify-center" : "px-3",
-                          lane.className,
-                        )}
-                        style={lane.style}
-                      >
-                        {key === "select" ? (
-                          <Checkbox
-                            checked={isSelected}
-                            onCheckedChange={() => onAction({ kind: "toggleRow", id: row.id })}
-                            aria-label={`Select ${row.name}`}
-                          />
-                        ) : (
-                          <div className="min-w-0 flex-1">
-                            <Cell column={columnByKey[key]} row={row} />
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              )
-            })}
+            {/* Outside the lane track, so it is as wide as the grid is on screen
+                rather than as wide as the columns add up to — which is what lets it
+                centre — and stuck to the left edge so it stays put if the reader
+                scrolls the empty table sideways. */}
+            {rows.length === 0 ? (
+              <NoMatches
+                filters={filters}
+                onRemoveCriterion={onClearFilter}
+                onClearFilters={onClearFilters}
+              />
+            ) : null}
           </div>
-
-          {/* Outside the lane track, so it is as wide as the grid is on screen
-              rather than as wide as the columns add up to — which is what lets it
-              centre — and stuck to the left edge so it stays put if the reader
-              scrolls the empty table sideways. */}
-          {rows.length === 0 ? (
-            <NoMatches
-              filters={filters}
-              onRemoveCriterion={onClearFilter}
-              onClearFilters={onClearFilters}
-            />
-          ) : null}
         </div>
       </div>
 
