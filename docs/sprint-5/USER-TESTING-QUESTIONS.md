@@ -13,22 +13,22 @@ Every task below can be completed in both prototypes. I checked them against bot
 
 The full set, with what would confirm or refute each one, is in `sprints/sprint-5/USER-TESTING-HYPOTHESIS.md`.
 
-**Overall.** The fixes in Idea 1c make building a result set easier than in the Idea 1b control. 1c should average a higher ease score across the eight tasks, and a higher NPS.
+**Overall.** The fixes in Idea 1c make building a result set easier than in the Idea 1b control. 1c should average a higher ease score across the seven tasks, and a higher NPS.
 
 **One per change.** If a fix works, its task scores higher in 1c than in the control, and the reasons people give stop mentioning the problem.
 
 | # | Change or finding | Fix in Idea 1c | Task |
 |---|---|---|---|
-| 1 | Nobody found Advanced search | An "Advanced filter" switch inside the search field | 4 |
+| 1 | Nobody found Advanced search | An "Advanced filter" switch inside the search field | 4 (judged from "Talk us through how you went about it") |
 | 2 | A tester didn't know which mode they were in | One on/off switch instead of two tabs | 4 |
-| 3 | Tapping a value added it instead of replacing it | Tick boxes: the row picks only that value, the box adds it | 2, 5 |
-| 4 | No way to remove a value once it was added | Untick a value, or remove a filter with its × | 2, 6 |
-| 5 | The builder crowded out the results as the query grew | The filter row is capped at three lines, with the rest folded into a count | 3, 4, 5 |
+| 3 | Tapping a value added it instead of replacing it | Tick boxes: the row picks only that value, the box adds it | 2 |
+| 4 | No way to remove a value once it was added | Untick a value, or remove a filter with its × | 2, 5 |
+| 5 | The builder crowded out the results as the query grew | The filter row is capped at three lines, with the rest folded into a count | 3, 4 |
 | 6 | The system didn't show it was working | The table shows a loading state after every search or change | All (it comes up in the reasons) |
 | 7 | Target vs. Mechanism of action was ambiguous | **No fix yet**, so this is a check | 1, 4 (it comes up in the reasons) |
-| 8 | Add filter was a bare + icon (Neil, on the call) | "+ Add filter", which opens the full field list | 5, 7 |
-| 9 | Whether people expect to filter from the columns (Neil, on the call) | Column filters that write into the filter row, in 1c only | 7 |
-| 10 | A search that finds nothing (added for coverage, not a round 1 finding) | An empty state that names the filter to step back from | 8 |
+| 8 | Add filter was a bare + icon (Neil, on the call) | "+ Add filter", which opens the full field list | 6 |
+| 9 | Whether people expect to filter from the columns (Neil, on the call) | Column filters that write into the filter row, in 1c only | 6 |
+| 10 | A search that finds nothing (added for coverage, not a round 1 finding) | An empty state that names the filter to step back from | 7 |
 
 ---
 
@@ -50,7 +50,7 @@ We're testing how you build a set of results. That's writing a search, checking 
 
 Every task is followed by the same two questions:
 - **How easy or difficult was this?** `1–5`, where 1 = Very difficult and 5 = Very easy
-- **What's the reason for your answer?** `long text`
+- **What's the reason for your answer?** `long text`. Task 4 is the exception: its prompt is **"Talk us through how you went about it."**
 
 **1.** Find every Phase III drug available in Europe that works on Janus Kinase.
 
@@ -79,20 +79,18 @@ Every task is followed by the same two questions:
 - Mechanism of Action = any receptor-based one.
 
 > **Why:** this replaces last round's Task 4, which named "the advanced search" and "the file explorer" and so gave away where to go. It drops last round's extra "which was easier" box too. It's the discoverability test Neil asked for ("challenge people… to at least do an advanced search using the search builder"). The task can only be done in the builder, Advanced filter in 1c and the Advanced tab in 1b, but it doesn't name either one. Neil's "contrast the ease" is this score set against Task 3's. Picking Mechanism of action by hand is also where Target vs. Mechanism of action will trip people up, if it still does.
+>
+> Instead of "What's the reason for your answer?", this task's long-text prompt is **"Talk us through how you went about it."** It's neutral and doesn't name anything, but whether someone describes turning on Advanced filter (or opening the Advanced tab in 1b), typing, or getting stuck tells us whether they found the builder on their own. That's how discoverability gets judged.
 
-**5.** Change your search so it also includes drugs at Pre-registration, as well as Marketed ones.
+**5.** Now take route of administration out of your search, so drugs given any way are included.
 
-> **Why:** this is new. It tests choosing more than one value inside a single field, which is where last round's tick-versus-replace confusion lived. It goes from 12 drugs to 17. It also adds a sixth value to a long filter row, which tests the three-line cap.
+> **Why:** this is new. It tests removing something you've added, which last round's testers couldn't do ("no way to remove a value once added"). Starting from Task 4's 12 drugs, it goes to 28 in both 1b and 1c. Choosing more than one value in a field isn't a task of its own now: Task 2's swap already covers last round's tick-versus-replace confusion.
 
-**6.** Now take route of administration out of your search, so drugs given any way are included.
+**6.** You now only want the drugs from one company in your list. Choose any company you can see, and narrow the list down to it.
 
-> **Why:** this is new. It tests removing something you've added, which last round's testers couldn't do ("no way to remove a value once added"). It goes from 17 drugs to 37.
+> **Why:** this is new, and it's Neil's narrow-it-further task. On the call it was "narrow down the 123 drugs further, how would you do this?", with "company is a great one" because company is in the results but not in the search. There are 16 companies in the 28 results, each with between 1 and 4 drugs, and every one is in the Manufacturer field, so this works in both prototypes, by typing, from Add filter or from the builder. In 1c it can also be done from a column. The task doesn't say how, so the reasons show where people reach first, and whether 1c's column filters earn their place.
 
-**7.** You now only want the drugs from one company in your list. Choose any company you can see, and narrow the list down to it.
-
-> **Why:** this is new, and it's Neil's narrow-it-further task. On the call it was "narrow down the 123 drugs further, how would you do this?", with "company is a great one" because company is in the results but not in the search. Every company in the 37 results is in the Manufacturer field, so this works in both prototypes, by typing, from Add filter or from the builder. In 1c it can also be done from a column. The task doesn't say how, so the reasons show where people reach first, and whether 1c's column filters earn their place.
-
-**8.** Start a new search for Phase I gene therapies for dermatology in Brazil. If it finds nothing, change the search until it does.
+**7.** Start a new search for Phase I gene therapies for dermatology in Brazil. If it finds nothing, change the search until it does.
 
 > **Why:** this is new. It tests a search that comes back empty, and recovering from it. The full query matches nothing in either sample. Dropping "gene therapies" gives 8 drugs, and dropping "dermatology" gives 1. 1c's empty state names the filter to step back from, while 1b only says "No drug matches these filters", so this compares the two.
 
@@ -102,7 +100,7 @@ Every task is followed by the same two questions:
 
 ---
 
-**9.** How likely are you to recommend this way of searching to a colleague? `0–10`, where 0 = Not at all likely and 10 = Extremely likely
+**8.** How likely are you to recommend this way of searching to a colleague? `0–10`, where 0 = Not at all likely and 10 = Extremely likely
 - What's the reason for your score?
 
 > **Why:** this is kept from last round. It runs 0–10 rather than 1–10 because that's the standard NPS scale, and the NPS calculation (promoters 9–10 minus detractors 0–6) relies on the 0. Last round's version ran 1–10 with "Very Likely" on the left, so some testers read it backwards. Both ends are labelled the right way round now.
