@@ -77,6 +77,8 @@ Inline the client's logo as an SVG string in the `LOGO` constant, with every `fi
 | `.profile` | Bio/case-study: photo, name, about, labelled list left, media grid right | Team intro, case-study lead-in |
 | `.quote` | One large statement, no other content on the slide | Testimonial, verbatim client quote |
 | `.metrics` | Row of large coral numbers with a label under each | Headline results, evidence summary |
+| `.metrics--cards` (+ `.metrics--3`) | Ruled cards: coral index at metric size, title, a sentence or two under it | User goals, pillars, measures |
+| `.rows` | Ruled rows on the slide's thirds: coral index, title, text. Three to four items that each need a sentence or two | Instructions, principles, ground rules |
 | `.footnote` | Bottom-anchored qualifier for the whole slide | Comparison slides |
 | `.pending` | Coral-bordered status tag for a slide whose findings aren't in yet | Evidence slide, before the research lands |
 

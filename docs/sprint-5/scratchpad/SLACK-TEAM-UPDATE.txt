@@ -1,0 +1,20 @@
+Hi morning guys, I've picked up from Alex's work on Thursday and moved it into a new Idea 1c, and 1b stays as the version we tested as the control version. I've also worked in the asks from Wednesday's call and added a few visual improvements to the states so it feels a bit more interactive.
+
+1c: https://globaldata-design.vercel.app/sprint-4/idea-1c/start
+1b: https://globaldata-design.vercel.app/sprint-4/idea-1b
+
+- Advanced filter is now a switch instead of a tab
+- Chat panel sits beside the table, with the query box at the bottom and a toggle to collapse it
+- Labelled "+ Add filter" button that opens the full filter list
+- Filter row capped at three lines, with the rest in a popover
+- Tick boxes on values so multi-select is clearer
+- Loading state on the table after every search and filter change
+- Miller column animation from Sprint 3 is back
+- Empty state when nothing matches
+- Column filters with a count on each column
+
+I've drafted the user testing questions for this round. Most stay close to last time's so the scores compare, with a few changes to test our hypothesis a bit further, and it's set up as a draft in Lyssna: https://app.lyssna.com/tests/kmy7rse9zook/edit
+
+There's also a separate control test on 1b with the exact same questions, so we can compare the two side by side rather than leaning on last round's scores, and Harriet can share both with the wider team: https://app.lyssna.com/tests/c8opaqahfeea/edit
+
+I'm also going to create a couple of cover slides that Harriet can share around alongside the Lyssna just like how we did last time; Shall we also catch up this morning at 10:30 to go over this once more and make sure we're in a good place ahead of the call at 12?

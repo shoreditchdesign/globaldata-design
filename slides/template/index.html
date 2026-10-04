@@ -288,6 +288,39 @@
   .metric .label{font-size:14px;color:var(--muted-dark);margin-top:10px;max-width:220px}
   .slide--dark .metric .label{color:var(--muted-light)}
 
+  /* Card variant: a ruled cell with a coral index, a title and a line of text under it.
+     Three across for goals or pillars, four across for measures. */
+  .metrics--3{grid-template-columns:repeat(3,1fr)}
+  .metrics--cards{align-content:start;height:auto}
+  .metrics--cards .metric{border-top:1px solid var(--rule-dark);padding-top:var(--space-3)}
+  .slide--dark .metrics--cards .metric{border-top-color:var(--rule-light)}
+  .metrics--cards .body-title{margin-top:var(--space-2)}
+  .metrics--cards .body-text{margin-top:var(--space-1);font-size:15.5px;line-height:1.55;max-width:360px}
+
+  /* ---------- rows — ruled three-column rows: index, title, text ----------
+     Each row sits under a full-width rule, its coral index, title and text set on
+     the slide's thirds. Use for a short numbered set (three to four) whose items
+     carry a sentence or two each: instructions, principles, ground rules. */
+  .rows{display:flex;flex-direction:column}
+  .rows .row{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    align-items:start;
+    padding-block:var(--space-4);
+    border-top:1px solid var(--rule-dark);
+  }
+  .slide--dark .rows .row{border-top-color:var(--rule-light)}
+  .rows .num{
+    font-family:var(--display);
+    font-weight:500;
+    font-size:30px;
+    line-height:1;
+    letter-spacing:-.01em;
+    color:var(--coral);
+  }
+  .rows .body-title{padding-top:var(--space-1)}
+  .rows .body-text{padding-top:6px;max-width:420px}
+
   .pending{
     display:inline-block;
     font-family:var(--body);
@@ -520,7 +553,60 @@
   </div>
 </section>
 
-<!-- ============ 8. CLOSE — dark, stack, use for the recommendation/decision slide ============ -->
+<!-- ============ 8. CARDS — ruled cards, coral index over title and text, use for goals/pillars ============ -->
+<section class="slide slide--light" data-section="Goals" data-title="Three goals">
+  <div class="logo" data-logo></div>
+  <h2>Section heading</h2>
+  <div class="rule"></div>
+  <p class="lede">Optional one-line framing sentence for the slide.</p>
+  <div class="content" style="margin-top:48px">
+    <div class="metrics metrics--3 metrics--cards">
+      <div class="metric">
+        <div class="value">G1</div>
+        <div class="body-title">Card title</div>
+        <div class="body-text">One or two sentences. Declarative register, no filler.</div>
+      </div>
+      <div class="metric">
+        <div class="value">G2</div>
+        <div class="body-title">Card title</div>
+        <div class="body-text">One or two sentences. Declarative register, no filler.</div>
+      </div>
+      <div class="metric">
+        <div class="value">G3</div>
+        <div class="body-title">Card title</div>
+        <div class="body-text">One or two sentences. Declarative register, no filler.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9. ROWS — ruled rows on the thirds: index, title, text; use for instructions/principles ============ -->
+<section class="slide slide--light" data-section="Instructions" data-title="Ruled rows">
+  <div class="logo" data-logo></div>
+  <h2>Section heading</h2>
+  <div class="rule"></div>
+  <div class="content">
+    <div class="rows">
+      <div class="row">
+        <div class="num">01</div>
+        <div class="body-title">Row title</div>
+        <div class="body-text">One to three sentences of explanation. Declarative register, no filler.</div>
+      </div>
+      <div class="row">
+        <div class="num">02</div>
+        <div class="body-title">Row title</div>
+        <div class="body-text">One to three sentences of explanation. Declarative register, no filler.</div>
+      </div>
+      <div class="row">
+        <div class="num">03</div>
+        <div class="body-title">Row title</div>
+        <div class="body-text">One to three sentences of explanation. Declarative register, no filler.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 10. CLOSE — dark, stack, use for the recommendation/decision slide ============ -->
 <section class="slide slide--dark" data-section="Recommendation">
   <div class="logo" data-logo></div>
   <h2>Recommendation heading</h2>
