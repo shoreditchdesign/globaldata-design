@@ -240,8 +240,11 @@ export function ResolvedFilters({
             onPickValue={onPickValue}
             onPickOnlyValue={onPickOnlyValue}
           >
-            <Button variant="secondary" size="icon-sm" aria-label="Add filter">
+            {/* Labelled rather than a bare plus: an icon on its own read as too
+                quiet to be found at the end of a row of chips. */}
+            <Button variant="secondary" size="sm">
               <PlusIcon />
+              Add filter
             </Button>
           </AddFilterMenu>
           {band && filters.length > 0 ? (
