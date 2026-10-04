@@ -378,14 +378,14 @@ function NoMatches({
   // that placed nothing — and this is not the message for it.
   if (applied.length === 0) {
     return (
-      <p className="text-muted-foreground sticky left-0 w-full px-6 py-16 text-center text-[13px]">
+      <p className="text-muted-foreground sticky left-0 flex w-full flex-1 items-center justify-center px-6 py-16 text-center text-[13px]">
         No drug matches these filters.
       </p>
     )
   }
 
   return (
-    <div className="sticky left-0 flex w-full flex-col items-center gap-5 px-6 py-20 text-center">
+    <div className="sticky left-0 flex w-full flex-1 flex-col items-center justify-center gap-5 px-6 py-20 text-center">
       {/* The mark, the line, the reading, the way out — the order an empty
           state is read in. Quiet enough not to be taken for an error: nothing
           has gone wrong, the criteria are narrower than the data. */}
@@ -403,22 +403,23 @@ function NoMatches({
               both are offered: with one criterion applied there is nothing to
               step back through. */}
           {applied.length > 1 && last
-            ? "Try removing the last criterion or clearing all filters."
+            ? "Try clearing all filters, or removing the last criterion."
             : "Try clearing all filters."}
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        {/* With one criterion applied the two buttons would do the same thing,
-            so only the one that says what it does is offered. */}
+      {/* Stacked, primary first, at one shared width. With one criterion applied
+          the two buttons would do the same thing, so only the one that says what
+          it does is offered. */}
+      <div className="flex flex-col items-stretch gap-2">
+        <Button size="sm" onClick={onClearFilters}>
+          Clear all filters
+        </Button>
         {applied.length > 1 && last ? (
           <Button variant="secondary" size="sm" onClick={() => onRemoveCriterion(last.id)}>
             Remove last criterion: {criterionPhrase(last)}
           </Button>
         ) : null}
-        <Button size="sm" onClick={onClearFilters}>
-          Clear all filters
-        </Button>
       </div>
     </div>
   )
@@ -623,8 +624,16 @@ export function ResultsGrid({
           >
             {loading ? <Loader /> : null}
           </div>
-          <div aria-busy={loading} className="min-h-0 min-w-0 flex-1 overflow-auto">
-            <div className="relative w-full text-[13px]" style={{ minWidth }}>
+          {/* With no rows it becomes a column, so the empty state below the head
+              can take the rest of the height and centre in it. */}
+          <div
+            aria-busy={loading}
+            className={cn(
+              "min-h-0 min-w-0 flex-1 overflow-auto",
+              rows.length === 0 && "flex flex-col",
+            )}
+          >
+            <div className="relative w-full shrink-0 text-[13px]" style={{ minWidth }}>
               <div
                 className="bg-surface-panel border-edge sticky top-0 z-20 grid h-10 border-b"
                 style={{ gridTemplateColumns: template }}
