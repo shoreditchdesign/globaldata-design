@@ -24,8 +24,6 @@ import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { motion } from "@/components/prototype/motion"
 import { StageBadge } from "@/components/prototype/StageBadge"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Spinner } from "@/components/ui/spinner"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +37,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { Loader } from "@/flows/sprint-4/idea-1c/components/Loader"
+import { SelectBox } from "@/flows/sprint-4/idea-1c/components/SelectBox"
 import { ColumnManager } from "@/flows/sprint-4/idea-1c/components/ColumnManager"
 import { ValueList } from "@/flows/sprint-4/idea-1c/components/ValueList"
 import {
@@ -573,8 +573,10 @@ export function ResultsGrid({
               <ColumnManager state={state} onAction={onAction} />
             </PopoverContent>
           </Popover>
+          {/* Outline until rows are ticked; then exporting them is the one
+              thing this bar is for, and it takes the primary fill. */}
           <Button
-            variant="outline"
+            variant={selected.length > 0 ? "default" : "outline"}
             size="sm"
             onClick={() =>
               exportCsv(
@@ -583,16 +585,16 @@ export function ResultsGrid({
               )
             }
           >
-            <DownloadIcon className="text-muted-foreground" />
+            <DownloadIcon className={cn(selected.length === 0 && "text-muted-foreground")} />
             {selected.length > 0 ? "Export selected" : "Export"}
           </Button>
         </div>
       </div>
 
       <div className="flex min-h-0 flex-1">
-        {/* The width eases between closed, a quarter of the page and Advanced's
-            800px; what is inside holds its own width, so the section slides
-            away rather than squeezing its pills into a column on the way. */}
+        {/* The width eases between closed and open; what is inside holds its
+            own width, so the section slides away rather than squeezing its
+            pills into a column on the way. */}
         <div
           id={asideId}
           inert={!asideOpen}
@@ -605,23 +607,23 @@ export function ResultsGrid({
         </div>
 
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
-          {/* The rows dim rather than vanish, so the reader keeps their place,
-              and the spinner sits over the middle of what is on screen rather
-              than the middle of the scrolled table. Under reduced motion the
-              dim is instant and the spinner stands still. */}
-          {loading ? (
-            <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
-              <Spinner className="text-muted-foreground size-5 motion-reduce:animate-none" />
-            </div>
-          ) : null}
+          {/* A scrim over the rows, opaque enough and blurred so the rows
+              behind it read as a texture rather than as text, with the loader
+              over the middle of what is on screen rather than the middle of
+              the scrolled table. Always mounted so it can fade both ways;
+              under reduced motion it simply appears and the loader holds
+              still. */}
           <div
-            aria-busy={loading}
+            aria-hidden={!loading}
             className={cn(
-              "ease-settle min-h-0 min-w-0 flex-1 overflow-auto transition-opacity motion-reduce:transition-none",
-              loading && "opacity-40",
+              "bg-surface-panel/85 ease-settle pointer-events-none absolute inset-0 z-30 flex items-center justify-center backdrop-blur-sm transition-opacity motion-reduce:transition-none",
+              loading ? "opacity-100" : "opacity-0",
             )}
             style={{ transitionDuration: `${motion.quick}ms` }}
           >
+            {loading ? <Loader /> : null}
+          </div>
+          <div aria-busy={loading} className="min-h-0 min-w-0 flex-1 overflow-auto">
             <div className="relative w-full text-[13px]" style={{ minWidth }}>
               <div
                 className="bg-surface-panel border-edge sticky top-0 z-20 grid h-10 border-b"
@@ -636,7 +638,7 @@ export function ResultsGrid({
                         className={cn("flex items-center justify-center", lane.className)}
                         style={lane.style}
                       >
-                        <Checkbox
+                        <SelectBox
                           checked={allSelected ? true : someSelected ? "indeterminate" : false}
                           disabled={rows.length === 0}
                           onCheckedChange={() =>
@@ -689,7 +691,7 @@ export function ResultsGrid({
                           style={lane.style}
                         >
                           {key === "select" ? (
-                            <Checkbox
+                            <SelectBox
                               checked={isSelected}
                               onCheckedChange={() => onAction({ kind: "toggleRow", id: row.id })}
                               aria-label={`Select ${row.name}`}

@@ -3,6 +3,7 @@
 import { ChevronRightIcon } from "lucide-react"
 
 import { Checkbox } from "@/components/ui/checkbox"
+import { selectBoxClass } from "@/flows/sprint-4/idea-1c/components/SelectBox"
 import { cn } from "@/lib/utils"
 import { motion, tintClass, useSettle } from "@/components/prototype/motion"
 
@@ -272,6 +273,8 @@ function ColumnItem({
               // than to lift the column. Ticked is untouched — the brand fill
               // carries its own attribute variant, so it outranks this.
               "bg-surface-panel",
+              // The grid's darker resting edge, so a box reads at rest here too.
+              selectBoxClass,
               // Ticking a value into an excluding attribute takes rows away.
               // It cannot look like ticking one into an attribute that keeps
               // them — that is the whole difference between the two filters.
