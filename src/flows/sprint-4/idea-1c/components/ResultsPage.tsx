@@ -7,7 +7,6 @@ import { ResultsGrid } from "@/flows/sprint-4/idea-1c/components/ResultsGrid"
 import type { FilterId, ResolvedFilter } from "@/flows/sprint-4/idea-1c/data"
 import { resultsFor } from "@/flows/sprint-4/idea-1c/results"
 import { applyAction, initialGridState, type GridAction } from "@/flows/sprint-4/idea-1c/grid"
-import type { SearchMode } from "@/flows/sprint-4/idea-1c/state"
 
 /**
  * How long the table shows it is working after the filters change. Nothing is
@@ -39,7 +38,6 @@ function signatureOf(filters: ResolvedFilter[]) {
  */
 export function ResultsPage({
   panel,
-  mode,
   filterBox,
   filters,
   onToggleFilterValue,
@@ -48,8 +46,6 @@ export function ResultsPage({
   onClearFilters,
 }: {
   panel: React.ReactNode
-  /** Advanced widens the chat section to hold its three Miller columns. */
-  mode: SearchMode
   filterBox: React.ReactNode
   filters: ResolvedFilter[]
   /** The column menus filter by the same handlers the filter box uses. */
@@ -94,10 +90,10 @@ export function ResultsPage({
         loading={loading}
         aside={panel}
         asideOpen={panelOpen}
-        // A quarter of the page for the pills and the field, held to a floor
-        // the ten pills still pair up in; Advanced is 800px, three thirds of
-        // 266px against the Miller columns' 260px floor.
-        asideWidth={mode === "manual" ? "800px" : "max(360px, 25vw)"}
+        // One width in both modes, so nothing beside the panel moves when the
+        // switch flips: Advanced's, three thirds of 266px against the Miller
+        // columns' 260px floor, which the pills and the composer fit inside.
+        asideWidth="800px"
         onToggleAside={() => setPanelOpen((open) => !open)}
       />
     </main>
