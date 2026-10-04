@@ -27,6 +27,7 @@ import {
   resolveQuery as resolveNaturalLanguage,
   type Resolution,
 } from "@/flows/sprint-4/idea-1c/resolve"
+import { useMillerWalk } from "@/flows/sprint-4/idea-1c/walk"
 import {
   initialState,
   slugFor,
@@ -159,14 +160,29 @@ export function PrototypeShell() {
       }
     })
   // Miller columns open rather than toggle: clicking the open row keeps it open.
-  const openCategory = (category: ProductArea) =>
-    setState((current) => ({
-      ...current,
-      manualCategory: category,
-      manualAttribute: current.manualCategory === category ? current.manualAttribute : null,
-    }))
-  const openAttribute = (attribute: string) =>
-    setState((current) => ({ ...current, manualAttribute: attribute }))
+  const walkToCategory = React.useCallback(
+    (category: ProductArea) =>
+      setState((current) => ({
+        ...current,
+        manualCategory: category,
+        manualAttribute: current.manualCategory === category ? current.manualAttribute : null,
+      })),
+    [],
+  )
+  const walkToAttribute = React.useCallback(
+    (attribute: string) => setState((current) => ({ ...current, manualAttribute: attribute })),
+    [],
+  )
+  const walk = useMillerWalk({ openCategory: walkToCategory, openAttribute: walkToAttribute })
+  // A click in the columns is the reader's, so it ends any walk under way.
+  const openCategory = (category: ProductArea) => {
+    walk.stop()
+    walkToCategory(category)
+  }
+  const openAttribute = (attribute: string) => {
+    walk.stop()
+    walkToAttribute(attribute)
+  }
   const pickValueAt = (area: ProductArea, attribute: string, value: string) =>
     setState((current) => toggleValueAt(current, area, attribute, value))
   const pickOnlyValueAt = (area: ProductArea, attribute: string, value: string) =>
@@ -180,6 +196,17 @@ export function PrototypeShell() {
         ? { ...current, pending: resolution, unread: null }
         : { ...current, unread: resolution }
     })
+  // Held for the walk, which starts once a read settles in Advanced — the one
+  // mode with columns on screen to walk.
+  const latest = React.useRef(state)
+  React.useEffect(() => {
+    latest.current = state
+  })
+  const settleAndWalk = () => {
+    const { pending, mode } = latest.current
+    settleQuery()
+    if (pending && mode === "manual") walk.start(pending.filters)
+  }
   const settleQuery = React.useCallback(
     () =>
       setState((current) =>
@@ -290,7 +317,7 @@ export function PrototypeShell() {
               onQueryChange={setQuery}
               onDictate={appendQuery}
               onResolve={submitQuery}
-              onScanDone={settleQuery}
+              onScanDone={settleAndWalk}
               onToggleFilter={togglePillFilter}
               manualCategory={state.manualCategory}
               manualAttribute={state.manualAttribute}
@@ -333,7 +360,7 @@ export function PrototypeShell() {
         }
         pending={state.pending}
         unread={state.unread}
-        onScanDone={settleQuery}
+        onScanDone={settleAndWalk}
       />
     </ProductChrome>
   )
