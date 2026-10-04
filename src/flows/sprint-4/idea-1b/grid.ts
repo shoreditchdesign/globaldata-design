@@ -3,6 +3,7 @@
  * adapted from Sprint 3 Idea 4's grid. Filtering is not here: the filter box
  * above the grid owns it, so the grid only sorts, arranges and selects.
  */
+import type { ProductArea } from "@/components/prototype/ProductChrome"
 import type { DrugRow } from "@/flows/sprint-4/idea-1b/results"
 
 export type ColumnKind = "select" | "primary" | "text" | "badge" | "tags"
@@ -100,6 +101,38 @@ export const columnDefs: ColumnDef[] = [
   text("application", "Application Type", 250, (row) => row.application, { muted: true }),
   text("cas", "CAS Number", 150, (row) => row.cas, { grow: 0, muted: true }),
 ]
+
+/**
+ * The attribute a column filters by, where the taxonomy has one.
+ *
+ * The grid still does no filtering: a column's menu opens the same value list
+ * the filter box opens, and that writes to the filters as it always did. This
+ * is only the join between the two — a column lane and a branch of the tree
+ * that happen to be the same thing to a reader.
+ *
+ * Generic Name and Indication are not here. The taxonomy files indications
+ * under Therapy Area / Indication and has no generic-name branch at all, so
+ * those two columns would have to borrow a filter that is not theirs, and the
+ * menu offers them none rather than filtering a column by its neighbour.
+ */
+export const columnFilterPath: Record<string, { area: ProductArea; attribute: string }> = {
+  name: { area: "Drugs", attribute: "Drug Name" },
+  company: { area: "Companies", attribute: "Company Name" },
+  therapyArea: { area: "Drugs", attribute: "Therapy Area / Indication" },
+  stage: { area: "Drugs", attribute: "Development Stage" },
+  geography: { area: "Drugs", attribute: "Drug Geography" },
+  route: { area: "Drugs", attribute: "Route of Administration" },
+  molecule: { area: "Drugs", attribute: "Molecule Type" },
+  target: { area: "Drugs", attribute: "Target" },
+  drugType: { area: "Drugs", attribute: "Drug Type" },
+  mechanism: { area: "Drugs", attribute: "Mechanism of Action" },
+  descriptor: { area: "Drugs", attribute: "Drug Descriptor" },
+  atc: { area: "Drugs", attribute: "ATC Classification" },
+  mono: { area: "Drugs", attribute: "Mono/Combination Drug" },
+  vector: { area: "Drugs", attribute: "Gene Therapy Vector" },
+  application: { area: "Drugs", attribute: "Application Type" },
+  cas: { area: "Drugs", attribute: "CAS Number" },
+}
 
 export const columnByKey: Record<string, ColumnDef> = Object.fromEntries(
   columnDefs.map((column) => [column.key, column]),
