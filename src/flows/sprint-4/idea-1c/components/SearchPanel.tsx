@@ -8,7 +8,7 @@ import { DictateButton } from "@/flows/sprint-4/idea-1c/components/DictateButton
 import { ManualSearch } from "@/flows/sprint-4/idea-1c/components/ManualSearch"
 import { ReadNotice } from "@/flows/sprint-4/idea-1c/components/ReadNotice"
 import { ScanningQuery } from "@/flows/sprint-4/idea-1c/components/ScanningQuery"
-import { SearchPills } from "@/flows/sprint-4/idea-1c/components/SearchPills"
+import { commonFiltersId, SearchPills } from "@/flows/sprint-4/idea-1c/components/SearchPills"
 import type { ResolvedFilter } from "@/flows/sprint-4/idea-1c/data"
 import type { Resolution } from "@/flows/sprint-4/idea-1c/resolve"
 import type { SearchMode } from "@/flows/sprint-4/idea-1c/state"
@@ -20,9 +20,8 @@ import { cn } from "@/lib/utils"
  * Advanced search's Miller columns when the switch in the field is on. All of
  * it feeds the filter box beside it.
  *
- * It fills whatever width the results page gives it — a quarter of the page
- * for the pills, 800px in Advanced so the three Miller columns clear their
- * floor — and collapsing it is the results page's business too, from the
+ * It fills whatever width the results page gives it, which is the same in
+ * both modes, and collapsing it is the results page's business too, from the
  * toggle in the table's footer.
  */
 export function SearchPanel({
@@ -136,8 +135,30 @@ export function SearchPanel({
         <AdvancedToggle mode={mode} onModeChange={onModeChange} disabled={resolving} />
       </div>
       {mode === "quick" ? (
-        <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-5 pb-3">
-          <SearchPills layout="panel" filters={filters} onToggleFilter={onToggleFilter} />
+        <div className="flex min-h-0 flex-1 flex-col">
+          {/* The same header block as Advanced's, row for row: where the
+              columns put their path, the pills put their name, in the same
+              place and the same type, so flipping the switch changes what is
+              under the header and nothing about the header itself. No search
+              field, which ten pills do not need. */}
+          <div className="shrink-0 px-3 pt-3 pb-3">
+            <div className="flex h-6 items-center">
+              <h2
+                id={commonFiltersId}
+                className="text-foreground truncate px-1 py-0.5 text-[13px] font-semibold"
+              >
+                Commonly used filters
+              </h2>
+            </div>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
+            <SearchPills
+              layout="panel"
+              heading={false}
+              filters={filters}
+              onToggleFilter={onToggleFilter}
+            />
+          </div>
         </div>
       ) : (
         <ManualSearch

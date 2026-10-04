@@ -6,6 +6,9 @@ import {
 } from "@/flows/sprint-4/idea-1c/data"
 import { cn } from "@/lib/utils"
 
+/** What the pills are labelled by, wherever their heading is drawn. */
+export const commonFiltersId = "common-filters"
+
 /**
  * The commonly used filters.
  *
@@ -24,8 +27,14 @@ export function SearchPills({
   layout,
   filters,
   onToggleFilter,
+  heading = true,
 }: {
   layout: "centered" | "panel"
+  /**
+   * Whether the pills name themselves. The results panel names them in its own
+   * header row instead, giving the heading the id the pills are labelled by.
+   */
+  heading?: boolean
   /** The filters in the box, however they were built, counted onto the pills. */
   filters: ResolvedFilter[]
   onToggleFilter: (area: ProductArea, attribute: string) => void
@@ -37,7 +46,7 @@ export function SearchPills({
 
   const head = (
     <h2
-      id="common-filters"
+      id={commonFiltersId}
       className={cn("text-muted-foreground/70", headType, centred && "text-center")}
     >
       Commonly used filters
@@ -54,7 +63,7 @@ export function SearchPills({
         aria-pressed={Boolean(filter)}
         onClick={() => onToggleFilter(area, attribute)}
         className={cn(
-          "bg-surface-panel border-border hover:bg-accent inline-flex h-8 items-center rounded-full border px-3.5 text-[13px] transition-[color,background-color,border-color]",
+          "bg-surface-panel border-border hover:bg-muted inline-flex h-8 items-center rounded-full border px-3.5 text-[13px] transition-[color,background-color,border-color]",
           // Three states told apart by two channels rather than by weight, so
           // the row can be quiet and still legible: the fill goes white →
           // grey → blue-washed, and the edge goes grey → grey → blue. Hover
@@ -80,9 +89,9 @@ export function SearchPills({
   // down the results panel.
   return (
     <div className="flex w-full flex-col gap-2">
-      {head}
+      {heading ? head : null}
       <nav
-        aria-labelledby="common-filters"
+        aria-labelledby={commonFiltersId}
         className={cn(
           "flex flex-wrap items-center gap-2",
           centred ? "justify-center" : "justify-start",

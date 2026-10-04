@@ -189,70 +189,80 @@ export function ResolvedFilters({
           <XIcon />
         </Button>
       ) : null}
-      <div
-        ref={rowRef}
-        className={cn("flex min-h-10 flex-wrap items-center gap-2", onClose && "pr-6")}
-      >
-        {filters.length === 0 ? (
-          <p className="text-muted-foreground text-[13px]">No filters selected</p>
-        ) : null}
+      <div className="flex items-start gap-4">
+        <div
+          ref={rowRef}
+          className={cn("flex min-h-10 min-w-0 flex-1 flex-wrap items-center gap-2", onClose && "pr-6")}
+        >
+          {filters.length === 0 ? (
+            <p className="text-muted-foreground text-[13px]">No filters selected</p>
+          ) : null}
 
-        {shown.map((filter, index) => (
-          <div key={filter.id} className="contents">
-            {index > 0 ? (
-              <FilterLinkControl
+          {shown.map((filter, index) => (
+            <div key={filter.id} className="contents">
+              {index > 0 ? (
+                <FilterLinkControl
+                  filter={filter}
+                  onChange={(link) => onLinkChange(filter.id, link)}
+                />
+              ) : null}
+              <FilterClause
                 filter={filter}
-                onChange={(link) => onLinkChange(filter.id, link)}
+                onModeChange={onModeChange}
+                onJoinChange={onJoinChange}
+                onToggleValue={onToggleValue}
+                onPickOnlyValue={onPickOnlyValue}
+                onRemove={onRemove}
               />
-            ) : null}
-            <FilterClause
-              filter={filter}
+            </div>
+          ))}
+
+          {folded.length > 0 ? (
+            <FoldedFilters
+              filters={folded}
+              open={foldedOpen}
+              onOpenChange={setFoldedOpen}
               onModeChange={onModeChange}
               onJoinChange={onJoinChange}
+              onLinkChange={onLinkChange}
               onToggleValue={onToggleValue}
               onPickOnlyValue={onPickOnlyValue}
               onRemove={onRemove}
             />
-          </div>
-        ))}
-
-        {folded.length > 0 ? (
-          <FoldedFilters
-            filters={folded}
-            open={foldedOpen}
-            onOpenChange={setFoldedOpen}
-            onModeChange={onModeChange}
-            onJoinChange={onJoinChange}
-            onLinkChange={onLinkChange}
-            onToggleValue={onToggleValue}
-            onPickOnlyValue={onPickOnlyValue}
-            onRemove={onRemove}
-          />
-        ) : null}
-
-        {/* Add filter is the end of the row of filters in both variants: it adds
-            one to the line it sits on, which is a thing to say beside them
-            rather than an errand in a footer. Clearing is the footer's on the
-            landing card, where there is one. */}
-        <span className="ml-1 flex items-center gap-2">
-          <AddFilterMenu
-            filters={filters}
-            onPickValue={onPickValue}
-            onPickOnlyValue={onPickOnlyValue}
-          >
-            {/* Labelled rather than a bare plus: an icon on its own read as too
-                quiet to be found at the end of a row of chips. */}
-            <Button variant="secondary" size="sm">
-              <PlusIcon />
-              Add filter
-            </Button>
-          </AddFilterMenu>
-          {band && filters.length > 0 ? (
-            <Button variant="secondary" size="sm" onClick={onClear}>
-              Clear filters
-            </Button>
           ) : null}
-        </span>
+
+          {/* Add filter is the end of the row of filters in both variants: it adds
+              one to the line it sits on, which is a thing to say beside them
+              rather than an errand in a footer. Clearing is the footer's on the
+              landing card, and the far end of the bar on the results page. */}
+          <span className="ml-1 flex items-center gap-2">
+            <AddFilterMenu
+              filters={filters}
+              onPickValue={onPickValue}
+              onPickOnlyValue={onPickOnlyValue}
+            >
+              {/* Labelled rather than a bare plus: an icon on its own read as too
+                  quiet to be found at the end of a row of chips. Outline, so it
+                  rests and hovers the way the commonly used filters do. */}
+              <Button variant="outline" size="sm">
+                <PlusIcon />
+                Add filter
+              </Button>
+            </AddFilterMenu>
+          </span>
+        </div>
+        {/* Clearing sits apart from the filters, at the far end of the bar, as
+            a link: it acts on all of them rather than adding to the row. */}
+        {band && filters.length > 0 ? (
+          <Button
+            variant="link"
+            size="sm"
+            onClick={onClear}
+            className="text-brand-ink mt-1.5 shrink-0 px-0"
+          >
+            Clear filters
+          </Button>
+        ) : null}
       </div>
 
       {band ? null : (
