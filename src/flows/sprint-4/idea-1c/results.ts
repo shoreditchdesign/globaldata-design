@@ -23,7 +23,7 @@ import {
   searchAttributeValueCounts,
   type FilterId,
   type ResolvedFilter,
-} from "@/flows/sprint-4/idea-1b/data"
+} from "@/flows/sprint-4/idea-1c/data"
 
 /** The most rows the grid draws for one set of filters. */
 export const RESULT_ROW_LIMIT = 100

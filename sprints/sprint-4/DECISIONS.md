@@ -257,3 +257,19 @@ Only a clause joined with `and` is folded in. In a query read left to right an `
 Rose at hue 22 sat beside the brand's violet-leaning blue and the two argued, which showed most where an excluded chip sat in a rail of blue ones. The negation family is pitched warm for this idea — around hue 42, a vermilion — so the pair reads as blue against orange, which the eye takes as opposition rather than noise. The tokens are overridden on this screen's root rather than changed in `globals.css`, so the Sprint 3 directions keep the family they were reviewed with.
 
 Two other things settled in the same pass. The excluding filter chip takes the washed negation rather than a solid fill, since solid red beside solid blue was two strong colours arguing across one rail. And a value pill is now brand throughout — fill, text and edge — with its clear moved onto the corner, so the value sits in even padding instead of reserving room inside for a button that only appears on hover. The clause-level clear went with it.
+
+## 2026-10-04 — Idea 1c, the results page as one grid with a chat section inside it
+
+**The Quick / Advanced tabs are a switch now.** The tabs filled the mode they were on with solid brand, which the system keeps for checked controls and primary actions, and two tabs were heavier than an on/off choice. On the landing page an Advanced filter switch sits inside the search field, so the field stays put in both modes and only what sits under it changes. On the results page it heads the chat section, as the Paper frame has it.
+
+**The chat section is a sibling of the table.** The filter box runs across the top, the status bar — count, Columns, Export — runs over both the chat section and the table, and the footer runs under both. The footer's left end holds a plain panel toggle that folds the chat section away by width, on `motion.reflow`, with no transition under reduced motion. The commonly used filters head the chat section and the query field sits at its foot, where a chat composer does.
+
+**Two deliberate departures from the Paper frame.** It still shows a See all filters link under the pills, which is gone — the pills are the shortlist and there is no all-filters affordance beside them. And it shows Add filter as a bare plus, which the client found too quiet on the call, so it is a labelled button.
+
+## 2026-10-04 — Idea 1c, one panel width, and the columns walk to a read
+
+**The chat panel is one width.** It held a quarter of the page for the pills and 800px for the Miller columns, so flipping Advanced pushed the table sideways. It holds 800px in both now, and the off state takes Advanced's header block row for row — the switch, then "Commonly used filters" where the columns put their path — with no search field, which ten pills do not need.
+
+**The Miller columns walk to a resolved query.** Sprint 3 Idea 2's agent travelled the columns to each attribute before ticking anything; 1c keeps only that walk, faster, and applies the filters before it starts so the table never waits on it.
+
+**Checkboxes.** Unticked boxes take `ring` as their edge so they read at rest, and a part-selection fills with brand and shows a bar, so no box shows a tick without its fill. Done in a 1c wrapper rather than the shared Checkbox, so Idea 1b's tested grid is untouched.
