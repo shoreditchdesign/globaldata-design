@@ -21,6 +21,7 @@ import {
   type FilterJoin,
   type FilterLink,
 } from "@/flows/sprint-4/idea-1c/data"
+import { expandShorthand } from "@/flows/sprint-4/idea-1c/examples"
 import { resultsFor } from "@/flows/sprint-4/idea-1c/results"
 import {
   resolveQuery as resolveNaturalLanguage,
@@ -127,8 +128,11 @@ export function PrototypeShell() {
 
   const setMode = (mode: SearchMode) => setState((current) => ({ ...current, mode }))
   // A changed query is a new question, so what the last one left unread goes.
-  const setQuery = (query: string) =>
+  // `$$` is expanded here, outside the updater, so each press is one example.
+  const setQuery = (typed: string) => {
+    const query = expandShorthand(typed)
     setState((current) => ({ ...current, query, unread: null }))
+  }
   // Dictation adds to the query rather than replacing it, so a session spoken
   // in several goes builds one request — the arrow still resolves it.
   const appendQuery = (text: string) =>
