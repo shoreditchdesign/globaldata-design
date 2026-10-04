@@ -8,7 +8,7 @@ import { motion, usePrefersReducedMotion } from "@/components/prototype/motion"
 import { DictateButton } from "@/flows/sprint-4/idea-1c/components/DictateButton"
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { ReadNotice } from "@/flows/sprint-4/idea-1c/components/ReadNotice"
-import { SearchTabs } from "@/flows/sprint-4/idea-1c/components/SearchTabs"
+import { AdvancedToggle } from "@/flows/sprint-4/idea-1c/components/AdvancedToggle"
 import { SearchPills } from "@/flows/sprint-4/idea-1c/components/SearchPills"
 import { ScanningQuery } from "@/flows/sprint-4/idea-1c/components/ScanningQuery"
 import type { ResolvedFilter } from "@/flows/sprint-4/idea-1c/data"
@@ -130,24 +130,61 @@ export function LandingPage({
 
   const manualMode = mode === "manual"
 
+  // The one search field, in both modes. The Advanced switch lives inside it,
+  // so the field is never swapped out — only what sits under it changes.
+  const field = (
+    <form
+      className="bg-surface-panel border-border focus-within:border-ring mx-auto mt-7 flex min-h-16 w-full max-w-4xl items-center gap-3 rounded-xl border px-4 transition-colors"
+      onSubmit={(event) => {
+        event.preventDefault()
+        if (hasQuery && !resolving) onResolve()
+      }}
+    >
+      <SearchIcon className="text-muted-foreground size-5 shrink-0" aria-hidden />
+      <div className="relative min-w-0 flex-1">
+        <input
+          value={query}
+          onChange={(event) => onQueryChange(event.target.value)}
+          placeholder="What are you looking for?"
+          aria-label="Describe the drugs you are looking for"
+          aria-hidden={resolving}
+          disabled={resolving}
+          className={cn(
+            "placeholder:text-muted-foreground h-16 w-full min-w-0 bg-transparent text-base outline-none disabled:opacity-100",
+            resolving && "text-transparent",
+          )}
+        />
+        {pending ? <ScanningQuery resolution={pending} onDone={onScanDone} /> : null}
+      </div>
+      <AdvancedToggle mode={mode} onModeChange={onModeChange} disabled={resolving} className="mr-1" />
+      <DictateButton onText={onDictate} disabled={resolving} />
+      <Button
+        type="submit"
+        size="icon-lg"
+        disabled={!hasQuery || resolving}
+        aria-label={
+          hasResolvedFilters ? "Update filters from this search" : "Build filters from this search"
+        }
+        className="rounded-full"
+      >
+        <ArrowRightIcon />
+      </Button>
+    </form>
+  )
+
   return (
     <main className="bg-surface-page flex min-h-0 flex-1 flex-col overflow-y-auto">
-      {/* The tabs head the page rather than the search, which centres in the space below. */}
-      <div className="flex shrink-0 justify-center pt-6">
-        <SearchTabs mode={mode} onModeChange={onModeChange} />
-      </div>
-
       {/*
         Quick search is centred a little above the middle by padding more below
         than above. It may shrink below its content, so on a short window the
         pills' well gives up its empty space before the page is made to scroll.
-        Advanced search runs top down instead: the title under the tabs, the Miller
-        columns filling the page, and the filter box always beneath them.
+        Advanced search runs top down instead: the title and the field, the
+        Miller columns filling the page, and the filter box always beneath them.
       */}
       <section
         ref={sectionRef}
         className={cn(
-          "mx-auto flex min-h-0 w-full flex-1 flex-col px-8 pt-6",
+          "mx-auto flex min-h-0 w-full flex-1 flex-col px-8 pt-12",
           // Advanced widens so the three Miller columns span more of the page.
           // Quick is wider than its search field: the field and the filter box
           // are held at 56rem inside it, and the extra room is the pills', so a
@@ -156,104 +193,67 @@ export function LandingPage({
           manualMode ? "max-w-7xl pb-8" : "max-w-5xl items-center justify-center pb-16",
         )}
       >
-        <div data-flip="title" className="text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">Drug Database</h1>
-          <p className="text-muted-foreground mx-auto mt-2 max-w-md text-sm leading-5 text-balance">
-            Describe any key search metrics such as Therapy Area, Classification, Geography,
-            Route of Administration etc.
-          </p>
+        {/* The title and the field move as one, so the switch the reader just
+            pressed travels with the field it sits in. */}
+        <div data-flip="title" className="w-full shrink-0">
+          <div className="text-center">
+            <h1 className="text-2xl font-semibold tracking-tight">Drug Database</h1>
+            <p className="text-muted-foreground mx-auto mt-2 max-w-md text-sm leading-5 text-balance">
+              Describe any key search metrics such as Therapy Area, Classification, Geography,
+              Route of Administration etc.
+            </p>
+          </div>
+          {field}
+          {manualMode && unread ? (
+            <ReadNotice resolution={unread} className="mx-auto mt-2 w-full max-w-4xl px-4 text-sm" />
+          ) : null}
         </div>
 
         {manualMode ? (
           <>
             <div
               data-flip="stack"
-              className="bg-surface-panel border-border mt-6 flex min-h-72 flex-1 flex-col overflow-hidden rounded-xl border"
+              className="bg-surface-panel border-border mt-5 flex min-h-72 flex-1 flex-col overflow-hidden rounded-xl border"
             >
               {manual}
             </div>
-            {/* Held at Quick's width (52rem) as the columns widen, so it only glides. */}
-            <div data-flip="summary" className="mx-auto mt-2 w-full max-w-208 shrink-0">
+            {/* Held at Quick's width as the columns widen, so it only glides. */}
+            <div data-flip="summary" className="mx-auto mt-2 w-full max-w-4xl shrink-0">
               {filterBox}
             </div>
           </>
         ) : (
-          <>
-            <form
-              data-flip="stack"
-              className="bg-surface-panel border-border focus-within:border-ring mx-auto mt-7 flex min-h-16 w-full max-w-4xl items-center gap-3 rounded-xl border px-4 transition-colors"
-              onSubmit={(event) => {
-                event.preventDefault()
-                if (hasQuery && !resolving) onResolve()
-              }}
+          /*
+            The well keeps the pills' height so the centred search never moves,
+            and is the one thing that shrinks when the window is too short for it.
+            Once a filter exists its box sits above the pills and the stack hangs
+            past the well, scrolling the page rather than pushing the search up.
+          */
+          <div className="relative mt-5 h-72 w-full">
+            {/* A filter box sits 8px under the query that built it, pulled up inside the
+                well rather than moving it, so the search stays put. */}
+            <div
+              className={cn(
+                "absolute inset-x-0 flex flex-col gap-5 pb-16",
+                filterBox || unread ? "-top-3" : "top-0",
+              )}
             >
-              <SearchIcon className="text-muted-foreground size-5 shrink-0" aria-hidden />
-              <div className="relative min-w-0 flex-1">
-                <input
-                  value={query}
-                  onChange={(event) => onQueryChange(event.target.value)}
-                  placeholder="What are you looking for?"
-                  aria-label="Describe the drugs you are looking for"
-                  aria-hidden={resolving}
-                  disabled={resolving}
-                  className={cn(
-                    "placeholder:text-muted-foreground h-16 w-full min-w-0 bg-transparent text-base outline-none disabled:opacity-100",
-                    resolving && "text-transparent",
-                  )}
+              {unread ? (
+                <ReadNotice
+                  resolution={unread}
+                  className={cn("mx-auto w-full max-w-4xl px-4 text-sm", filterBox && "-mb-2")}
                 />
-                {pending ? <ScanningQuery resolution={pending} onDone={onScanDone} /> : null}
-              </div>
-              <DictateButton onText={onDictate} disabled={resolving} />
-              <Button
-                type="submit"
-                size="icon-lg"
-                disabled={!hasQuery || resolving}
-                aria-label={
-                  hasResolvedFilters ? "Update filters from this search" : "Build filters from this search"
-                }
-                className="rounded-full"
-              >
-                <ArrowRightIcon />
-              </Button>
-            </form>
-
-            {/*
-              The well keeps the pills' height so the centred search never moves,
-              and is the one thing that shrinks when the window is too short for it.
-              Once a filter exists its box sits above the pills and the stack hangs
-              past the well, scrolling the page rather than pushing the search up.
-            */}
-            <div className="relative mt-5 h-72 w-full">
-              {/* A filter box sits 8px under the query that built it, pulled up inside the
-                  well rather than moving it, so the search stays put. */}
-              <div
-                className={cn(
-                  "absolute inset-x-0 flex flex-col gap-5 pb-16",
-                  filterBox || unread ? "-top-3" : "top-0",
-                )}
-              >
-                {unread ? (
-                  <ReadNotice
-                    resolution={unread}
-                    className={cn("mx-auto w-full max-w-4xl px-4 text-sm", filterBox && "-mb-2")}
-                  />
-                ) : null}
-                {filterBox ? (
-                  <div data-flip="summary" className="mx-auto w-full max-w-4xl">
-                    {filterBox}
-                  </div>
-                ) : null}
-                <div data-flip="after">
-                  <SearchPills
-                    layout="centered"
-                    filters={filters}
-                    onToggleFilter={onToggleFilter}
-                    onSeeAll={() => onModeChange("manual")}
-                  />
+              ) : null}
+              {filterBox ? (
+                <div data-flip="summary" className="mx-auto w-full max-w-4xl">
+                  {filterBox}
                 </div>
+              ) : null}
+              <div data-flip="after">
+                <SearchPills layout="centered" filters={filters} onToggleFilter={onToggleFilter} />
               </div>
             </div>
-          </>
+          </div>
         )}
       </section>
     </main>

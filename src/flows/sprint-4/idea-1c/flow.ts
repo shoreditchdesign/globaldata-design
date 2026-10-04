@@ -11,7 +11,7 @@ export const sprint4Idea1c: Flow = {
   name: "Idea 1c — In progress",
   premise:
     "Idea 1b again, for a structural difference being explored against it. The same screens until that difference lands.",
-  lastUpdated: "2026-10-01",
+  lastUpdated: "2026-10-04",
   status: "in-progress",
   screens: [
     {
@@ -31,7 +31,7 @@ export const sprint4Idea1c: Flow = {
     {
       slug: "manual",
       title: "Advanced search",
-      note: "Advanced search lifts the title under the tabs and puts the Miller columns, three at a time, in place of the query field and pills, with the filter box always beneath them.",
+      note: "The Advanced filter switch in the search field puts the Miller columns, three at a time, under the field in place of the pills, with the filter box always beneath them.",
       viewport: "desktop",
       component: Start,
     },
@@ -45,7 +45,7 @@ export const sprint4Idea1c: Flow = {
     {
       slug: "results",
       title: "Results",
-      note: "The worked query searched: the search panel on the left, the filter box above an AG Grid-style table that updates as filters are added or removed.",
+      note: "The worked query searched: the filter box across the top, a status bar over both the chat section and the AG Grid-style table, and a footer whose panel toggle folds the chat section away. The pills head the chat section and the query field sits at its foot, like a chat composer.",
       viewport: "desktop",
       component: Start,
     },

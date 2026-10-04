@@ -14,12 +14,14 @@ import {
   FilterXIcon,
   SearchXIcon,
   MoveHorizontalIcon,
+  PanelLeftIcon,
   PinIcon,
   PinOffIcon,
   type LucideIcon,
 } from "lucide-react"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
+import { motion } from "@/components/prototype/motion"
 import { StageBadge } from "@/components/prototype/StageBadge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -470,6 +472,12 @@ function Cell({ column, row }: { column: ColumnDef; row: DrugRow }) {
  * headers with a column menu, draggable column edges, pinned lanes that stay
  * put while the rest scroll sideways, row selection and a status bar. Type
  * follows the shared grid scale — 13px cells, 10px uppercase headers, 12px tags.
+ *
+ * The chat section is a sibling of the table rather than a page beside the
+ * whole grid: the status bar runs over both, the two sit side by side in the
+ * middle, and the footer runs under both and carries the toggle that folds the
+ * chat section away. So the count, the columns and the export read as
+ * belonging to the whole search, not to the table half of it.
  */
 export function ResultsGrid({
   rows,
@@ -481,6 +489,10 @@ export function ResultsGrid({
   onPickOnlyFilterValue,
   onClearFilter,
   onClearFilters,
+  aside,
+  asideOpen,
+  asideWidth,
+  onToggleAside,
 }: {
   /** Rows the filters keep, before sorting — at most the first 100. */
   rows: DrugRow[]
@@ -495,7 +507,14 @@ export function ResultsGrid({
   /** Takes one column's clause out of the box entirely. */
   onClearFilter: (id: FilterId) => void
   onClearFilters: () => void
+  /** The chat section, beside the table. */
+  aside: React.ReactNode
+  asideOpen: boolean
+  /** Its width when open, as CSS — it changes with the mode the section is in. */
+  asideWidth: string
+  onToggleAside: () => void
 }) {
+  const asideId = React.useId()
   const keys = visibleColumnKeys(state)
   const lanes = frozenLanes(state, keys)
   const template = keys.map((key) => columnTrack(state, key)).join(" ")
@@ -511,7 +530,7 @@ export function ResultsGrid({
 
   return (
     <div className="bg-surface-panel flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="border-edge flex h-11 shrink-0 items-center gap-3 border-b px-3">
+      <div className="bg-surface-panel border-edge flex h-11 shrink-0 items-center gap-3 border-b px-3">
         <p className="text-[13px] tabular-nums" aria-live="polite">
           <span className="font-medium">{resultCount.toLocaleString("en-GB")}</span>{" "}
           <span className="text-muted-foreground">{resultCount === 1 ? "drug" : "drugs"}</span>
@@ -566,106 +585,133 @@ export function ResultsGrid({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto">
-        <div className="relative w-full text-[13px]" style={{ minWidth }}>
-          <div
-            className="bg-surface-panel border-edge sticky top-0 z-20 grid h-10 border-b"
-            style={{ gridTemplateColumns: template }}
-          >
-            {keys.map((key) => {
-              if (key === "select") {
-                const lane = frozen(key, lanes, "bg-surface-panel z-[2]")
+      <div className="flex min-h-0 flex-1">
+        {/* The width eases between closed, a quarter of the page and Advanced's
+            800px; what is inside holds its own width, so the section slides
+            away rather than squeezing its pills into a column on the way. */}
+        <div
+          id={asideId}
+          inert={!asideOpen}
+          className="ease-settle shrink-0 overflow-hidden transition-[width] motion-reduce:transition-none"
+          style={{ width: asideOpen ? asideWidth : 0, transitionDuration: `${motion.reflow}ms` }}
+        >
+          <div className="h-full" style={{ width: asideWidth }}>
+            {aside}
+          </div>
+        </div>
+
+        <div className="min-h-0 min-w-0 flex-1 overflow-auto">
+          <div className="relative w-full text-[13px]" style={{ minWidth }}>
+            <div
+              className="bg-surface-panel border-edge sticky top-0 z-20 grid h-10 border-b"
+              style={{ gridTemplateColumns: template }}
+            >
+              {keys.map((key) => {
+                if (key === "select") {
+                  const lane = frozen(key, lanes, "bg-surface-panel z-[2]")
+                  return (
+                    <div
+                      key={key}
+                      className={cn("flex items-center justify-center", lane.className)}
+                      style={lane.style}
+                    >
+                      <Checkbox
+                        checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                        disabled={rows.length === 0}
+                        onCheckedChange={() =>
+                          onAction({ kind: "setSelection", ids: allSelected ? [] : rowIds })
+                        }
+                        aria-label="Select all rows"
+                      />
+                    </div>
+                  )
+                }
                 return (
-                  <div
+                  <HeaderCell
                     key={key}
-                    className={cn("flex items-center justify-center", lane.className)}
-                    style={lane.style}
-                  >
-                    <Checkbox
-                      checked={allSelected ? true : someSelected ? "indeterminate" : false}
-                      disabled={rows.length === 0}
-                      onCheckedChange={() =>
-                        onAction({ kind: "setSelection", ids: allSelected ? [] : rowIds })
-                      }
-                      aria-label="Select all rows"
-                    />
-                  </div>
+                    column={columnByKey[key]}
+                    state={state}
+                    lanes={lanes}
+                    filters={filters}
+                    onAction={onAction}
+                    onToggleFilterValue={onToggleFilterValue}
+                    onPickOnlyFilterValue={onPickOnlyFilterValue}
+                    onClearFilter={onClearFilter}
+                  />
                 )
-              }
+              })}
+            </div>
+
+            {sorted.map((row) => {
+              const isSelected = selected.includes(row.id)
+              const fill = isSelected ? "bg-brand-tint" : "bg-surface-panel group-hover/row:bg-accent"
               return (
-                <HeaderCell
-                  key={key}
-                  column={columnByKey[key]}
-                  state={state}
-                  lanes={lanes}
-                  filters={filters}
-                  onAction={onAction}
-                  onToggleFilterValue={onToggleFilterValue}
-                  onPickOnlyFilterValue={onPickOnlyFilterValue}
-                  onClearFilter={onClearFilter}
-                />
+                <div
+                  key={row.id}
+                  aria-selected={isSelected}
+                  className={cn(
+                    "group/row border-hairline grid border-b transition-colors",
+                    isSelected ? "bg-brand-tint" : "hover:bg-accent",
+                  )}
+                  style={{ gridTemplateColumns: template }}
+                >
+                  {keys.map((key) => {
+                    const lane = frozen(key, lanes, fill)
+                    return (
+                      <div
+                        key={key}
+                        className={cn(
+                          "flex h-10 min-w-0 items-center transition-colors",
+                          key === "select" ? "justify-center" : "px-3",
+                          lane.className,
+                        )}
+                        style={lane.style}
+                      >
+                        {key === "select" ? (
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => onAction({ kind: "toggleRow", id: row.id })}
+                            aria-label={`Select ${row.name}`}
+                          />
+                        ) : (
+                          <div className="min-w-0 flex-1">
+                            <Cell column={columnByKey[key]} row={row} />
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
               )
             })}
           </div>
 
-          {sorted.map((row) => {
-            const isSelected = selected.includes(row.id)
-            const fill = isSelected ? "bg-brand-tint" : "bg-surface-panel group-hover/row:bg-accent"
-            return (
-              <div
-                key={row.id}
-                aria-selected={isSelected}
-                className={cn(
-                  "group/row border-hairline grid border-b transition-colors",
-                  isSelected ? "bg-brand-tint" : "hover:bg-accent",
-                )}
-                style={{ gridTemplateColumns: template }}
-              >
-                {keys.map((key) => {
-                  const lane = frozen(key, lanes, fill)
-                  return (
-                    <div
-                      key={key}
-                      className={cn(
-                        "flex h-10 min-w-0 items-center transition-colors",
-                        key === "select" ? "justify-center" : "px-3",
-                        lane.className,
-                      )}
-                      style={lane.style}
-                    >
-                      {key === "select" ? (
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => onAction({ kind: "toggleRow", id: row.id })}
-                          aria-label={`Select ${row.name}`}
-                        />
-                      ) : (
-                        <div className="min-w-0 flex-1">
-                          <Cell column={columnByKey[key]} row={row} />
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )
-          })}
+          {/* Outside the lane track, so it is as wide as the grid is on screen
+              rather than as wide as the columns add up to — which is what lets it
+              centre — and stuck to the left edge so it stays put if the reader
+              scrolls the empty table sideways. */}
+          {rows.length === 0 ? (
+            <NoMatches
+              filters={filters}
+              onRemoveCriterion={onClearFilter}
+              onClearFilters={onClearFilters}
+            />
+          ) : null}
         </div>
-
-        {/* Outside the lane track, so it is as wide as the grid is on screen
-            rather than as wide as the columns add up to — which is what lets it
-            centre — and stuck to the left edge so it stays put if the reader
-            scrolls the empty table sideways. */}
-        {rows.length === 0 ? (
-          <NoMatches
-            filters={filters}
-            onRemoveCriterion={onClearFilter}
-            onClearFilters={onClearFilters}
-          />
-        ) : null}
       </div>
 
-      <div className="bg-surface-chrome border-edge flex h-9 shrink-0 items-center gap-4 border-t px-3 text-xs tabular-nums">
+      <div className="bg-surface-chrome border-edge flex h-9 shrink-0 items-center gap-4 border-t pr-3 pl-1.5 text-xs tabular-nums">
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          aria-label="Search panel"
+          aria-expanded={asideOpen}
+          aria-controls={asideId}
+          onClick={onToggleAside}
+          className="text-muted-foreground mr-auto"
+        >
+          <PanelLeftIcon />
+        </Button>
         <span>
           <span className="text-muted-foreground">Rows </span>
           <span className="font-medium">{rows.length}</span>
@@ -674,7 +720,7 @@ export function ResultsGrid({
           <span className="text-muted-foreground">Selected </span>
           <span className="font-medium">{selected.length}</span>
         </span>
-        <span className="text-muted-foreground ml-auto">
+        <span className="text-muted-foreground ml-4">
           {resultCount > rows.length
             ? `Illustrative data · first ${rows.length} of ${resultCount.toLocaleString("en-GB")}`
             : "Illustrative data"}

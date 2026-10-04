@@ -269,6 +269,7 @@ export function PrototypeShell() {
     return (
       <ProductChrome activeArea={activeProductArea} body="row">
         <ResultsPage
+          mode={state.mode}
           filters={state.filters}
           onToggleFilterValue={pickValueAt}
           onPickOnlyFilterValue={pickOnlyValueAt}
