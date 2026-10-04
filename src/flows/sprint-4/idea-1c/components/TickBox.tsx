@@ -29,7 +29,9 @@ export function TickBox({
 }) {
   const className = cn(
     "flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors",
-    checked ? "bg-selected border-selected text-selected-foreground" : "border-border",
+    // Unticked takes `ring`, the grid's resting edge, so the box is
+    // visible before it is ticked rather than only after.
+    checked ? "bg-selected border-selected text-selected-foreground" : "border-ring",
     disabled && "opacity-50",
   )
   const mark = checked ? <CheckIcon className="size-3" /> : null
@@ -58,7 +60,7 @@ export function TickBox({
         !disabled &&
           (checked
             ? "hover:bg-selected-hover hover:border-selected-hover"
-            : "hover:border-foreground/40"),
+            : "hover:border-muted-foreground"),
       )}
     >
       {mark}
