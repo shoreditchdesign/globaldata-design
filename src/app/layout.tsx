@@ -23,9 +23,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
+    // Browser extensions — Google Tag Assistant among them — write attributes
+    // onto <html> before React hydrates, which the dev overlay reports as a
+    // hydration mismatch. This only silences attribute differences on this one
+    // element; anything inside it is still checked.
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
         <TooltipProvider>{children}</TooltipProvider>
