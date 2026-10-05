@@ -3,6 +3,7 @@ import {
   definitionFor,
   filterDefinitions,
   filterIdFor,
+  geographyChildren,
   searchAttributeLabels,
   searchAttributeValues,
   type FilterId,
@@ -596,6 +597,7 @@ export interface ReadSpan {
   /** The first value the phrase names; `values` holds all of them. */
   value: string
   values: string[]
+  negated: boolean
 }
 
 /** Something typed that names a real part of the product this search does not carry. */
@@ -622,7 +624,9 @@ const words = (text: string) => text.trim().split(" ").filter(Boolean)
 interface Clause {
   id: FilterId
   kept: string[]
+  negated: string[]
   keptJoin: "or" | "and"
+  negatedJoin: "or" | "and"
   link: FilterLink
   /** Where the clause was first typed, for ordering. */
   first: number
@@ -646,11 +650,9 @@ export function resolveQuery(raw: string): Resolution {
 
   /* Negation. A cue applies to the nearest phrase after it, and to the
      phrases that follow while they belong to the same filter and are joined by
-     `or` or `and` — so `not austria or italy oral` negates two countries and
+     `or` or `and` — so `not austria or italy oral` excludes two countries and
      leaves the route alone. A continuation (`as well as`, `nor`) carries it on
-     to a different filter. Excludes were removed on the 5 October call, so a
-     negated phrase builds no clause: it is reported as not found, with a note
-     saying why, rather than dropped in silence or read as its opposite. */
+     to a different filter. */
   const negated = new Set<number>()
   const carried = new Set<number>()
   for (const cue of negationCues) {
@@ -686,8 +688,6 @@ export function resolveQuery(raw: string): Resolution {
   const clauses = new Map<FilterId, Clause>()
   const notes: Note[] = []
   const read: ReadSpan[] = []
-  /** Phrases a negation cue applied to, which no longer build a clause. */
-  const refused: string[] = []
   let previous: { index: number; id: FilterId } | undefined
 
   spans.forEach((span, index) => {
@@ -699,15 +699,12 @@ export function resolveQuery(raw: string): Resolution {
     }
     if (!span.id) return
 
-    if (negated.has(index)) {
-      refused.push(phrase)
-      return
-    }
+    const isNegated = negated.has(index)
     let clause = clauses.get(span.id)
     if (!clause) {
       // A lone `or` between two different filters is the one join the typed
       // words can set; everything else meets the query with `and`. A negation
-      // carried across (`nor`, `or any`) negates both, which is `and`.
+      // carried across (`nor`, `or any`) excludes both, which is `and`.
       const between = previous ? gap(spans[previous.index].end, span.start) : []
       const link: FilterLink =
         previous && !carried.has(index) && between.includes("or") && !between.includes("and")
@@ -716,7 +713,9 @@ export function resolveQuery(raw: string): Resolution {
       clause = {
         id: span.id,
         kept: [],
+        negated: [],
         keptJoin: "or",
+        negatedJoin: "or",
         link,
         first: span.start,
       }
@@ -724,10 +723,14 @@ export function resolveQuery(raw: string): Resolution {
     } else if (previous?.id === span.id && span.values.length === 1) {
       // Two values of one filter joined by a bare `and` must both hold.
       const between = gap(spans[previous.index].end, span.start)
-      if (between.includes("and") && !between.includes("or")) clause.keptJoin = "and"
+      if (between.includes("and") && !between.includes("or")) {
+        if (isNegated) clause.negatedJoin = "and"
+        else clause.keptJoin = "and"
+      }
     }
 
-    for (const value of span.values) if (!clause.kept.includes(value)) clause.kept.push(value)
+    const bucket = isNegated ? clause.negated : clause.kept
+    for (const value of span.values) if (!bucket.includes(value)) bucket.push(value)
     previous = { index, id: span.id }
 
     // A family phrase fills the clause its words also name. It meets the query
@@ -740,14 +743,17 @@ export function resolveQuery(raw: string): Resolution {
         extra = {
           id: alsoId,
           kept: [],
+          negated: [],
           keptJoin: "or",
+          negatedJoin: "or",
           link: "and",
           first: span.start + 0.5,
         }
         clauses.set(alsoId, extra)
       }
+      const alsoBucket = isNegated ? extra.negated : extra.kept
       for (const value of span.also.values) {
-        if (!extra.kept.includes(value)) extra.kept.push(value)
+        if (!alsoBucket.includes(value)) alsoBucket.push(value)
       }
     }
 
@@ -758,22 +764,52 @@ export function resolveQuery(raw: string): Resolution {
       id: span.id,
       value: span.values[0],
       values: span.values,
+      negated: isNegated,
     })
   })
 
-  // One clause per filter, holding every value its phrases named.
+  // One clause per filter. Read both kept and negated, the kept values stand:
+  // `small molecules but not peptides` is small molecules, and the peptides
+  // are already outside it.
   let filters: (ResolvedFilter & { first: number })[] = [...clauses.values()].map((clause) => {
+    const kept = clause.kept.length > 0
+    const chosen = kept ? clause.kept : clause.negated
     const definition = definitionFor(clause.id)
-    const ordered = definition.options.filter((option) => clause.kept.includes(option))
+    const ordered = definition.options.filter((option) => chosen.includes(option))
     return {
       id: clause.id,
       label: definition.label,
-      values: ordered.length === clause.kept.length ? ordered : clause.kept,
-      join: clause.kept.length > 1 ? clause.keptJoin : "or",
+      values: ordered.length === chosen.length ? ordered : chosen,
+      excluded: !kept,
+      join: chosen.length > 1 ? (kept ? clause.keptJoin : clause.negatedJoin) : "or",
       link: clause.link,
       first: clause.first,
     }
   })
+
+  /* Geography is the one attribute with a level above its values, so it is the
+     one where a kept value and an excluded one can both stand: Austria is
+     inside Europe, and dropping "not Austria" would answer a wider question
+     than the one asked. The box draws one clause per attribute, so the
+     exclusion takes a clause of its own beside the region. */
+  const geography = clauses.get("geography")
+  if (geography && geography.kept.length > 0) {
+    const inside = geography.negated.filter((value) =>
+      geography.kept.some((region) => geographyChildren(region).includes(value)),
+    )
+    if (inside.length > 0) {
+      const definition = definitionFor("geography-excluded")
+      filters.push({
+        id: definition.id,
+        label: definition.label,
+        values: inside,
+        excluded: true,
+        join: "or",
+        link: "and",
+        first: geography.first + 0.5,
+      })
+    }
+  }
 
   // Clauses run in typing order, which is the order an `or` is read in. When
   // every clause is one of the authored five and all of them meet with `and`,
@@ -788,6 +824,7 @@ export function resolveQuery(raw: string): Resolution {
     id: filter.id,
     label: filter.label,
     values: filter.values,
+    excluded: filter.excluded,
     join: filter.join,
     // The first clause has nothing before it to join.
     link: index === 0 ? "and" : filter.link,
@@ -810,17 +847,13 @@ export function resolveQuery(raw: string): Resolution {
     hit = wordPattern.exec(text)
   }
   if (run.length > 0) unplaced.push(run.join(" "))
-  if (refused.length > 0) {
-    notes.push({ phrase: refused.join(", "), text: "Excluding is not supported in this prototype." })
-  }
 
   return {
     raw,
     ok: resolved.length > 0,
     filters: resolved,
     spans: read,
-    // What a negation was asked of comes first: it is the larger miss.
-    unplaced: [...refused, ...unplaced.filter((phrase) => phrase.length > 1)],
+    unplaced: unplaced.filter((phrase) => phrase.length > 1),
     notes,
   }
 }
