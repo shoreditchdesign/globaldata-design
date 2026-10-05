@@ -15,7 +15,6 @@ import {
   SearchXIcon,
   SlidersHorizontalIcon,
   MoveHorizontalIcon,
-  PanelLeftIcon,
   PinIcon,
   PinOffIcon,
   type LucideIcon,
@@ -39,6 +38,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Loader } from "@/flows/sprint-4/idea-1c/components/Loader"
+import { PanelToggle } from "@/flows/sprint-4/idea-1c/components/PanelToggle"
 import { SelectBox } from "@/flows/sprint-4/idea-1c/components/SelectBox"
 import { ColumnManager } from "@/flows/sprint-4/idea-1c/components/ColumnManager"
 import {
@@ -567,8 +567,16 @@ export function ResultsGrid({
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <div className="bg-surface-panel border-edge flex h-11 shrink-0 items-center gap-3 border-b pr-3">
             {/* The select lane's width, so the count after it starts on the
-                Drug name column's text edge whether the panel is open or not. */}
-            <span className="-mr-3 shrink-0" style={{ width: laneWidth(state, "select") }} />
+                Drug name column's text edge whether the panel is open or not.
+                With the panel closed, the lane holds the button that opens it. */}
+            <span
+              className="-mr-3 flex shrink-0 items-center justify-center"
+              style={{ width: laneWidth(state, "select") }}
+            >
+              {asideOpen ? null : (
+                <PanelToggle open={false} onToggle={onToggleAside} controls={asideId} />
+              )}
+            </span>
             <p className="pl-3 text-[13px] tabular-nums" aria-live="polite">
               <span className="font-medium">{drugCount.toLocaleString("en-GB")}</span>{" "}
               <span className="text-muted-foreground">{drugCount === 1 ? "drug" : "drugs"}</span>
@@ -747,25 +755,7 @@ export function ResultsGrid({
         </div>
       </div>
 
-      <div className="bg-surface-chrome border-edge flex h-9 shrink-0 items-center gap-4 border-t pr-3 pl-1.5 text-xs tabular-nums">
-        {/* The panel toggle, as before, now named: the bare icon was not
-            found on the call, so it says what it does in both states. */}
-        <Button
-          variant="ghost"
-          size="xs"
-          aria-expanded={asideOpen}
-          aria-controls={asideId}
-          onClick={onToggleAside}
-          className="text-muted-foreground mr-auto"
-        >
-          <PanelLeftIcon />
-          {asideOpen ? "Hide filters" : "Show filters"}
-        </Button>
-        <span>
-          {/* Every row the filters keep, not just the ones drawn. */}
-          <span className="text-muted-foreground">Rows </span>
-          <span className="font-medium">{resultCount.toLocaleString("en-GB")}</span>
-        </span>
+      <div className="bg-surface-chrome border-edge flex h-9 shrink-0 items-center justify-end gap-4 border-t px-3 text-xs tabular-nums">
         <span>
           <span className="text-muted-foreground">Selected </span>
           <span className="font-medium">{selected.length}</span>
