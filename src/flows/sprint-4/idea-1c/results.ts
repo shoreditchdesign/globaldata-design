@@ -478,7 +478,13 @@ const families: readonly Family[] = [
   {
     weight: 3,
     therapyArea: "Genetic Disorders",
-    indications: [["Spinal Muscular Atrophy", 62], ["Duchenne Muscular Dystrophy", 38]],
+    // Three indications, like every other therapy area, so ticking Genetic
+    // Disorders gives a spread of rows to read rather than two.
+    indications: [
+      ["Spinal Muscular Atrophy", 50],
+      ["Duchenne Muscular Dystrophy", 30],
+      ["Inherited Retinal Dystrophy", 20],
+    ],
     target: "Survival Motor Neuron 1", mechanism: "Gene Replacement",
     atc: "M09A — Other Musculoskeletal Drugs", descriptor: "Gene Therapy",
     molecules: [["Gene Therapy", 100]],
