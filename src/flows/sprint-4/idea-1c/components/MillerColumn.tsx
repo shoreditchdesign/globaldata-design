@@ -48,6 +48,12 @@ export interface ColumnModel {
   open?: string
   /** Whether rows carry a tick box. Areas and attributes are navigation only. */
   selectable?: boolean
+  /**
+   * The clause these values tick into is an IS NOT, so a ticked box is the
+   * negation tone with a minus bar rather than a brand tick. The mode is set
+   * in the filter bar; the column only reflects it.
+   */
+  negated?: boolean
   /** Free-text attributes have no value list, so the column has no rows. */
   search?: boolean
   /** What the number lane counts. The filter areas are whole records, not drugs. */
@@ -64,6 +70,12 @@ export interface ColumnModel {
   /** Wait for the strip's scroll to land before flashing. */
   hintDelay?: boolean
 }
+
+/** A ticked box in an excluding clause: rose fill and edge, a white minus. */
+const negatedBoxClass = cn(
+  "data-checked:border-negative-ink data-checked:bg-negative-ink data-checked:text-primary-foreground",
+  "data-checked:[&_svg]:hidden data-checked:before:absolute data-checked:before:h-0.5 data-checked:before:w-2 data-checked:before:rounded-full data-checked:before:bg-current",
+)
 
 /** The number lane is sized to the widest count in the column, not globally. */
 function countLane(items: ColumnRow[]) {
@@ -292,6 +304,10 @@ function ColumnItem({
               "bg-surface-panel",
               // The grid's darker resting edge, so a box reads at rest here too.
               selectBoxClass,
+              // A value in an IS NOT clause is being dropped, and it cannot
+              // look like one being kept: the negation tone, with a minus bar
+              // drawn by the box in place of the tick.
+              column.negated && negatedBoxClass,
             )}
           />
         </span>

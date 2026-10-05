@@ -142,6 +142,7 @@ export function ManualSearch({
           parents === 0 ? "Results" : parents === items.length ? "Values" : "Values / results",
         items,
         selectable: true,
+        negated: openFilter?.excluded ?? false,
         // A ticked parent selects everything under it, so its children read
         // as ticked too.
         selected: values.filter((value) =>

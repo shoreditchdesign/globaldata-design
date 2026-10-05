@@ -744,6 +744,7 @@ function ValuePopover({
           // not in the attribute's own list, so it is added to the end.
           options={[...options, ...filter.values.filter((value) => !options.includes(value))]}
           selected={filter.values}
+          negated={filter.excluded}
           countOf={(value) => valueCountOf(path.area, path.attribute, value)}
           onToggle={(value) => onToggleValue(filter.id, value)}
           onPickOnly={(value) => {

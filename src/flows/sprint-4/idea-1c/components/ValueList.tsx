@@ -36,6 +36,7 @@ export function ValueList({
   onToggle,
   onPickOnly,
   countOf,
+  negated = false,
 }: {
   /** The attribute, as the filter box names it. */
   label: string
@@ -47,6 +48,8 @@ export function ValueList({
   onPickOnly: (value: string) => void
   /** The rows a value would keep, when the list should say so. */
   countOf?: (value: string) => number
+  /** The clause is an IS NOT: ticked boxes take the negation tone and a minus. */
+  negated?: boolean
 }) {
   return (
     <Command>
@@ -79,6 +82,7 @@ export function ValueList({
                 <span className={cn("flex", count === undefined && "ml-auto")}>
                   <TickBox
                     checked={ticked}
+                    negated={negated}
                     label={`${ticked ? "Remove" : "Add"} ${option}`}
                     onClick={() => onToggle(option)}
                   />
