@@ -8,13 +8,13 @@ One-glance version of `CALL-0510-ACTIONS.md`. Next review: **Tue 6 Oct, 12:00–
 - **Query box**: at the top in Quick search, gone in Advanced search.
 - **Sidebar toggle**: stays in the bottom status bar, now with a text label.
 - **Clicking a filter value at the top**: opens Advanced search on the left at that filter, instead of a dropdown checklist. This is what Emma's "move to the left" meant.
-- **Tabs**: 1b's style and position, unchanged.
+- **Tabs**: 1b's style, aligned left on the results panel (Emma). Neil's "to the left" was the filter value opening Advanced.
 - **Advanced default**: Drugs › Drug name open, so three columns show.
 - **Deeper than three columns**: older columns scroll off to the left, like Finder. The newest stays on the right edge.
 - **Full tree**: can be opened, same Finder-style overflow.
 - **Excludes**: removed from the Miller columns only. IS / IS NOT still works in the filter bar.
 - **Table**: A–Z sort arrows, "11 of 18 columns", drug count in the header, Group by / View placeholders. Value counts show in the Miller columns.
-- **Add filter / Edit filter**: open the left panel at the right place. Add filter blinks the first row to click, like a Figma hotspot hint.
+- **Add filter / Edit filter**: open the left panel at the right place. Add filter, and clicking a filter value at the top, blink the row to click, like a Figma hotspot hint.
 - **Tree data**: every therapy area has at least three indications.
 
 ## Still open
