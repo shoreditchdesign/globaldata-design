@@ -27,8 +27,8 @@ import {
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1c/data"
 
-/** The most rows the grid draws for one set of filters. */
-export const RESULT_ROW_LIMIT = 100
+/** The most rows the grid draws at once: it pages through the rest. */
+export const RESULT_PAGE_SIZE = 100
 
 export interface DrugRow {
   id: string
@@ -902,6 +902,7 @@ export function trailFor(area: ProductArea, attribute: string, values: string[])
 }
 
 export interface Results {
+  /** Every row the filters match, in sample order. The grid sorts and pages them. */
   rows: DrugRow[]
   /** Every row the filters match — the rows counted, not an estimate of them. */
   count: number
@@ -913,7 +914,7 @@ const cache = new Map<string, Results>()
 
 /**
  * The rows and count for one set of filters. The count is the length of the
- * match, and the rows are its first hundred, so the two cannot disagree.
+ * match and the rows are all of it, so the two cannot disagree.
  */
 export function resultsFor(filters: ResolvedFilter[]): Results {
   const key = JSON.stringify(filters)
@@ -922,7 +923,7 @@ export function resultsFor(filters: ResolvedFilter[]): Results {
 
   const matched = sample.filter((row) => rowMatches(filters, row))
   const results: Results = {
-    rows: matched.slice(0, RESULT_ROW_LIMIT),
+    rows: matched,
     count: matched.length,
     drugCount: new Set(matched.map((row) => row.name)).size,
   }

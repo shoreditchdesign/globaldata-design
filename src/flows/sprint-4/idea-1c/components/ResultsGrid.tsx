@@ -5,6 +5,8 @@ import {
   ArrowDownAZIcon,
   ArrowUpAZIcon,
   ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   ChevronUpIcon,
   Columns3Icon,
   DownloadIcon,
@@ -49,7 +51,7 @@ import {
   type FilterId,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1c/data"
-import type { DrugRow } from "@/flows/sprint-4/idea-1c/results"
+import { RESULT_PAGE_SIZE, type DrugRow } from "@/flows/sprint-4/idea-1c/results"
 import {
   columnByKey,
   columnFilterPath,
@@ -508,9 +510,9 @@ export function ResultsGrid({
   asideWidth,
   onToggleAside,
 }: {
-  /** Rows the filters keep, before sorting — at most the first 100. */
+  /** Every row the filters keep, before sorting. The grid draws a page of them. */
   rows: DrugRow[]
-  /** Every row the filters match, of which `rows` are the first. */
+  /** Every row the filters match — the length of `rows`. */
   resultCount: number
   /** The distinct drugs among those rows: the header counts drugs, the footer rows. */
   drugCount: number
@@ -537,12 +539,36 @@ export function ResultsGrid({
   const lanes = frozenLanes(state, keys)
   const template = keys.map((key) => columnTrack(state, key)).join(" ")
   const minWidth = keys.reduce((total, key) => total + laneWidth(state, key), 0)
-  const sorted = sortRows(rows, state.sort)
+  // The whole filtered set is sorted, then paged, so a sort reorders every
+  // match rather than the hundred on screen.
+  const sorted = React.useMemo(() => sortRows(rows, state.sort), [rows, state.sort])
 
-  const rowIds = rows.map((row) => row.id)
-  const selected = state.selected.filter((id) => rowIds.includes(id))
-  const allSelected = rows.length > 0 && selected.length === rows.length
-  const someSelected = selected.length > 0 && !allSelected
+  // The page belongs to one set of rows and one sort: a change to either puts
+  // the reader back on the first page. Held beside what it was set against, so
+  // the reset is a comparison at render rather than an effect a frame late.
+  const [paging, setPaging] = React.useState({ rows, sort: state.sort, page: 0 })
+  const pageCount = Math.max(1, Math.ceil(sorted.length / RESULT_PAGE_SIZE))
+  const page =
+    paging.rows === rows && paging.sort === state.sort
+      ? Math.min(paging.page, pageCount - 1)
+      : 0
+  const pageStart = page * RESULT_PAGE_SIZE
+  const pageRows = sorted.slice(pageStart, pageStart + RESULT_PAGE_SIZE)
+  const scrollerRef = React.useRef<HTMLDivElement>(null)
+  const goToPage = (next: number) => {
+    setPaging({ rows, sort: state.sort, page: next })
+    scrollerRef.current?.scrollTo({ top: 0 })
+  }
+
+  // Selection survives paging: it is kept against every filtered row, so the
+  // count and Export see ticks made on other pages. Select all ticks or clears
+  // the current page's rows only — the ones the reader can see.
+  const rowIds = React.useMemo(() => new Set(rows.map((row) => row.id)), [rows])
+  const selected = state.selected.filter((id) => rowIds.has(id))
+  const pageIds = pageRows.map((row) => row.id)
+  const pageSelected = pageIds.filter((id) => selected.includes(id))
+  const allSelected = pageIds.length > 0 && pageSelected.length === pageIds.length
+  const someSelected = pageSelected.length > 0 && !allSelected
 
   return (
     <div className="bg-surface-panel flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -652,6 +678,7 @@ export function ResultsGrid({
             {/* With no rows it becomes a column, so the empty state below the head
                 can take the rest of the height and centre in it. */}
             <div
+              ref={scrollerRef}
               aria-busy={loading}
               className={cn(
                 "min-h-0 min-w-0 flex-1 overflow-auto",
@@ -676,9 +703,14 @@ export function ResultsGrid({
                             checked={allSelected ? true : someSelected ? "indeterminate" : false}
                             disabled={rows.length === 0}
                             onCheckedChange={() =>
-                              onAction({ kind: "setSelection", ids: allSelected ? [] : rowIds })
+                              onAction({
+                                kind: "setSelection",
+                                ids: allSelected
+                                  ? selected.filter((id) => !pageIds.includes(id))
+                                  : [...new Set([...selected, ...pageIds])],
+                              })
                             }
-                            aria-label="Select all rows"
+                            aria-label="Select all rows on this page"
                           />
                         </div>
                       )
@@ -698,7 +730,7 @@ export function ResultsGrid({
                   })}
                 </div>
 
-                {sorted.map((row) => {
+                {pageRows.map((row) => {
                   const isSelected = selected.includes(row.id)
                   const fill = isSelected ? "bg-brand-tint" : "bg-surface-panel group-hover/row:bg-accent"
                   return (
@@ -763,11 +795,53 @@ export function ResultsGrid({
           <span className="text-muted-foreground">Selected </span>
           <span className="font-medium">{selected.length}</span>
         </span>
-        <span className="text-muted-foreground ml-4">
-          {resultCount > rows.length
-            ? `Illustrative data · first ${rows.length} of ${resultCount.toLocaleString("en-GB")}`
-            : "Illustrative data"}
+        {/* Sample data, said quietly, then where this page sits in the match. */}
+        <span className="ml-4 flex items-center gap-1.5">
+          <span className="text-muted-foreground">Illustrative data ·</span>
+          <span aria-live="polite">
+            {resultCount === 0 ? (
+              <span className="text-muted-foreground">0 rows</span>
+            ) : (
+              <>
+                <span className="font-medium">
+                  {(pageStart + 1).toLocaleString("en-GB")}–
+                  {(pageStart + pageRows.length).toLocaleString("en-GB")}
+                </span>
+                <span className="text-muted-foreground">
+                  {" "}
+                  of {resultCount.toLocaleString("en-GB")}
+                </span>
+              </>
+            )}
+          </span>
         </span>
+        {pageCount > 1 ? (
+          <span className="-mr-1.5 flex items-center gap-1.5">
+            <span className="text-muted-foreground">
+              Page {page + 1} of {pageCount}
+            </span>
+            <span className="flex items-center">
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                aria-label="Previous page"
+                disabled={page === 0}
+                onClick={() => goToPage(page - 1)}
+              >
+                <ChevronLeftIcon />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                aria-label="Next page"
+                disabled={page >= pageCount - 1}
+                onClick={() => goToPage(page + 1)}
+              >
+                <ChevronRightIcon />
+              </Button>
+            </span>
+          </span>
+        ) : null}
       </div>
     </div>
   )
