@@ -382,7 +382,6 @@ export function PrototypeShell() {
               onDictate={appendQuery}
               onResolve={submitQuery}
               onScanDone={settleAndWalk}
-              onToggleFilter={togglePillFilter}
               manualTrail={state.manualTrail}
               onOpenAt={openAt}
               trayHint={state.trayHint}

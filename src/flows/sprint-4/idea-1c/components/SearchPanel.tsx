@@ -7,7 +7,6 @@ import { DictateButton } from "@/flows/sprint-4/idea-1c/components/DictateButton
 import { ManualSearch } from "@/flows/sprint-4/idea-1c/components/ManualSearch"
 import { ReadNotice } from "@/flows/sprint-4/idea-1c/components/ReadNotice"
 import { ScanningQuery } from "@/flows/sprint-4/idea-1c/components/ScanningQuery"
-import { commonFiltersId, SearchPills } from "@/flows/sprint-4/idea-1c/components/SearchPills"
 import { PanelToggle } from "@/flows/sprint-4/idea-1c/components/PanelToggle"
 import { SearchTabs } from "@/flows/sprint-4/idea-1c/components/SearchTabs"
 import type { ResolvedFilter } from "@/flows/sprint-4/idea-1c/data"
@@ -16,8 +15,8 @@ import type { HintTarget, SearchMode } from "@/flows/sprint-4/idea-1c/state"
 import { cn } from "@/lib/utils"
 
 /**
- * The results page's search panel. Quick search puts the query field at its
- * head, under the tabs, with the commonly used filters beneath it. Advanced
+ * The results page's search panel. Quick search holds only the query field,
+ * under the tabs. Advanced
  * search has no field here, only the Miller columns: the client read a field
  * on this page as an assistant to talk to, and the columns are the way in.
  * The tabs sit at the panel's top left on a row of their own over both
@@ -38,7 +37,6 @@ export function SearchPanel({
   onDictate,
   onResolve,
   onScanDone,
-  onToggleFilter,
   manualTrail,
   onOpenAt,
   trayHint,
@@ -58,7 +56,6 @@ export function SearchPanel({
   onDictate: (text: string) => void
   onResolve: () => void
   onScanDone: () => void
-  onToggleFilter: (area: ProductArea, attribute: string) => void
   manualTrail: string[]
   onOpenAt: (depth: number, label: string) => void
   /** Bumped by Add filter: the columns flash the row to click next. */
@@ -154,25 +151,9 @@ export function SearchPanel({
       </div>
       {mode === "quick" ? (
         <div className="flex min-h-0 flex-1 flex-col">
+          {/* Only the query field: the commonly used filters stay on the
+              start page. */}
           {composer}
-          <div className="shrink-0 px-3 pt-3 pb-3">
-            <div className="flex h-6 items-center">
-              <h2
-                id={commonFiltersId}
-                className="text-foreground truncate px-1 py-0.5 text-[13px] font-semibold"
-              >
-                Commonly used filters
-              </h2>
-            </div>
-          </div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
-            <SearchPills
-              layout="panel"
-              heading={false}
-              filters={filters}
-              onToggleFilter={onToggleFilter}
-            />
-          </div>
         </div>
       ) : (
         <ManualSearch
