@@ -47,6 +47,7 @@ export function ManualSearch({
   onToggleValue,
   hint,
   hintAt = null,
+  columnsAcross = 3,
 }: {
   filters: ResolvedFilter[]
   /** The open path: area, attribute, then values down the attribute's tree. */
@@ -57,8 +58,13 @@ export function ManualSearch({
   hint?: number
   /** The row to flash; null flashes the newest column's first row. */
   hintAt?: HintTarget | null
+  /**
+   * How many columns fit across before the strip scrolls: three in the
+   * results panel, four on the start page, which has the room for them.
+   */
+  columnsAcross?: number
 }) {
-  const visibleColumns = 3
+  const visibleColumns = columnsAcross
   const [query, setQuery] = React.useState("")
   const stripRef = React.useRef<HTMLDivElement>(null)
   const reducedMotion = usePrefersReducedMotion()
@@ -264,11 +270,13 @@ export function ManualSearch({
               }
               className={cn(
                 "[&>div:first-child]:border-t-0",
-                // A third each, so the first column never stretches across the pane alone.
-                "flex-none basis-1/3",
+                // An equal share each, so the first column never stretches
+                // across the pane alone.
+                "flex-none",
                 // Ruled off from the empty thirds still to fill, which share its grey.
                 visible.length < visibleColumns && "border-edge last:border-r",
               )}
+              style={{ flexBasis: `${100 / visibleColumns}%` }}
               onOpen={(label) => onOpenAt(depth, label)}
               onToggle={
                 depth >= 2 && activeCategory && activeAttribute

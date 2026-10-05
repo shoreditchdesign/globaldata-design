@@ -98,11 +98,13 @@ export function MillerColumn({
   onOpen,
   onToggle,
   className,
+  style,
 }: {
   column: ColumnModel
   onOpen: (label: string) => void
   onToggle?: (label: string) => void
   className?: string
+  style?: React.CSSProperties
 }) {
   const selected = new Set(column.selected ?? [])
   const holding = new Set(column.holding ?? [])
@@ -130,6 +132,7 @@ export function MillerColumn({
         column.wide ? "flex-[1.25]" : "flex-1",
         className,
       )}
+      style={style}
     >
       {/* The caption band is the head of the columns, not the last line of the
           search block, so it is ruled off on both sides: `border-edge` above it

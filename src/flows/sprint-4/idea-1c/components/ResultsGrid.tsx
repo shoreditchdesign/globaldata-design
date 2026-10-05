@@ -556,7 +556,11 @@ export function ResultsGrid({
           className="ease-settle shrink-0 overflow-hidden transition-[width] motion-reduce:transition-none"
           style={{ width: asideOpen ? asideWidth : 0, transitionDuration: `${motion.reflow}ms` }}
         >
-          <div className="h-full" style={{ width: asideWidth }}>
+          {/* Its own width eases with the wrapper's when the mode changes it. */}
+          <div
+            className="ease-settle h-full transition-[width] motion-reduce:transition-none"
+            style={{ width: asideWidth, transitionDuration: `${motion.reflow}ms` }}
+          >
             {aside}
           </div>
         </div>

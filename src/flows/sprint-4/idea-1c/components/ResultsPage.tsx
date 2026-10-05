@@ -6,6 +6,7 @@ import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { ResultsGrid } from "@/flows/sprint-4/idea-1c/components/ResultsGrid"
 import type { FilterId, ResolvedFilter } from "@/flows/sprint-4/idea-1c/data"
 import { resultsFor } from "@/flows/sprint-4/idea-1c/results"
+import type { SearchMode } from "@/flows/sprint-4/idea-1c/state"
 import { applyAction, initialGridState, type GridAction } from "@/flows/sprint-4/idea-1c/grid"
 
 /**
@@ -39,6 +40,7 @@ export function ResultsPage({
   panel,
   filterBox,
   panelOpen,
+  panelMode,
   onPanelOpenChange,
   filters,
   onEditFilter,
@@ -48,6 +50,8 @@ export function ResultsPage({
   panel: React.ReactNode
   filterBox: React.ReactNode
   panelOpen: boolean
+  /** The panel's mode, which sets its width. */
+  panelMode: SearchMode
   onPanelOpenChange: (open: boolean) => void
   filters: ResolvedFilter[]
   /** A column's Edit filters opens the search panel's columns at its attribute. */
@@ -90,10 +94,10 @@ export function ResultsPage({
         loading={loading}
         aside={panel}
         asideOpen={panelOpen}
-        // One width in both modes, so nothing beside the panel moves when the
-        // switch flips: Advanced's, three thirds of 266px against the Miller
-        // columns' 260px floor, which the pills and the composer fit inside.
-        asideWidth="800px"
+        // Quick holds only the query field, so it takes about 400px; Advanced
+        // takes 800px, three thirds of 266px against the Miller columns'
+        // 260px floor. The width eases between them.
+        asideWidth={panelMode === "manual" ? "800px" : "400px"}
         onToggleAside={() => onPanelOpenChange(!panelOpen)}
       />
     </main>
