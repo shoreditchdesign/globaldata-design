@@ -35,6 +35,7 @@ import {
   defaultTrail,
   initialState,
   slugFor,
+  type HintTarget,
   type SearchMode,
   type Sprint4Idea1cState,
 } from "@/flows/sprint-4/idea-1c/state"
@@ -169,7 +170,7 @@ export function PrototypeShell() {
   // Add filter, and a column's Edit filters, open the one place a filter is
   // built by hand: Advanced search's columns, in the panel, at the given path.
   // Instant, with no walk — the client asked for this to be slick.
-  const openAdvancedAt = (trail: string[], hint = false, hintAt: number | null = null) => {
+  const openAdvancedAt = (trail: string[], hint = false, hintAt: HintTarget | null = null) => {
     walk.stop()
     setState((current) => ({
       ...current,
@@ -184,12 +185,17 @@ export function PrototypeShell() {
   const addFilter = () => openAdvancedAt(defaultTrail(), true)
   const editFilterAt = (area: ProductArea, attribute: string, values: string[]) =>
     openAdvancedAt(trailFor(area, attribute, values))
-  // A value on a filter chip opens the same place, at that clause, and
-  // flashes the attribute's own row once the columns have landed on it.
-  const editFilterValues = (id: FilterId) => {
+  // A filter chip's segments open the same place. A value opens at that value,
+  // its parent open if it sits a level down, and flashes the value's row; the
+  // attribute flashes the attribute's row.
+  const editFilterValues = (id: FilterId, value?: string) => {
     const { area, attribute } = pathOf(id)
     const clause = state.filters.find((filter) => filter.id === id)
-    openAdvancedAt(trailFor(area, attribute, clause?.values ?? []), true, 1)
+    const trail = trailFor(area, attribute, value ? [value] : (clause?.values ?? []))
+    const target = value
+      ? { depth: Math.max(2, trail.length), label: value }
+      : { depth: 1, label: attribute }
+    openAdvancedAt(trail, true, target)
   }
   const pickValueAt = (area: ProductArea, attribute: string, value: string) =>
     setState((current) => toggleValueAt(current, area, attribute, value))

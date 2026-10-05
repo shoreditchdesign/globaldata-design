@@ -112,7 +112,7 @@ export function ResolvedFilters({
   onModeChange: (id: FilterId, excluded: boolean) => void
   onJoinChange: (id: FilterId, join: FilterJoin) => void
   onLinkChange: (id: FilterId, link: FilterLink) => void
-  onEditValues: (id: FilterId) => void
+  onEditValues: (id: FilterId, value?: string) => void
   onRemove: (id: FilterId) => void
   /** Add filter opens Advanced search's columns, at Drugs. */
   onAddFilter: () => void
@@ -298,7 +298,7 @@ function FoldedFilters({
   onModeChange: (id: FilterId, excluded: boolean) => void
   onJoinChange: (id: FilterId, join: FilterJoin) => void
   onLinkChange: (id: FilterId, link: FilterLink) => void
-  onEditValues: (id: FilterId) => void
+  onEditValues: (id: FilterId, value?: string) => void
   onRemove: (id: FilterId) => void
 }) {
   return (
@@ -398,7 +398,7 @@ function FilterClause({
   filter: ResolvedFilter
   onModeChange: (id: FilterId, excluded: boolean) => void
   onJoinChange: (id: FilterId, join: FilterJoin) => void
-  onEditValues: (id: FilterId) => void
+  onEditValues: (id: FilterId, value?: string) => void
   onRemove: (id: FilterId) => void
 }) {
   return (
@@ -447,6 +447,7 @@ function FilterClause({
           ) : null}
           <ValueMenu
             filter={filter}
+            value={value}
             onEditValues={onEditValues}
             className={cn(
               value === null && "text-muted-foreground",
@@ -480,20 +481,25 @@ function FilterClause({
  */
 function ValueMenu({
   filter,
+  value,
   onEditValues,
   className,
   children,
 }: {
   filter: ResolvedFilter
-  onEditValues: (id: FilterId) => void
+  /** The value this segment shows, or null for Select value. */
+  value: string | null
+  onEditValues: (id: FilterId, value?: string) => void
   className?: string
   children: React.ReactNode
 }) {
   return (
     <button
       type="button"
-      onClick={() => onEditValues(filter.id)}
-      aria-label={`Choose ${filter.label} in Advanced search`}
+      onClick={() => onEditValues(filter.id, value ?? undefined)}
+      aria-label={
+        value ? `Open ${value} in Advanced search` : `Choose ${filter.label} in Advanced search`
+      }
       className={cn(
         "hover:bg-foreground/5 flex min-w-0 items-center gap-1.5 px-2.5 py-1.5 text-left transition-colors",
         className,

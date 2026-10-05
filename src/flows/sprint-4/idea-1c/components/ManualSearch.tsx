@@ -19,6 +19,7 @@ import {
   rootValuesOf,
   valueCountOf,
 } from "@/flows/sprint-4/idea-1c/results"
+import type { HintTarget } from "@/flows/sprint-4/idea-1c/state"
 import { cn } from "@/lib/utils"
 
 /**
@@ -54,8 +55,8 @@ export function ManualSearch({
   onToggleValue: (area: ProductArea, attribute: string, value: string) => void
   /** Bumped by Add filter to point at the first row of the newest column. */
   hint?: number
-  /** The column whose open row to flash; null flashes the newest's first row. */
-  hintAt?: number | null
+  /** The row to flash; null flashes the newest column's first row. */
+  hintAt?: HintTarget | null
 }) {
   const visibleColumns = 3
   const [query, setQuery] = React.useState("")
@@ -257,8 +258,8 @@ export function ManualSearch({
                   ? depth === visible.length - 1
                     ? { ...column, hint }
                     : column
-                  : depth === hintAt
-                    ? { ...column, hint, hintLabel: trail[depth], hintDelay: true }
+                  : depth === hintAt.depth
+                    ? { ...column, hint, hintLabel: hintAt.label, hintDelay: true }
                     : column
               }
               className={cn(
