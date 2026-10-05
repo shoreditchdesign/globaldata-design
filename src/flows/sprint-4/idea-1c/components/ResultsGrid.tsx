@@ -33,14 +33,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 import {
   Popover,
-  PopoverAnchor,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Loader } from "@/flows/sprint-4/idea-1c/components/Loader"
 import { SelectBox } from "@/flows/sprint-4/idea-1c/components/SelectBox"
 import { ColumnManager } from "@/flows/sprint-4/idea-1c/components/ColumnManager"
-import { ValueList } from "@/flows/sprint-4/idea-1c/components/ValueList"
 import {
   criterionPhrase,
   definitionFor,
@@ -138,8 +136,7 @@ function HeaderCell({
   lanes,
   filters,
   onAction,
-  onToggleFilterValue,
-  onPickOnlyFilterValue,
+  onEditFilter,
   onClearFilter,
 }: {
   column: ColumnDef
@@ -147,8 +144,7 @@ function HeaderCell({
   lanes: Frozen
   filters: ResolvedFilter[]
   onAction: (action: GridAction) => void
-  onToggleFilterValue: (area: ProductArea, attribute: string, value: string) => void
-  onPickOnlyFilterValue: (area: ProductArea, attribute: string, value: string) => void
+  onEditFilter: (area: ProductArea, attribute: string, values: string[]) => void
   onClearFilter: (id: FilterId) => void
 }) {
   const sorted = state.sort?.columnKey === column.key ? state.sort.direction : null
@@ -165,9 +161,6 @@ function HeaderCell({
     ? filters.find((filter) => filter.id === definition.id)
     : undefined
   const applied = clause?.values.length ?? 0
-  const [filterOpen, setFilterOpen] = React.useState(false)
-  // Set by the menu item, read when the menu closes. See the handler below.
-  const openingFilter = React.useRef(false)
 
   // Drag the right edge to resize, as in AG Grid. Double-click returns the lane
   // to its natural width.
@@ -234,17 +227,6 @@ function HeaderCell({
         <DropdownMenuContent
           align="start"
           className="w-52"
-          // A menu closing puts focus back on the button that opened it, and it
-          // does so after the next frame — by which time the value list is open
-          // and reads that as focus leaving it, so it closes again. Where the
-          // menu is closing in order to open the list, it hands over instead of
-          // handing back.
-          onCloseAutoFocus={(event) => {
-            if (!openingFilter.current) return
-            event.preventDefault()
-            openingFilter.current = false
-            setFilterOpen(true)
-          }}
         >
           <MenuAction
             icon={ArrowDownAZIcon}
@@ -271,11 +253,12 @@ function HeaderCell({
           {path ? (
             <>
               <DropdownMenuSeparator />
+              {/* Opens the search panel's columns at this column's attribute,
+                  its values ticked, rather than a list of its own: one place
+                  to build a filter by hand. */}
               <MenuAction
                 icon={FilterIcon}
-                onSelect={() => {
-                  openingFilter.current = true
-                }}
+                onSelect={() => onEditFilter(path.area, path.attribute, clause?.values ?? [])}
               >
                 {applied > 0 ? "Edit filters" : "Add filter"}
               </MenuAction>
@@ -323,27 +306,7 @@ function HeaderCell({
     </div>
   )
 
-  if (!path || !definition) return cell
-
-  // Hung off the header itself, so the values drop under the lane they filter,
-  // and holding the same list the clause in the filter box opens.
-  return (
-    <Popover open={filterOpen} onOpenChange={setFilterOpen}>
-      <PopoverAnchor asChild>{cell}</PopoverAnchor>
-      <PopoverContent align="start" className="w-72 gap-0 p-0">
-        <ValueList
-          label={definition.label}
-          options={definition.options}
-          selected={clause?.values ?? []}
-          onToggle={(value) => onToggleFilterValue(path.area, path.attribute, value)}
-          onPickOnly={(value) => {
-            onPickOnlyFilterValue(path.area, path.attribute, value)
-            setFilterOpen(false)
-          }}
-        />
-      </PopoverContent>
-    </Popover>
-  )
+  return cell
 }
 
 /**
@@ -487,8 +450,7 @@ export function ResultsGrid({
   state,
   filters,
   onAction,
-  onToggleFilterValue,
-  onPickOnlyFilterValue,
+  onEditFilter,
   onClearFilter,
   onClearFilters,
   loading,
@@ -505,8 +467,8 @@ export function ResultsGrid({
   /** Read by the column headers: which lanes are filtered, and by how much. */
   filters: ResolvedFilter[]
   onAction: (action: GridAction) => void
-  onToggleFilterValue: (area: ProductArea, attribute: string, value: string) => void
-  onPickOnlyFilterValue: (area: ProductArea, attribute: string, value: string) => void
+  /** A column's Edit filters: the search panel's columns at its attribute. */
+  onEditFilter: (area: ProductArea, attribute: string, values: string[]) => void
   /** Takes one column's clause out of the box entirely. */
   onClearFilter: (id: FilterId) => void
   onClearFilters: () => void
@@ -681,8 +643,7 @@ export function ResultsGrid({
                       lanes={lanes}
                       filters={filters}
                       onAction={onAction}
-                      onToggleFilterValue={onToggleFilterValue}
-                      onPickOnlyFilterValue={onPickOnlyFilterValue}
+                      onEditFilter={onEditFilter}
                       onClearFilter={onClearFilter}
                     />
                   )
