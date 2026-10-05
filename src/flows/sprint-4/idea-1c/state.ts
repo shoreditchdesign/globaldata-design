@@ -21,7 +21,10 @@ export interface SearchPath {
 export interface Sprint4Idea1cState {
   mode: SearchMode
   query: string
-  /** The manual search's Miller path, kept apart so the pills stay closed. */
+  /**
+   * The manual search's Miller path, kept apart so the pills stay closed.
+   * Drugs is open by default, on the landing page and the results page.
+   */
   manualCategory: ProductArea | null
   manualAttribute: string | null
   /**
@@ -55,7 +58,7 @@ export interface Sprint4Idea1cState {
 const startState = (): Sprint4Idea1cState => ({
   mode: "quick",
   query: "",
-  manualCategory: null,
+  manualCategory: "Drugs",
   manualAttribute: null,
   filterBoxOpen: false,
   path: null,
@@ -70,7 +73,7 @@ const startState = (): Sprint4Idea1cState => ({
 const filteredState = (): Sprint4Idea1cState => ({
   mode: "quick",
   query: workedQuery,
-  manualCategory: null,
+  manualCategory: "Drugs",
   manualAttribute: null,
   filterBoxOpen: true,
   path: null,
@@ -113,7 +116,7 @@ const pickedState = (): Sprint4Idea1cState => ({
 const resolvingState = (): Sprint4Idea1cState => ({
   mode: "quick",
   query: workedQuery,
-  manualCategory: null,
+  manualCategory: "Drugs",
   manualAttribute: null,
   filterBoxOpen: false,
   path: null,
