@@ -273,3 +273,11 @@ Two other things settled in the same pass. The excluding filter chip takes the w
 **The Miller columns walk to a resolved query.** Sprint 3 Idea 2's agent travelled the columns to each attribute before ticking anything; 1c keeps only that walk, faster, and applies the filters before it starts so the table never waits on it.
 
 **Checkboxes.** Unticked boxes take `ring` as their edge so they read at rest, and a part-selection fills with brand and shows a bar, so no box shows a tick without its fill. Done in a 1c wrapper rather than the shared Checkbox, so Idea 1b's tested grid is untouched.
+
+## 2026-10-05 — Idea 1c, the tabs come back and the switch is hidden
+
+**Search / Advanced filter are tabs again.** The Advanced filter switch was easy to miss, tucked into the search field on the start page and into the composer's corner on the results page, so it is hidden (`AdvancedToggle` is kept, not rendered) and a pair of tabs carries the mode instead. Two named tabs say there are two ways in, which a switch left the reader to guess. This time the selected tab takes the washed brand — tint, brand edge, foreground text — with a grey hover, rather than the solid fill the first tabs broke the rule with.
+
+**Where they sit.** On the start page they sit between the subheading and the field, as Idea 1b's now do. On the results page they sit at the top right of the chat panel on a row of their own, over "Commonly used filters" in Search and over the "All areas" path and the Search filters field in Advanced, so they hold the same place in both modes and nothing crowds them. The composer stays at the foot of the panel.
+
+**The table's head stays above the loading scrim.** The column header row is lifted over the overlay, so loading covers only the rows and the columns stay readable.

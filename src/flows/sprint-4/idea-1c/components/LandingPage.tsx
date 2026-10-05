@@ -8,8 +8,8 @@ import { motion, usePrefersReducedMotion } from "@/components/prototype/motion"
 import { DictateButton } from "@/flows/sprint-4/idea-1c/components/DictateButton"
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { ReadNotice } from "@/flows/sprint-4/idea-1c/components/ReadNotice"
-import { AdvancedToggle } from "@/flows/sprint-4/idea-1c/components/AdvancedToggle"
 import { SearchPills } from "@/flows/sprint-4/idea-1c/components/SearchPills"
+import { SearchTabs } from "@/flows/sprint-4/idea-1c/components/SearchTabs"
 import { ScanningQuery } from "@/flows/sprint-4/idea-1c/components/ScanningQuery"
 import type { ResolvedFilter } from "@/flows/sprint-4/idea-1c/data"
 import type { Resolution } from "@/flows/sprint-4/idea-1c/resolve"
@@ -130,11 +130,11 @@ export function LandingPage({
 
   const manualMode = mode === "manual"
 
-  // The one search field, in both modes. The Advanced switch lives inside it,
-  // so the field is never swapped out — only what sits under it changes.
+  // The one search field, in both modes, so it is never swapped out: only what
+  // sits under it changes. The tabs above it pick which.
   const field = (
     <form
-      className="bg-surface-panel border-border focus-within:border-ring mx-auto mt-7 flex min-h-16 w-full max-w-4xl items-center gap-3 rounded-xl border px-4 transition-colors"
+      className="bg-surface-panel border-border focus-within:border-ring mx-auto mt-3 flex min-h-16 w-full max-w-4xl items-center gap-3 rounded-xl border px-4 transition-colors"
       onSubmit={(event) => {
         event.preventDefault()
         if (hasQuery && !resolving) onResolve()
@@ -156,7 +156,8 @@ export function LandingPage({
         />
         {pending ? <ScanningQuery resolution={pending} onDone={onScanDone} /> : null}
       </div>
-      <AdvancedToggle mode={mode} onModeChange={onModeChange} disabled={resolving} className="mr-1" />
+      {/* The Advanced switch (AdvancedToggle) sat here. Hidden, not deleted:
+          the tabs above the field carry the mode for now. */}
       <DictateButton onText={onDictate} disabled={resolving} />
       <Button
         type="submit"
@@ -193,8 +194,8 @@ export function LandingPage({
           manualMode ? "max-w-7xl pb-8" : "max-w-5xl items-center justify-center pb-16",
         )}
       >
-        {/* The title and the field move as one, so the switch the reader just
-            pressed travels with the field it sits in. */}
+        {/* The title, the tabs and the field move as one, so the tab the
+            reader just pressed travels with the field under it. */}
         <div data-flip="title" className="w-full shrink-0">
           <div className="text-center">
             <h1 className="text-2xl font-semibold tracking-tight">Drug Database</h1>
@@ -202,6 +203,9 @@ export function LandingPage({
               Describe any key search metrics such as Therapy Area, Classification, Geography,
               Route of Administration etc.
             </p>
+          </div>
+          <div className="mt-6 flex justify-center">
+            <SearchTabs mode={mode} onModeChange={onModeChange} disabled={resolving} />
           </div>
           {field}
           {manualMode && unread ? (

@@ -11,13 +11,13 @@ export const sprint4Idea1c: Flow = {
   name: "Idea 1c — In progress",
   premise:
     "Idea 1b again, for a structural difference being explored against it. The same screens until that difference lands.",
-  lastUpdated: "2026-10-04",
+  lastUpdated: "2026-10-05",
   status: "in-progress",
   screens: [
     {
       slug: "start",
       title: "Start",
-      note: "A natural-language starting point, with the ten commonly used filters under the search.",
+      note: "A natural-language starting point, with Search / Advanced filter tabs directly over the field and the ten commonly used filters under it.",
       viewport: "desktop",
       component: Start,
     },
@@ -31,7 +31,7 @@ export const sprint4Idea1c: Flow = {
     {
       slug: "manual",
       title: "Advanced search",
-      note: "The Advanced filter switch in the search field puts the Miller columns, three at a time, under the field in place of the pills, with the filter box always beneath them.",
+      note: "The Advanced filter tab over the search field puts the Miller columns, three at a time, under the field in place of the pills, with the filter box always beneath them. The earlier Advanced switch is hidden.",
       viewport: "desktop",
       component: Start,
     },
@@ -45,7 +45,7 @@ export const sprint4Idea1c: Flow = {
     {
       slug: "results",
       title: "Results",
-      note: "The worked query searched: the filter box across the top, a status bar over both the chat section and the AG Grid-style table, and a footer whose panel toggle folds the chat section away. The pills head the chat section and the query field sits at its foot, like a chat composer.",
+      note: "The worked query searched: the filter box across the top, a status bar over both the chat section and the AG Grid-style table, and a footer whose panel toggle folds the chat section away. The Search / Advanced filter tabs sit at the chat section's top right, in the same place in both modes, over the pills or the Miller columns; the query field sits at its foot, like a chat composer. While the table loads, its column head stays above the scrim.",
       viewport: "desktop",
       component: Start,
     },
