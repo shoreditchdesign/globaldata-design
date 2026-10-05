@@ -1,11 +1,8 @@
 # Sprint 5 user testing — questions
 
-The same question list runs as two Lyssna tests, so the two prototypes can be compared directly:
+One session on Idea 1c, in the Lyssna test **GlobalData Sprint 5 user testing**: https://globaldata-design.vercel.app/sprint-4/idea-1c/start
 
-- **GlobalData Sprint 5 user testing** — Idea 1c, with this sprint's fixes: https://globaldata-design.vercel.app/sprint-4/idea-1c/start
-- **GlobalData Sprint 5 user testing control** — Idea 1b, last round's Prototype 1: https://globaldata-design.vercel.app/sprint-4/idea-1b
-
-Every task below can be completed in both prototypes. I checked them against both resolvers and both samples, and the drug counts in the notes match in each. The "Why" notes are for our team briefing only and don't go into Lyssna.
+The control on Idea 1b has been dropped. Its Lyssna test still exists but won't be used. The "Why" notes are for our team briefing only and don't go into Lyssna.
 
 ---
 
@@ -13,9 +10,9 @@ Every task below can be completed in both prototypes. I checked them against bot
 
 The full set, with what would confirm or refute each one, is in `sprints/sprint-5/USER-TESTING-HYPOTHESIS.md`.
 
-**Overall.** The fixes in Idea 1c make building a result set easier than in the Idea 1b control. 1c should average a higher ease score across the seven tasks, and a higher NPS.
+**Overall.** The fixes in Idea 1c make building a result set easy: most tasks average 4 or more out of 5, the SUS score reaches at least 68, and the NPS is positive. With no control, we can no longer say whether 1c beats 1b. Comparisons with last round use what testers said, because last round's scores were read backwards.
 
-**One per change.** If a fix works, its task scores higher in 1c than in the control, and the reasons people give stop mentioning the problem.
+**One per change.** If a fix works, its task meets the target and the problem last round reported doesn't come up in the reasons again.
 
 | # | Change or finding | Fix in Idea 1c | Task |
 |---|---|---|---|
@@ -27,8 +24,9 @@ The full set, with what would confirm or refute each one, is in `sprints/sprint-
 | 6 | The system didn't show it was working | The table shows a loading state after every search or change | All (it comes up in the reasons) |
 | 7 | Target vs. Mechanism of action was ambiguous | **No fix yet**, so this is a check | 1, 4 (it comes up in the reasons) |
 | 8 | Add filter was a bare + icon (Neil, on the call) | "+ Add filter", which opens the full field list | 6 |
-| 9 | Whether people expect to filter from the columns (Neil, on the call) | Column filters that write into the filter row, in 1c only | 6 |
+| 9 | Whether people expect to filter from the columns (Neil, on the call) | Column filters that write into the filter row | 6 |
 | 10 | A search that finds nothing (added for coverage, not a round 1 finding) | An empty state that names the filter to step back from | 7 |
+| 11 | Overall usability | — | SUS |
 
 ---
 
@@ -58,7 +56,7 @@ Every task is followed by the same two questions:
 
 **2.** Using the search you just built, swap Europe for the United States.
 
-> **Why:** this is last round's Task 2, word for word, and it tests G2, Refine. It returns 33 drugs. It scored worst last round, because tapping a value added it instead of replacing it, and there was no way to take a value out. If the fixes work, 1c should score clearly better than 1b here.
+> **Why:** this is last round's Task 2, word for word, and it tests G2, Refine. It returns 33 drugs. It scored worst last round, because tapping a value added it instead of replacing it, and there was no way to take a value out. Last round's score can't be compared directly because its scale was flipped, so the target is an average of 4 or more, with no reasons describing a value being added instead of replaced.
 
 **3.** Get results for this set of filters, using plain language
 
@@ -78,25 +76,46 @@ Every task is followed by the same two questions:
 - Drug Geography = United States
 - Mechanism of Action = any receptor-based one.
 
-> **Why:** this replaces last round's Task 4, which named "the advanced search" and "the file explorer" and so gave away where to go. It drops last round's extra "which was easier" box too. It's the discoverability test Neil asked for ("challenge people… to at least do an advanced search using the search builder"). The task can only be done in the builder, Advanced filter in 1c and the Advanced tab in 1b, but it doesn't name either one. Neil's "contrast the ease" is this score set against Task 3's. Picking Mechanism of action by hand is also where Target vs. Mechanism of action will trip people up, if it still does.
+> **Why:** this replaces last round's Task 4, which named "the advanced search" and "the file explorer" and so gave away where to go. It drops last round's extra "which was easier" box too. It's the discoverability test Neil asked for ("challenge people… to at least do an advanced search using the search builder"). The task can only be done in the builder, but it doesn't name Advanced filter. Neil's "contrast the ease" is this score set against Task 3's. Picking Mechanism of action by hand is also where Target vs. Mechanism of action will trip people up, if it still does.
 >
-> Instead of "What's the reason for your answer?", this task's long-text prompt is **"Talk us through how you went about it."** It's neutral and doesn't name anything, but whether someone describes turning on Advanced filter (or opening the Advanced tab in 1b), typing, or getting stuck tells us whether they found the builder on their own. That's how discoverability gets judged.
+> Instead of "What's the reason for your answer?", this task's long-text prompt is **"Talk us through how you went about it."** It's neutral and doesn't name anything, but whether someone describes turning on Advanced filter, typing, or getting stuck tells us whether they found the builder on their own. That's how discoverability gets judged.
 
 **5.** Now take route of administration out of your search, so drugs given any way are included.
 
-> **Why:** this is new. It tests removing something you've added, which last round's testers couldn't do ("no way to remove a value once added"). Starting from Task 4's 12 drugs, it goes to 28 in both 1b and 1c. Choosing more than one value in a field isn't a task of its own now: Task 2's swap already covers last round's tick-versus-replace confusion.
+> **Why:** this is new. It tests removing something you've added, which last round's testers couldn't do ("no way to remove a value once added"). Starting from Task 4's 12 drugs, it goes to 28. Choosing more than one value in a field isn't a task of its own now: Task 2's swap already covers last round's tick-versus-replace confusion.
 
 **6.** You now only want the drugs from one company in your list. Choose any company you can see, and narrow the list down to it.
 
-> **Why:** this is new, and it's Neil's narrow-it-further task. On the call it was "narrow down the 123 drugs further, how would you do this?", with "company is a great one" because company is in the results but not in the search. There are 16 companies in the 28 results, each with between 1 and 4 drugs, and every one is in the Manufacturer field, so this works in both prototypes, by typing, from Add filter or from the builder. In 1c it can also be done from a column. The task doesn't say how, so the reasons show where people reach first, and whether 1c's column filters earn their place.
+> **Why:** this is new, and it's Neil's narrow-it-further task. On the call it was "narrow down the 123 drugs further, how would you do this?", with "company is a great one" because company is in the results but not in the search. There are 16 companies in the 28 results, each with between 1 and 4 drugs, and every one is in the Manufacturer field, so it can be done by typing, from Add filter, from the builder or from a column. The task doesn't say how, so the reasons show where people reach first, and whether the column filters earn their place.
 
 **7.** Start a new search for Phase I gene therapies for dermatology in Brazil. If it finds nothing, change the search until it does.
 
-> **Why:** this is new. It tests a search that comes back empty, and recovering from it. The full query matches nothing in either sample. Dropping "gene therapies" gives 8 drugs, and dropping "dermatology" gives 1. 1c's empty state names the filter to step back from, while 1b only says "No drug matches these filters", so this compares the two.
+> **Why:** this is new. It tests a search that comes back empty, and recovering from it. The full query matches nothing in either sample. Dropping "gene therapies" gives 8 drugs, and dropping "dermatology" gives 1. 1c's empty state names the filter to step back from, so the reasons show whether that's enough to get people moving again.
 
 **Not given a task of their own:**
 - **Knowing a search has run.** Every task above runs a search, so if the loading state isn't working, it will come up in the reasons.
 - **Brackets in the Boolean logic.** Neil expects testers to ask about them, but the call agreed not to put design time into them.
+
+---
+
+## System Usability Scale (SUS)
+
+Each statement is rated 1–5, where 1 = Strongly disagree and 5 = Strongly agree. These are Brooke's ten standard statements (1996), with "system" changed to "search":
+
+1. I think that I would like to use this search frequently.
+2. I found this search unnecessarily complex.
+3. I thought this search was easy to use.
+4. I think that I would need the support of a technical person to be able to use this search.
+5. I found the various functions in this search were well integrated.
+6. I thought there was too much inconsistency in this search.
+7. I would imagine that most people would learn to use this search very quickly.
+8. I found this search very cumbersome to use.
+9. I felt very confident using this search.
+10. I needed to learn a lot of things before I could get going with this search.
+
+**Scoring:** standard SUS scoring. Odd-numbered statements score their rating minus 1, and even-numbered statements score 5 minus their rating. Add the ten scores and multiply by 2.5 to get 0–100. 68 is the commonly cited average.
+
+> **Why:** SUS is a standard benchmark with a published average, so it gives a score that means something without a control group. It can also be compared across future rounds of this one. It comes after the tasks, so it rates the whole experience, and before NPS, so the recommendation question stays last as it was in round 1.
 
 ---
 
@@ -109,7 +128,7 @@ Every task is followed by the same two questions:
 
 **Notes for setting it up in Lyssna**
 
-- Both tests are duplicates of last round's "Globaldata: Advanced Search 2" and keep its Live website test format: one task per screen, with its two questions straight after it. The NPS sits in its own final task screen, the same as last round.
-- The control was duplicated from the finished 1c test, so the questions are identical. Only the prototype link differs.
+- The test is a duplicate of last round's "Globaldata: Advanced Search 2" and keeps its Live website test format: one task per screen, with its two questions straight after it. SUS goes just before the NPS, which sits in its own final screen as it did last round.
+- The control test ("GlobalData Sprint 5 user testing control", on Idea 1b) stays in Lyssna but won't be run.
 - Don't mention the `$$` shortcut anywhere.
-- The 1–5 scores can't be compared number for number with last round's flipped 1–10 scale. Last round is compared through the tasks and the reasons. This round's 1c-versus-1b scores are the real comparison, and the baseline from here on.
+- The 1–5 scores can't be compared number for number with last round's flipped 1–10 scale. Last round is compared through the tasks and the reasons. With no control, this round's scores are absolute: ease against a 4-out-of-5 target, SUS against 68 and NPS against zero. They become the baseline from here on.
