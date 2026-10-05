@@ -70,14 +70,37 @@ export function SearchPanel({
   const resolving = Boolean(pending)
   const fieldRef = React.useRef<HTMLTextAreaElement>(null)
 
-  // The field hugs its text, growing a line at a time as the query wraps.
-  // Measured rather than left to `field-sizing`, which Safari does not support.
+  // The field hugs its text, growing a line at a time as the query wraps, up
+  // to its max height and then scrolling. Measured rather than left to
+  // `field-sizing`, which Safari does not support — and measured again
+  // whenever its width changes (first layout, a mode switch, the panel
+  // opening), since the same text wraps to a different height at a
+  // different width.
   React.useLayoutEffect(() => {
     const field = fieldRef.current
     if (!field) return
     field.style.height = "auto"
     field.style.height = `${field.scrollHeight}px`
   }, [query])
+  React.useEffect(() => {
+    const field = fieldRef.current
+    if (!field) return
+    let width = field.clientWidth
+    const fit = () => {
+      field.style.height = "auto"
+      field.style.height = `${field.scrollHeight}px`
+    }
+    fit()
+    const observer = new ResizeObserver(() => {
+      // Only a change of width re-wraps the text; the height is ours.
+      if (field.clientWidth === width) return
+      width = field.clientWidth
+      fit()
+    })
+    observer.observe(field)
+    return () => observer.disconnect()
+    // The field only exists in Quick search, so it is found again on a switch.
+  }, [mode])
   const submit = () => {
     if (hasQuery && !resolving) onResolve()
   }
