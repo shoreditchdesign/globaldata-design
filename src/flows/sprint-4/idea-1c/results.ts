@@ -903,8 +903,10 @@ export function trailFor(area: ProductArea, attribute: string, values: string[])
 
 export interface Results {
   rows: DrugRow[]
-  /** The drugs the filters match — the rows counted, not an estimate of them. */
+  /** Every row the filters match — the rows counted, not an estimate of them. */
   count: number
+  /** The distinct drugs among those rows, by name. */
+  drugCount: number
 }
 
 const cache = new Map<string, Results>()
@@ -922,6 +924,7 @@ export function resultsFor(filters: ResolvedFilter[]): Results {
   const results: Results = {
     rows: matched.slice(0, RESULT_ROW_LIMIT),
     count: matched.length,
+    drugCount: new Set(matched.map((row) => row.name)).size,
   }
   if (cache.size > 200) cache.clear()
   cache.set(key, results)

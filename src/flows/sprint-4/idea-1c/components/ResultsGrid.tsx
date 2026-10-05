@@ -495,6 +495,7 @@ function Cell({ column, row }: { column: ColumnDef; row: DrugRow }) {
 export function ResultsGrid({
   rows,
   resultCount,
+  drugCount,
   state,
   filters,
   onAction,
@@ -509,8 +510,10 @@ export function ResultsGrid({
 }: {
   /** Rows the filters keep, before sorting — at most the first 100. */
   rows: DrugRow[]
-  /** Every drug the filters match, of which `rows` are the first. */
+  /** Every row the filters match, of which `rows` are the first. */
   resultCount: number
+  /** The distinct drugs among those rows: the header counts drugs, the footer rows. */
+  drugCount: number
   state: GridState
   /** Read by the column headers: which lanes are filtered, and by how much. */
   filters: ResolvedFilter[]
@@ -567,8 +570,8 @@ export function ResultsGrid({
                 Drug name column's text edge whether the panel is open or not. */}
             <span className="-mr-3 shrink-0" style={{ width: laneWidth(state, "select") }} />
             <p className="pl-3 text-[13px] tabular-nums" aria-live="polite">
-              <span className="font-medium">{resultCount.toLocaleString("en-GB")}</span>{" "}
-              <span className="text-muted-foreground">{resultCount === 1 ? "drug" : "drugs"}</span>
+              <span className="font-medium">{drugCount.toLocaleString("en-GB")}</span>{" "}
+              <span className="text-muted-foreground">{drugCount === 1 ? "drug" : "drugs"}</span>
             </p>
             {selected.length > 0 ? (
               <>
@@ -759,8 +762,9 @@ export function ResultsGrid({
           {asideOpen ? "Hide filters" : "Show filters"}
         </Button>
         <span>
+          {/* Every row the filters keep, not just the ones drawn. */}
           <span className="text-muted-foreground">Rows </span>
-          <span className="font-medium">{rows.length}</span>
+          <span className="font-medium">{resultCount.toLocaleString("en-GB")}</span>
         </span>
         <span>
           <span className="text-muted-foreground">Selected </span>
