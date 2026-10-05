@@ -14,7 +14,7 @@ import {
   FilterXIcon,
   SearchXIcon,
   MoveHorizontalIcon,
-  PanelLeftIcon,
+  PanelLeftOpenIcon,
   PinIcon,
   PinOffIcon,
   type LucideIcon,
@@ -495,7 +495,7 @@ export function ResultsGrid({
   aside,
   asideOpen,
   asideWidth,
-  onToggleAside,
+  onOpenAside,
 }: {
   /** Rows the filters keep, before sorting — at most the first 100. */
   rows: DrugRow[]
@@ -517,7 +517,8 @@ export function ResultsGrid({
   asideOpen: boolean
   /** Its width when open, as CSS — it changes with the mode the section is in. */
   asideWidth: string
-  onToggleAside: () => void
+  /** Opens the panel again once it has been closed from its own head. */
+  onOpenAside: () => void
 }) {
   const asideId = React.useId()
   const keys = visibleColumnKeys(state)
@@ -536,6 +537,19 @@ export function ResultsGrid({
   return (
     <div className="bg-surface-panel flex min-h-0 flex-1 flex-col overflow-hidden">
       <div className="bg-surface-panel border-edge flex h-11 shrink-0 items-center gap-3 border-b px-3">
+        {asideOpen ? null : (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Open the search panel"
+            aria-expanded={false}
+            aria-controls={asideId}
+            onClick={onOpenAside}
+            className="text-muted-foreground"
+          >
+            <PanelLeftOpenIcon />
+          </Button>
+        )}
         <p className="text-[13px] tabular-nums" aria-live="polite">
           <span className="font-medium">{resultCount.toLocaleString("en-GB")}</span>{" "}
           <span className="text-muted-foreground">{resultCount === 1 ? "drug" : "drugs"}</span>
@@ -735,17 +749,7 @@ export function ResultsGrid({
       </div>
 
       <div className="bg-surface-chrome border-edge flex h-9 shrink-0 items-center gap-4 border-t pr-3 pl-1.5 text-xs tabular-nums">
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          aria-label="Search panel"
-          aria-expanded={asideOpen}
-          aria-controls={asideId}
-          onClick={onToggleAside}
-          className="text-muted-foreground mr-auto"
-        >
-          <PanelLeftIcon />
-        </Button>
+        <span className="mr-auto" aria-hidden />
         <span>
           <span className="text-muted-foreground">Rows </span>
           <span className="font-medium">{rows.length}</span>

@@ -45,6 +45,11 @@ export interface Sprint4Idea1cState {
   unread: Resolution | null
   /** Set once a search runs; the results then follow the filters as they change. */
   showResults: boolean
+  /**
+   * Whether the results page's search panel is open. Held here rather than in
+   * the results page, so Add filter and a column's Edit filters can open it.
+   */
+  panelOpen: boolean
 }
 
 const startState = (): Sprint4Idea1cState => ({
@@ -59,6 +64,7 @@ const startState = (): Sprint4Idea1cState => ({
   pending: null,
   unread: null,
   showResults: false,
+  panelOpen: true,
 })
 
 const filteredState = (): Sprint4Idea1cState => ({
@@ -75,6 +81,7 @@ const filteredState = (): Sprint4Idea1cState => ({
   pending: null,
   unread: null,
   showResults: false,
+  panelOpen: true,
 })
 
 /** A pill pressed: its clause is in the box, waiting for a value. */
@@ -115,6 +122,7 @@ const resolvingState = (): Sprint4Idea1cState => ({
   pending: resolveQuery(workedQuery),
   unread: null,
   showResults: false,
+  panelOpen: true,
 })
 
 const resultsState = (): Sprint4Idea1cState => ({

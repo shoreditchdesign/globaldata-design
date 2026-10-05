@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ArrowRightIcon } from "lucide-react"
+import { ArrowRightIcon, PanelLeftCloseIcon } from "lucide-react"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { Button } from "@/components/ui/button"
@@ -43,6 +43,7 @@ export function SearchPanel({
   onOpenCategory,
   onOpenAttribute,
   onValuePickAt,
+  onClosePanel,
 }: {
   mode: SearchMode
   query: string
@@ -62,6 +63,8 @@ export function SearchPanel({
   onOpenCategory: (category: ProductArea) => void
   onOpenAttribute: (attribute: string) => void
   onValuePickAt: (area: ProductArea, attribute: string, value: string) => void
+  /** Folds the panel away so the table takes the full width. */
+  onClosePanel: () => void
 }) {
   const hasQuery = query.trim().length > 0
   const resolving = Boolean(pending)
@@ -135,8 +138,21 @@ export function SearchPanel({
       aria-label="Search"
       className="bg-surface-chrome border-edge flex h-full w-full flex-col border-r pt-2"
     >
-      <div className="flex shrink-0 justify-end px-3 pt-1">
+      <div className="flex shrink-0 items-center justify-end gap-2 px-3 pt-1">
         <SearchTabs mode={mode} onModeChange={onModeChange} />
+        {/* Closing sits at the panel's own head, where it is seen, rather than
+            in the table's footer, where nobody found it. */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Close the search panel"
+          aria-expanded
+          onClick={onClosePanel}
+          className="text-muted-foreground"
+        >
+          <PanelLeftCloseIcon />
+        </Button>
       </div>
       {mode === "quick" ? (
         <div className="flex min-h-0 flex-1 flex-col">
