@@ -80,6 +80,7 @@ export function ResultsPage({
       <ResultsGrid
         rows={results.rows}
         resultCount={results.count}
+        drugCount={results.drugCount}
         state={grid}
         filters={filters}
         onAction={onAction}
