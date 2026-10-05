@@ -2,11 +2,8 @@
 
 import * as React from "react"
 import {
-  ArrowDownIcon,
   ArrowDownAZIcon,
-  ArrowUpDownIcon,
   ChevronDownIcon,
-  ArrowUpIcon,
   ArrowUpAZIcon,
   Columns3Icon,
   DownloadIcon,
@@ -15,6 +12,7 @@ import {
   FilterIcon,
   FilterXIcon,
   SearchXIcon,
+  TriangleIcon,
   MoveHorizontalIcon,
   PanelLeftIcon,
   PinIcon,
@@ -133,6 +131,30 @@ function MenuAction({
   )
 }
 
+/** The sort mark: an up triangle over a down one, outline only. */
+function SortMark({ sorted }: { sorted: "asc" | "desc" | null }) {
+  const triangle = "size-[7px] shrink-0 transition-opacity"
+  return (
+    <span
+      className="flex shrink-0 flex-col items-center gap-px"
+      role={sorted ? "img" : undefined}
+      aria-label={
+        sorted === "asc" ? "Sorted ascending" : sorted === "desc" ? "Sorted descending" : undefined
+      }
+      aria-hidden={sorted ? undefined : true}
+    >
+      <TriangleIcon
+        strokeWidth={2.5}
+        className={cn(triangle, sorted === "desc" && "opacity-35")}
+      />
+      <TriangleIcon
+        strokeWidth={2.5}
+        className={cn(triangle, "rotate-180", sorted === "asc" && "opacity-35")}
+      />
+    </span>
+  )
+}
+
 function HeaderCell({
   column,
   state,
@@ -205,17 +227,11 @@ function HeaderCell({
         )}
       >
         <span className="truncate">{column.label}</span>
-        {/* Every sortable head shows that it sorts, at rest: a two-way arrow
-            in the header's own grey, which becomes the direction in full ink
-            once the column is sorted. A click cycles ascending, descending,
-            then back to unsorted. */}
-        {sorted === "asc" ? (
-          <ArrowUpIcon className="size-3 shrink-0" aria-label="Sorted ascending" />
-        ) : sorted === "desc" ? (
-          <ArrowDownIcon className="size-3 shrink-0" aria-label="Sorted descending" />
-        ) : (
-          <ArrowUpDownIcon className="size-3 shrink-0" aria-hidden />
-        )}
+        {/* Every sortable head shows that it sorts, at rest: two outline
+            triangles in the header's own grey. Once sorted, the direction's
+            triangle takes full ink and the other dims. A click cycles
+            ascending, descending, then back to unsorted. */}
+        <SortMark sorted={sorted} />
         {pinned && !locked ? <PinIcon className="size-3 shrink-0" aria-label="Pinned" /> : null}
         {applied > 0 ? (
           // How many values this lane is filtered by. A tint, not the accent
