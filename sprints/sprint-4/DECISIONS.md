@@ -281,3 +281,25 @@ Two other things settled in the same pass. The excluding filter chip takes the w
 **Where they sit.** On the start page they sit between the subheading and the field, as Idea 1b's now do. On the results page they sit at the top right of the chat panel on a row of their own, over "Commonly used filters" in Search and over the "All areas" path and the Search filters field in Advanced, so they hold the same place in both modes and nothing crowds them. The composer stays at the foot of the panel.
 
 **The table's head stays above the loading scrim.** The column header row is lifted over the overlay, so loading covers only the rows and the columns stay readable.
+
+## 2026-10-05 — Idea 1c, after the client review: one tray, no Excludes, the field back on top
+
+**Quick search has its field at the top again; Advanced has none on the results page.** On the call the composer at the panel's foot read as an assistant you could talk to, so the results page goes back to the layout before `6aab10b`, which is also Idea 1b's: the tabs, then the query field, then the commonly used filters. Advanced search on the results page shows the Miller columns only. This reads "last week's version" as the pre-`6aab10b` layout and needs confirming on Tuesday; the composer is still one block in `SearchPanel`, so moving it back is a one-line change. The walk after a resolve now only runs from the landing page, since that is the one place a query can be typed with the columns on screen.
+
+**The tabs sit on the left of the panel's head, with a close button on the right.** The panel closes from there and reopens from a button at the table's left edge, in place of the footer toggle nobody found. Whether the panel is open is now held in the prototype state rather than in the results page, so Add filter and a column's Edit filters can open it. The 2026-10-04 note that called it a view preference held in `ResultsPage` no longer holds.
+
+**There is one place to build a filter by hand, and everything opens it.**
+- Add filter opens the panel on Advanced search at Drugs, instantly. On the landing card it switches to the Advanced tab. The cascade popover is kept (`AddFilterCascade`) but not rendered.
+- A column menu's Edit filters, or Add filter on a column with no filter yet, opens the panel on Advanced at Drugs › that column's attribute, with its values ticked. If the first value sits a level down the tree (a country), its parent opens too. It opens the panel if it was closed, and flips the mode to Advanced if Quick was on.
+- Turning Advanced on by hand does the same for the filter applied most recently, or opens Drugs alone when nothing is applied.
+- The value dropdown on a filter chip stays a quick list. It now carries each value's count, the same number the Miller columns print. How deep the top bar's dropdown should go is still open (OPEN-6).
+
+**Drugs leads the area list and is open by default**, so Advanced starts with two filled columns. Emma's note asked for three; the call said no empty states, and picking a default attribute to fill the third is still open (OPEN-2).
+
+**The columns drill the full tree.** The open path is a trail of any depth now. A therapy area opens the indications the sample files under it, and a region opens its countries. A value with something under it carries the chevron; its box still ticks it, and ticking a parent still means the parent value itself (OPEN-4). Three columns stay on screen and slide, with the breadcrumb showing the whole path (OPEN-3). Every therapy area now has at least three indications. Deeper levels wait on the client's own tree.
+
+**Excludes are gone.** The client judged the compute not worth it for the value. A chip reads IS as plain text, the Miller columns lose their excluding column, and a filter has no excluded flag. The worked query asks for the same family in positive terms, Phase II or III in Europe, which takes it from 48 drugs to 31. Typing a negation ("but not in Austria") no longer builds a red clause: the field says the phrase was not found and that excluding is not supported. None of the Sprint 5 test tasks used an exclusion, and their counts are unchanged.
+
+**The global nav shows Companies and Drugs only.** Emma's note asked for the whole bar to go, but on the call Neil asked to keep those two, and the call wins. `ProductChrome` takes an optional list of areas; every other idea keeps all eight.
+
+**The table has its own toolbar.** The count sits over the Drug name column rather than spanning the panel, every column head shows a sort arrow at rest, Columns reads "11 of 18 columns", and a Group by and a View control stand in, clearly marked as placeholders, for the client's existing toolbar treatment.
