@@ -198,7 +198,8 @@ export function ResolvedFilters({
       <div
         className={cn(
           "relative w-full p-4",
-          band ? "bg-surface-chrome" : "bg-surface-panel border-border rounded-xl border",
+          // The landing card takes the columns card's darker edge.
+        band ? "bg-surface-chrome" : "bg-surface-panel border-ring rounded-xl border",
         )}
       >
         {onClose ? (

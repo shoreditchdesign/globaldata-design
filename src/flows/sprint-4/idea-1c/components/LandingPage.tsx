@@ -134,7 +134,7 @@ export function LandingPage({
   // sits under it changes. The tabs above it pick which.
   const field = (
     <form
-      className="bg-surface-panel border-border focus-within:border-ring mx-auto mt-3 flex min-h-16 w-full max-w-4xl items-center gap-3 rounded-xl border px-4 transition-colors"
+      className="bg-surface-panel border-ring mx-auto mt-3 flex min-h-16 w-full max-w-4xl items-center gap-3 rounded-xl border px-4 transition-colors"
       onSubmit={(event) => {
         event.preventDefault()
         if (hasQuery && !resolving) onResolve()
