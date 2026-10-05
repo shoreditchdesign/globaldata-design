@@ -408,11 +408,8 @@ export function PrototypeShell() {
         onResolve={submitQuery}
         filters={state.filters}
         hasResolvedFilters={Boolean(state.submittedQuery || state.path)}
-        filterBox={
-          state.mode === "manual" || state.submittedQuery || state.filterBoxOpen
-            ? filterBox
-            : null
-        }
+        // No empty box on the start page: it appears with the first filter.
+        filterBox={state.filters.length > 0 ? filterBox : null}
         manual={
           <ManualSearch
             filters={state.filters}

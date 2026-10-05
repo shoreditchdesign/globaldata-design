@@ -221,10 +221,13 @@ export function LandingPage({
             >
               {manual}
             </div>
-            {/* Held at Quick's width as the columns widen, so it only glides. */}
-            <div data-flip="summary" className="mx-auto mt-2 w-full max-w-4xl shrink-0">
-              {filterBox}
-            </div>
+            {/* As wide as the columns card above it, edge to edge, and only
+                once there is a filter to show. */}
+            {filterBox ? (
+              <div data-flip="summary" className="mt-2 w-full shrink-0">
+                {filterBox}
+              </div>
+            ) : null}
           </>
         ) : (
           /*
