@@ -10,7 +10,7 @@ export const sprint4Idea1c: Flow = {
   id: "idea-1c",
   name: "Idea 1c — In progress",
   premise:
-    "Idea 1b again, for a structural difference being explored against it. The same screens until that difference lands.",
+    "Idea 1b, reworked after the 5 October client review into the version Sprint 5 tests: one place to build a filter by hand (Add filter and a column's Edit filters both open the Miller tray), Drugs first and open by default, a value tree the columns can drill, no Excludes, and the query field back at the head of Quick search.",
   lastUpdated: "2026-10-05",
   status: "in-progress",
   screens: [
@@ -31,7 +31,7 @@ export const sprint4Idea1c: Flow = {
     {
       slug: "manual",
       title: "Advanced search",
-      note: "The Advanced filter tab over the search field puts the Miller columns, three at a time, under the field in place of the pills, with the filter box always beneath them. The earlier Advanced switch is hidden.",
+      note: "The Advanced search tab puts the Miller columns under the field in place of the pills, with the filter box always beneath them. Drugs leads the area list and is open by default, so two columns are filled. Values with values under them (therapy area › indication, region › country) carry a chevron and drill; three columns show at a time and slide.",
       viewport: "desktop",
       component: Start,
     },
@@ -45,7 +45,14 @@ export const sprint4Idea1c: Flow = {
     {
       slug: "results",
       title: "Results",
-      note: "The worked query searched: the filter box across the top, a status bar over both the chat section and the AG Grid-style table, and a footer whose panel toggle folds the chat section away. The Quick search / Advanced search tabs sit at the chat section's top right, in the same place in both modes, over the pills or the Miller columns; the query field sits at its foot, like a chat composer. While the table loads, its column head stays above the scrim.",
+      note: "The worked query searched: the filter box across the full width, then the search panel beside the AG Grid-style table. The panel's head holds the Quick search / Advanced search tabs on the left and a close button on the right; Quick puts the query field under them with the commonly used filters beneath, and Advanced shows the Miller columns only, opening at the last-applied filter. The table's own toolbar puts the count over the Drug name column, with Group by and View placeholders, \"11 of 18 columns\" and Export, and a reopen button at its left edge when the panel is closed. Every column head shows a sort arrow at rest. While the table loads, its column head stays above the scrim.",
+      viewport: "desktop",
+      component: Start,
+    },
+    {
+      slug: "edit-filter",
+      title: "Edit filter opens the tray",
+      note: "A column menu's Edit filters, or Add filter, opens the search panel on Advanced search at that column's attribute, its values ticked. Here the Development Stage column, with Phase II and Phase III ticked. The panel opens if it was closed and flips from Quick if Quick was on.",
       viewport: "desktop",
       component: Start,
     },
@@ -59,7 +66,7 @@ export const sprint4Idea1c: Flow = {
     {
       slug: "filters",
       title: "Resolved filters",
-      note: "The walkthrough query resolved into editable Float-style filters and 356 drugs.",
+      note: "The walkthrough query resolved into editable Float-style filters and 31 drugs. Each chip's value list carries the same counts as the Miller columns.",
       viewport: "desktop",
       component: Start,
     },

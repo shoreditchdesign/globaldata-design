@@ -130,6 +130,18 @@ const resultsState = (): Sprint4Idea1cState => ({
   showResults: true,
 })
 
+/**
+ * A column's Edit filters pressed on the results page: the panel open on
+ * Advanced search at Drugs › Development Stage, the worked query's stages
+ * ticked. The address bar then reads `results`, which is the page it is.
+ */
+const editFilterState = (): Sprint4Idea1cState => ({
+  ...resultsState(),
+  mode: "manual",
+  panelOpen: true,
+  manualTrail: ["Drugs", "Development Stage"],
+})
+
 /** Seed the living screen from its URL. Unknown states return to the start. */
 export function initialState(slug: string): Sprint4Idea1cState {
   switch (slug) {
@@ -141,6 +153,8 @@ export function initialState(slug: string): Sprint4Idea1cState {
       return pickedState()
     case "results":
       return resultsState()
+    case "edit-filter":
+      return editFilterState()
     case "resolving":
       return resolvingState()
     case "filters":
