@@ -10,7 +10,6 @@ import { MillerColumn, type ColumnModel } from "@/flows/sprint-4/idea-1c/compone
 import {
   pathOf,
   searchAttributeLabels,
-  searchAttributeValues,
   searchCategories,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1c/data"
@@ -96,7 +95,9 @@ export function ManualSearch({
       wide: true,
       items: attributes.map((attribute) => ({
         label: attribute,
-        count: searchAttributeValues(activeCategory, attribute).length,
+        // How many options it holds at its top level: a tree attribute counts
+        // its parents (five regions), not every value down the tree.
+        count: rootValuesOf(activeCategory, attribute).length,
         drillable: true,
       })),
       open: activeAttribute ?? undefined,
@@ -109,15 +110,26 @@ export function ManualSearch({
     // under it, as deep as the tree goes. A value with children carries the
     // chevron: its box ticks it, the rest of the row opens what is under it.
     const valueColumn = (key: string, level: string, values: string[], depth: number) => {
-      const items = values.map((value) => ({
-        label: value,
-        count: valueCountOf(activeCategory, activeAttribute, value),
-        drillable: childValuesOf(activeCategory, activeAttribute, value).length > 0,
-      }))
+      // A row with options under it counts them; only a leaf counts the
+      // results it would keep. A parent's result count runs to the hundreds
+      // and costs a query to work out; how many options it holds does not.
+      const items = values.map((value) => {
+        const children = childValuesOf(activeCategory, activeAttribute, value)
+        return {
+          label: value,
+          count:
+            children.length > 0
+              ? children.length
+              : valueCountOf(activeCategory, activeAttribute, value),
+          drillable: children.length > 0,
+        }
+      })
+      const parents = items.filter((item) => item.drillable).length
       columns.push({
         key,
         level,
-        unit: activeCategory === "Drugs" ? "Drugs" : "Records",
+        unit:
+          parents === 0 ? "Results" : parents === items.length ? "Values" : "Values / results",
         items,
         selectable: true,
         // A ticked parent selects everything under it, so its children read
