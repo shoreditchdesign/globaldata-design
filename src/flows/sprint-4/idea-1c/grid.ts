@@ -13,7 +13,8 @@ export interface ColumnDef {
   label: string
   /**
    * The narrowest this lane may get: wide enough for its 10px uppercase header,
-   * a sort arrow and the menu button on one line. Past the sum of these the
+   * the sort arrow (shown at rest), a filter count and the menu button on one
+   * line, measured from the real labels. Past the sum of these the
    * grid scrolls sideways rather than wrapping.
    */
   minPx: number
@@ -64,7 +65,7 @@ export const columnDefs: ColumnDef[] = [
     values: () => [],
     sortValue: () => "",
   },
-  text("name", "Drug Name", 150, (row) => row.name, { kind: "primary", grow: 0.6 }),
+  text("name", "Drug Name", 160, (row) => row.name, { kind: "primary", grow: 0.6 }),
   text("generic", "Generic Name", 190, (row) => row.generic),
   text("company", "Company", 200, (row) => row.company),
   text("therapyArea", "Therapy Area", 210, (row) => row.therapyArea),
@@ -72,7 +73,7 @@ export const columnDefs: ColumnDef[] = [
   {
     key: "stage",
     label: "Development Stage",
-    minPx: 200,
+    minPx: 210,
     grow: 0,
     kind: "badge",
     values: (row) => [row.stage],
@@ -88,18 +89,18 @@ export const columnDefs: ColumnDef[] = [
     sortValue: (row) => row.geographies[0] ?? "",
     muted: true,
   },
-  text("route", "Route of Administration", 230, (row) => row.route, { grow: 0, muted: true }),
+  text("route", "Route of Administration", 245, (row) => row.route, { grow: 0, muted: true }),
   text("molecule", "Molecule Type", 180, (row) => row.molecule, { muted: true }),
   text("target", "Target", 240, (row) => row.target),
-  text("drugType", "Drug Type", 140, (row) => row.drugType, { grow: 0 }),
+  text("drugType", "Drug Type", 155, (row) => row.drugType, { grow: 0 }),
   /* --- available, not in the grid by default --------------------------- */
   text("mechanism", "Mechanism of Action", 230, (row) => row.mechanism, { muted: true }),
   text("descriptor", "Drug Descriptor", 210, (row) => row.descriptor),
   text("atc", "ATC Classification", 300, (row) => row.atc, { muted: true }),
-  text("mono", "Mono/Combination Drug", 220, (row) => row.mono, { grow: 0 }),
+  text("mono", "Mono/Combination Drug", 245, (row) => row.mono, { grow: 0 }),
   text("vector", "Gene Therapy Vector", 230, (row) => row.vector, { muted: true }),
   text("application", "Application Type", 250, (row) => row.application, { muted: true }),
-  text("cas", "CAS Number", 150, (row) => row.cas, { grow: 0, muted: true }),
+  text("cas", "CAS Number", 165, (row) => row.cas, { grow: 0, muted: true }),
 ]
 
 /**
