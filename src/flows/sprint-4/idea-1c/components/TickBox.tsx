@@ -1,6 +1,6 @@
 "use client"
 
-import { CheckIcon } from "lucide-react"
+import { CheckIcon, MinusIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -20,8 +20,14 @@ export function TickBox({
   label,
   onClick,
   disabled = false,
+  negated = false,
 }: {
   checked: boolean
+  /**
+   * The value sits in an IS NOT clause: ticked, the box takes the negation
+   * tone with a minus, so a dropped value never looks like a kept one.
+   */
+  negated?: boolean
   /** What ticking this box would do. Required where the box is clickable. */
   label?: string
   onClick?: () => void
@@ -31,10 +37,20 @@ export function TickBox({
     "flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors",
     // Unticked takes `ring`, the grid's resting edge, so the box is
     // visible before it is ticked rather than only after.
-    checked ? "bg-selected border-selected text-selected-foreground" : "border-ring",
+    checked
+      ? negated
+        ? "bg-negative-ink border-negative-ink text-primary-foreground"
+        : "bg-selected border-selected text-selected-foreground"
+      : "border-ring",
     disabled && "opacity-50",
   )
-  const mark = checked ? <CheckIcon className="size-3" /> : null
+  const mark = checked ? (
+    negated ? (
+      <MinusIcon className="size-3" />
+    ) : (
+      <CheckIcon className="size-3" />
+    )
+  ) : null
 
   if (!onClick) {
     return (
@@ -59,7 +75,9 @@ export function TickBox({
         className,
         !disabled &&
           (checked
-            ? "hover:bg-selected-hover hover:border-selected-hover"
+            ? negated
+              ? "hover:opacity-90"
+              : "hover:bg-selected-hover hover:border-selected-hover"
             : "hover:border-muted-foreground"),
       )}
     >
