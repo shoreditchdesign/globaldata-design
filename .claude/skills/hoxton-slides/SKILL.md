@@ -108,5 +108,7 @@ which is changed in its own repository, not from here.
 - Declarative prose, no filler, no em dashes in body copy. Heading-separator dashes are fine.
 - These are client decks and read formally: complete sentences, no slang or studio shorthand,
   and GlobalData's own terms for its product and data.
+- No footnote or caption line on a slide by default. Use `.footnote` only when one slide needs a
+  qualifier to be read correctly.
 - Never copy `deck.css`, `deck.js` or a logo into a deck folder.
 - Don't convert to PPTX, PDF or a framework app unless asked.

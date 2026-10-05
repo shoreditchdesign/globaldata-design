@@ -74,3 +74,7 @@ When one arrives, replace the SVG string in `logo.js`, with every `fill` and `st
 These are client decks, and they read formally: complete sentences, no slang, no studio shorthand,
 and the client's own terms for their product and data. Hoxton's content register (§9 of its notes)
 applies on top: declarative prose, every claim traced to a source, no em dashes in body copy.
+
+No footnote or caption line on a slide by default. A caption on every slide adds noise and
+carries little. Use `.footnote` only when one specific slide needs a qualifier to be read
+correctly.
