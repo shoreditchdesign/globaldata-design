@@ -3,12 +3,12 @@ import { ArrowRightIcon } from "lucide-react"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { Button } from "@/components/ui/button"
-import { AdvancedToggle } from "@/flows/sprint-4/idea-1c/components/AdvancedToggle"
 import { DictateButton } from "@/flows/sprint-4/idea-1c/components/DictateButton"
 import { ManualSearch } from "@/flows/sprint-4/idea-1c/components/ManualSearch"
 import { ReadNotice } from "@/flows/sprint-4/idea-1c/components/ReadNotice"
 import { ScanningQuery } from "@/flows/sprint-4/idea-1c/components/ScanningQuery"
 import { commonFiltersId, SearchPills } from "@/flows/sprint-4/idea-1c/components/SearchPills"
+import { SearchTabs } from "@/flows/sprint-4/idea-1c/components/SearchTabs"
 import type { ResolvedFilter } from "@/flows/sprint-4/idea-1c/data"
 import type { Resolution } from "@/flows/sprint-4/idea-1c/resolve"
 import type { SearchMode } from "@/flows/sprint-4/idea-1c/state"
@@ -17,11 +17,10 @@ import { cn } from "@/lib/utils"
 /**
  * The results page's chat section: the commonly used filters at its head, and
  * the query field at its foot, where a chat composer sits. Between them,
- * Advanced search's Miller columns when the switch is on. The switch sits in
- * the composer's bottom-left corner, as it sits in the start screen's field,
- * because that is where the eye already is when a search is being written;
- * testers missed it at the panel's head. All of it feeds the filter box
- * beside it.
+ * Advanced search's Miller columns in its place when that tab is on. The
+ * Search / Advanced filter tabs sit at the panel's top right, on a row of
+ * their own over the header in both modes, so they never move when flipped
+ * and nothing crowds them. All of it feeds the filter box beside it.
  *
  * It fills whatever width the results page gives it, which is the same in
  * both modes, and collapsing it is the results page's business too, from the
@@ -113,13 +112,9 @@ export function SearchPanel({
           />
           {pending ? <ScanningQuery resolution={pending} onDone={onScanDone} multiline /> : null}
         </div>
-        <div className="mt-5 flex items-center gap-1">
-          <AdvancedToggle
-            mode={mode}
-            onModeChange={onModeChange}
-            disabled={resolving}
-            className="mr-auto"
-          />
+        <div className="mt-5 flex items-center justify-end gap-1">
+          {/* The Advanced switch (AdvancedToggle) sat here. Hidden, not
+              deleted: the tabs at the panel's head carry the mode for now. */}
           <DictateButton onText={onDictate} disabled={resolving} size="icon-sm" />
           <Button
             type="submit"
@@ -140,11 +135,14 @@ export function SearchPanel({
       aria-label="Search"
       className="bg-surface-chrome border-edge flex h-full w-full flex-col border-r pt-2"
     >
+      <div className="flex shrink-0 justify-end px-3 pt-1">
+        <SearchTabs mode={mode} onModeChange={onModeChange} disabled={resolving} />
+      </div>
       {mode === "quick" ? (
         <div className="flex min-h-0 flex-1 flex-col">
           {/* The same header block as Advanced's, row for row: where the
               columns put their path, the pills put their name, in the same
-              place and the same type, so flipping the switch changes what is
+              place and the same type, so flipping the tabs changes what is
               under the header and nothing about the header itself. No search
               field, which ten pills do not need. */}
           <div className="shrink-0 px-3 pt-3 pb-3">
