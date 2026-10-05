@@ -177,7 +177,7 @@ export function PrototypeShell() {
   // Add filter, and a column's Edit filters, open the one place a filter is
   // built by hand: Advanced search's columns, in the panel, at the given path.
   // Instant, with no walk — the client asked for this to be slick.
-  const openAdvancedAt = (trail: string[], hint = false) => {
+  const openAdvancedAt = (trail: string[], hint = false, hintAt: number | null = null) => {
     walk.stop()
     setState((current) => ({
       ...current,
@@ -185,17 +185,19 @@ export function PrototypeShell() {
       panelOpen: true,
       manualTrail: trail,
       trayHint: hint ? current.trayHint + 1 : current.trayHint,
+      trayHintAt: hint ? hintAt : current.trayHintAt,
     }))
   }
   // Add filter also flashes where to click next in the columns.
   const addFilter = () => openAdvancedAt(defaultTrail(), true)
   const editFilterAt = (area: ProductArea, attribute: string, values: string[]) =>
     openAdvancedAt(trailFor(area, attribute, values))
-  // A value on a filter chip opens the same place, at that clause.
+  // A value on a filter chip opens the same place, at that clause, and
+  // flashes the attribute's own row once the columns have landed on it.
   const editFilterValues = (id: FilterId) => {
     const { area, attribute } = pathOf(id)
     const clause = state.filters.find((filter) => filter.id === id)
-    editFilterAt(area, attribute, clause?.values ?? [])
+    openAdvancedAt(trailFor(area, attribute, clause?.values ?? []), true, 1)
   }
   const pickValueAt = (area: ProductArea, attribute: string, value: string) =>
     setState((current) => toggleValueAt(current, area, attribute, value))
@@ -321,6 +323,7 @@ export function PrototypeShell() {
               manualTrail={state.manualTrail}
               onOpenAt={openAt}
               trayHint={state.trayHint}
+              trayHintAt={state.trayHintAt}
               onValuePickAt={pickValueAt}
             />
           }
@@ -353,6 +356,7 @@ export function PrototypeShell() {
             onOpenAt={openAt}
             onToggleValue={pickValueAt}
             hint={state.trayHint}
+            hintAt={state.trayHintAt}
           />
         }
         pending={state.pending}

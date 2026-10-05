@@ -65,6 +65,12 @@ export interface Sprint4Idea1cState {
    * counter rather than a flag, so pressing it twice flashes twice.
    */
   trayHint: number
+  /**
+   * Which row the hint points at: a column of the trail and the open row in
+   * it (a chip's attribute), or null for the newest column's first row (Add
+   * filter's next click).
+   */
+  trayHintAt: number | null
 }
 
 const startState = (): Sprint4Idea1cState => ({
@@ -80,6 +86,7 @@ const startState = (): Sprint4Idea1cState => ({
   showResults: false,
   panelOpen: true,
   trayHint: 0,
+  trayHintAt: null,
 })
 
 const filteredState = (): Sprint4Idea1cState => ({
@@ -97,6 +104,7 @@ const filteredState = (): Sprint4Idea1cState => ({
   showResults: false,
   panelOpen: true,
   trayHint: 0,
+  trayHintAt: null,
 })
 
 /** A pill pressed: its clause is in the box, waiting for a value. */
@@ -138,6 +146,7 @@ const resolvingState = (): Sprint4Idea1cState => ({
   showResults: false,
   panelOpen: true,
   trayHint: 0,
+  trayHintAt: null,
 })
 
 const resultsState = (): Sprint4Idea1cState => ({

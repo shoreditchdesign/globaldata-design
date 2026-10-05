@@ -59,6 +59,10 @@ export interface ColumnModel {
    * the tray, and this is where to click next. See `HintFlash`.
    */
   hint?: number
+  /** The row the hint lands on; the first row when not given. */
+  hintLabel?: string
+  /** Wait for the strip's scroll to land before flashing. */
+  hintDelay?: boolean
 }
 
 /** The number lane is sized to the widest count in the column, not globally. */
@@ -163,7 +167,12 @@ export function MillerColumn({
           ) : null}
           {column.items.map((item, index) => (
             <ColumnItem
-              hint={index === 0 ? column.hint : undefined}
+              hint={
+                (column.hintLabel ? item.label === column.hintLabel : index === 0)
+                  ? column.hint
+                  : undefined
+              }
+              hintDelay={column.hintDelay}
               key={item.label}
               item={item}
               column={column}
@@ -202,10 +211,12 @@ function ColumnItem({
   isSelected,
   isHolding,
   hint,
+  hintDelay,
   onOpen,
   onToggle,
 }: {
   hint?: number
+  hintDelay?: boolean
   item: ColumnRow
   column: ColumnModel
   lane: string
@@ -250,7 +261,7 @@ function ColumnItem({
         isOpen && "bg-brand-tint border-brand-border",
       )}
     >
-      {hint !== undefined ? <HintFlash hint={hint} /> : null}
+      {hint !== undefined ? <HintFlash hint={hint} delay={hintDelay} /> : null}
       {/* Lead lane: one control, always. A tick box where the column ticks, a
           radio mark where it only navigates. Never a number — the count lane on
           the right is the only place a number belongs. */}
@@ -368,10 +379,10 @@ let lastHintPlayed = 0
  * Where to click next, after Figma's prototype hotspot hint: two quick pulses
  * of the washed brand, fill and edge, over the row, then gone. Under reduced
  * motion it shows once, still, and fades. It sits under the row's text and
- * takes no clicks. Only Add filter bumps the hint; the reader's own clicks in
- * the columns never do.
+ * takes no clicks. Only Add filter and a filter chip's value bump the hint;
+ * the reader's own clicks in the columns never do.
  */
-function HintFlash({ hint }: { hint: number }) {
+function HintFlash({ hint, delay = false }: { hint: number; delay?: boolean }) {
   const ref = React.useRef<HTMLSpanElement>(null)
   const reducedMotion = usePrefersReducedMotion()
   React.useEffect(() => {
@@ -389,14 +400,21 @@ function HintFlash({ hint }: { hint: number }) {
     // Two pulses across two reflow beats, about 840ms in all.
     flash.animate(
       [{ opacity: 0 }, { opacity: 1 }, { opacity: 0 }, { opacity: 1 }, { opacity: 0 }],
-      { duration: motion.reflow * 2, easing: "ease-in-out" },
+      {
+        duration: motion.reflow * 2,
+        easing: "ease-in-out",
+        // A chip's hint waits for the columns to finish scrolling to it.
+        delay: delay ? motion.reflow : 0,
+      },
     )
-  }, [hint, reducedMotion])
+  }, [hint, delay, reducedMotion])
   return (
     <span
       ref={ref}
       aria-hidden
-      className="bg-brand-tint border-brand-border pointer-events-none absolute -inset-px -z-10 rounded-md border opacity-0"
+      // The ring lets the pulse read on a row that is already open,
+      // which carries the same tint and edge at rest.
+      className="bg-brand-tint border-brand-border ring-brand-border pointer-events-none absolute -inset-px -z-10 rounded-md border opacity-0 ring-2"
     />
   )
 }
