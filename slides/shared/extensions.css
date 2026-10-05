@@ -1,0 +1,87 @@
+/* GlobalData deck extensions — the components these decks share that Hoxton's
+   library does not have. Load after Hoxton's remote deck.css:
+
+     <link rel="stylesheet" href="https://theshoreditchway.vercel.app/skills/hoxton-slides/deck.css">
+     <link rel="stylesheet" href="../../shared/extensions.css">
+
+   Tokens, type scale and the spacing scale all come from deck.css. Nothing here sets a
+   size or colour of its own. See DESIGN-NOTES.md in this folder for when to use each. */
+
+/* Coral as an accent on a word: the verdict label, goal tags. Never a fill. */
+.accent{color:var(--coral);font-weight:700}
+
+/* Links inherit the text colour; the underline carries them. */
+.slide a{color:inherit;text-decoration-color:var(--rule-dark);text-underline-offset:3px}
+.slide--dark a{text-decoration-color:var(--rule-light)}
+
+/* Both columns of the weighed-up slide carry coral marks, so the in-favour
+   list opts into the colour the against list already has. */
+ul.marks.pos li .m{color:var(--coral)}
+
+/* A mark whose claim sits above its detail: the claim in body-title weight on
+   its own line, the detail under it in the list's own muted text. */
+ul.marks li strong{
+  display:block;
+  margin-bottom:5px;
+  font-weight:700;
+  font-size:16px;
+  color:var(--ink);
+}
+.slide--dark ul.marks li strong{color:var(--off)}
+
+/* ---------- goal header — the block every goal slide opens on ----------
+   The goal's coral letters at metric size, its name, and the client's own
+   figures under it, over a hairline. Built from the metric and body type
+   already in deck.css so a goal slide sets no scale of its own. */
+/* A content block with nothing anchored to the foot sits optically centred
+   in the slide rather than hard against the header. */
+.centre-v{display:flex;flex-direction:column;justify-content:center}
+.goal-head{max-width:1180px}
+.goal-head .value{
+  font-family:var(--display);
+  font-weight:500;
+  font-size:64px;
+  line-height:1;
+  letter-spacing:-.02em;
+  color:var(--coral);
+}
+.goal-head .body-title{margin-top:var(--space-2)}
+.goal-head .body-text{margin-top:var(--space-1);font-size:14px;line-height:1.5;max-width:720px}
+.goal-head .rule{margin-top:var(--space-3)}
+
+.mechanism{margin-top:var(--space-5);max-width:900px}
+.mechanism .col-head{border-bottom:none;padding-bottom:0}
+.mechanism .body-text{margin-top:var(--space-3)}
+
+/* Bottom row on an option slide: verdict left, prototype link right. */
+.slide-foot{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:var(--space-5);
+  margin-top:auto;
+  padding-top:28px;
+}
+.slide-foot .footnote{margin-top:0;padding-top:0}
+.slide-foot .proto-link{font-size:14px;line-height:1.5;white-space:nowrap}
+
+/* ---------- link list — one state per row, goal tag inline ---------- */
+.link-list{list-style:none;display:flex;flex-direction:column;gap:3px;margin-top:10px}
+.link-list li{
+  display:flex;
+  align-items:center;
+  gap:var(--space-1);
+  font-size:14.5px;
+  line-height:1.5;
+  color:var(--muted-dark);
+}
+.link-list .accent{font-size:12px;letter-spacing:.06em}
+
+/* The closing slide: one link, centred, at h2 size. */
+.one-link{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
