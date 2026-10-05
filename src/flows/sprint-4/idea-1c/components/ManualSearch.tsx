@@ -247,7 +247,14 @@ export function ManualSearch({
           </nav>
         </div>
 
-        <InputGroup className={cn("bg-surface-panel", inlineSearch && "w-72 shrink-0")}>
+        <InputGroup
+          className={cn(
+            "bg-surface-panel",
+            // On the start page's white header block, the global header
+            // search's own off-white, so the field reads as a field.
+            inlineSearch && "bg-surface-sunken w-72 shrink-0",
+          )}
+        >
           <InputGroupAddon>
             <SearchIcon className="size-4" />
           </InputGroupAddon>
