@@ -308,6 +308,20 @@ export function PrototypeShell() {
         filter.id === id ? { ...filter, link } : filter,
       ),
     }))
+  // A start-page chip's checklist: a tick box adds or takes out one value. An
+  // emptied clause stays, back at Select value — its pill is what puts it in
+  // the box and takes it out.
+  const toggleFilterValue = (id: FilterId, value: string) =>
+    setState((current) => ({
+      ...current,
+      filters: current.filters.map((filter) => {
+        if (filter.id !== id) return filter
+        const values = filter.values.includes(value)
+          ? filter.values.filter((item) => item !== value)
+          : [...filter.values, value]
+        return { ...filter, values, appliedAt: nextAppliedAt(current.filters) }
+      }),
+    }))
   const removeFilter = (id: FilterId) =>
     setState((current) => ({
       ...current,
@@ -334,6 +348,7 @@ export function PrototypeShell() {
       onAddFilter={addFilter}
       onPickValue={pickValueAt}
       onPickOnlyValue={pickOnlyValueAt}
+      onToggleValue={toggleFilterValue}
       onClear={clearFilters}
       onSearch={state.showResults ? undefined : search}
       // Advanced always shows the box, so it has nothing to close back to.
