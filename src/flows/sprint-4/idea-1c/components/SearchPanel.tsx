@@ -15,16 +15,15 @@ import type { SearchMode } from "@/flows/sprint-4/idea-1c/state"
 import { cn } from "@/lib/utils"
 
 /**
- * The results page's chat section: the commonly used filters at its head, and
- * the query field at its foot, where a chat composer sits. Between them,
- * Advanced search's Miller columns in its place when that tab is on. The
- * Search / Advanced filter tabs sit at the panel's top right, on a row of
- * their own over the header in both modes, so they never move when flipped
- * and nothing crowds them. All of it feeds the filter box beside it.
+ * The results page's search panel. Quick search puts the query field at its
+ * head, under the tabs, with the commonly used filters beneath it. Advanced
+ * search has no field here, only the Miller columns: the client read a field
+ * on this page as an assistant to talk to, and the columns are the way in.
+ * The tabs and the close button share a row of their own over both modes, so
+ * they never move when flipped. All of it feeds the filter box above.
  *
  * It fills whatever width the results page gives it, which is the same in
- * both modes, and collapsing it is the results page's business too, from the
- * toggle in the table's footer.
+ * both modes.
  */
 export function SearchPanel({
   mode,
@@ -82,9 +81,12 @@ export function SearchPanel({
     if (hasQuery && !resolving) onResolve()
   }
 
+  // The query field, at the head of Quick search under the tabs, as it sat
+  // before the composer moved to the panel's foot (6aab10b) and as Idea 1b's
+  // results panel has it. Advanced search has no field on this page: there the
+  // columns are the way in.
   const composer = (
-    <div className="border-hairline shrink-0 border-t p-3">
-      {unread ? <ReadNotice resolution={unread} className="mb-2 px-1 text-xs" /> : null}
+    <div className="shrink-0 px-3 pt-3">
       <form
         className="bg-surface-panel border-border focus-within:border-ring rounded-xl border p-3 transition-colors"
         onSubmit={(event) => {
@@ -96,7 +98,7 @@ export function SearchPanel({
           <textarea
             ref={fieldRef}
             value={query}
-            rows={2}
+            rows={1}
             onChange={(event) => onQueryChange(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
@@ -115,7 +117,7 @@ export function SearchPanel({
           />
           {pending ? <ScanningQuery resolution={pending} onDone={onScanDone} multiline /> : null}
         </div>
-        <div className="mt-5 flex items-center justify-end gap-1">
+        <div className="mt-2 flex items-center justify-end gap-1">
           {/* The Advanced switch (AdvancedToggle) sat here. Hidden, not
               deleted: the tabs at the panel's head carry the mode for now. */}
           <DictateButton onText={onDictate} disabled={resolving} size="icon-sm" />
@@ -130,6 +132,7 @@ export function SearchPanel({
           </Button>
         </div>
       </form>
+      {unread ? <ReadNotice resolution={unread} className="mt-2 px-1 text-xs" /> : null}
     </div>
   )
 
@@ -156,11 +159,7 @@ export function SearchPanel({
       </div>
       {mode === "quick" ? (
         <div className="flex min-h-0 flex-1 flex-col">
-          {/* The same header block as Advanced's, row for row: where the
-              columns put their path, the pills put their name, in the same
-              place and the same type, so flipping the tabs changes what is
-              under the header and nothing about the header itself. No search
-              field, which ten pills do not need. */}
+          {composer}
           <div className="shrink-0 px-3 pt-3 pb-3">
             <div className="flex h-6 items-center">
               <h2
@@ -190,7 +189,6 @@ export function SearchPanel({
           onToggleValue={onValuePickAt}
         />
       )}
-      {composer}
     </aside>
   )
 }
