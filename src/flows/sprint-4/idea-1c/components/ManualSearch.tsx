@@ -1,9 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { ChevronRightIcon, ChevronsLeftIcon, SearchIcon } from "lucide-react"
+import { ChevronRightIcon, SearchIcon } from "lucide-react"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
+import { motion, usePrefersReducedMotion } from "@/components/prototype/motion"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { MillerColumn, type ColumnModel } from "@/flows/sprint-4/idea-1c/components/MillerColumn"
 import {
@@ -24,8 +25,9 @@ import { cn } from "@/lib/utils"
  * Advanced search as Miller columns, after Sprint 3 Idea 2's filter panel:
  * filter area, then attribute, then values, then the values under a value as
  * far down its tree as the data goes (therapy area › indication, region ›
- * country). Three columns show at a time; past that the strip slides, with
- * the back chevron and the breadcrumb to step back. Drilling in adds a column beside
+ * country). Three columns fit across; past that, as in Finder's column view,
+ * the newest column comes in at the right edge and the earlier ones scroll off
+ * to the left, where the strip or the breadcrumb brings them back. Drilling in adds a column beside
  * the last rather than replacing it, and ticking a value writes it into the
  * same filters the quick search builds. Its open path is its own, so opening
  * a column never opens the pills.
@@ -51,8 +53,9 @@ export function ManualSearch({
 }) {
   const visibleColumns = 3
   const [query, setQuery] = React.useState("")
-  // Follows the path to its deepest column unless a crumb slides it back.
-  const [leftIndex, setLeftIndex] = React.useState(Number.POSITIVE_INFINITY)
+  const stripRef = React.useRef<HTMLDivElement>(null)
+  const reducedMotion = usePrefersReducedMotion()
+  const scrollTo = useStripScroll(stripRef, reducedMotion)
 
   const activeCategory = (trail[0] as ProductArea | undefined) ?? null
   const activeAttribute = trail[1] ?? null
@@ -142,33 +145,41 @@ export function ManualSearch({
   }
 
   const path = trail.slice(0, columns.length)
-  const maxLeft = Math.max(0, columns.length - visibleColumns)
-  const start = Math.min(leftIndex, maxLeft)
   const needle = query.trim().toLowerCase()
-  const visible = columns.slice(start, start + visibleColumns).map((column) =>
+  const visible = columns.map((column) =>
     needle
       ? { ...column, items: column.items.filter((item) => item.label.toLowerCase().includes(needle)) }
       : column,
   )
 
+  // Finder's column view: every column stays in the strip, three fit across,
+  // and whenever the path changes the newest column is brought in at the
+  // right edge, pushing the earlier ones off to the left where they can be
+  // scrolled back to. The first placement is a jump, not a glide.
+  const pathKey = columns.map((column) => column.key).join("|")
+  const placed = React.useRef(false)
+  React.useLayoutEffect(() => {
+    const strip = stripRef.current
+    if (!strip) return
+    scrollTo(strip.scrollWidth - strip.clientWidth, placed.current)
+    placed.current = true
+  }, [pathKey, scrollTo])
+
+  /** A crumb brings its column back to the left edge of the strip. */
+  const showColumn = (index: number) => {
+    const strip = stripRef.current
+    const column = strip?.children[index] as HTMLElement | undefined
+    if (strip && column) scrollTo(column.offsetLeft - strip.offsetLeft, true)
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="shrink-0 space-y-2 px-3 pt-3 pb-3">
         <div className="flex h-6 items-center gap-1">
-          {start > 0 ? (
-            <button
-              type="button"
-              onClick={() => setLeftIndex(start - 1)}
-              aria-label="Show the previous column"
-              className="text-muted-foreground hover:text-foreground hover:bg-accent -ml-1 flex size-6 shrink-0 items-center justify-center rounded"
-            >
-              <ChevronsLeftIcon className="size-4" />
-            </button>
-          ) : null}
           <nav aria-label="Filter path" className="flex min-w-0 items-center gap-1 overflow-hidden">
             <button
               type="button"
-              onClick={() => setLeftIndex(0)}
+              onClick={() => showColumn(0)}
               className={cn(
                 "hover:text-foreground truncate rounded px-1 py-0.5 text-[13px]",
                 path.length === 0 ? "text-foreground font-semibold" : "text-muted-foreground",
@@ -181,7 +192,7 @@ export function ManualSearch({
                 <ChevronRightIcon className="text-muted-foreground size-3.5 shrink-0" />
                 <button
                   type="button"
-                  onClick={() => setLeftIndex(Math.min(index + 1, maxLeft))}
+                  onClick={() => showColumn(index + 1)}
                   className={cn(
                     "hover:text-foreground truncate rounded px-1 py-0.5 text-[13px]",
                     index === path.length - 1
@@ -210,9 +221,11 @@ export function ManualSearch({
         </InputGroup>
       </div>
 
-      <div className="divide-edge border-edge flex min-h-0 flex-1 divide-x overflow-x-auto border-t">
-        {visible.map((column, index) => {
-          const depth = start + index
+      <div
+        ref={stripRef}
+        className="divide-edge border-edge relative flex min-h-0 flex-1 divide-x overflow-x-auto border-t"
+      >
+        {visible.map((column, depth) => {
           return (
             <MillerColumn
               key={column.key}
@@ -224,10 +237,7 @@ export function ManualSearch({
                 // Ruled off from the empty thirds still to fill, which share its grey.
                 visible.length < visibleColumns && "border-edge last:border-r",
               )}
-              onOpen={(label) => {
-                setLeftIndex(Number.POSITIVE_INFINITY)
-                onOpenAt(depth, label)
-              }}
+              onOpen={(label) => onOpenAt(depth, label)}
               onToggle={
                 depth >= 2 && activeCategory && activeAttribute
                   ? (label) => onToggleValue(activeCategory, activeAttribute, label)
@@ -238,5 +248,54 @@ export function ManualSearch({
         })}
       </div>
     </div>
+  )
+}
+
+/**
+ * Scrolls the column strip to a left offset: eased over `motion.reflow` on the
+ * settle curve's shape, or in one step under reduced motion (and when told not
+ * to animate). A new scroll cancels one still running.
+ */
+function useStripScroll(
+  stripRef: React.RefObject<HTMLDivElement | null>,
+  reducedMotion: boolean,
+) {
+  const frame = React.useRef<number | null>(null)
+  const fallback = React.useRef<number | null>(null)
+  const stop = React.useCallback(() => {
+    if (frame.current !== null) cancelAnimationFrame(frame.current)
+    if (fallback.current !== null) window.clearTimeout(fallback.current)
+    frame.current = null
+    fallback.current = null
+  }, [])
+  React.useEffect(() => stop, [stop])
+  return React.useCallback(
+    (target: number, animate: boolean) => {
+      const strip = stripRef.current
+      if (!strip) return
+      stop()
+      const to = Math.max(0, Math.min(target, strip.scrollWidth - strip.clientWidth))
+      const from = strip.scrollLeft
+      if (!animate || reducedMotion || Math.abs(to - from) < 1) {
+        strip.scrollLeft = to
+        return
+      }
+      const started = performance.now()
+      const step = (now: number) => {
+        const t = Math.min(1, (now - started) / motion.reflow)
+        // Decelerates hard, as the settle curve does: it arrives, not slides.
+        const eased = 1 - Math.pow(1 - t, 3)
+        strip.scrollLeft = from + (to - from) * eased
+        frame.current = t < 1 ? requestAnimationFrame(step) : null
+      }
+      frame.current = requestAnimationFrame(step)
+      // Frames stop in a background tab; the strip still has to end up where
+      // it was sent, so a timer lands it if the glide has not.
+      fallback.current = window.setTimeout(() => {
+        stop()
+        strip.scrollLeft = to
+      }, motion.reflow + 100)
+    },
+    [stripRef, reducedMotion, stop],
   )
 }
