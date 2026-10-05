@@ -66,15 +66,16 @@ export function SearchPills({
           "bg-surface-panel border-border hover:bg-surface-sunken inline-flex h-8 items-center rounded-full border px-3.5 text-[13px] transition-[color,background-color,border-color]",
           // Three states: white, then a hover a clear step darker (sunken, so
           // it never blends into the grey behind the pills), then selected —
-          // the blue wash with a solid brand stroke, so a pill that is on
-          // reads at a glance.
+          // the blue wash with a doubled brand stroke (border plus a 1px ring,
+          // so the pill doesn't change size), so a pill that is on reads at a
+          // glance.
           //
           // The wash is also what the system reserves for a selection that is
           // not a checked control. Solid brand is the arrow in the search
           // field and a checked Advanced switch; the pills are a step under
           // both, which is the order they should be read in.
           filter &&
-            "bg-brand-tint border-brand text-foreground hover:bg-brand-tint hover:border-brand-strong",
+            "bg-brand-tint border-brand ring-brand text-foreground ring-1 hover:bg-brand-tint hover:border-brand-strong hover:ring-brand-strong",
         )}
       >
         {attribute}
