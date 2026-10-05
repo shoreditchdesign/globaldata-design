@@ -6,7 +6,7 @@ next session needs to carry on without rereading that conversation.
 
 ## Where things live
 
-The deck is `slides/sprint-3/sprint_3_options_review/index.html`, with `deck.js` and `logo.svg`
+The deck is `slides/sprint-3/options_review/index.html`, with `deck.js` and `logo.svg`
 beside it, and it follows the template in `slides/template/` exactly: read `DESIGN-NOTES.md` there
 before touching anything, since it sets the palette, the type scale, the components and the
 content register. `deck.js` is a byte-for-byte copy of the template's and should stay that way.
@@ -105,7 +105,7 @@ Austin asked to see this so he can decide whether any of it comes back. None of 
   headings ("Four routes to natural language search"), made by another session or by hand. It is
   backed up at the session scratchpad as `index-parallel-version-backup.html`, but the scratchpad
   is temporary, so if anything in it is wanted, lift it soon.
-- There is still a loose `slides/sprint-3/sprint_3_options_review.html` and `slides/sprint-3/deck.js`
+- There is still a loose `slides/sprint-3/options_review.html` and `slides/sprint-3/deck.js`
   from the first pass. The folder is the real deck now, so those two can go once Austin confirms.
 - `slides/sprint-3/Documents/` is a 19 GB untracked copy of a whole `Documents/Github` tree,
   `node_modules` included, dropped in by accident. It must not be committed. Austin has not yet
