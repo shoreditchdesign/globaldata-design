@@ -13,8 +13,8 @@ One-glance version of `CALL-0510-ACTIONS.md`. Next review: **Tue 6 Oct, 12:00–
 - **Deeper than three columns**: older columns scroll off to the left, like Finder. The newest stays on the right edge.
 - **Full tree**: can be opened, same Finder-style overflow.
 - **Excludes**: removed from the Miller columns only. IS / IS NOT still works in the filter bar.
-- **Table**: A–Z sort arrows, "11 of 18 columns", drug count in the header, value counts in column filters, Group by / View placeholders.
-- **Add filter / Edit filter**: open the left panel at the right place.
+- **Table**: A–Z sort arrows, "11 of 18 columns", drug count in the header, Group by / View placeholders. Value counts show in the Miller columns.
+- **Add filter / Edit filter**: open the left panel at the right place. Add filter blinks the first row to click, like a Figma hotspot hint.
 - **Tree data**: every therapy area has at least three indications.
 
 ## Still open
