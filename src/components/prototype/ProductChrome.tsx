@@ -53,6 +53,11 @@ export interface ProductChromeProps {
   /** Which area tab reads as current. */
   activeArea?: ProductArea
   /**
+   * The area tabs to draw, in order. Defaults to all eight, so a direction that
+   * passes nothing keeps the full row.
+   */
+  areas?: readonly ProductArea[]
+  /**
    * The global search field. Omit for the shared placeholder; pass a node to
    * make it real. The slot is `SEARCH_SLOT_WIDTH` wide and expects an `h-8`
    * control — the live platform's cross-entity natural-language search lives
@@ -86,6 +91,7 @@ export interface ProductChromeProps {
 export function ProductChrome({
   children,
   activeArea = "Drugs",
+  areas = productAreas,
   search,
   searchPlaceholder = "Search all of GlobalData",
   actions,
@@ -118,7 +124,7 @@ export function ProductChrome({
         aria-label="Product areas"
         className="bg-surface-chrome border-edge flex h-9 shrink-0 items-center gap-1 overflow-x-auto border-b px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {productAreas.map((area) => {
+        {areas.map((area) => {
           const active = area === activeArea
           return (
             <span

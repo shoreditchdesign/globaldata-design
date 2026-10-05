@@ -6,6 +6,13 @@ import {
 /** Stable product context shared by every state in this direction. */
 export const activeProductArea: ProductArea = "Drugs"
 
+/**
+ * The global nav's area tabs. Cut to the two the client asked to keep on the
+ * 5 October call; the other six were placeholders for in-situ context and
+ * read as features. The Miller columns still list every area.
+ */
+export const navAreas: readonly ProductArea[] = ["Companies", "Drugs"]
+
 /** The incumbent's highest-level search areas, kept in the established order. */
 export const searchCategories = productAreas
 
