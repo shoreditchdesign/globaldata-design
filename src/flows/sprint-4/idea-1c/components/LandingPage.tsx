@@ -205,7 +205,7 @@ export function LandingPage({
             </p>
           </div>
           <div className="mt-6 flex justify-center">
-            <SearchTabs mode={mode} onModeChange={onModeChange} disabled={resolving} />
+            <SearchTabs mode={mode} onModeChange={onModeChange} />
           </div>
           {field}
           {manualMode && unread ? (

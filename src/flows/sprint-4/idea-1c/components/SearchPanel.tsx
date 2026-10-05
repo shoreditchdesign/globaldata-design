@@ -136,7 +136,7 @@ export function SearchPanel({
       className="bg-surface-chrome border-edge flex h-full w-full flex-col border-r pt-2"
     >
       <div className="flex shrink-0 justify-end px-3 pt-1">
-        <SearchTabs mode={mode} onModeChange={onModeChange} disabled={resolving} />
+        <SearchTabs mode={mode} onModeChange={onModeChange} />
       </div>
       {mode === "quick" ? (
         <div className="flex min-h-0 flex-1 flex-col">
