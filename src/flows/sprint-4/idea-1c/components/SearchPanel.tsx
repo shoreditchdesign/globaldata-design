@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils"
  * head, under the tabs, with the commonly used filters beneath it. Advanced
  * search has no field here, only the Miller columns: the client read a field
  * on this page as an assistant to talk to, and the columns are the way in.
- * The tabs sit at the panel's top right on a row of their own over both
+ * The tabs sit at the panel's top left on a row of their own over both
  * modes, so they never move when flipped. All of it feeds the filter box above.
  *
  * It fills whatever width the results page gives it, which is the same in
@@ -140,7 +140,8 @@ export function SearchPanel({
       aria-label="Search"
       className="bg-surface-chrome border-edge flex h-full w-full flex-col border-r pt-2"
     >
-      <div className="flex shrink-0 justify-end px-3 pt-1">
+      {/* Left-aligned, in line with the content under them. */}
+      <div className="flex shrink-0 justify-start px-3 pt-1">
         <SearchTabs mode={mode} onModeChange={onModeChange} />
       </div>
       {mode === "quick" ? (
