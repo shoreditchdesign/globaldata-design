@@ -118,3 +118,12 @@ ul.marks li strong{
 }
 .slide--dark .split-frame{border-color:var(--rule-light)}
 .split-frame img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* ---------- targets: fill the slide height ----------
+   Hoxton's .targets grid sizes each row to its content, so short cards hug the
+   top and leave the bottom of the slide empty. The content area becomes a column
+   and the grid takes the rest of its height in equal rows, so six cards read as
+   an even 3 × 2 grid across the full content width. Mirrored upstream in Hoxton's deck.css; drop this block
+   once that version is live. */
+.content:has(> .targets){display:flex;flex-direction:column}
+.content > .targets{flex:1;grid-auto-rows:1fr;max-width:none}
