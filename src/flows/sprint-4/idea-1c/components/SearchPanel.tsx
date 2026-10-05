@@ -8,6 +8,7 @@ import { ManualSearch } from "@/flows/sprint-4/idea-1c/components/ManualSearch"
 import { ReadNotice } from "@/flows/sprint-4/idea-1c/components/ReadNotice"
 import { ScanningQuery } from "@/flows/sprint-4/idea-1c/components/ScanningQuery"
 import { commonFiltersId, SearchPills } from "@/flows/sprint-4/idea-1c/components/SearchPills"
+import { PanelToggle } from "@/flows/sprint-4/idea-1c/components/PanelToggle"
 import { SearchTabs } from "@/flows/sprint-4/idea-1c/components/SearchTabs"
 import type { ResolvedFilter } from "@/flows/sprint-4/idea-1c/data"
 import type { Resolution } from "@/flows/sprint-4/idea-1c/resolve"
@@ -20,7 +21,8 @@ import { cn } from "@/lib/utils"
  * search has no field here, only the Miller columns: the client read a field
  * on this page as an assistant to talk to, and the columns are the way in.
  * The tabs sit at the panel's top left on a row of their own over both
- * modes, so they never move when flipped. All of it feeds the filter box above.
+ * modes, so they never move when flipped, with the panel's close button at the
+ * row's right end. All of it feeds the filter box above.
  *
  * It fills whatever width the results page gives it, which is the same in
  * both modes.
@@ -42,6 +44,7 @@ export function SearchPanel({
   trayHint,
   trayHintAt,
   onValuePickAt,
+  onHidePanel,
 }: {
   mode: SearchMode
   query: string
@@ -63,6 +66,8 @@ export function SearchPanel({
   /** The row the hint points at, or null for the newest column's first. */
   trayHintAt: HintTarget | null
   onValuePickAt: (area: ProductArea, attribute: string, value: string) => void
+  /** Folds the panel away; the table's header bar holds the way back. */
+  onHidePanel: () => void
 }) {
   const hasQuery = query.trim().length > 0
   const resolving = Boolean(pending)
@@ -141,8 +146,11 @@ export function SearchPanel({
       className="bg-surface-chrome border-edge flex h-full w-full flex-col border-r pt-2"
     >
       {/* Left-aligned, in line with the content under them. */}
-      <div className="flex shrink-0 justify-start px-3 pt-1">
+      <div className="flex shrink-0 items-center justify-start gap-2 px-3 pt-1">
         <SearchTabs mode={mode} onModeChange={onModeChange} />
+        <span className="ml-auto">
+          <PanelToggle open onToggle={onHidePanel} />
+        </span>
       </div>
       {mode === "quick" ? (
         <div className="flex min-h-0 flex-1 flex-col">

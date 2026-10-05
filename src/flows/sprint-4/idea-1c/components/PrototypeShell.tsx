@@ -387,6 +387,7 @@ export function PrototypeShell() {
               trayHint={state.trayHint}
               trayHintAt={state.trayHintAt}
               onValuePickAt={pickValueAt}
+              onHidePanel={() => setPanelOpen(false)}
             />
           }
         />
