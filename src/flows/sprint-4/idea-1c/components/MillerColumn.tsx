@@ -379,7 +379,7 @@ let lastHintPlayed = 0
  * Where to click next, after Figma's prototype hotspot hint: two quick pulses
  * of the washed brand, fill and edge, over the row, then gone. Under reduced
  * motion it shows once, still, and fades. It sits under the row's text and
- * takes no clicks. Only Add filter and a filter chip's value bump the hint;
+ * takes no clicks. Only Add filter and a filter chip's segments bump the hint;
  * the reader's own clicks in the columns never do.
  */
 function HintFlash({ hint, delay = false }: { hint: number; delay?: boolean }) {
@@ -389,6 +389,20 @@ function HintFlash({ hint, delay = false }: { hint: number; delay?: boolean }) {
     const flash = ref.current
     if (!flash || hint <= lastHintPlayed) return
     lastHintPlayed = hint
+    // Brought into view in its own column first, if the list has scrolled it
+    // out of sight: a flash nobody can see points at nothing.
+    const row = flash.parentElement
+    const list = row?.closest("ul")
+    if (row && list) {
+      const rowBox = row.getBoundingClientRect()
+      const listBox = list.getBoundingClientRect()
+      if (rowBox.top < listBox.top || rowBox.bottom > listBox.bottom) {
+        list.scrollTo({
+          top: list.scrollTop + rowBox.top - listBox.top - (listBox.height - rowBox.height) / 2,
+          behavior: reducedMotion ? "auto" : "smooth",
+        })
+      }
+    }
     flash.getAnimations().forEach((animation) => animation.cancel())
     if (reducedMotion) {
       flash.animate([{ opacity: 1 }, { opacity: 1, offset: 0.5 }, { opacity: 0 }], {

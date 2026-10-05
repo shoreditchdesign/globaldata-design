@@ -24,6 +24,12 @@ export interface SearchPath {
  */
 export const defaultTrail = (): string[] => ["Drugs", "Drug Name"]
 
+/** The row a tray hint points at: a column of the trail and a row in it. */
+export interface HintTarget {
+  depth: number
+  label: string
+}
+
 export interface Sprint4Idea1cState {
   mode: SearchMode
   query: string
@@ -66,11 +72,11 @@ export interface Sprint4Idea1cState {
    */
   trayHint: number
   /**
-   * Which row the hint points at: a column of the trail and the open row in
-   * it (a chip's attribute), or null for the newest column's first row (Add
-   * filter's next click).
+   * Which row the hint points at: a chip's value in its column, or its
+   * attribute's row when the attribute was pressed; null for the newest
+   * column's first row (Add filter's next click).
    */
-  trayHintAt: number | null
+  trayHintAt: HintTarget | null
 }
 
 const startState = (): Sprint4Idea1cState => ({

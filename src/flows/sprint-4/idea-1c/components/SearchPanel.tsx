@@ -11,7 +11,7 @@ import { commonFiltersId, SearchPills } from "@/flows/sprint-4/idea-1c/component
 import { SearchTabs } from "@/flows/sprint-4/idea-1c/components/SearchTabs"
 import type { ResolvedFilter } from "@/flows/sprint-4/idea-1c/data"
 import type { Resolution } from "@/flows/sprint-4/idea-1c/resolve"
-import type { SearchMode } from "@/flows/sprint-4/idea-1c/state"
+import type { HintTarget, SearchMode } from "@/flows/sprint-4/idea-1c/state"
 import { cn } from "@/lib/utils"
 
 /**
@@ -60,8 +60,8 @@ export function SearchPanel({
   onOpenAt: (depth: number, label: string) => void
   /** Bumped by Add filter: the columns flash the row to click next. */
   trayHint: number
-  /** The column whose open row the hint points at, or null for the newest. */
-  trayHintAt: number | null
+  /** The row the hint points at, or null for the newest column's first. */
+  trayHintAt: HintTarget | null
   onValuePickAt: (area: ProductArea, attribute: string, value: string) => void
 }) {
   const hasQuery = query.trim().length > 0
