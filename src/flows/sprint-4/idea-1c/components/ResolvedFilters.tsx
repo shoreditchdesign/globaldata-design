@@ -413,9 +413,16 @@ function FilterClause({
           : "bg-surface-sunken border-border text-foreground",
       )}
     >
-      <span className="shrink-0 border-r border-current/10 px-2.5 py-1.5 font-medium">
+      {/* The attribute opens its node in the columns too: no segment of a
+          filter drops a list of its own. */}
+      <button
+        type="button"
+        onClick={() => onEditValues(filter.id)}
+        aria-label={`Open ${filter.label} in Advanced search`}
+        className="hover:bg-foreground/5 shrink-0 rounded-l-lg border-r border-current/10 px-2.5 py-1.5 font-medium transition-colors"
+      >
         {filter.label}
-      </span>
+      </button>
 
       <DropdownMenu>
         <DropdownMenuTrigger className="hover:bg-foreground/5 flex shrink-0 items-center gap-1 border-r border-current/10 px-2 py-1.5 transition-colors">
