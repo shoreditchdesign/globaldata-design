@@ -181,10 +181,11 @@ export function PrototypeShell() {
       trayHintAt: hint ? hintAt : current.trayHintAt,
     }))
   }
-  // Add filter also flashes where to click next in the columns.
+  // Add filter also flashes where to click next in the columns, and a column's
+  // Edit filters flashes the attribute it opened on.
   const addFilter = () => openAdvancedAt(defaultTrail(), true)
   const editFilterAt = (area: ProductArea, attribute: string, values: string[]) =>
-    openAdvancedAt(trailFor(area, attribute, values))
+    openAdvancedAt(trailFor(area, attribute, values), true, { depth: 1, label: attribute })
   // A filter chip's segments open the same place. A value opens at that value,
   // its parent open if it sits a level down, and flashes the value's row; the
   // attribute flashes the attribute's row.
