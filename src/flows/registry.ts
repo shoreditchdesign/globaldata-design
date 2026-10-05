@@ -20,7 +20,7 @@ export const sprints: Sprint[] = [
     id: "sprint-4",
     name: "Sprint 4",
     goal: "Natural-language search and a logic gate as two views of one query, built from Sprint 3's text box, logic builder and record drawer.",
-    ideas: [sprint4Idea1, sprint4Idea1b, sprint4Idea1c, sprint4Idea2, sprint4Idea2b],
+    ideas: [sprint4Idea1, sprint4Idea1b, sprint4Idea2, sprint4Idea2b, sprint4Idea1c],
   },
 ]
 
