@@ -795,9 +795,8 @@ export function ResultsGrid({
           <span className="text-muted-foreground">Selected </span>
           <span className="font-medium">{selected.length}</span>
         </span>
-        {/* Sample data, said quietly, then where this page sits in the match. */}
+        {/* Where this page sits in the match. */}
         <span className="ml-4 flex items-center gap-1.5">
-          <span className="text-muted-foreground">Illustrative data ·</span>
           <span aria-live="polite">
             {resultCount === 0 ? (
               <span className="text-muted-foreground">0 rows</span>
