@@ -13,7 +13,9 @@ import { ResultsPage } from "@/flows/sprint-4/idea-1c/components/ResultsPage"
 import { SearchPanel } from "@/flows/sprint-4/idea-1c/components/SearchPanel"
 import {
   activeProductArea,
+  lastApplied,
   navAreas,
+  pathOf,
   nextAppliedAt,
   stampInOrder,
   emptyPathFilter,
@@ -128,7 +130,21 @@ export function PrototypeShell() {
 
   useDeepLink(slugFor(state), reseed)
 
-  const setMode = (mode: SearchMode) => setState((current) => ({ ...current, mode }))
+  // Turning Advanced on opens only what the filters populate: the path of the
+  // criterion applied last, its values ticked, or Drugs alone when there is
+  // none. A walk still under way, or the reader's next click, moves on from it.
+  const setMode = (mode: SearchMode) =>
+    setState((current) => {
+      if (mode !== "manual" || current.mode === "manual") return { ...current, mode }
+      const last = lastApplied(current.filters)
+      const at = last ? pathOf(last.id) : null
+      return {
+        ...current,
+        mode,
+        manualCategory: at ? at.area : "Drugs",
+        manualAttribute: at ? at.attribute : null,
+      }
+    })
   const setPanelOpen = (panelOpen: boolean) => setState((current) => ({ ...current, panelOpen }))
   // A changed query is a new question, so what the last one left unread goes.
   // `$$` is expanded here, outside the updater, so each press is one example.
