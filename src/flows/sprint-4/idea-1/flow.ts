@@ -8,10 +8,10 @@ import { Start } from "@/flows/sprint-4/idea-1/screens/Start"
  */
 export const sprint4Idea1: Flow = {
   id: "idea-1",
-  name: "Idea 1 — In progress",
+  name: "1) Held",
   premise: "Held for a second direction, in progress on its own branch.",
   lastUpdated: "2026-09-17",
-  status: "in-progress",
+  status: "superseded",
   screens: [
     {
       slug: "start",

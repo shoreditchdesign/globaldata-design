@@ -6,6 +6,7 @@ export const statusLabel: Record<Flow["status"], string> = {
   "in-progress": "In progress",
   review: "In review",
   final: "Final",
+  superseded: "Superseded",
 }
 
 /** Badge variant per status, kept inside the shadcn token set. */
@@ -14,4 +15,5 @@ export const statusVariant: Record<Flow["status"], "outline" | "secondary" | "de
   "in-progress": "secondary",
   review: "secondary",
   final: "default",
+  superseded: "outline",
 }

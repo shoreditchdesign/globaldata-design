@@ -9,7 +9,7 @@ import { Screener } from "@/flows/sprint-3/idea-2/screens/Screener"
  */
 export const sprint3Idea2: Flow = {
   id: "idea-2",
-  name: "Idea 2 — Miller Columns",
+  name: "2) Miller columns",
   premise:
     "The filter tree drills sideways, not down. Each level opens as a new column beside the previous one, so the path you took stays on screen and two branches can be open at once.",
   rationale: [
@@ -34,7 +34,7 @@ export const sprint3Idea2: Flow = {
     "Columns never replaced",
     "Agent drives the UI",
   ],
-  status: "in-progress",
+  status: "superseded",
   /**
    * One screen, twelve states of it. The slug seeds the screener and the state
    * leads from there, so each of these is a working surface rather than a

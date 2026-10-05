@@ -13,7 +13,7 @@ import { Incumbent } from "@/flows/sprint-3/idea-1/screens/Incumbent"
  */
 export const sprint3Idea1: Flow = {
   id: "idea-1",
-  name: "Idea 1 — Modal / Sidebar Takeover",
+  name: "1) Modal",
   premise:
     "The design already shown and rejected, ported as-is. It is here to be argued against — the baseline the other two ideas have to beat.",
   rationale: [
@@ -26,7 +26,7 @@ export const sprint3Idea1: Flow = {
   source: "Paper — Natural Language / Manual Filter Integration (the reviewed design)",
   lastUpdated: "2026-09-14",
   tags: ["Incumbent", "Rejected", "Natural language", "Filter rail", "Paper port"],
-  status: "in-progress",
+  status: "superseded",
   screens: [
     { slug: "results", title: "Results", note: "285,529 drugs, no filters yet. Apply filter opens the modal.", component: Incumbent },
     { slug: "ai-empty", title: "AI filter", note: "The modal on its AI tab: four suggestions, an empty builder.", component: Incumbent },

@@ -44,6 +44,7 @@ const statusDot: Record<Flow["status"], string> = {
   "in-progress": "bg-chart-3",
   review: "bg-chart-2",
   final: "bg-brand",
+  superseded: "bg-muted-foreground/30",
 }
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]

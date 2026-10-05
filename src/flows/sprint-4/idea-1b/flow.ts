@@ -9,11 +9,11 @@ import { Start } from "@/flows/sprint-4/idea-1b/screens/Start"
  */
 export const sprint4Idea1b: Flow = {
   id: "idea-1b",
-  name: "Idea 1b — Pills and Advanced search",
+  name: "1b) Pills",
   premise:
     "Idea 1 with its revisions: the commonly used filters as pills under the search, each putting its clause in the filter box, a query that can be dictated, and Advanced search for the Miller columns.",
   lastUpdated: "2026-09-22",
-  status: "in-progress",
+  status: "superseded",
   screens: [
     {
       slug: "start",
