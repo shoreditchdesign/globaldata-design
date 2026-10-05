@@ -54,87 +54,97 @@ export function LandingPage({
   const hasQuery = query.trim().length > 0
   const resolving = Boolean(pending)
 
-  // Switching between Quick and Advanced moves things rather than swapping them.
-  // Each tracked element is measured either side of the switch and eased from
-  // where it was: the title slides; the filter box glides between its place
-  // under the field and its place under the columns; and whatever the switch
-  // brings in starts where the title's move puts it, travelling up or down with
-  // the title as it fades in, so it never lands on top of the title mid-move.
-  // The pills are the exception: they wait until the move has all but settled
-  // before fading in, so the filter box gliding up past them never crosses them.
+  // Switching between Quick and Advanced is a crossfade, not a move. Every
+  // width is shared — the field, the columns card and the filter box all run
+  // the section's full width in both modes — so nothing resizes. What sits
+  // under the field fades out a few pixels downward, the layout swaps while it
+  // is clear, and the new set fades in where it rests: the columns card at its
+  // final height, the filter box at its new place, together. Only the title
+  // block eases into its new place, since Quick centres it and Advanced runs
+  // top down; the incoming set waits a beat for it so the two never overlap.
+  // Reduced motion swaps at once.
   const sectionRef = React.useRef<HTMLElement>(null)
-  const lastTops = React.useRef<{ title?: number; summary?: number }>({})
-  const lastMode = React.useRef(mode)
   const reducedMotion = usePrefersReducedMotion()
-  React.useLayoutEffect(() => {
-    const section = sectionRef.current
-    if (!section) return
-    // Where each element rests, leaving out any move still running: a render
-    // mid-move (the address bar catching up) must not record the start of the
-    // move as where the element sits.
-    const top = (selector: string) => {
-      const element = section.querySelector<HTMLElement>(selector)
-      if (!element) return undefined
-      const transform = getComputedStyle(element).transform
-      const moving = transform === "none" ? 0 : new DOMMatrix(transform).m42
-      return element.getBoundingClientRect().top - moving
-    }
-    const was = lastTops.current
-    const now = { title: top("[data-flip='title']"), summary: top("[data-flip='summary']") }
-    const switched = lastMode.current !== mode
-    lastTops.current = now
-    lastMode.current = mode
-    if (!switched || reducedMotion || was.title === undefined || now.title === undefined) return
+  const [shown, setShown] = React.useState(mode)
+  // The layout on screen. It trails the tabs by the fade-out, so the outgoing
+  // set is what fades rather than the incoming one appearing and vanishing.
+  const shownMode = reducedMotion ? mode : shown
 
-    const timing = {
-      duration: motion.reflow,
-      easing: getComputedStyle(section).getPropertyValue("--ease-settle-curve").trim() || "ease-out",
+  const easing = (name: "settle" | "lift") =>
+    (sectionRef.current &&
+      getComputedStyle(sectionRef.current).getPropertyValue(`--ease-${name}-curve`).trim()) ||
+    "ease-out"
+  const fading = () =>
+    Array.from(sectionRef.current?.querySelectorAll<HTMLElement>("[data-fade]") ?? [])
+
+  React.useEffect(() => {
+    if (reducedMotion || shown === mode) return
+    const outgoing = fading().map((element) => {
+      element.getAnimations().forEach((animation) => animation.cancel())
+      return element.animate(
+        [
+          { opacity: 1, transform: "none" },
+          { opacity: 0, transform: "translateY(4px)" },
+        ],
+        { duration: motion.quick, easing: easing("lift"), fill: "forwards" },
+      )
+    })
+    const timer = window.setTimeout(() => setShown(mode), motion.quick)
+    // Flipped back before the swap: the outgoing set simply returns.
+    return () => {
+      window.clearTimeout(timer)
+      outgoing.forEach((animation) => animation.cancel())
     }
-    const slide = (element: Element, offset: number, fade = false) => {
-      // A switch made mid-move starts again from where things rest.
+  }, [mode, shown, reducedMotion])
+
+  const lastTitleTop = React.useRef<number | undefined>(undefined)
+  const lastShown = React.useRef(shownMode)
+  React.useLayoutEffect(() => {
+    const title = sectionRef.current?.querySelector<HTMLElement>("[data-flip='title']")
+    if (!title) return
+    // Where the title rests, leaving out any move still running.
+    const transform = getComputedStyle(title).transform
+    const moving = transform === "none" ? 0 : new DOMMatrix(transform).m42
+    const now = title.getBoundingClientRect().top - moving
+    const was = lastTitleTop.current
+    const swapped = lastShown.current !== shownMode
+    lastTitleTop.current = now
+    lastShown.current = shownMode
+    if (!swapped || reducedMotion || was === undefined) return
+
+    const offset = was - now
+    if (offset !== 0) {
+      title.getAnimations().forEach((animation) => animation.cancel())
+      title.animate([{ transform: `translateY(${offset}px)` }, { transform: "none" }], {
+        duration: motion.settle,
+        easing: easing("settle"),
+      })
+    }
+    fading().forEach((element) => {
       element.getAnimations().forEach((animation) => animation.cancel())
       element.animate(
         [
-          { transform: `translateY(${offset}px)`, ...(fade ? { opacity: 0 } : {}) },
-          { transform: "none", ...(fade ? { opacity: 1 } : {}) },
+          { opacity: 0, transform: "translateY(4px)" },
+          { opacity: 1, transform: "none" },
         ],
-        timing,
+        {
+          duration: motion.settle,
+          easing: easing("settle"),
+          // Held clear while the title is still on its way.
+          delay: offset === 0 ? 0 : motion.handover,
+          fill: "backwards",
+        },
       )
-    }
-
-    const titleOffset = was.title - now.title
-    const title = section.querySelector("[data-flip='title']")
-    if (title && titleOffset !== 0) slide(title, titleOffset)
-    section.querySelectorAll("[data-flip='stack']").forEach((element) => slide(element, titleOffset, true))
-    section.querySelectorAll("[data-flip='after']").forEach((element) => {
-      element.getAnimations().forEach((animation) => animation.cancel())
-      element.animate([{ opacity: 0 }, { opacity: 1 }], {
-        ...timing,
-        // The move reads as settled well before it formally ends, so the pills
-        // come back at the settle mark and quickly, rather than after all of it.
-        delay: motion.settle,
-        duration: motion.quick,
-        // Held clear through the move, so they never show before their turn.
-        fill: "backwards",
-      })
     })
+  }, [shownMode, reducedMotion])
 
-    const summary = section.querySelector("[data-flip='summary']")
-    if (summary && now.summary !== undefined) {
-      // A box that was already on screen glides from its old place; one that
-      // was not arrives with the rest of what the switch brings in.
-      if (was.summary !== undefined) slide(summary, was.summary - now.summary)
-      else slide(summary, titleOffset, true)
-    }
-  })
-
-  const manualMode = mode === "manual"
+  const manualMode = shownMode === "manual"
 
   // The one search field, in both modes, so it is never swapped out: only what
   // sits under it changes. The tabs above it pick which.
   const field = (
     <form
-      className="bg-surface-panel border-ring mx-auto mt-3 flex min-h-16 w-full max-w-4xl items-center gap-3 rounded-xl border px-4 transition-colors"
+      className="bg-surface-panel border-ring mx-auto mt-3 flex min-h-16 w-full items-center gap-3 rounded-xl border px-4 transition-colors"
       onSubmit={(event) => {
         event.preventDefault()
         if (hasQuery && !resolving) onResolve()
@@ -185,13 +195,9 @@ export function LandingPage({
       <section
         ref={sectionRef}
         className={cn(
-          "mx-auto flex min-h-0 w-full flex-1 flex-col px-8 pt-12",
-          // Advanced widens so the three Miller columns span more of the page.
-          // Quick is wider than its search field: the field and the filter box
-          // are held at 56rem inside it, and the extra room is the pills', so a
-          // count arriving on one has somewhere to grow without the row
-          // rewrapping under the cursor.
-          manualMode ? "max-w-7xl pb-8" : "max-w-5xl items-center justify-center pb-16",
+          "mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-8 pt-12",
+          // One width in both modes, so the switch never resizes anything.
+          manualMode ? "pb-8" : "items-center justify-center pb-16",
         )}
       >
         {/* The title, the tabs and the field move as one, so the tab the
@@ -209,14 +215,14 @@ export function LandingPage({
           </div>
           {field}
           {manualMode && unread ? (
-            <ReadNotice resolution={unread} className="mx-auto mt-2 w-full max-w-4xl px-4 text-sm" />
+            <ReadNotice resolution={unread} className="mt-2 w-full px-4 text-sm" />
           ) : null}
         </div>
 
         {manualMode ? (
           <>
             <div
-              data-flip="stack"
+              data-fade
               className="bg-surface-panel border-ring mt-5 flex min-h-72 flex-1 flex-col overflow-hidden rounded-xl border"
             >
               {manual}
@@ -224,7 +230,7 @@ export function LandingPage({
             {/* As wide as the columns card above it, edge to edge, and only
                 once there is a filter to show. */}
             {filterBox ? (
-              <div data-flip="summary" className="mt-2 w-full shrink-0">
+              <div data-fade className="mt-2 w-full shrink-0">
                 {filterBox}
               </div>
             ) : null}
@@ -246,17 +252,17 @@ export function LandingPage({
               )}
             >
               {unread ? (
-                <ReadNotice
-                  resolution={unread}
-                  className={cn("mx-auto w-full max-w-4xl px-4 text-sm", filterBox && "-mb-2")}
-                />
+                <div data-fade className={cn(filterBox && "-mb-2")}>
+                  <ReadNotice resolution={unread} className="w-full px-4 text-sm" />
+                </div>
               ) : null}
               {filterBox ? (
-                <div data-flip="summary" className="mx-auto w-full max-w-4xl">
+                <div data-fade className="w-full">
                   {filterBox}
                 </div>
               ) : null}
-              <div data-flip="after">
+              {/* The pills keep the narrower measure, so their rows wrap as before. */}
+              <div data-fade className="mx-auto w-full max-w-5xl">
                 <SearchPills layout="centered" filters={filters} onToggleFilter={onToggleFilter} />
               </div>
             </div>
