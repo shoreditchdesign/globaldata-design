@@ -44,12 +44,15 @@ export function ManualSearch({
   trail,
   onOpenAt,
   onToggleValue,
+  hint,
 }: {
   filters: ResolvedFilter[]
   /** The open path: area, attribute, then values down the attribute's tree. */
   trail: string[]
   onOpenAt: (depth: number, label: string) => void
   onToggleValue: (area: ProductArea, attribute: string, value: string) => void
+  /** Bumped by Add filter to point at the first row of the newest column. */
+  hint?: number
 }) {
   const visibleColumns = 3
   const [query, setQuery] = React.useState("")
@@ -229,7 +232,7 @@ export function ManualSearch({
           return (
             <MillerColumn
               key={column.key}
-              column={column}
+              column={depth === visible.length - 1 ? { ...column, hint } : column}
               className={cn(
                 "[&>div:first-child]:border-t-0",
                 // A third each, so the first column never stretches across the pane alone.

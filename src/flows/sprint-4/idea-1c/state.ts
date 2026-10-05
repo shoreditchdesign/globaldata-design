@@ -60,6 +60,11 @@ export interface Sprint4Idea1cState {
    * the results page, so Add filter and a column's Edit filters can open it.
    */
   panelOpen: boolean
+  /**
+   * Bumped by Add filter so the columns flash the row to click next. A
+   * counter rather than a flag, so pressing it twice flashes twice.
+   */
+  trayHint: number
 }
 
 const startState = (): Sprint4Idea1cState => ({
@@ -74,6 +79,7 @@ const startState = (): Sprint4Idea1cState => ({
   unread: null,
   showResults: false,
   panelOpen: true,
+  trayHint: 0,
 })
 
 const filteredState = (): Sprint4Idea1cState => ({
@@ -90,6 +96,7 @@ const filteredState = (): Sprint4Idea1cState => ({
   unread: null,
   showResults: false,
   panelOpen: true,
+  trayHint: 0,
 })
 
 /** A pill pressed: its clause is in the box, waiting for a value. */
@@ -130,6 +137,7 @@ const resolvingState = (): Sprint4Idea1cState => ({
   unread: null,
   showResults: false,
   panelOpen: true,
+  trayHint: 0,
 })
 
 const resultsState = (): Sprint4Idea1cState => ({

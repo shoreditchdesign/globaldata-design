@@ -5,7 +5,14 @@ import { ChevronRightIcon } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { selectBoxClass } from "@/flows/sprint-4/idea-1c/components/SelectBox"
 import { cn } from "@/lib/utils"
-import { motion, tintClass, useSettle } from "@/components/prototype/motion"
+import * as React from "react"
+
+import {
+  motion,
+  tintClass,
+  usePrefersReducedMotion,
+  useSettle,
+} from "@/components/prototype/motion"
 
 /**
  * Counts above ten thousand compact so the number lane stays one width. A row
@@ -47,6 +54,11 @@ export interface ColumnModel {
   unit?: string
   /** Columns carrying the long labels take a larger share of the panel. */
   wide?: boolean
+  /**
+   * Bumped to point at this column's first row: Add filter has just opened
+   * the tray, and this is where to click next. See `HintFlash`.
+   */
+  hint?: number
 }
 
 /** The number lane is sized to the widest count in the column, not globally. */
@@ -149,8 +161,9 @@ export function MillerColumn({
           {column.items.length === 0 ? (
             <li className="text-muted-foreground px-2 py-1 text-xs">No matches</li>
           ) : null}
-          {column.items.map((item) => (
+          {column.items.map((item, index) => (
             <ColumnItem
+              hint={index === 0 ? column.hint : undefined}
               key={item.label}
               item={item}
               column={column}
@@ -188,9 +201,11 @@ function ColumnItem({
   hasDrill,
   isSelected,
   isHolding,
+  hint,
   onOpen,
   onToggle,
 }: {
+  hint?: number
   item: ColumnRow
   column: ColumnModel
   lane: string
@@ -214,7 +229,8 @@ function ColumnItem({
         // The transparent edge is carried by every row so that the open row can
         // colour one in without insetting its lanes a pixel further than its
         // neighbours' — the count lane has to stay plumb down the column.
-        "relative flex h-8 items-center rounded-md border border-transparent",
+        // Isolated, so a hint flash can sit under the row's text.
+        "relative isolate flex h-8 items-center rounded-md border border-transparent",
         tintClass,
         // Hover is grey on every row you can still move to, a ticked one
         // included — a `hover:` class outranks a flat one, so no row is left
@@ -234,6 +250,7 @@ function ColumnItem({
         isOpen && "bg-brand-tint border-brand-border",
       )}
     >
+      {hint !== undefined ? <HintFlash hint={hint} /> : null}
       {/* Lead lane: one control, always. A tick box where the column ticks, a
           radio mark where it only navigates. Never a number — the count lane on
           the right is the only place a number belongs. */}
@@ -341,5 +358,45 @@ function ColumnItem({
         ) : null}
       </button>
     </li>
+  )
+}
+
+/** The last hint played, so a column remounting does not replay an old one. */
+let lastHintPlayed = 0
+
+/**
+ * Where to click next, after Figma's prototype hotspot hint: two quick pulses
+ * of the washed brand, fill and edge, over the row, then gone. Under reduced
+ * motion it shows once, still, and fades. It sits under the row's text and
+ * takes no clicks. Only Add filter bumps the hint; the reader's own clicks in
+ * the columns never do.
+ */
+function HintFlash({ hint }: { hint: number }) {
+  const ref = React.useRef<HTMLSpanElement>(null)
+  const reducedMotion = usePrefersReducedMotion()
+  React.useEffect(() => {
+    const flash = ref.current
+    if (!flash || hint <= lastHintPlayed) return
+    lastHintPlayed = hint
+    flash.getAnimations().forEach((animation) => animation.cancel())
+    if (reducedMotion) {
+      flash.animate([{ opacity: 1 }, { opacity: 1, offset: 0.5 }, { opacity: 0 }], {
+        duration: motion.hold,
+        easing: "ease-out",
+      })
+      return
+    }
+    // Two pulses across two reflow beats, about 840ms in all.
+    flash.animate(
+      [{ opacity: 0 }, { opacity: 1 }, { opacity: 0 }, { opacity: 1 }, { opacity: 0 }],
+      { duration: motion.reflow * 2, easing: "ease-in-out" },
+    )
+  }, [hint, reducedMotion])
+  return (
+    <span
+      ref={ref}
+      aria-hidden
+      className="bg-brand-tint border-brand-border pointer-events-none absolute -inset-px -z-10 rounded-md border opacity-0"
+    />
   )
 }
