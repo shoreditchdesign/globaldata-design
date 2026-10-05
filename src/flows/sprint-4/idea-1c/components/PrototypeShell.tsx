@@ -25,7 +25,7 @@ import {
   type FilterLink,
 } from "@/flows/sprint-4/idea-1c/data"
 import { expandShorthand } from "@/flows/sprint-4/idea-1c/examples"
-import { resultsFor, trailFor } from "@/flows/sprint-4/idea-1c/results"
+import { resultsFor, toggleTreeValue, trailFor } from "@/flows/sprint-4/idea-1c/results"
 import {
   resolveQuery as resolveNaturalLanguage,
   type Resolution,
@@ -62,26 +62,18 @@ function toggleValueAt(
   if (!hasFilters) return { ...current, path, filters: [{ ...picked, appliedAt: at }] }
   const existing = current.filters.find((filter) => filter.id === picked.id)
 
-  // A value already in its filter is selected, so a second click takes it out
-  // again — and the filter with it, once it holds nothing.
-  if (existing?.values.includes(value)) {
-    return {
-      ...current,
-      filters: current.filters.flatMap((filter) => {
-        if (filter.id !== picked.id) return [filter]
-        const values = filter.values.filter((item) => item !== value)
-        return values.length > 0 ? [{ ...filter, values, appliedAt: at }] : []
-      }),
-    }
-  }
-
+  // Ticking and unticking go through the tree: a parent selects all its
+  // children, and a clause left with nothing goes.
+  const values = toggleTreeValue(area, attribute, existing?.values ?? [], value)
   const filters = existing
-    ? current.filters.map((filter) =>
-        filter.id === picked.id
-          ? { ...filter, values: [...filter.values, value], appliedAt: at }
-          : filter,
+    ? current.filters.flatMap((filter) =>
+        filter.id !== picked.id
+          ? [filter]
+          : values.length > 0
+            ? [{ ...filter, values, appliedAt: at }]
+            : [],
       )
-    : [...current.filters, { ...picked, appliedAt: at }]
+    : [...current.filters, { ...picked, values, appliedAt: at }]
   return { ...current, path, filters }
 }
 

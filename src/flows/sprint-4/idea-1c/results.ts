@@ -854,6 +854,44 @@ export function parentValueOf(area: ProductArea, attribute: string, value: strin
 }
 
 /**
+ * One value ticked or unticked in a clause, with the tree taken into account.
+ * Ticking a parent selects everything under it: the clause holds the parent
+ * (the chip reads "Europe", the rows are every European country's), and its
+ * children read as ticked. Unticking one child of a ticked parent swaps the
+ * parent for the siblings left; ticking the last missing child folds the set
+ * back into the parent.
+ */
+export function toggleTreeValue(
+  area: ProductArea,
+  attribute: string,
+  values: string[],
+  value: string,
+): string[] {
+  const parent = parentValueOf(area, attribute, value)
+  if (values.includes(value)) return values.filter((item) => item !== value)
+  if (parent && values.includes(parent)) {
+    const siblings = childValuesOf(area, attribute, parent).filter((child) => child !== value)
+    return [...values.filter((item) => item !== parent), ...siblings]
+  }
+  const children = childValuesOf(area, attribute, value)
+  const next = [...values.filter((item) => !children.includes(item)), value]
+  if (parent) {
+    const siblings = childValuesOf(area, attribute, parent)
+    if (siblings.every((child) => next.includes(child))) {
+      return [...next.filter((item) => !siblings.includes(item)), parent]
+    }
+  }
+  return next
+}
+
+/** Whether a value reads as ticked: in the clause, or under a parent that is. */
+export function isTicked(area: ProductArea, attribute: string, values: string[], value: string) {
+  if (values.includes(value)) return true
+  const parent = parentValueOf(area, attribute, value)
+  return Boolean(parent && values.includes(parent))
+}
+
+/**
  * Where the Miller columns should stand to show a clause: its area and
  * attribute, and the parent of its first value when that value sits a level
  * down, so the value is on screen with its tick.

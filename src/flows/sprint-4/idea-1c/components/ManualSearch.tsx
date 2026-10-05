@@ -16,6 +16,7 @@ import {
 } from "@/flows/sprint-4/idea-1c/data"
 import {
   childValuesOf,
+  isTicked,
   rootValuesOf,
   valueCountOf,
 } from "@/flows/sprint-4/idea-1c/results"
@@ -119,7 +120,11 @@ export function ManualSearch({
         unit: activeCategory === "Drugs" ? "Drugs" : "Records",
         items,
         selectable: true,
-        selected: ticked,
+        // A ticked parent selects everything under it, so its children read
+        // as ticked too.
+        selected: values.filter((value) =>
+          isTicked(activeCategory, activeAttribute, ticked, value),
+        ),
         // A value with something ticked beneath it reads as holding values,
         // in weight, the way a navigation row does.
         holding: items
