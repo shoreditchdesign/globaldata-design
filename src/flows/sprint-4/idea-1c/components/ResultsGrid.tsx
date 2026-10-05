@@ -16,7 +16,7 @@ import {
   FilterXIcon,
   SearchXIcon,
   MoveHorizontalIcon,
-  PanelLeftOpenIcon,
+  PanelLeftIcon,
   PinIcon,
   PinOffIcon,
   type LucideIcon,
@@ -495,7 +495,7 @@ export function ResultsGrid({
   aside,
   asideOpen,
   asideWidth,
-  onOpenAside,
+  onToggleAside,
 }: {
   /** Rows the filters keep, before sorting — at most the first 100. */
   rows: DrugRow[]
@@ -517,8 +517,7 @@ export function ResultsGrid({
   asideOpen: boolean
   /** Its width when open, as CSS — it changes with the mode the section is in. */
   asideWidth: string
-  /** Opens the panel again once it has been closed from its own head. */
-  onOpenAside: () => void
+  onToggleAside: () => void
 }) {
   const asideId = React.useId()
   const keys = visibleColumnKeys(state)
@@ -556,27 +555,9 @@ export function ResultsGrid({
             count sits over the drug names it counts. */}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <div className="bg-surface-panel border-edge flex h-11 shrink-0 items-center gap-3 border-b pr-3">
-            {/* The select lane's width, holding the reopen button when the panel
-                is closed, so the count after it starts on the Drug name column's
-                text edge whether the panel is open or not. */}
-            <span
-              className="-mr-3 flex shrink-0 items-center justify-center"
-              style={{ width: laneWidth(state, "select") }}
-            >
-              {asideOpen ? null : (
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label="Open the search panel"
-                  aria-expanded={false}
-                  aria-controls={asideId}
-                  onClick={onOpenAside}
-                  className="text-muted-foreground"
-                >
-                  <PanelLeftOpenIcon />
-                </Button>
-              )}
-            </span>
+            {/* The select lane's width, so the count after it starts on the
+                Drug name column's text edge whether the panel is open or not. */}
+            <span className="-mr-3 shrink-0" style={{ width: laneWidth(state, "select") }} />
             <p className="pl-3 text-[13px] tabular-nums" aria-live="polite">
               <span className="font-medium">{resultCount.toLocaleString("en-GB")}</span>{" "}
               <span className="text-muted-foreground">{resultCount === 1 ? "drug" : "drugs"}</span>
@@ -767,7 +748,19 @@ export function ResultsGrid({
       </div>
 
       <div className="bg-surface-chrome border-edge flex h-9 shrink-0 items-center gap-4 border-t pr-3 pl-1.5 text-xs tabular-nums">
-        <span className="mr-auto" aria-hidden />
+        {/* The panel toggle, as before, now named: the bare icon was not
+            found on the call, so it says what it does in both states. */}
+        <Button
+          variant="ghost"
+          size="xs"
+          aria-expanded={asideOpen}
+          aria-controls={asideId}
+          onClick={onToggleAside}
+          className="text-muted-foreground mr-auto"
+        >
+          <PanelLeftIcon />
+          {asideOpen ? "Hide filters" : "Show filters"}
+        </Button>
         <span>
           <span className="text-muted-foreground">Rows </span>
           <span className="font-medium">{rows.length}</span>

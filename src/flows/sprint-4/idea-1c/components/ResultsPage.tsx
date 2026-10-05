@@ -93,7 +93,7 @@ export function ResultsPage({
         // switch flips: Advanced's, three thirds of 266px against the Miller
         // columns' 260px floor, which the pills and the composer fit inside.
         asideWidth="800px"
-        onOpenAside={() => onPanelOpenChange(true)}
+        onToggleAside={() => onPanelOpenChange(!panelOpen)}
       />
     </main>
   )

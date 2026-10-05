@@ -345,7 +345,6 @@ export function PrototypeShell() {
               manualTrail={state.manualTrail}
               onOpenAt={openAt}
               onValuePickAt={pickValueAt}
-              onClosePanel={() => setPanelOpen(false)}
             />
           }
         />

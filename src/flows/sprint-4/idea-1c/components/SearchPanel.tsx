@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ArrowRightIcon, PanelLeftCloseIcon } from "lucide-react"
+import { ArrowRightIcon } from "lucide-react"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { Button } from "@/components/ui/button"
@@ -19,8 +19,8 @@ import { cn } from "@/lib/utils"
  * head, under the tabs, with the commonly used filters beneath it. Advanced
  * search has no field here, only the Miller columns: the client read a field
  * on this page as an assistant to talk to, and the columns are the way in.
- * The tabs and the close button share a row of their own over both modes, so
- * they never move when flipped. All of it feeds the filter box above.
+ * The tabs sit at the panel's top right on a row of their own over both
+ * modes, so they never move when flipped. All of it feeds the filter box above.
  *
  * It fills whatever width the results page gives it, which is the same in
  * both modes.
@@ -40,7 +40,6 @@ export function SearchPanel({
   manualTrail,
   onOpenAt,
   onValuePickAt,
-  onClosePanel,
 }: {
   mode: SearchMode
   query: string
@@ -58,8 +57,6 @@ export function SearchPanel({
   manualTrail: string[]
   onOpenAt: (depth: number, label: string) => void
   onValuePickAt: (area: ProductArea, attribute: string, value: string) => void
-  /** Folds the panel away so the table takes the full width. */
-  onClosePanel: () => void
 }) {
   const hasQuery = query.trim().length > 0
   const resolving = Boolean(pending)
@@ -137,21 +134,8 @@ export function SearchPanel({
       aria-label="Search"
       className="bg-surface-chrome border-edge flex h-full w-full flex-col border-r pt-2"
     >
-      <div className="flex shrink-0 items-center justify-end gap-2 px-3 pt-1">
+      <div className="flex shrink-0 justify-end px-3 pt-1">
         <SearchTabs mode={mode} onModeChange={onModeChange} />
-        {/* Closing sits at the panel's own head, where it is seen, rather than
-            in the table's footer, where nobody found it. */}
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Close the search panel"
-          aria-expanded
-          onClick={onClosePanel}
-          className="text-muted-foreground"
-        >
-          <PanelLeftCloseIcon />
-        </Button>
       </div>
       {mode === "quick" ? (
         <div className="flex min-h-0 flex-1 flex-col">
