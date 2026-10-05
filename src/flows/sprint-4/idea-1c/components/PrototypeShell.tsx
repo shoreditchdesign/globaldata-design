@@ -200,20 +200,34 @@ export function PrototypeShell() {
   // Add filter, and a column's Edit filters, open the one place a filter is
   // built by hand: Advanced search's columns, in the panel, at the given path.
   // Instant, with no walk — the client asked for this to be slick.
-  const openAdvancedAt = (trail: string[], hint = false, hintAt: HintTarget | null = null) => {
+  const openAdvancedAt = (
+    trail: string[] | ((current: Sprint4Idea1cState) => string[]),
+    hint = false,
+    hintAt: HintTarget | null = null,
+  ) => {
     walk.stop()
     setState((current) => ({
       ...current,
       mode: "manual",
       panelOpen: true,
-      manualTrail: trail,
+      manualTrail: typeof trail === "function" ? trail(current) : trail,
       trayHint: hint ? current.trayHint + 1 : current.trayHint,
       trayHintAt: hint ? hintAt : current.trayHintAt,
     }))
   }
   // Add filter also flashes where to click next in the columns, and a column's
   // Edit filters flashes the attribute it opened on.
-  const addFilter = () => openAdvancedAt(defaultTrail(), true)
+  // Where Advanced is already open in the panel, Add filter keeps the reader
+  // where they are and points at the first row of the column they are in;
+  // otherwise it opens the default Drugs › Drug Name.
+  const addFilter = () =>
+    openAdvancedAt(
+      (current) =>
+        current.mode === "manual" && current.panelOpen
+          ? current.manualTrail
+          : defaultTrail(),
+      true,
+    )
   const editFilterAt = (area: ProductArea, attribute: string, values: string[]) =>
     openAdvancedAt(trailFor(area, attribute, values), true, { depth: 1, label: attribute })
   // A filter chip's segments open the same place. A value opens at that value,
