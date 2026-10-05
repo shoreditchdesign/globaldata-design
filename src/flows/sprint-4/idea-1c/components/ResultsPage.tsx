@@ -21,7 +21,7 @@ function signatureOf(filters: ResolvedFilter[]) {
   return filters
     .map(
       (filter) =>
-        `${filter.id}:${filter.values.join(",")}:${filter.excluded}:${filter.join}:${filter.link}`,
+        `${filter.id}:${filter.values.join(",")}:${filter.join}:${filter.link}`,
     )
     .join("|")
 }
