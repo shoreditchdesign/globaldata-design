@@ -6,14 +6,16 @@ next session needs to carry on without rereading that conversation.
 
 ## Where things live
 
-The deck is `slides/sprint-3/options_review/index.html`, with `deck.js` and `logo.svg`
-beside it, and it follows the template in `slides/template/` exactly: read `DESIGN-NOTES.md` there
-before touching anything, since it sets the palette, the type scale, the components and the
-content register. `deck.js` is a byte-for-byte copy of the template's and should stay that way.
+The deck is `slides/sprint-3/options_review/index.html`. It loads Hoxton's `deck.css` and
+`deck.js` from Hoxton's live URL and the GlobalData layer from `slides/shared/` (`extensions.css`
+and `logo.js`), so the folder holds nothing else. Read `slides/shared/DESIGN-NOTES.md` before
+touching anything: it points to Hoxton's notes, which set the palette, the type scale, the
+components and the content register, and lists the components the GlobalData decks add.
 
-To look at it, serve the folder rather than opening the file, since `file://` blocks parts of the
-player: `python3 -m http.server 8765` from inside the folder, then
-`http://127.0.0.1:8765/index.html`. `?slide=N` jumps to a slide.
+To look at it, serve the repository root rather than opening the file, since `file://` blocks
+parts of the player and the deck reaches `../../shared/`: `python3 -m http.server 8765` from the
+repo root, then `http://127.0.0.1:8765/slides/sprint-3/options_review/`. `?slide=N` jumps to a
+slide.
 
 The client's usage data is in the same folder as `Advanced_Search_Behaviour_Summary.docx`. Every
 figure on the goals and measures slides comes from it, so if a number is questioned, that is the
@@ -105,12 +107,12 @@ Austin asked to see this so he can decide whether any of it comes back. None of 
   headings ("Four routes to natural language search"), made by another session or by hand. It is
   backed up at the session scratchpad as `index-parallel-version-backup.html`, but the scratchpad
   is temporary, so if anything in it is wanted, lift it soon.
-- There is still a loose `slides/sprint-3/options_review.html` and `slides/sprint-3/deck.js`
-  from the first pass. The folder is the real deck now, so those two can go once Austin confirms.
+- The loose first-pass `slides/sprint-3/options_review.html` and `slides/sprint-3/deck.js` have
+  been removed. Git history still has them.
 - `slides/sprint-3/Documents/` is a 19 GB untracked copy of a whole `Documents/Github` tree,
   `node_modules` included, dropped in by accident. It must not be committed. Austin has not yet
   confirmed deleting it.
-- The logo is the template's `logo.svg`, which is the Shoreditch mark, not GlobalData's.
+- The logo, now held once in `slides/shared/logo.js`, is still the Shoreditch mark, not GlobalData's.
 - None of the deck work is committed. On `main`, four Idea 1 commits are waiting for Austin to push,
   and he pushes `main` himself because of the Vercel plan.
 - The client's data reframes G2 more than the first draft did: only 12% of follow-up searches add a
