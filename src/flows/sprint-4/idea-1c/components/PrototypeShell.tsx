@@ -368,6 +368,7 @@ export function PrototypeShell() {
           onClearFilters={clearFilters}
           filterBox={filterBox}
           panelOpen={state.panelOpen}
+          panelMode={state.mode}
           onPanelOpenChange={setPanelOpen}
           panel={
             <SearchPanel
@@ -420,6 +421,7 @@ export function PrototypeShell() {
             onToggleValue={pickValueAt}
             hint={state.trayHint}
             hintAt={state.trayHintAt}
+            columnsAcross={4}
           />
         }
         pending={state.pending}
