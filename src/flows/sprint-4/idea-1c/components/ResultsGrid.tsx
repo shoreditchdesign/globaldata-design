@@ -54,7 +54,6 @@ import {
   columnByKey,
   columnFilterPath,
   columnTrack,
-  hiddenColumnKeys,
   laneWidth,
   sortRows,
   visibleColumnKeys,
@@ -541,8 +540,6 @@ export function ResultsGrid({
   const selected = state.selected.filter((id) => rowIds.includes(id))
   const allSelected = rows.length > 0 && selected.length === rows.length
   const someSelected = selected.length > 0 && !allSelected
-  const shownColumns = keys.length - 1
-  const totalColumns = shownColumns + hiddenColumnKeys(state).length
 
   return (
     <div className="bg-surface-panel flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -596,12 +593,7 @@ export function ResultsGrid({
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="sm">
                     <Columns3Icon className="text-muted-foreground" />
-                    <span className="tabular-nums">
-                      {shownColumns}{" "}
-                      <span className="text-muted-foreground font-normal">
-                        of {totalColumns} columns
-                      </span>
-                    </span>
+                    Edit columns
                   </Button>
                 </PopoverTrigger>
                 {/* The same box Add filter and the value lists open in. */}
