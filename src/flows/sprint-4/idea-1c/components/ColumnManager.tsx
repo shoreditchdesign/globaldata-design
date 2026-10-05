@@ -80,8 +80,13 @@ export function ColumnManager({
 
   return (
     <Command>
-      <div className="text-muted-foreground flex items-center px-3 py-2 text-[10px] font-medium tracking-[0.08em] uppercase">
+      {/* How many are showing lives here rather than on the button, which
+          just says what it opens. */}
+      <div className="text-muted-foreground flex items-center justify-between px-3 py-2 text-[10px] font-medium tracking-[0.08em] uppercase">
         Columns
+        <span className="tabular-nums">
+          Showing {shown.length} of {shown.length + hidden.length}
+        </span>
       </div>
 
       <CommandInput value={query} onValueChange={setQuery} placeholder="Search Columns" />
