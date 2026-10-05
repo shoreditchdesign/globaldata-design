@@ -26,6 +26,7 @@ import {
   type FilterLink,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1c/data"
+import { valueCountOf } from "@/flows/sprint-4/idea-1c/results"
 import { cn } from "@/lib/utils"
 
 /**
@@ -533,8 +534,11 @@ function ValueMenu({
       <PopoverContent align="start" className="w-72 gap-0 p-0">
         <ValueList
           label={filter.label}
-          options={options}
+          // A value ticked from a level down the tree (an indication, say) is
+          // not in the attribute's own list, so it is added to the end.
+          options={[...options, ...filter.values.filter((value) => !options.includes(value))]}
           selected={filter.values}
+          countOf={(value) => valueCountOf(path.area, path.attribute, value)}
           onToggle={(value) => onToggleValue(filter.id, value)}
           onPickOnly={(value) => {
             onPickOnlyValue(path.area, path.attribute, value)
