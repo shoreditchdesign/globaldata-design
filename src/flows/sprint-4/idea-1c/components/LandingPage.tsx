@@ -115,8 +115,10 @@ export function LandingPage({
     const offset = was - now
     if (offset !== 0) {
       title.getAnimations().forEach((animation) => animation.cancel())
+      // The title travels furthest of anything here, so it gets the longer
+      // reflow beat: at the settle beat its ~86px read as a lurch.
       title.animate([{ transform: `translateY(${offset}px)` }, { transform: "none" }], {
-        duration: motion.settle,
+        duration: motion.reflow,
         easing: easing("settle"),
       })
     }
@@ -211,7 +213,7 @@ export function LandingPage({
             </p>
           </div>
           <div className="mt-6 flex justify-center">
-            <SearchTabs mode={mode} onModeChange={onModeChange} />
+            <SearchTabs mode={mode} onModeChange={onModeChange} className="border-ring" />
           </div>
           {field}
           {manualMode && unread ? (
