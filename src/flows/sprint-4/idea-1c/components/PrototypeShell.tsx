@@ -84,36 +84,6 @@ function toggleValueAt(
   return { ...current, path, filters }
 }
 
-/**
- * One value, in place of whatever that clause held.
- *
- * What clicking the row of a list does, as against clicking its tick box: a
- * list is most often read to pick one thing, and picking it should not mean
- * first clearing what a previous read left behind.
- */
-function onlyValueAt(
-  current: Sprint4Idea1cState,
-  area: ProductArea,
-  attribute: string,
-  value: string,
-): Sprint4Idea1cState {
-  const picked = pathFilter(area, attribute, value)
-  const existing = current.filters.some((filter) => filter.id === picked.id)
-  const at = nextAppliedAt(current.filters)
-  return {
-    ...current,
-    path: { area, attribute, value },
-    // An existing clause keeps everything but its values — whether it includes
-    // or excludes, and how it joins the clause before it, were decided in the
-    // box and are not this list's to reset.
-    filters: existing
-      ? current.filters.map((filter) =>
-          filter.id === picked.id ? { ...filter, values: [value], appliedAt: at } : filter,
-        )
-      : [...current.filters, { ...picked, appliedAt: at }],
-  }
-}
-
 /** Whether a read left words it could not place, or asked for something unbuilt. */
 function leftOver(resolution: Resolution) {
   return resolution.unplaced.length > 0 || resolution.notes.length > 0
@@ -213,10 +183,14 @@ export function PrototypeShell() {
   const addFilter = () => openAdvancedAt(["Drugs"])
   const editFilterAt = (area: ProductArea, attribute: string, values: string[]) =>
     openAdvancedAt(trailFor(area, attribute, values))
+  // A value on a filter chip opens the same place, at that clause.
+  const editFilterValues = (id: FilterId) => {
+    const { area, attribute } = pathOf(id)
+    const clause = state.filters.find((filter) => filter.id === id)
+    editFilterAt(area, attribute, clause?.values ?? [])
+  }
   const pickValueAt = (area: ProductArea, attribute: string, value: string) =>
     setState((current) => toggleValueAt(current, area, attribute, value))
-  const pickOnlyValueAt = (area: ProductArea, attribute: string, value: string) =>
-    setState((current) => onlyValueAt(current, area, attribute, value))
   const submitQuery = () =>
     setState((current) => {
       const resolution = resolveNaturalLanguage(current.query)
@@ -279,19 +253,6 @@ export function PrototypeShell() {
         filter.id === id ? { ...filter, link } : filter,
       ),
     }))
-  const toggleFilterValue = (id: FilterId, value: string) =>
-    setState((current) => ({
-      ...current,
-      filters: current.filters.flatMap((filter) => {
-        if (filter.id !== id) return [filter]
-        const values = filter.values.includes(value)
-          ? filter.values.filter((item) => item !== value)
-          : [...filter.values, value]
-        // An emptied clause stays, back at Select value. Its pill is what puts
-        // it in the box and what takes it out, so unticking a value must not.
-        return [{ ...filter, values, appliedAt: nextAppliedAt(current.filters) }]
-      }),
-    }))
   const removeFilter = (id: FilterId) =>
     setState((current) => ({
       ...current,
@@ -313,10 +274,9 @@ export function PrototypeShell() {
       onModeChange={setFilterMode}
       onJoinChange={setFilterJoin}
       onLinkChange={setFilterLink}
-      onToggleValue={toggleFilterValue}
+      onEditValues={editFilterValues}
       onRemove={removeFilter}
       onAddFilter={addFilter}
-      onPickOnlyValue={pickOnlyValueAt}
       onClear={clearFilters}
       onSearch={state.showResults ? undefined : search}
       // Advanced always shows the box, so it has nothing to close back to.

@@ -3,9 +3,7 @@
 import * as React from "react"
 import { ChevronDownIcon, PlusIcon, XIcon } from "lucide-react"
 
-import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { Button } from "@/components/ui/button"
-import { ValueList } from "@/flows/sprint-4/idea-1c/components/ValueList"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,14 +17,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import {
-  definitionFor,
-  pathOf,
   type FilterId,
   type FilterJoin,
   type FilterLink,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1c/data"
-import { valueCountOf } from "@/flows/sprint-4/idea-1c/results"
 import { cn } from "@/lib/utils"
 
 /**
@@ -104,10 +99,9 @@ export function ResolvedFilters({
   onModeChange,
   onJoinChange,
   onLinkChange,
-  onToggleValue,
+  onEditValues,
   onRemove,
   onAddFilter,
-  onPickOnlyValue,
   onClear,
   onSearch,
   onClose,
@@ -118,12 +112,10 @@ export function ResolvedFilters({
   onModeChange: (id: FilterId, excluded: boolean) => void
   onJoinChange: (id: FilterId, join: FilterJoin) => void
   onLinkChange: (id: FilterId, link: FilterLink) => void
-  onToggleValue: (id: FilterId, value: string) => void
+  onEditValues: (id: FilterId) => void
   onRemove: (id: FilterId) => void
   /** Add filter opens Advanced search's columns, at Drugs. */
   onAddFilter: () => void
-  /** One value in place of the clause's others — a row clicked, not its box. */
-  onPickOnlyValue: (area: ProductArea, attribute: string, value: string) => void
   onClear: () => void
   /** Runs the search from the landing page. Omitted where results already follow the filters. */
   onSearch?: () => void
@@ -209,8 +201,7 @@ export function ResolvedFilters({
                 filter={filter}
                 onModeChange={onModeChange}
                 onJoinChange={onJoinChange}
-                onToggleValue={onToggleValue}
-                onPickOnlyValue={onPickOnlyValue}
+                onEditValues={onEditValues}
                 onRemove={onRemove}
               />
             </div>
@@ -224,8 +215,7 @@ export function ResolvedFilters({
               onModeChange={onModeChange}
               onJoinChange={onJoinChange}
               onLinkChange={onLinkChange}
-              onToggleValue={onToggleValue}
-              onPickOnlyValue={onPickOnlyValue}
+              onEditValues={onEditValues}
               onRemove={onRemove}
             />
           ) : null}
@@ -299,8 +289,7 @@ function FoldedFilters({
   onModeChange,
   onJoinChange,
   onLinkChange,
-  onToggleValue,
-  onPickOnlyValue,
+  onEditValues,
   onRemove,
 }: {
   filters: ResolvedFilter[]
@@ -309,8 +298,7 @@ function FoldedFilters({
   onModeChange: (id: FilterId, excluded: boolean) => void
   onJoinChange: (id: FilterId, join: FilterJoin) => void
   onLinkChange: (id: FilterId, link: FilterLink) => void
-  onToggleValue: (id: FilterId, value: string) => void
-  onPickOnlyValue: (area: ProductArea, attribute: string, value: string) => void
+  onEditValues: (id: FilterId) => void
   onRemove: (id: FilterId) => void
 }) {
   return (
@@ -360,8 +348,7 @@ function FoldedFilters({
                 filter={filter}
                 onModeChange={onModeChange}
                 onJoinChange={onJoinChange}
-                onToggleValue={onToggleValue}
-                onPickOnlyValue={onPickOnlyValue}
+                onEditValues={onEditValues}
                 onRemove={onRemove}
               />
             </div>
@@ -405,19 +392,15 @@ function FilterClause({
   filter,
   onModeChange,
   onJoinChange,
-  onToggleValue,
-  onPickOnlyValue,
+  onEditValues,
   onRemove,
 }: {
   filter: ResolvedFilter
   onModeChange: (id: FilterId, excluded: boolean) => void
   onJoinChange: (id: FilterId, join: FilterJoin) => void
-  onToggleValue: (id: FilterId, value: string) => void
-  onPickOnlyValue: (area: ProductArea, attribute: string, value: string) => void
+  onEditValues: (id: FilterId) => void
   onRemove: (id: FilterId) => void
 }) {
-  const definition = definitionFor(filter.id)
-
   return (
     <div
       // What the band counts when it works out how many lines the filters run
@@ -464,9 +447,7 @@ function FilterClause({
           ) : null}
           <ValueMenu
             filter={filter}
-            options={definition.options}
-            onToggleValue={onToggleValue}
-            onPickOnlyValue={onPickOnlyValue}
+            onEditValues={onEditValues}
             className={cn(
               value === null && "text-muted-foreground",
               value !== null && index < filter.values.length - 1
@@ -492,61 +473,35 @@ function FilterClause({
 }
 
 /**
- * One value of a clause, and the whole list behind it.
- *
- * A popover around a `Command` rather than a dropdown, because a dropdown
- * spends the keyboard on its own typeahead and there is no room in it for a
- * field: these lists run to hundreds of values, and scrolling to a target or a
- * country is not how anyone finds one. Every row carries a tick box on the
- * The list itself is `ValueList`, which a column's own menu in the grid opens
- * as well — the same values, ticked the same way, wherever it is reached from.
+ * One value of a clause. Pressing it no longer drops a checklist under the
+ * chip: it opens Advanced search's columns in the panel at this clause's
+ * attribute, its values ticked, so values are picked in the one place a
+ * filter is built by hand — the same thing a column's Edit filters does.
  */
 function ValueMenu({
   filter,
-  options,
-  onToggleValue,
-  onPickOnlyValue,
+  onEditValues,
   className,
   children,
 }: {
   filter: ResolvedFilter
-  options: string[]
-  onToggleValue: (id: FilterId, value: string) => void
-  onPickOnlyValue: (area: ProductArea, attribute: string, value: string) => void
+  onEditValues: (id: FilterId) => void
   className?: string
   children: React.ReactNode
 }) {
-  const [open, setOpen] = React.useState(false)
-  const path = pathOf(filter.id)
-
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        aria-label={`Choose ${filter.label}`}
-        className={cn(
-          "hover:bg-foreground/5 flex min-w-0 items-center gap-1.5 px-2.5 py-1.5 text-left transition-colors",
-          className,
-        )}
-      >
-        {children}
-        <ChevronDownIcon className="size-3 shrink-0" />
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-72 gap-0 p-0">
-        <ValueList
-          label={filter.label}
-          // A value ticked from a level down the tree (an indication, say) is
-          // not in the attribute's own list, so it is added to the end.
-          options={[...options, ...filter.values.filter((value) => !options.includes(value))]}
-          selected={filter.values}
-          countOf={(value) => valueCountOf(path.area, path.attribute, value)}
-          onToggle={(value) => onToggleValue(filter.id, value)}
-          onPickOnly={(value) => {
-            onPickOnlyValue(path.area, path.attribute, value)
-            setOpen(false)
-          }}
-        />
-      </PopoverContent>
-    </Popover>
+    <button
+      type="button"
+      onClick={() => onEditValues(filter.id)}
+      aria-label={`Choose ${filter.label} in Advanced search`}
+      className={cn(
+        "hover:bg-foreground/5 flex min-w-0 items-center gap-1.5 px-2.5 py-1.5 text-left transition-colors",
+        className,
+      )}
+    >
+      {children}
+      <ChevronDownIcon className="size-3 shrink-0" />
+    </button>
   )
 }
 
