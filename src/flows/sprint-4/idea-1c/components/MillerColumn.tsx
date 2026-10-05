@@ -136,8 +136,15 @@ export function MillerColumn({
           separates it from the breadcrumb and the field, and `border-edge`
           below closes the white header block off against the column grey.
           Without the top rule it floated between the two. */}
-      <div className="bg-surface-panel border-edge flex h-8 shrink-0 items-center gap-1.5 border-y pr-1.5 pl-2">
-        <span className="w-3 shrink-0" aria-hidden />
+      <div
+        className={cn(
+          "bg-surface-panel border-edge flex h-8 shrink-0 items-center gap-1.5 border-y pr-1.5",
+          // On the label's edge: past the tick box where the rows carry one,
+          // at the row's own inset where they only navigate.
+          column.selectable ? "pl-2" : "pl-3.5",
+        )}
+      >
+        {column.selectable ? <span className="w-3 shrink-0" aria-hidden /> : null}
         {/* One ink for every caption. Which column you are ticking into is said
             by the tick boxes in it, not by a heading two shades darker than its
             neighbour's. */}
@@ -262,11 +269,13 @@ function ColumnItem({
       )}
     >
       {hint !== undefined ? <HintFlash hint={hint} delay={hintDelay} /> : null}
-      {/* Lead lane: one control, always. A tick box where the column ticks, a
-          radio mark where it only navigates. Never a number — the count lane on
-          the right is the only place a number belongs. */}
-      <span className="flex w-5 shrink-0 items-center justify-center">
-        {column.selectable && onToggle ? (
+      {/* Lead lane: a tick box, where the column ticks values into the query.
+          A navigation row has none: its open state (the washed brand fill and
+          edge) says where the path is, and a radio mark beside it said the
+          same thing again. Never a number — the count lane on the right is
+          the only place a number belongs. */}
+      {column.selectable && onToggle ? (
+        <span className="flex w-5 shrink-0 items-center justify-center">
           <Checkbox
             checked={isSelected}
             onCheckedChange={() => onToggle(item.label)}
@@ -276,42 +285,14 @@ function ColumnItem({
               // with the type it sits beside rather than staying the one thing
               // in the column still sized for the 16px round.
               "size-3.5 [&>[data-slot=checkbox-indicator]>svg]:size-3",
-              // White, not the column's grey. An unticked box on
-              // `bg-surface-page` was an outline on a fill a shade off it and
-              // all but disappeared; the client chose to light the box rather
-              // than to lift the column. Ticked is untouched — the brand fill
-              // carries its own attribute variant, so it outranks this.
+              // White, not the column's grey, so an unticked box reads.
               "bg-surface-panel",
               // The grid's darker resting edge, so a box reads at rest here too.
               selectBoxClass,
             )}
           />
-        ) : (
-          // A navigation column ticks nothing, so the lane says where the path
-          // is instead: one mark per row, filled on the row whose children are
-          // open to the right. Its core is `selected`, the same token the tick
-          // boxes one column over resolve to, so the two lead lanes read as one
-          // family of controls rather than a blue box beside a black dot.
-          //
-          // Not a `RadioGroup`. The row already has two click targets, the box
-          // and the label, and a real radio input would compete with the label
-          // button for the same gesture to say the same thing.
-          //
-          // Decorative: the row's `aria-current` below is what a screen reader
-          // hears, so the mark is hidden from it rather than announced twice.
-          <span
-            aria-hidden
-            className={cn(
-              "border-ring flex size-3.5 items-center justify-center rounded-full border",
-              tintClass,
-            )}
-          >
-            {isOpen ? (
-              <span className={cn("bg-selected size-1.5 rounded-full", tintClass)} />
-            ) : null}
-          </span>
-        )}
-      </span>
+        </span>
+      ) : null}
 
       <button
         type="button"
@@ -324,7 +305,10 @@ function ColumnItem({
         // `h-full`, not `h-8`: the row owns the 32px now that it carries a
         // border, and a second fixed 32px inside a 30px content box would
         // overflow it.
-        className="flex h-full min-w-0 flex-1 items-center gap-1.5 pr-1.5 text-left"
+        className={cn(
+          "flex h-full min-w-0 flex-1 items-center gap-1.5 pr-1.5 text-left",
+          !(column.selectable && onToggle) && "pl-2.5",
+        )}
       >
         <span
           className={cn(
