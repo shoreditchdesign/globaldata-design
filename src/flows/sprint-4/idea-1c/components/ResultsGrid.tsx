@@ -4,6 +4,8 @@ import * as React from "react"
 import {
   ArrowDownAZIcon,
   ArrowUpAZIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
   Columns3Icon,
   DownloadIcon,
   EllipsisVerticalIcon,
@@ -12,7 +14,6 @@ import {
   FilterXIcon,
   SearchXIcon,
   SlidersHorizontalIcon,
-  TriangleIcon,
   MoveHorizontalIcon,
   PanelLeftIcon,
   PinIcon,
@@ -131,25 +132,25 @@ function MenuAction({
   )
 }
 
-/** The sort mark: an up triangle over a down one, outline only. */
+/** The sort mark: a chevron up over a chevron down, stroke only. */
 function SortMark({ sorted }: { sorted: "asc" | "desc" | null }) {
-  const triangle = "size-[7px] shrink-0 transition-opacity"
+  const chevron = "-my-[2px] size-2.5 shrink-0 transition-opacity"
   return (
     <span
-      className="flex shrink-0 flex-col items-center gap-px"
+      className="flex shrink-0 flex-col items-center"
       role={sorted ? "img" : undefined}
       aria-label={
         sorted === "asc" ? "Sorted ascending" : sorted === "desc" ? "Sorted descending" : undefined
       }
       aria-hidden={sorted ? undefined : true}
     >
-      <TriangleIcon
+      <ChevronUpIcon
         strokeWidth={2.5}
-        className={cn(triangle, sorted === "desc" && "opacity-35")}
+        className={cn(chevron, sorted === "desc" && "opacity-35")}
       />
-      <TriangleIcon
+      <ChevronDownIcon
         strokeWidth={2.5}
-        className={cn(triangle, "rotate-180", sorted === "asc" && "opacity-35")}
+        className={cn(chevron, sorted === "asc" && "opacity-35")}
       />
     </span>
   )
@@ -228,8 +229,8 @@ function HeaderCell({
       >
         <span className="truncate">{column.label}</span>
         {/* Every sortable head shows that it sorts, at rest: two outline
-            triangles in the header's own grey. Once sorted, the direction's
-            triangle takes full ink and the other dims. A click cycles
+            chevrons in the header's own grey. Once sorted, the direction's
+            chevron takes full ink and the other dims. A click cycles
             ascending, descending, then back to unsorted. */}
         <SortMark sorted={sorted} />
         {pinned && !locked ? <PinIcon className="size-3 shrink-0" aria-label="Pinned" /> : null}
