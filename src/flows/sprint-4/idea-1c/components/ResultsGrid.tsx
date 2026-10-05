@@ -4,6 +4,7 @@ import * as React from "react"
 import {
   ArrowDownIcon,
   ArrowDownAZIcon,
+  ArrowUpDownIcon,
   ArrowUpIcon,
   ArrowUpAZIcon,
   Columns3Icon,
@@ -202,8 +203,17 @@ function HeaderCell({
         )}
       >
         <span className="truncate">{column.label}</span>
-        {sorted === "asc" ? <ArrowUpIcon className="size-3 shrink-0" aria-label="Sorted ascending" /> : null}
-        {sorted === "desc" ? <ArrowDownIcon className="size-3 shrink-0" aria-label="Sorted descending" /> : null}
+        {/* Every sortable head shows that it sorts, at rest: a two-way arrow
+            in the header's own grey, which becomes the direction in full ink
+            once the column is sorted. A click cycles ascending, descending,
+            then back to unsorted. */}
+        {sorted === "asc" ? (
+          <ArrowUpIcon className="size-3 shrink-0" aria-label="Sorted ascending" />
+        ) : sorted === "desc" ? (
+          <ArrowDownIcon className="size-3 shrink-0" aria-label="Sorted descending" />
+        ) : (
+          <ArrowUpDownIcon className="size-3 shrink-0" aria-hidden />
+        )}
         {pinned && !locked ? <PinIcon className="size-3 shrink-0" aria-label="Pinned" /> : null}
         {applied > 0 ? (
           // How many values this lane is filtered by. A tint, not the accent
