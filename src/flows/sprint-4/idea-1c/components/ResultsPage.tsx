@@ -32,13 +32,14 @@ function signatureOf(filters: ResolvedFilter[]) {
  * filters as they are added, edited or removed, so there is no search to run
  * here.
  *
- * Whether the chat section is open is a view preference, not part of the
- * query, so it is held here rather than in the prototype state and no screen
- * seeds into it.
+ * Whether the search panel is open is held in the prototype state rather than
+ * here, so Add filter and a column's Edit filters can open it from outside.
  */
 export function ResultsPage({
   panel,
   filterBox,
+  panelOpen,
+  onPanelOpenChange,
   filters,
   onToggleFilterValue,
   onPickOnlyFilterValue,
@@ -47,6 +48,8 @@ export function ResultsPage({
 }: {
   panel: React.ReactNode
   filterBox: React.ReactNode
+  panelOpen: boolean
+  onPanelOpenChange: (open: boolean) => void
   filters: ResolvedFilter[]
   /** The column menus filter by the same handlers the filter box uses. */
   onToggleFilterValue: (area: ProductArea, attribute: string, value: string) => void
@@ -57,7 +60,6 @@ export function ResultsPage({
 }) {
   const results = resultsFor(filters)
   const [grid, setGrid] = React.useState(initialGridState)
-  const [panelOpen, setPanelOpen] = React.useState(true)
   // Loading until the current filters have been settled on — which they have
   // not on arrival, since arriving here means a search has just run.
   const signature = signatureOf(filters)
@@ -94,7 +96,7 @@ export function ResultsPage({
         // switch flips: Advanced's, three thirds of 266px against the Miller
         // columns' 260px floor, which the pills and the composer fit inside.
         asideWidth="800px"
-        onToggleAside={() => setPanelOpen((open) => !open)}
+        onOpenAside={() => onPanelOpenChange(true)}
       />
     </main>
   )

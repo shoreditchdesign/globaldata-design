@@ -129,6 +129,7 @@ export function PrototypeShell() {
   useDeepLink(slugFor(state), reseed)
 
   const setMode = (mode: SearchMode) => setState((current) => ({ ...current, mode }))
+  const setPanelOpen = (panelOpen: boolean) => setState((current) => ({ ...current, panelOpen }))
   // A changed query is a new question, so what the last one left unread goes.
   // `$$` is expanded here, outside the updater, so each press is one example.
   const setQuery = (typed: string) => {
@@ -307,6 +308,8 @@ export function PrototypeShell() {
           onClearFilter={removeFilter}
           onClearFilters={clearFilters}
           filterBox={filterBox}
+          panelOpen={state.panelOpen}
+          onPanelOpenChange={setPanelOpen}
           panel={
             <SearchPanel
               mode={state.mode}
@@ -325,6 +328,7 @@ export function PrototypeShell() {
               onOpenCategory={openCategory}
               onOpenAttribute={openAttribute}
               onValuePickAt={pickValueAt}
+              onClosePanel={() => setPanelOpen(false)}
             />
           }
         />
