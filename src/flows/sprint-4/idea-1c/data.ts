@@ -13,8 +13,15 @@ export const activeProductArea: ProductArea = "Drugs"
  */
 export const navAreas: readonly ProductArea[] = ["Companies", "Drugs"]
 
-/** The incumbent's highest-level search areas, kept in the established order. */
-export const searchCategories = productAreas
+/**
+ * The highest-level search areas, Drugs first and the rest in the platform's
+ * order. Drugs is what this search is for, so it leads the list and opens by
+ * default (the 5 October call).
+ */
+export const searchCategories: readonly ProductArea[] = [
+  "Drugs",
+  ...productAreas.filter((area) => area !== "Drugs"),
+]
 
 type ValueCounts = readonly (readonly [label: string, count: number])[]
 
