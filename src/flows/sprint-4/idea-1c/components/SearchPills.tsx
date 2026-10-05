@@ -79,7 +79,7 @@ export function SearchPills({
         )}
       >
         {attribute}
-        <FilterCount count={filter?.values.length ?? 0} />
+        <FilterCount count={filter?.values.length ?? 0} selected={Boolean(filter)} />
       </button>
     )
   })
@@ -104,20 +104,23 @@ export function SearchPills({
 }
 
 /**
- * A small count on a pill: how many values its clause holds.
- *
- * Only ever drawn on a pill that is on, since a pill that is off has no clause
- * to count — so it takes one treatment, cut out of the wash the pill is filled
- * with rather than tinted the same colour as it.
+ * How many values a pill's clause holds, as plain text after the name:
+ * "Development Stage (2)". No badge — the number is part of the label. It
+ * takes the pill's own edge family as its colour, darkened to text strength:
+ * brand-ink on a pill that is on (brand-border is too pale to read), and
+ * muted-foreground on one that is off.
  */
-function FilterCount({ count }: { count: number }) {
+function FilterCount({ count, selected }: { count: number; selected: boolean }) {
   if (count === 0) return null
   return (
     <span
       aria-label={`${count} value${count === 1 ? "" : "s"} applied`}
-      className="bg-surface-panel text-brand-ink ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-none font-medium tabular-nums"
+      className={cn(
+        "ml-1 font-medium tabular-nums",
+        selected ? "text-brand-ink" : "text-muted-foreground",
+      )}
     >
-      {count}
+      ({count})
     </span>
   )
 }
