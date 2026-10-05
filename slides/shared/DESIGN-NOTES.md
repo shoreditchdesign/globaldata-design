@@ -54,6 +54,8 @@ live in `extensions.css`.
 | `.slide-foot` | Bottom row of an option slide: verdict left, prototype link right | Sprint 3 options review |
 | `.link-list` | One prototype state per row, its goal tag inline | Sprint 3 options review |
 | `.one-link` | A closing slide that is one centred link at `h2` size | Sprint 4 option review |
+| `.eyebrow` + `h1`/`h2` | A chapter index ("01 — What changed") carried over every heading in that chapter, and over a divider's `h1` | Sprint 5 client review |
+| `.split-text` (`.split-copy`, `.split-frame`) | Copy on the left half, an empty dashed frame on the right half for a screenshot. Hoxton's `profile` puts its media on the right too, but it is built for a bio; this is the general text-and-image slide | Sprint 5 client review |
 
 A slide that fits neither Hoxton's library nor this table is a new component, not a bent existing
 one. If it is GlobalData-specific, add it to `extensions.css` under its own commented block and a

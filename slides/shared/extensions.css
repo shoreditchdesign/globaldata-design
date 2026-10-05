@@ -85,3 +85,36 @@ ul.marks li strong{
   justify-content:center;
   text-align:center;
 }
+
+/* ---------- chapter index — an eyebrow carrying the chapter over a heading ----------
+   "01 — What changed" above the slide's h2, or a divider's h1, so every slide in a
+   chapter names the chapter it belongs to. */
+.eyebrow + h1,
+.eyebrow + h2{margin-top:var(--space-2)}
+
+/* ---------- split text — copy left, a free half right for a screenshot ----------
+   The whole slide is two halves: the header, lede and points on the left, and an
+   empty frame on the right for an image dropped in later (here or in Figma). The
+   frame starts below the logo. Replace the frame's label with an <img> when the
+   screenshot exists; it fills the frame by object-fit. */
+.split-text{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:var(--space-6);
+  flex:1;
+  min-height:0;
+}
+.split-copy{display:flex;flex-direction:column;min-width:0}
+.split-copy .lede{max-width:none;margin-top:var(--space-4)}
+.split-copy .content{margin-top:var(--space-5)}
+.split-frame{
+  margin-top:var(--space-5);
+  border:1px dashed var(--rule-dark);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  min-height:0;
+}
+.slide--dark .split-frame{border-color:var(--rule-light)}
+.split-frame img{width:100%;height:100%;object-fit:cover;display:block}

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Sprint 5 client review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@500,700&display=swap" rel="stylesheet">
+<!-- Hoxton's shared deck system, served live, then the GlobalData layer on top.
+     See .claude/skills/hoxton-slides/SKILL.md and slides/shared/DESIGN-NOTES.md. -->
+<link rel="stylesheet" href="https://theshoreditchway.vercel.app/skills/hoxton-slides/deck.css">
+<link rel="stylesheet" href="../../shared/extensions.css">
+</head>
+<body>
+
+<!-- ============ 1. COVER ============ -->
+<section data-layout="cover" class="slide slide--dark" data-section="Cover" data-title="Design review">
+  <div class="logo" data-logo></div>
+  <div style="margin-top:auto">
+    <h1>Design review</h1>
+    <p class="deck-sub">Changes to the search prototype since 30 September, and the plan for the next round of user testing.</p>
+    <p class="deck-sub" style="margin-top:40px;font-size:14px">GlobalData &times; Shoreditch &middot; 5 October 2026</p>
+  </div>
+</section>
+
+<!-- ============ 2. AGENDA ============ -->
+<section data-layout="rows" class="slide slide--light" data-section="Agenda">
+  <div class="logo" data-logo></div>
+  <h2>Agenda</h2>
+  <div class="rule"></div>
+  <div class="content">
+    <div class="rows">
+      <div class="row">
+        <div class="num">01</div>
+        <div class="body-title">What changed</div>
+        <div class="body-text">The changes to Idea 1c since the review on 30 September, and the reason for each.</div>
+      </div>
+      <div class="row">
+        <div class="num">02</div>
+        <div class="body-title">User testing plan</div>
+        <div class="body-text">The setup, the questions and the measures for the next round, and the steps to release it.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 01. WHAT CHANGED ============ -->
+
+<!-- ============ 3. RECAP ============ -->
+<section data-layout="targets" class="slide slide--light" data-section="What changed" data-title="Review of 30 September">
+  <div class="logo" data-logo></div>
+  <p class="eyebrow">01 &mdash; What changed</p>
+  <h2>Review of 30 September</h2>
+  <div class="rule"></div>
+  <p class="lede">The points agreed on the call, and the response to each in Idea 1c.</p>
+  <div class="content" style="margin-top:36px">
+    <div class="targets">
+      <div class="target">
+        <div class="body-title">Prototype 1 goes forward</div>
+        <div class="body-text">Idea 1c continues Prototype 1. Prototype 2 does not go to testing again.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">Advanced search is hard to find</div>
+        <div class="body-text">An Advanced filter switch now sits inside the search field.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">One place for filters</div>
+        <div class="body-text">Every filter shows in the filter row at the top. Column filters write back to that row.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">Add filter needs a label</div>
+        <div class="body-text">The button now reads &ldquo;+ Add filter&rdquo;.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">Add filter shows all fields</div>
+        <div class="body-text">Add filter opens the full field list, not four fields.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">Test how a result set is built</div>
+        <div class="body-text">The tasks cover search and filters, not the drugs grid. Task 6 asks testers to narrow the list by company.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. ADVANCED SEARCH ============ -->
+<section class="slide slide--light" data-section="What changed" data-title="Advanced search">
+  <div class="logo" data-logo></div>
+  <div class="split-text">
+    <div class="split-copy">
+      <p class="eyebrow">01 &mdash; What changed</p>
+      <h2>Advanced search</h2>
+      <div class="rule"></div>
+      <p class="lede">In the last round, no tester found Advanced search. An Advanced filter switch now replaces the Quick and Advanced tabs.</p>
+      <div class="content">
+        <ul class="marks pos">
+          <li><span class="m">+</span><span><strong>Inside the search field</strong>The switch sits in the search field on the start screen and in the composer on the results page.</span></li>
+          <li><span class="m">+</span><span><strong>One control, two modes</strong>One on/off switch replaces two tabs. The field stays in place, and only the area under it changes.</span></li>
+          <li><span class="m">+</span><span><strong>Miller columns under the field</strong>With the switch on, the Miller columns show three at a time, with the filter box below them.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="split-frame"><span class="eyebrow">Screenshot</span></div>
+  </div>
+</section>
+
+<!-- ============ 5. LOADING STATES ============ -->
+<section class="slide slide--light" data-section="What changed" data-title="Loading states">
+  <div class="logo" data-logo></div>
+  <div class="split-text">
+    <div class="split-copy">
+      <p class="eyebrow">01 &mdash; What changed</p>
+      <h2>Loading states</h2>
+      <div class="rule"></div>
+      <p class="lede">In the last round, testers could not tell whether a search had run. The prototype now shows its work.</p>
+      <div class="content">
+        <ul class="marks pos">
+          <li><span class="m">+</span><span><strong>A loading state on the table</strong>The table shows a loader after every search and after every filter change.</span></li>
+          <li><span class="m">+</span><span><strong>The Miller columns walk to the query</strong>When a typed query resolves, the columns move through each attribute in turn.</span></li>
+          <li><span class="m">+</span><span><strong>The table does not wait</strong>The filters apply before the walk starts, so the table never waits for it.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="split-frame"><span class="eyebrow">Screenshot</span></div>
+  </div>
+</section>
+
+<!-- ============ 6. INTERACTIVITY ============ -->
+<section class="slide slide--light" data-section="What changed" data-title="Results layout">
+  <div class="logo" data-logo></div>
+  <div class="split-text">
+    <div class="split-copy">
+      <p class="eyebrow">01 &mdash; What changed</p>
+      <h2>Results layout</h2>
+      <div class="rule"></div>
+      <p class="lede">The results page is now one grid. A chat panel sits beside the table, under the filter row.</p>
+      <div class="content">
+        <ul class="marks pos">
+          <li><span class="m">+</span><span><strong>A chat panel beside the table</strong>The commonly used filters head the panel. The query field sits at its foot, as a chat composer does.</span></li>
+          <li><span class="m">+</span><span><strong>A collapsible panel</strong>A toggle in the footer folds the panel away to the side, and opens it again.</span></li>
+          <li><span class="m">+</span><span><strong>One status bar</strong>The count, Columns and Export run across both the panel and the table.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="split-frame"><span class="eyebrow">Screenshot</span></div>
+  </div>
+</section>
+
+<!-- ============ 7. OTHER CHANGES ============ -->
+<section class="slide slide--light" data-section="What changed" data-title="Other changes">
+  <div class="logo" data-logo></div>
+  <p class="eyebrow">01 &mdash; What changed</p>
+  <h2>Other changes</h2>
+  <div class="rule"></div>
+  <div class="content" style="margin-top:44px">
+    <ul class="marks pos">
+      <li><span class="m">+</span><span><strong>A labelled Add filter</strong>The button reads &ldquo;+ Add filter&rdquo; and opens the full field list.</span></li>
+      <li><span class="m">+</span><span><strong>A filter row of three lines</strong>The filter row stops at three lines. The remaining filters fold into a count that opens a popover.</span></li>
+      <li><span class="m">+</span><span><strong>Tick boxes</strong>Each value shows a tick box. Clicking the row selects only that value, and clicking the box adds it. Unticking a value removes it.</span></li>
+      <li><span class="m">+</span><span><strong>An empty state with recovery</strong>When a search finds nothing, the table names the filter to remove and offers two actions.</span></li>
+      <li><span class="m">+</span><span><strong>Column filters</strong>Each column head shows a count of its applied values. A change made from a column writes back to the filter row.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 02. USER TESTING PLAN ============ -->
+
+<!-- ============ 8. DIVIDER ============ -->
+<section class="slide slide--dark" data-section="User testing plan" data-title="User testing plan">
+  <div class="logo" data-logo></div>
+  <div style="margin-top:auto">
+    <p class="eyebrow">02</p>
+    <h1>User testing plan</h1>
+    <p class="deck-sub">The next round compares Idea 1c with last round's prototype on the same tasks.</p>
+  </div>
+</section>
+
+<!-- ============ 9. SETUP ============ -->
+<section data-layout="compare" class="slide slide--light" data-section="User testing plan" data-title="Setup">
+  <div class="logo" data-logo></div>
+  <p class="eyebrow">02 &mdash; User testing plan</p>
+  <h2>Setup</h2>
+  <div class="rule"></div>
+  <div class="content" style="margin-top:44px">
+    <div class="compare">
+      <div class="col">
+        <div class="col-head">Control &mdash; Idea 1b</div>
+        <div class="group">
+          <ul class="marks">
+            <li><span class="m">&middot;</span><span>Last round&rsquo;s Prototype 1, with no changes.</span></li>
+            <li><span class="m">&middot;</span><span>Lyssna test &ldquo;GlobalData Sprint 5 user testing control&rdquo;.</span></li>
+            <li><span class="m">&middot;</span><span>Its scores are the baseline for the comparison.</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="col">
+        <div class="col-head">Revised &mdash; Idea 1c</div>
+        <div class="group">
+          <ul class="marks">
+            <li><span class="m">&middot;</span><span>Idea 1b with the changes in this deck.</span></li>
+            <li><span class="m">&middot;</span><span>Lyssna test &ldquo;GlobalData Sprint 5 user testing&rdquo;.</span></li>
+            <li><span class="m">&middot;</span><span>Higher scores than the control show that the changes work.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="footnote">Both tests ask the same eight questions and are drafted in Lyssna. Only the prototype link differs, and each test has its own link. The audience is the wider internal group of approximately 35&ndash;40 people that Harriet Osmond has lined up.</p>
+</section>
+
+<!-- ============ 10. HYPOTHESIS ============ -->
+<section data-layout="quote" class="slide slide--dark" data-section="User testing plan" data-title="Hypothesis">
+  <div class="logo" data-logo></div>
+  <div class="quote">
+    <blockquote>Analysts reach a usable list of drugs with <span class="accent">less effort</span> when they can describe the search in their own words, <span class="accent">refine it in place</span>, and switch to <span class="accent">building it by hand</span> without having to look for the option.</blockquote>
+    <cite>Hypothesis</cite>
+  </div>
+</section>
+
+<!-- ============ 11. QUESTIONS ============ -->
+<section data-layout="targets" class="slide slide--light" data-section="User testing plan" data-title="Questions">
+  <div class="logo" data-logo></div>
+  <p class="eyebrow">02 &mdash; User testing plan</p>
+  <h2>Questions</h2>
+  <div class="rule"></div>
+  <p class="lede">Seven tasks, then NPS. Tasks 1 to 3 repeat the last round word for word. Task 4 no longer names the builder. Tasks 5 to 7 are new.</p>
+  <div class="content" style="margin-top:36px">
+    <div class="targets targets--4">
+      <div class="target">
+        <div class="body-title">Task 1 <span class="accent">G1</span></div>
+        <div class="body-text">Find all Phase III drugs in Europe that act on Janus Kinase.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">Task 2 <span class="accent">G2</span></div>
+        <div class="body-text">Change the last search. Replace Europe with the United States.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">Task 3 <span class="accent">G3</span></div>
+        <div class="body-text">Use plain language to find a set of five filters.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">Task 4 <span class="accent">G3</span></div>
+        <div class="body-text">Find the same drugs again. Choose each filter by hand.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">Task 5 <span class="accent">G2</span></div>
+        <div class="body-text">Remove the route of administration from the search.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">Task 6 <span class="accent">G2</span></div>
+        <div class="body-text">Show only the drugs from one company in the list.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">Task 7</div>
+        <div class="body-text">Find Phase I gene therapies for dermatology in Brazil. If there are no results, change the search.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">NPS</div>
+        <div class="body-text">How likely is the tester to recommend this way of searching to a colleague?</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 12. MEASURES ============ -->
+<section data-layout="cards" class="slide slide--light" data-section="User testing plan" data-title="Measures">
+  <div class="logo" data-logo></div>
+  <p class="eyebrow">02 &mdash; User testing plan</p>
+  <h2>Measures</h2>
+  <div class="rule"></div>
+  <p class="lede">Each measure compares Idea 1c with the control.</p>
+  <div class="content" style="margin-top:48px">
+    <div class="metrics metrics--cards">
+      <div class="metric">
+        <div class="value">1&ndash;5</div>
+        <div class="body-title">Ease per task</div>
+        <div class="body-text">1 is Very difficult and 5 is Very easy. Scored after each of the seven tasks.</div>
+      </div>
+      <div class="metric">
+        <div class="value">0&ndash;10</div>
+        <div class="body-title">NPS</div>
+        <div class="body-text">0 is Not at all likely and 10 is Extremely likely. The standard NPS scale.</div>
+      </div>
+      <div class="metric">
+        <div class="value">Why</div>
+        <div class="body-title">Reasons</div>
+        <div class="body-text">A free-text reason after every score. The reasons show which problems remain.</div>
+      </div>
+      <div class="metric">
+        <div class="value">T4</div>
+        <div class="body-title">Discovery</div>
+        <div class="body-text">Task 4 asks testers how they went about it. The answers show whether they found Advanced filter without a prompt.</div>
+      </div>
+    </div>
+  </div>
+  <p class="footnote">Every scale now runs from negative on the left to positive on the right. In the last round, about half the testers read the reversed scales backwards, so those scores do not compare. This round sets the baseline.</p>
+</section>
+
+<!-- ============ 13. HYPOTHESIS PER CHANGE ============ -->
+<section data-layout="targets" class="slide slide--light" data-section="User testing plan" data-title="Hypothesis per change">
+  <div class="logo" data-logo></div>
+  <p class="eyebrow">02 &mdash; User testing plan</p>
+  <h2>Hypothesis per change</h2>
+  <div class="rule"></div>
+  <p class="lede">A change works if its task scores higher in Idea 1c than in the control, and the reasons no longer mention the problem.</p>
+  <div class="content" style="margin-top:36px">
+    <div class="targets">
+      <div class="target">
+        <div class="body-title">Advanced filter switch <span class="accent">T4</span></div>
+        <div class="body-text">Most testers describe turning on Advanced filter without having to look for it.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">One switch for the mode <span class="accent">T4</span></div>
+        <div class="body-text">No tester is unsure which mode is on.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">Tick boxes <span class="accent">T2</span></div>
+        <div class="body-text">Task 2 scores higher, and is the easiest task in Idea 1c.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">Removing values <span class="accent">T2, T5</span></div>
+        <div class="body-text">No reason says that a value or a filter could not be removed.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">Three-line filter row <span class="accent">T3, T4</span></div>
+        <div class="body-text">No reason says that the filters push the results away.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">Loading state <span class="accent">All</span></div>
+        <div class="body-text">No reason says that the search did not appear to run.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">+ Add filter <span class="accent">T6</span></div>
+        <div class="body-text">Task 6 scores higher, and the reasons mention Add filter.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">Column filters <span class="accent">T6</span></div>
+        <div class="body-text">The reasons show whether testers start at the filter row or at the columns.</div>
+      </div>
+      <div class="target">
+        <div class="body-title">Empty state <span class="accent">T7</span></div>
+        <div class="body-text">Task 7 scores higher in Idea 1c than in the control.</div>
+      </div>
+    </div>
+  </div>
+  <p class="footnote">One check has no change yet: whether testers still confuse Target and Mechanism of action, in Tasks 1 and 4.</p>
+</section>
+
+<!-- ============ 14. NEXT STEPS ============ -->
+<section data-layout="rows" class="slide slide--light" data-section="User testing plan" data-title="Next steps">
+  <div class="logo" data-logo></div>
+  <p class="eyebrow">02 &mdash; User testing plan</p>
+  <h2>Next steps</h2>
+  <div class="rule"></div>
+  <div class="content">
+    <div class="rows">
+      <div class="row">
+        <div class="num">01</div>
+        <div class="body-title">Sign-off</div>
+        <div class="body-text">GlobalData reviews the questions and both prototypes, and signs them off before release.</div>
+      </div>
+      <div class="row">
+        <div class="num">02</div>
+        <div class="body-title">Release to the wider group</div>
+        <div class="body-text">Harriet Osmond sends both tests to the wider internal group this week.</div>
+      </div>
+      <div class="row">
+        <div class="num">03</div>
+        <div class="body-title">Readout</div>
+        <div class="body-text">Shoreditch Design reports Idea 1c against the control when the results are in. The call on development Option A or Option B follows.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 15. PROTOTYPES ============ -->
+<section class="slide slide--dark" data-section="Close" data-title="Prototypes">
+  <div class="logo" data-logo></div>
+  <p class="eyebrow">Prototypes</p>
+  <div class="one-link">
+    <h2><a href="https://globaldata-design.vercel.app/sprint-4/idea-1c/start">Idea 1c</a> &middot; <a href="https://globaldata-design.vercel.app/sprint-4/idea-1b">Idea 1b</a></h2>
+  </div>
+  <p class="footnote">Idea 1c, revised: globaldata-design.vercel.app/sprint-4/idea-1c/start. Idea 1b, control: globaldata-design.vercel.app/sprint-4/idea-1b</p>
+</section>
+
+<!-- logo.js injects the mark into [data-logo]; deck.js supplies the bottom bar,
+     index panel and hover thumbnails at runtime. -->
+<script src="../../shared/logo.js"></script>
+<script src="https://theshoreditchway.vercel.app/skills/hoxton-slides/deck.js"></script>
+
+</body>
+</html>
