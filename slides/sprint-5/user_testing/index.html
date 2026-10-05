@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Sprint 5 user testing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@500,700&display=swap" rel="stylesheet">
+<!-- Hoxton's shared deck system, served live, then the GlobalData layer on top.
+     See .claude/skills/hoxton-slides/SKILL.md and slides/shared/DESIGN-NOTES.md. -->
+<link rel="stylesheet" href="https://theshoreditchway.vercel.app/skills/hoxton-slides/deck.css">
+<link rel="stylesheet" href="../../shared/extensions.css">
+</head>
+<body>
+
+<!-- ============ 1. COVER ============ -->
+<section class="slide slide--dark" data-section="Cover" data-title="User testing session">
+  <div class="logo" data-logo></div>
+  <div style="margin-top:auto">
+    <h1>User testing session</h1>
+    <p class="deck-sub">A short test for GlobalData Healthcare, made up of search and filter tasks in an interactive HTML prototype.</p>
+    <p class="deck-sub" style="margin-top:40px;font-size:14px">GlobalData &times; Shoreditch &middot; 5 October 2026</p>
+  </div>
+</section>
+
+<!-- ============ 2. CONTEXT ============ -->
+<section class="slide slide--light" data-section="Context">
+  <div class="logo" data-logo></div>
+  <h2>Context</h2>
+  <div class="rule"></div>
+  <p class="lede">As part of our design engagement, we are working with GlobalData Healthcare to prototype directions for advanced search in the Drugs database, built around natural-language input.</p>
+  <p class="lede" style="margin-top:28px">This session tests a revised prototype, which carries the fixes from the previous round of testing, against the previous round's prototype. Both run the same tasks, so the outcomes compare directly.</p>
+</section>
+
+<!-- ============ 3. GOALS ============ -->
+<section class="slide slide--light" data-section="Goals" data-title="Three user goals">
+  <div class="logo" data-logo></div>
+  <h2>Three user goals</h2>
+  <div class="rule"></div>
+  <p class="lede">From 176,404 existing advanced searches across the Drugs and Clinical Trials databases, we narrowed the work down to three user goals.</p>
+  <div class="content" style="margin-top:48px">
+    <div class="metrics metrics--3 metrics--cards">
+      <div class="metric">
+        <div class="value">G1</div>
+        <div class="body-title">Quick search</div>
+        <div class="body-text">53% of searches use a single filter and 85% use three or fewer. A usable list has to be reachable in very few steps.</div>
+      </div>
+      <div class="metric">
+        <div class="value">G2</div>
+        <div class="body-title">Refined search</div>
+        <div class="body-text">80% of follow-up searches keep the same fields and change a value. Only 12% add a filter. Adjusting a known query has to be fast and reversible.</div>
+      </div>
+      <div class="metric">
+        <div class="value">G3</div>
+        <div class="body-title">Power search</div>
+        <div class="body-text">15% of searches use four or more filters, with up to 22 in one search. OR within a field appears in 19%, NOT in under 1%.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. HYPOTHESIS ============ -->
+<section data-layout="quote" class="slide slide--dark" data-section="Hypothesis" data-title="Hypothesis">
+  <div class="logo" data-logo></div>
+  <div class="quote">
+    <blockquote>The fixes in the revised prototype make building a result set <span class="accent">easier</span> than in the previous round's prototype. Across the seven tasks it should average a <span class="accent">higher ease score</span>, and a <span class="accent">higher recommendation score</span>.</blockquote>
+    <cite>Hypothesis</cite>
+  </div>
+</section>
+
+<!-- ============ 5. QUESTIONS, FIRST HALF ============ -->
+<section class="slide slide--light" data-section="Questions" data-title="Questions">
+  <div class="logo" data-logo></div>
+  <h2>Questions</h2>
+  <div class="rule"></div>
+  <div class="content">
+    <div class="stack">
+      <div class="item">
+        <div class="num">01</div>
+        <div>
+          <div class="body-title">Find every Phase III drug available in Europe that works on Janus Kinase. <span class="accent">(G1)</span></div>
+          <div class="body-text">The previous round's first task, unchanged. The search returns 50 drugs.</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="num">02</div>
+        <div>
+          <div class="body-title">Using the search just built, swap Europe for the United States. <span class="accent">(G2)</span></div>
+          <div class="body-text">The previous round's lowest-scoring task, now with values that are replaced rather than added. The search returns 33 drugs.</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="num">03</div>
+        <div>
+          <div class="body-title">Get results for a set of five filters, using plain language. <span class="accent">(G3)</span></div>
+          <div class="body-text">Marketed, oral, small molecule, United States, and any receptor-based mechanism of action. A plain sentence resolves all five and returns 12 drugs.</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="num">04</div>
+        <div>
+          <div class="body-title">Get the same set of results by choosing each filter by hand, without typing a sentence. <span class="accent">(G3)</span></div>
+          <div class="body-text">The task does not name the advanced filter, so the account of how it was done shows whether the builder can be found unprompted.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="footnote">Each task is followed by an ease score from 1 to 5 and the reason for it.</p>
+</section>
+
+<!-- ============ 6. QUESTIONS, SECOND HALF ============ -->
+<section class="slide slide--light" data-section="Questions" data-title="Questions, continued">
+  <div class="logo" data-logo></div>
+  <h2>Questions, continued</h2>
+  <div class="rule"></div>
+  <div class="content">
+    <div class="stack">
+      <div class="item">
+        <div class="num">05</div>
+        <div>
+          <div class="body-title">Take route of administration out of the search, so drugs given any way are included. <span class="accent">(G2)</span></div>
+          <div class="body-text">Removing a filter that has been added. The list grows from 12 drugs to 28.</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="num">06</div>
+        <div>
+          <div class="body-title">Narrow the list down to the drugs of one company. <span class="accent">(G2)</span></div>
+          <div class="body-text">The 28 results span 16 companies. The task does not say how, so the reasons show where testers reach first.</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="num">07</div>
+        <div>
+          <div class="body-title">Search for Phase I gene therapies for dermatology in Brazil, and change the search until it finds results.</div>
+          <div class="body-text">The full query matches nothing in either prototype, so the task tests recovery from an empty result.</div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="num">08</div>
+        <div>
+          <div class="body-title">How likely is a recommendation of this way of searching to a colleague?</div>
+          <div class="body-text">Scored from 0 to 10, with the reason for the score.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7. INSTRUCTIONS ============ -->
+<section class="slide slide--light" data-section="Instructions">
+  <div class="logo" data-logo></div>
+  <h2>Instructions</h2>
+  <div class="rule"></div>
+  <div class="content">
+    <div class="rows">
+      <div class="row">
+        <div class="num">01</div>
+        <div class="body-title">One link per tester</div>
+        <div class="body-text">Each tester uses the prototype link they are given. The two links open different prototypes with identical tasks.</div>
+      </div>
+      <div class="row">
+        <div class="num">02</div>
+        <div class="body-title">What is being tested</div>
+        <div class="body-text">How a set of results is built: writing a search, checking and changing the filters it picks, and choosing filters by hand. The test assesses the design, not the tester.</div>
+      </div>
+      <div class="row">
+        <div class="num">03</div>
+        <div class="body-title">How tasks are scored</div>
+        <div class="body-text">Each task is scored for ease from 1, Very difficult, to 5, Very easy, straight after it is done. The final question runs from 0, Not at all likely, to 10, Extremely likely.</div>
+      </div>
+      <div class="row">
+        <div class="num">04</div>
+        <div class="body-title">This is a prototype</div>
+        <div class="body-text">The drug data is a sample and only some paths are built. Where something does not respond, a note of what was expected is the most useful answer.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- logo.js injects the mark into [data-logo]; deck.js supplies the bottom bar,
+     index panel and hover thumbnails at runtime. -->
+<script src="../../shared/logo.js"></script>
+<script src="https://theshoreditchway.vercel.app/skills/hoxton-slides/deck.js"></script>
+
+</body>
+</html>
