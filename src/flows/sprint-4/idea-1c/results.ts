@@ -250,7 +250,6 @@ const filterReaders: Partial<Record<FilterId, (row: DrugRow) => string[]>> = {
   descriptor: (row) => [row.descriptor],
   stage: (row) => row.stageValues,
   geography: geographyValuesOf,
-  "geography-excluded": geographyValuesOf,
   "Drugs/Drug Name": (row) => [row.name],
   "Drugs/Therapy Area / Indication": (row) => [row.therapyArea, row.indication],
   "Drugs/Route of Administration": (row) => [row.route],
@@ -274,12 +273,11 @@ function evaluable(filter: ResolvedFilter) {
   return Boolean(filterReaders[filter.id]) && filter.values.length > 0
 }
 
-/** Whether one filter holds for one row, after `is not`. */
+/** Whether one filter holds for one row. */
 function filterHolds(filter: ResolvedFilter, row: DrugRow) {
   const values = filterReaders[filter.id]!(row)
   const hits = filter.values.map((value) => values.includes(value))
-  const matched = filter.join === "and" ? hits.every(Boolean) : hits.some(Boolean)
-  return filter.excluded ? !matched : matched
+  return filter.join === "and" ? hits.every(Boolean) : hits.some(Boolean)
 }
 
 /**

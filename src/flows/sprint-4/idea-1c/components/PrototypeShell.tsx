@@ -103,9 +103,9 @@ function onlyValueAt(
   return {
     ...current,
     path: { area, attribute, value },
-    // An existing clause keeps everything but its values — whether it includes
-    // or excludes, and how it joins the clause before it, were decided in the
-    // box and are not this list's to reset.
+    // An existing clause keeps everything but its values — how its values
+    // join, and how it joins the clause before it, were decided in the box and
+    // are not this list's to reset.
     filters: existing
       ? current.filters.map((filter) =>
           filter.id === picked.id ? { ...filter, values: [value], appliedAt: at } : filter,
@@ -258,13 +258,6 @@ export function PrototypeShell() {
       ),
     [],
   )
-  const setFilterMode = (id: FilterId, excluded: boolean) =>
-    setState((current) => ({
-      ...current,
-      filters: current.filters.map((filter) =>
-        filter.id === id ? { ...filter, excluded } : filter,
-      ),
-    }))
   const setFilterJoin = (id: FilterId, join: FilterJoin) =>
     setState((current) => ({
       ...current,
@@ -310,7 +303,6 @@ export function PrototypeShell() {
     <ResolvedFilters
       filters={state.filters}
       resultCount={resultsFor(state.filters).count}
-      onModeChange={setFilterMode}
       onJoinChange={setFilterJoin}
       onLinkChange={setFilterLink}
       onToggleValue={toggleFilterValue}

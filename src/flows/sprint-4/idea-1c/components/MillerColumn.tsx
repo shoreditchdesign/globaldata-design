@@ -41,11 +41,6 @@ export interface ColumnModel {
   open?: string
   /** Whether rows carry a tick box. Areas and attributes are navigation only. */
   selectable?: boolean
-  /**
-   * The attribute this column ticks into is excluded rather than kept, so its
-   * numbers say what a value would drop, not what it would leave.
-   */
-  negated?: boolean
   /** Free-text attributes have no value list, so the column has no rows. */
   search?: boolean
   /** What the number lane counts. The filter areas are whole records, not drugs. */
@@ -55,10 +50,9 @@ export interface ColumnModel {
 }
 
 /** The number lane is sized to the widest count in the column, not globally. */
-function countLane(items: ColumnRow[], negated = false) {
+function countLane(items: ColumnRow[]) {
   const longest = items.reduce(
-    (n, item) =>
-      Math.max(n, item.count === null ? 1 : formatCount(item.count).length + (negated ? 1 : 0)),
+    (n, item) => Math.max(n, item.count === null ? 1 : formatCount(item.count).length),
     0,
   )
   if (longest <= 3) return "w-8"
@@ -96,7 +90,7 @@ export function MillerColumn({
 }) {
   const selected = new Set(column.selected ?? [])
   const holding = new Set(column.holding ?? [])
-  const lane = countLane(column.items, column.negated)
+  const lane = countLane(column.items)
   const hasDrill = column.items.some((item) => item.drillable)
 
   return (
@@ -136,16 +130,8 @@ export function MillerColumn({
         </span>
         {column.search ? null : (
           <>
-            <span
-              className={cn(
-                "shrink-0 text-right text-[10px] font-medium tracking-[0.08em] uppercase",
-                // An excluding column counts what a value would take away, so
-                // it says so in the tone that means "out" rather than in the
-                // same grey as a column that adds.
-                column.negated ? "text-negative-ink" : "text-muted-foreground",
-              )}
-            >
-              {column.negated ? "Excludes" : (column.unit ?? "Drugs")}
+            <span className="text-muted-foreground shrink-0 text-right text-[10px] font-medium tracking-[0.08em] uppercase">
+              {column.unit ?? "Drugs"}
             </span>
             {hasDrill ? <span className="w-4 shrink-0" aria-hidden /> : null}
           </>
@@ -218,7 +204,6 @@ function ColumnItem({
   const empty = item.count === 0
   // With nothing underneath it, the row body has only one job.
   const bodyTicks = Boolean(column.selectable && onToggle && !item.drillable)
-  const negated = Boolean(column.negated)
   // Lit for a beat after this value is taken into the query — never on the way
   // out, because a value leaving does not need to be found on screen.
   const justTicked = useSettle(isSelected, motion.hold) && isSelected
@@ -233,32 +218,20 @@ function ColumnItem({
         tintClass,
         // Hover is grey on every row you can still move to, a ticked one
         // included — a `hover:` class outranks a flat one, so no row is left
-        // dead under the cursor. An excluding column hovers in its own tone,
-        // because grey there would read as the row stepping out of the
-        // exclusion it is part of.
-        !isOpen && (negated && isSelected ? "hover:bg-negative" : "hover:bg-accent"),
-        // Ticked into the query, not drilled into: an including row carries no
-        // fill at all. The tick box is solid brand the moment it is checked and
-        // that is the whole signal — a pale wash under it said the same thing a
-        // second time, more faintly. An excluding row keeps its rose fill,
-        // because the tone is the only thing separating a value being dropped
-        // from one being kept, and that distinction outranks the tidying.
-        isSelected && !isOpen && negated && "bg-negative/60",
+        // dead under the cursor.
+        !isOpen && "hover:bg-accent",
+        // Ticked into the query, not drilled into: the row carries no fill at
+        // all. The tick box is solid brand the moment it is checked and that
+        // is the whole signal.
         // Just taken into the query: a grey beat, then it settles. The flash
         // says *something moved here*, which is a position rather than a state,
         // so it does not spend the accent.
-        justTicked && !isOpen && (negated ? "bg-negative" : "bg-accent"),
+        justTicked && !isOpen && "bg-accent",
         // Drilled into: the washed brand with an edge of its own. The edge is
         // what the 2px brand rail used to do, and it draws the whole row rather
         // than one side of it, so the open column reads as open from across the
         // panel without a second, louder blue on screen.
-        isOpen && (negated ? "bg-negative" : "bg-brand-tint border-brand-border"),
-        // The rail survives on an excluding row only: rose at 0.026 chroma is a
-        // paler fill than the brand tint, so the exclusion keeps the harder
-        // marker it already had.
-        isOpen &&
-          negated &&
-          "before:bg-negative-ink before:absolute before:top-1 before:bottom-1 before:left-0 before:w-[2px] before:rounded-full",
+        isOpen && "bg-brand-tint border-brand-border",
       )}
     >
       {/* Lead lane: one control, always. A tick box where the column ticks, a
@@ -283,11 +256,6 @@ function ColumnItem({
               "bg-surface-panel",
               // The grid's darker resting edge, so a box reads at rest here too.
               selectBoxClass,
-              // Ticking a value into an excluding attribute takes rows away.
-              // It cannot look like ticking one into an attribute that keeps
-              // them — that is the whole difference between the two filters.
-              negated &&
-                "data-checked:border-negative-ink data-checked:bg-negative-ink data-checked:text-background",
             )}
           />
         ) : (
@@ -353,21 +321,12 @@ function ColumnItem({
             "shrink-0 text-right text-xs tabular-nums",
             lane,
             // The number is read, not pressed, so it is not the accent's to
-            // spend: a value in the query states its count in full ink, an
-            // excluded one in the tone that says what it drops, and everything
-            // else sits at `muted-foreground`.
-            isSelected
-              ? negated
-                ? "text-negative-ink"
-                : "text-foreground"
-              : "text-muted-foreground",
+            // spend: a value in the query states its count in full ink, and
+            // everything else sits at `muted-foreground`.
+            isSelected ? "text-foreground" : "text-muted-foreground",
           )}
         >
-          {item.count === null
-            ? "—"
-            : negated && item.count > 0
-              ? `−${formatCount(item.count)}`
-              : formatCount(item.count)}
+          {item.count === null ? "—" : formatCount(item.count)}
         </span>
         {hasDrill ? (
           <span className="flex w-4 shrink-0 justify-center">

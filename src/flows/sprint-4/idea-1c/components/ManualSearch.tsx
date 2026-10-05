@@ -110,7 +110,6 @@ export function ManualSearch({
         unit: activeCategory === "Drugs" ? "Drugs" : "Records",
         items,
         selectable: true,
-        negated: Boolean(openFilter?.excluded),
         selected: ticked,
         // A value with something ticked beneath it reads as holding values,
         // in weight, the way a navigation row does.
