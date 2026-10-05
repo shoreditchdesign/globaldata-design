@@ -10,7 +10,7 @@ export const sprint4Idea1c: Flow = {
   id: "idea-1c",
   name: "Idea 1c — In progress",
   premise:
-    "Idea 1b, reworked after the 5 October client review into the version Sprint 5 tests: one place to build a filter by hand (Add filter and a column's Edit filters both open the Miller tray), Drugs first and open by default, a value tree the columns can drill, no Excludes, and the query field back at the head of Quick search.",
+    "Idea 1b, reworked after the 5 October client review into the version Sprint 5 tests: one place to build a filter by hand (Add filter and a column's Edit filters both open the Miller tray), Drugs first and open by default, a value tree the columns can drill, Excludes only in the filter bar, not the columns, and the query field back at the head of Quick search.",
   lastUpdated: "2026-10-05",
   status: "in-progress",
   screens: [
@@ -24,14 +24,14 @@ export const sprint4Idea1c: Flow = {
     {
       slug: "values",
       title: "A pill pressed",
-      note: "A pill puts its clause in the filter box at Select value, and pressing it again takes the clause out. The value is chosen from the clause's own selector rather than from a further layer of pills.",
+      note: "A pill puts its clause in the filter box at Select value, and pressing it again takes the clause out. Pressing Select value opens Advanced search's columns at that attribute, where the value is picked.",
       viewport: "desktop",
       component: Start,
     },
     {
       slug: "manual",
       title: "Advanced search",
-      note: "The Advanced search tab puts the Miller columns under the field in place of the pills, with the filter box always beneath them. Drugs leads the area list and is open by default, so two columns are filled. Values with values under them (therapy area › indication, region › country) carry a chevron and drill; three columns show at a time and slide.",
+      note: "The Advanced search tab puts the Miller columns under the field in place of the pills, with the filter box always beneath them. With nothing applied it opens Drugs › Drug Name, so three columns show. Values with values under them (therapy area › indication, region › country) carry a chevron and drill; past three columns the newest comes in at the right and the earlier ones scroll off to the left, as in Finder's column view.",
       viewport: "desktop",
       component: Start,
     },
@@ -45,14 +45,14 @@ export const sprint4Idea1c: Flow = {
     {
       slug: "results",
       title: "Results",
-      note: "The worked query searched: the filter box across the full width, then the search panel beside the AG Grid-style table. The panel's head holds the Quick search / Advanced search tabs on the left and a close button on the right; Quick puts the query field under them with the commonly used filters beneath, and Advanced shows the Miller columns only, opening at the last-applied filter. The table's own toolbar puts the count over the Drug name column, with Group by and View placeholders, \"11 of 18 columns\" and Export, and a reopen button at its left edge when the panel is closed. Every column head shows a sort arrow at rest. While the table loads, its column head stays above the scrim.",
+      note: "The worked query searched: the filter box across the full width, then the search panel beside the AG Grid-style table. The Quick search / Advanced search tabs sit at the panel's top right; Quick puts the query field under them with the commonly used filters beneath, and Advanced shows the Miller columns only. Add filter, a chip's value and a column's Edit filters all open the panel on Advanced at the right place, and Add filter flashes the row to click next. The table's toolbar puts the count over the Drug name column, with Group by and View placeholders, \"11 of 18 columns\" and Export; every column head shows a sort arrow at rest; the footer's Hide filters / Show filters folds the panel away. While the table loads, its column head stays above the scrim.",
       viewport: "desktop",
       component: Start,
     },
     {
       slug: "edit-filter",
       title: "Edit filter opens the tray",
-      note: "A column menu's Edit filters, or Add filter, opens the search panel on Advanced search at that column's attribute, its values ticked. Here the Development Stage column, with Phase II and Phase III ticked. The panel opens if it was closed and flips from Quick if Quick was on.",
+      note: "A column menu's Edit filters, or a value on a filter chip, opens the search panel on Advanced search at that attribute, its values ticked. Here the Development Stage column. The panel opens if it was closed and flips from Quick if Quick was on.",
       viewport: "desktop",
       component: Start,
     },
@@ -66,7 +66,7 @@ export const sprint4Idea1c: Flow = {
     {
       slug: "filters",
       title: "Resolved filters",
-      note: "The walkthrough query resolved into editable Float-style filters and 31 drugs. Each chip's value list carries the same counts as the Miller columns.",
+      note: "The walkthrough query resolved into editable Float-style filters and 48 drugs, two of them excluded with IS NOT.",
       viewport: "desktop",
       component: Start,
     },
