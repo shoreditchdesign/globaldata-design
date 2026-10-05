@@ -110,8 +110,10 @@ export function MillerColumn({
         // navigation columns on chrome and the value columns on the panel plane
         // read as arbitrary from across the screen — some columns grey, some
         // white, for a reason no one could see — so the white is now the header
-        // block above and the colour is the columns, uniformly.
-        "bg-surface-page",
+        // block above and the colour is the columns, uniformly. White, so the
+        // rows, marks and counts hold their contrast; the outline around the
+        // columns does the separating that the grey used to.
+        "bg-surface-panel",
         column.wide ? "flex-[1.25]" : "flex-1",
         className,
       )}
@@ -298,7 +300,7 @@ function ColumnItem({
           <span
             aria-hidden
             className={cn(
-              "border-border flex size-3.5 items-center justify-center rounded-full border",
+              "border-ring flex size-3.5 items-center justify-center rounded-full border",
               tintClass,
             )}
           >
