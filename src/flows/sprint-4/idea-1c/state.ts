@@ -18,13 +18,20 @@ export interface SearchPath {
   value: string
 }
 
+/**
+ * Where Advanced search opens with nothing applied: Drugs, then its first
+ * attribute, so three columns show rather than two and an empty third.
+ */
+export const defaultTrail = (): string[] => ["Drugs", "Drug Name"]
+
 export interface Sprint4Idea1cState {
   mode: SearchMode
   query: string
   /**
    * The manual search's Miller path, kept apart so the pills stay closed: the
    * area, then the attribute, then as many values down its tree as are open.
-   * Drugs is open by default, on the landing page and the results page.
+   * Drugs › Drug Name is open by default, on the landing page and the results
+   * page.
    */
   manualTrail: string[]
   /**
@@ -58,7 +65,7 @@ export interface Sprint4Idea1cState {
 const startState = (): Sprint4Idea1cState => ({
   mode: "quick",
   query: "",
-  manualTrail: ["Drugs"],
+  manualTrail: defaultTrail(),
   filterBoxOpen: false,
   path: null,
   submittedQuery: null,
@@ -72,7 +79,7 @@ const startState = (): Sprint4Idea1cState => ({
 const filteredState = (): Sprint4Idea1cState => ({
   mode: "quick",
   query: workedQuery,
-  manualTrail: ["Drugs"],
+  manualTrail: defaultTrail(),
   filterBoxOpen: true,
   path: null,
   submittedQuery: workedQuery,
@@ -114,7 +121,7 @@ const pickedState = (): Sprint4Idea1cState => ({
 const resolvingState = (): Sprint4Idea1cState => ({
   mode: "quick",
   query: workedQuery,
-  manualTrail: ["Drugs"],
+  manualTrail: defaultTrail(),
   filterBoxOpen: false,
   path: null,
   submittedQuery: null,

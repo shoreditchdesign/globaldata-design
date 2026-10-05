@@ -32,6 +32,7 @@ import {
 } from "@/flows/sprint-4/idea-1c/resolve"
 import { useMillerWalk } from "@/flows/sprint-4/idea-1c/walk"
 import {
+  defaultTrail,
   initialState,
   slugFor,
   type SearchMode,
@@ -101,8 +102,8 @@ export function PrototypeShell() {
   useDeepLink(slugFor(state), reseed)
 
   // Turning Advanced on opens only what the filters populate: the path of the
-  // criterion applied last, its values ticked, or Drugs alone when there is
-  // none. A walk still under way, or the reader's next click, moves on from it.
+  // criterion applied last, its values ticked, or the default Drugs › Drug Name
+  // when there is none. A walk still under way, or the reader's next click, moves on from it.
   const setMode = (mode: SearchMode) =>
     setState((current) => {
       if (mode !== "manual" || current.mode === "manual") return { ...current, mode }
@@ -111,7 +112,7 @@ export function PrototypeShell() {
       return {
         ...current,
         mode,
-        manualTrail: at && last ? trailFor(at.area, at.attribute, last.values) : ["Drugs"],
+        manualTrail: at && last ? trailFor(at.area, at.attribute, last.values) : defaultTrail(),
       }
     })
   const setPanelOpen = (panelOpen: boolean) => setState((current) => ({ ...current, panelOpen }))
@@ -180,7 +181,7 @@ export function PrototypeShell() {
     walk.stop()
     setState((current) => ({ ...current, mode: "manual", panelOpen: true, manualTrail: trail }))
   }
-  const addFilter = () => openAdvancedAt(["Drugs"])
+  const addFilter = () => openAdvancedAt(defaultTrail())
   const editFilterAt = (area: ProductArea, attribute: string, values: string[]) =>
     openAdvancedAt(trailFor(area, attribute, values))
   // A value on a filter chip opens the same place, at that clause.
