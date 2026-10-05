@@ -203,6 +203,14 @@ export function PrototypeShell() {
     walk.stop()
     openTrailAt(depth, label)
   }
+  // Add filter, and a column's Edit filters, open the one place a filter is
+  // built by hand: Advanced search's columns, in the panel, at the given path.
+  // Instant, with no walk — the client asked for this to be slick.
+  const openAdvancedAt = (trail: string[]) => {
+    walk.stop()
+    setState((current) => ({ ...current, mode: "manual", panelOpen: true, manualTrail: trail }))
+  }
+  const addFilter = () => openAdvancedAt(["Drugs"])
   const pickValueAt = (area: ProductArea, attribute: string, value: string) =>
     setState((current) => toggleValueAt(current, area, attribute, value))
   const pickOnlyValueAt = (area: ProductArea, attribute: string, value: string) =>
@@ -305,7 +313,7 @@ export function PrototypeShell() {
       onLinkChange={setFilterLink}
       onToggleValue={toggleFilterValue}
       onRemove={removeFilter}
-      onPickValue={pickValueAt}
+      onAddFilter={addFilter}
       onPickOnlyValue={pickOnlyValueAt}
       onClear={clearFilters}
       onSearch={state.showResults ? undefined : search}
