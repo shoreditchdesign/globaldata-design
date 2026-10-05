@@ -20,7 +20,6 @@ import { CSS } from "@dnd-kit/utilities"
 import { GripVerticalIcon } from "lucide-react"
 
 import { motion, usePrefersReducedMotion } from "@/components/prototype/motion"
-import { Button } from "@/components/ui/button"
 import {
   Command,
   CommandEmpty,
@@ -153,12 +152,6 @@ export function ColumnManager({
         </CommandGroup>
       </CommandList>
 
-      {/* Pulled back out of the `Command` padding so the rule spans the panel. */}
-      <div className="border-hairline -mx-1 mt-1 flex items-center justify-end border-t px-2 py-1.5">
-        <Button variant="ghost" size="xs" onClick={() => onAction({ kind: "resetColumns" })}>
-          Reset columns
-        </Button>
-      </div>
     </Command>
   )
 }
