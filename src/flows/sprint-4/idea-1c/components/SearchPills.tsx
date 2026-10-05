@@ -63,19 +63,18 @@ export function SearchPills({
         aria-pressed={Boolean(filter)}
         onClick={() => onToggleFilter(area, attribute)}
         className={cn(
-          "bg-surface-panel border-border hover:bg-muted inline-flex h-8 items-center rounded-full border px-3.5 text-[13px] transition-[color,background-color,border-color]",
-          // Three states told apart by two channels rather than by weight, so
-          // the row can be quiet and still legible: the fill goes white →
-          // grey → blue-washed, and the edge goes grey → grey → blue. Hover
-          // and selected sit at almost the same lightness and cannot be
-          // confused, because one is a shade and the other is a hue.
+          "bg-surface-panel border-border hover:bg-surface-sunken inline-flex h-8 items-center rounded-full border px-3.5 text-[13px] transition-[color,background-color,border-color]",
+          // Three states: white, then a hover a clear step darker (sunken, so
+          // it never blends into the grey behind the pills), then selected —
+          // the blue wash with a solid brand stroke, so a pill that is on
+          // reads at a glance.
           //
           // The wash is also what the system reserves for a selection that is
           // not a checked control. Solid brand is the arrow in the search
           // field and a checked Advanced switch; the pills are a step under
           // both, which is the order they should be read in.
           filter &&
-            "bg-brand-tint border-brand-border text-foreground hover:bg-brand-tint hover:border-brand-ink",
+            "bg-brand-tint border-brand text-foreground hover:bg-brand-tint hover:border-brand-strong",
         )}
       >
         {attribute}
