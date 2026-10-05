@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
+import Script from "next/script"
 
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -35,6 +36,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         <TooltipProvider>{children}</TooltipProvider>
         <Toaster />
+        {/* Feedbucket, so the team can leave feedback on any screen. The same
+            deferred script the vendor snippet appends to <head>, with its
+            project key as the data attribute it reads. */}
+        <Script
+          src="https://cdn.feedbucket.app/assets/feedbucket.js"
+          data-feedbucket="VxVIWSIcq0ZgPLvTG3jp"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   )
