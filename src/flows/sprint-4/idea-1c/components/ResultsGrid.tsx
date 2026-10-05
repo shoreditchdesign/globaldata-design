@@ -5,6 +5,7 @@ import {
   ArrowDownIcon,
   ArrowDownAZIcon,
   ArrowUpDownIcon,
+  ChevronDownIcon,
   ArrowUpIcon,
   ArrowUpAZIcon,
   Columns3Icon,
@@ -29,6 +30,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -320,6 +322,34 @@ function HeaderCell({
 }
 
 /**
+ * A placeholder for the data toolbar the client already has a treatment for:
+ * a Group by and a View control that open, say they are not built, and do
+ * nothing. Kept plain and in one place so the real treatment can replace it.
+ */
+function PlaceholderMenu({ label, options }: { label: string; options: string[] }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="text-muted-foreground">
+          {label}
+          <ChevronDownIcon />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-48">
+        <DropdownMenuLabel className="text-muted-foreground text-xs font-normal">
+          Placeholder, not built yet
+        </DropdownMenuLabel>
+        {options.map((option) => (
+          <DropdownMenuItem key={option} disabled className="text-[13px]">
+            {option}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+/**
  * What the table says when the criteria are too narrow for the sample.
  *
  * It is a reading of the query, not an apology for the data: the drugs are
@@ -569,6 +599,12 @@ export function ResultsGrid({
             ) : null}
 
             <div className="ml-auto flex items-center gap-2">
+              <PlaceholderMenu
+                label="Group by"
+                options={["Company", "Therapy area", "Development stage"]}
+              />
+              <PlaceholderMenu label="View" options={["Sales forecast", "Manufacturer", "Trials"]} />
+              <span className="bg-hairline h-4 w-px" aria-hidden />
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="sm">
