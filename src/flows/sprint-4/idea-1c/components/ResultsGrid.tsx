@@ -3,7 +3,6 @@
 import * as React from "react"
 import {
   ArrowDownAZIcon,
-  ChevronDownIcon,
   ArrowUpAZIcon,
   Columns3Icon,
   DownloadIcon,
@@ -12,6 +11,7 @@ import {
   FilterIcon,
   FilterXIcon,
   SearchXIcon,
+  SlidersHorizontalIcon,
   TriangleIcon,
   MoveHorizontalIcon,
   PanelLeftIcon,
@@ -19,6 +19,7 @@ import {
   PinOffIcon,
   type LucideIcon,
 } from "lucide-react"
+import { toast } from "sonner"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { motion } from "@/components/prototype/motion"
@@ -28,7 +29,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -338,30 +338,24 @@ function HeaderCell({
 }
 
 /**
- * A placeholder for the data toolbar the client already has a treatment for:
- * a Group by and a View control that open, say they are not built, and do
- * nothing. Kept plain and in one place so the real treatment can replace it.
+ * Neil asked for room for an advanced data settings control beside Columns.
+ * What it holds is not defined yet, so it is a real button that says so in a
+ * toast rather than a menu of guesses.
  */
-function PlaceholderMenu({ label, options }: { label: string; options: string[] }) {
+function DataSettingsButton() {
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-muted-foreground">
-          {label}
-          <ChevronDownIcon />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-48">
-        <DropdownMenuLabel className="text-muted-foreground text-xs font-normal">
-          Placeholder, not built yet
-        </DropdownMenuLabel>
-        {options.map((option) => (
-          <DropdownMenuItem key={option} disabled className="text-[13px]">
-            {option}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() =>
+        toast("Work pending", {
+          description: "Advanced data settings are not designed yet.",
+        })
+      }
+    >
+      <SlidersHorizontalIcon className="text-muted-foreground" />
+      Data settings
+    </Button>
   )
 }
 
@@ -596,12 +590,7 @@ export function ResultsGrid({
             ) : null}
 
             <div className="ml-auto flex items-center gap-2">
-              <PlaceholderMenu
-                label="Group by"
-                options={["Company", "Therapy area", "Development stage"]}
-              />
-              <PlaceholderMenu label="View" options={["Sales forecast", "Manufacturer", "Trials"]} />
-              <span className="bg-hairline h-4 w-px" aria-hidden />
+              <DataSettingsButton />
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="sm">

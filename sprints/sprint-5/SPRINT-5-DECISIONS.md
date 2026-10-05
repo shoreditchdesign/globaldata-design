@@ -13,7 +13,7 @@ One-glance version of `CALL-0510-ACTIONS.md`. Next review: **Tue 6 Oct, 12:00–
 - **Deeper than three columns**: older columns scroll off to the left, like Finder. The newest stays on the right edge.
 - **Full tree**: can be opened, same Finder-style overflow.
 - **Excludes**: removed from the Miller columns only. IS / IS NOT still works in the filter bar.
-- **Table**: A–Z sort arrows, "11 of 18 columns", drug count in the header, Group by / View placeholders. Value counts show in the Miller columns.
+- **Table**: A–Z sort arrows, "11 of 18 columns", drug count in the header, a "Data settings" button beside Columns that shows a "Work pending" toast (Neil's advanced data settings, not defined yet). Value counts show in the Miller columns.
 - **Add filter / Edit filter**: open the left panel at the right place. Add filter, and clicking a filter value at the top, blink the row to click, like a Figma hotspot hint.
 - **Tree data**: every therapy area has at least three indications.
 
@@ -25,9 +25,9 @@ One-glance version of `CALL-0510-ACTIONS.md`. Next review: **Tue 6 Oct, 12:00–
 - **Radio buttons** on column rows: removed; the open row state is enough.
 - **Sort icons**: outline up and down triangles instead of arrows.
 
-## Still open
+## Dropped
 
-- **Unselected tab look**: Emma wants it reviewed; the tab rule says leave it. Change both 1b and 1c, or neither?
+- **Unselected tab look**: not changing it. This isn't a UI exercise.
 
 ## To do before Tuesday
 
