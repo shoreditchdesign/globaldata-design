@@ -213,7 +213,7 @@ export function LandingPage({
           <>
             <div
               data-flip="stack"
-              className="bg-surface-panel border-border mt-5 flex min-h-72 flex-1 flex-col overflow-hidden rounded-xl border"
+              className="bg-surface-panel border-ring mt-5 flex min-h-72 flex-1 flex-col overflow-hidden rounded-xl border"
             >
               {manual}
             </div>

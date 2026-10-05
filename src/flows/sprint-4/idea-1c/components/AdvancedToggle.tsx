@@ -38,6 +38,11 @@ export function AdvancedToggle({
         checked={mode === "manual"}
         disabled={disabled}
         onCheckedChange={(checked) => onModeChange(checked ? "manual" : "quick")}
+        // The stock off track is `input`, the same pale grey as a field's
+        // border, and on chrome it all but vanished, so the switch read as a
+        // smudge rather than a control. Off takes the ring grey instead and the
+        // thumb a small shadow, so it reads as a switch in either state.
+        className="data-unchecked:bg-ring [&_[data-slot=switch-thumb]]:shadow-xs"
       />
       <Label htmlFor={id} className="text-muted-foreground text-[13px] font-normal">
         Advanced filter
