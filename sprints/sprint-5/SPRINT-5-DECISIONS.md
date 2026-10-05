@@ -5,7 +5,7 @@ One-glance version of `CALL-0510-ACTIONS.md`. Next review: **Tue 6 Oct, 12:00–
 ## Decided and built in 1c
 
 - **Global nav**: cut to Companies and Drugs.
-- **Query box**: at the top in Quick search, gone in Advanced search.
+- **Query box**: back at the top in Quick search, as last week (the call: "chat box, go back to the top"); gone in Advanced search.
 - **Sidebar toggle**: stays in the bottom status bar, now with a text label.
 - **Clicking a filter value at the top**: opens Advanced search on the left at that filter, instead of a dropdown checklist. This is what Emma's "move to the left" meant.
 - **Tabs**: 1b's style, aligned left on the results panel (Emma). Neil's "to the left" was the filter value opening Advanced.
@@ -17,13 +17,17 @@ One-glance version of `CALL-0510-ACTIONS.md`. Next review: **Tue 6 Oct, 12:00–
 - **Add filter / Edit filter**: open the left panel at the right place. Add filter, and clicking a filter value at the top, blink the row to click, like a Figma hotspot hint.
 - **Tree data**: every therapy area has at least three indications.
 
+## Decided 5 Oct, built
+
+- **Ticking a tree parent**: selects all its children.
+- **Counts in the columns**: every folder shows its number of options; only end values show result counts. Each column header says which it is.
+- **Filter bar**: no dropdowns or checklists at all; clicking a filter opens it in the columns.
+- **Radio buttons** on column rows: removed; the open row state is enough.
+- **Sort icons**: outline up and down triangles instead of arrows.
+
 ## Still open
 
 - **Unselected tab look**: Emma wants it reviewed; the tab rule says leave it. Change both 1b and 1c, or neither?
-- **Ticking a tree parent**: selects the parent value, or all its children?
-- **Count on a tree parent**: result count (costly) or number of children (cheap, Neil's lean)?
-- **Top filter bar dropdown**: how deep, type-ahead across levels, bulk-select. Internal ideation before Tuesday.
-- **Query box at the top**: confirm this is what "last week's version" meant.
 
 ## To do before Tuesday
 
