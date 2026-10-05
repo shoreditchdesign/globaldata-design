@@ -39,6 +39,7 @@ export function SearchPanel({
   onToggleFilter,
   manualTrail,
   onOpenAt,
+  trayHint,
   onValuePickAt,
 }: {
   mode: SearchMode
@@ -56,6 +57,8 @@ export function SearchPanel({
   onToggleFilter: (area: ProductArea, attribute: string) => void
   manualTrail: string[]
   onOpenAt: (depth: number, label: string) => void
+  /** Bumped by Add filter: the columns flash the row to click next. */
+  trayHint: number
   onValuePickAt: (area: ProductArea, attribute: string, value: string) => void
 }) {
   const hasQuery = query.trim().length > 0
@@ -165,6 +168,7 @@ export function SearchPanel({
           trail={manualTrail}
           onOpenAt={onOpenAt}
           onToggleValue={onValuePickAt}
+          hint={trayHint}
         />
       )}
     </aside>
