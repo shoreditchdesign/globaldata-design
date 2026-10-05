@@ -19,6 +19,8 @@
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import {
   filterIdFor,
+  geographyChildren,
+  geographyRegionNames,
   regionOf,
   searchAttributeValueCounts,
   type FilterId,
@@ -751,6 +753,108 @@ export function valueCountsFor(area: ProductArea, attribute: string) {
   const counted = authored.map(({ value }) => ({ value, count: tally.get(value) ?? 0 }))
   valueCountCache.set(key, counted)
   return counted
+}
+
+/* -------------------------------------------------------------------------- */
+/* The value trees                                                             */
+/* -------------------------------------------------------------------------- */
+
+const tallyCache = new Map<string, Map<string, number>>()
+
+/**
+ * Every value the sample carries for one attribute, at every level of its
+ * tree, and the rows that carry it. An indication is counted here as well as
+ * its therapy area, because the clause tests both.
+ */
+function tallyFor(area: ProductArea, attribute: string) {
+  const key = `${area}/${attribute}`
+  const cached = tallyCache.get(key)
+  if (cached) return cached
+  const tally = new Map<string, number>()
+  const reader = filterReaders[filterIdFor(area, attribute)]
+  if (reader) {
+    for (const row of sample) {
+      for (const value of new Set(reader(row))) tally.set(value, (tally.get(value) ?? 0) + 1)
+    }
+  } else {
+    for (const { value, count } of searchAttributeValueCounts(area, attribute)) tally.set(value, count)
+  }
+  tallyCache.set(key, tally)
+  return tally
+}
+
+/**
+ * The count beside any value of an attribute, a child in its tree included:
+ * the rows of the sample that ticking it would keep.
+ */
+export function valueCountOf(area: ProductArea, attribute: string, value: string) {
+  return tallyFor(area, attribute).get(value) ?? 0
+}
+
+/** The indications the sample files under each therapy area, most common first. */
+const indicationsByArea = (() => {
+  const byArea = new Map<string, Map<string, number>>()
+  for (const row of sample) {
+    const counts = byArea.get(row.therapyArea) ?? new Map<string, number>()
+    counts.set(row.indication, (counts.get(row.indication) ?? 0) + 1)
+    byArea.set(row.therapyArea, counts)
+  }
+  return new Map(
+    [...byArea].map(([therapyArea, counts]) => [
+      therapyArea,
+      [...counts].sort((a, b) => b[1] - a[1]).map(([indication]) => indication),
+    ]),
+  )
+})()
+
+const THERAPY = "Therapy Area / Indication"
+const GEOGRAPHY = "Drug Geography"
+
+/**
+ * The two trees in the sample. Therapy area holds its indications, built from
+ * the rows themselves, and a region holds its countries. Every other value is
+ * a leaf. Deeper levels wait on the client's own trees.
+ */
+export function childValuesOf(area: ProductArea, attribute: string, value: string): string[] {
+  if (area !== "Drugs") return []
+  if (attribute === THERAPY) return indicationsByArea.get(value) ?? []
+  if (attribute === GEOGRAPHY) return [...geographyChildren(value)]
+  return []
+}
+
+/**
+ * The top level of an attribute's values. Geography lists its regions here and
+ * its countries a level down; every flat attribute lists everything.
+ */
+export function rootValuesOf(area: ProductArea, attribute: string) {
+  const all = valueCountsFor(area, attribute)
+  if (area === "Drugs" && attribute === GEOGRAPHY) {
+    return all.filter(({ value }) => geographyRegionNames.includes(value))
+  }
+  return all
+}
+
+/** The value a child sits under, or nothing for a value at the top. */
+export function parentValueOf(area: ProductArea, attribute: string, value: string) {
+  if (area !== "Drugs") return undefined
+  if (attribute === GEOGRAPHY) return regionOf(value)
+  if (attribute === THERAPY) {
+    if (indicationsByArea.has(value)) return undefined
+    for (const [therapyArea, indications] of indicationsByArea) {
+      if (indications.includes(value)) return therapyArea
+    }
+  }
+  return undefined
+}
+
+/**
+ * Where the Miller columns should stand to show a clause: its area and
+ * attribute, and the parent of its first value when that value sits a level
+ * down, so the value is on screen with its tick.
+ */
+export function trailFor(area: ProductArea, attribute: string, values: string[]) {
+  const parent = values[0] ? parentValueOf(area, attribute, values[0]) : undefined
+  return parent ? [area, attribute, parent] : [area, attribute]
 }
 
 export interface Results {

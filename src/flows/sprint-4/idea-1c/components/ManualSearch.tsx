@@ -13,12 +13,19 @@ import {
   searchCategories,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1c/data"
-import { valueCountsFor } from "@/flows/sprint-4/idea-1c/results"
+import {
+  childValuesOf,
+  rootValuesOf,
+  valueCountOf,
+} from "@/flows/sprint-4/idea-1c/results"
 import { cn } from "@/lib/utils"
 
 /**
  * Advanced search as Miller columns, after Sprint 3 Idea 2's filter panel:
- * filter area, then attribute, then values. Drilling in adds a column beside
+ * filter area, then attribute, then values, then the values under a value as
+ * far down its tree as the data goes (therapy area › indication, region ›
+ * country). Three columns show at a time; past that the strip slides, with
+ * the back chevron and the breadcrumb to step back. Drilling in adds a column beside
  * the last rather than replacing it, and ticking a value writes it into the
  * same filters the quick search builds. Its open path is its own, so opening
  * a column never opens the pills.
@@ -32,17 +39,14 @@ import { cn } from "@/lib/utils"
  */
 export function ManualSearch({
   filters,
-  activeCategory,
-  activeAttribute,
-  onOpenCategory,
-  onOpenAttribute,
+  trail,
+  onOpenAt,
   onToggleValue,
 }: {
   filters: ResolvedFilter[]
-  activeCategory: ProductArea | null
-  activeAttribute: string | null
-  onOpenCategory: (category: ProductArea) => void
-  onOpenAttribute: (attribute: string) => void
+  /** The open path: area, attribute, then values down the attribute's tree. */
+  trail: string[]
+  onOpenAt: (depth: number, label: string) => void
   onToggleValue: (area: ProductArea, attribute: string, value: string) => void
 }) {
   const visibleColumns = 3
@@ -50,10 +54,13 @@ export function ManualSearch({
   // Follows the path to its deepest column unless a crumb slides it back.
   const [leftIndex, setLeftIndex] = React.useState(Number.POSITIVE_INFINITY)
 
+  const activeCategory = (trail[0] as ProductArea | undefined) ?? null
+  const activeAttribute = trail[1] ?? null
   const paths = filters.map((filter) => ({ filter, ...pathOf(filter.id) }))
   const openFilter = paths.find(
     (path) => path.area === activeCategory && path.attribute === activeAttribute,
   )?.filter
+  const ticked = openFilter?.values ?? []
 
   const columns: ColumnModel[] = [
     {
@@ -88,21 +95,54 @@ export function ManualSearch({
   }
 
   if (activeCategory && activeAttribute) {
-    columns.push({
-      key: `values:${activeCategory}/${activeAttribute}`,
-      level: activeAttribute,
-      unit: activeCategory === "Drugs" ? "Drugs" : "Records",
-      items: valueCountsFor(activeCategory, activeAttribute).map(({ value, count }) => ({
+    // One column of values, then a column for each open value that has values
+    // under it, as deep as the tree goes. A value with children carries the
+    // chevron: its box ticks it, the rest of the row opens what is under it.
+    const valueColumn = (key: string, level: string, values: string[], depth: number) => {
+      const items = values.map((value) => ({
         label: value,
-        count,
-      })),
-      selectable: true,
-      negated: Boolean(openFilter?.excluded),
-      selected: openFilter?.values ?? [],
-    })
+        count: valueCountOf(activeCategory, activeAttribute, value),
+        drillable: childValuesOf(activeCategory, activeAttribute, value).length > 0,
+      }))
+      columns.push({
+        key,
+        level,
+        unit: activeCategory === "Drugs" ? "Drugs" : "Records",
+        items,
+        selectable: true,
+        negated: Boolean(openFilter?.excluded),
+        selected: ticked,
+        // A value with something ticked beneath it reads as holding values,
+        // in weight, the way a navigation row does.
+        holding: items
+          .filter(({ label }) =>
+            childValuesOf(activeCategory, activeAttribute, label).some((child) =>
+              ticked.includes(child),
+            ),
+          )
+          .map(({ label }) => label),
+        open: trail[depth],
+      })
+    }
+    valueColumn(
+      `values:${activeCategory}/${activeAttribute}`,
+      activeAttribute,
+      rootValuesOf(activeCategory, activeAttribute).map(({ value }) => value),
+      2,
+    )
+    for (let depth = 2; depth < trail.length; depth += 1) {
+      const children = childValuesOf(activeCategory, activeAttribute, trail[depth])
+      if (children.length === 0) break
+      valueColumn(
+        `values:${trail.slice(0, depth + 1).join("/")}`,
+        trail[depth],
+        children,
+        depth + 1,
+      )
+    }
   }
 
-  const path = [activeCategory, activeAttribute].filter(Boolean) as string[]
+  const path = trail.slice(0, columns.length)
   const maxLeft = Math.max(0, columns.length - visibleColumns)
   const start = Math.min(leftIndex, maxLeft)
   const needle = query.trim().toLowerCase()
@@ -187,11 +227,10 @@ export function ManualSearch({
               )}
               onOpen={(label) => {
                 setLeftIndex(Number.POSITIVE_INFINITY)
-                if (depth === 0) onOpenCategory(label as ProductArea)
-                else onOpenAttribute(label)
+                onOpenAt(depth, label)
               }}
               onToggle={
-                depth === 2 && activeCategory && activeAttribute
+                depth >= 2 && activeCategory && activeAttribute
                   ? (label) => onToggleValue(activeCategory, activeAttribute, label)
                   : undefined
               }

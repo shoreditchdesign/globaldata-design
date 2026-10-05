@@ -25,7 +25,7 @@ import {
   type FilterLink,
 } from "@/flows/sprint-4/idea-1c/data"
 import { expandShorthand } from "@/flows/sprint-4/idea-1c/examples"
-import { resultsFor } from "@/flows/sprint-4/idea-1c/results"
+import { resultsFor, trailFor } from "@/flows/sprint-4/idea-1c/results"
 import {
   resolveQuery as resolveNaturalLanguage,
   type Resolution,
@@ -141,8 +141,7 @@ export function PrototypeShell() {
       return {
         ...current,
         mode,
-        manualCategory: at ? at.area : "Drugs",
-        manualAttribute: at ? at.attribute : null,
+        manualTrail: at && last ? trailFor(at.area, at.attribute, last.values) : ["Drugs"],
       }
     })
   const setPanelOpen = (panelOpen: boolean) => setState((current) => ({ ...current, panelOpen }))
@@ -177,29 +176,32 @@ export function PrototypeShell() {
           : [...current.filters, { ...started, appliedAt: nextAppliedAt(current.filters) }],
       }
     })
-  // Miller columns open rather than toggle: clicking the open row keeps it open.
-  const walkToCategory = React.useCallback(
-    (category: ProductArea) =>
+  // Miller columns open rather than toggle: clicking the open row keeps it,
+  // and what is open beyond it, open.
+  const openTrailAt = React.useCallback(
+    (depth: number, label: string) =>
       setState((current) => ({
         ...current,
-        manualCategory: category,
-        manualAttribute: current.manualCategory === category ? current.manualAttribute : null,
+        manualTrail:
+          current.manualTrail[depth] === label
+            ? current.manualTrail
+            : [...current.manualTrail.slice(0, depth), label],
       })),
     [],
   )
+  const walkToCategory = React.useCallback(
+    (category: ProductArea) => openTrailAt(0, category),
+    [openTrailAt],
+  )
   const walkToAttribute = React.useCallback(
-    (attribute: string) => setState((current) => ({ ...current, manualAttribute: attribute })),
-    [],
+    (attribute: string) => openTrailAt(1, attribute),
+    [openTrailAt],
   )
   const walk = useMillerWalk({ openCategory: walkToCategory, openAttribute: walkToAttribute })
   // A click in the columns is the reader's, so it ends any walk under way.
-  const openCategory = (category: ProductArea) => {
+  const openAt = (depth: number, label: string) => {
     walk.stop()
-    walkToCategory(category)
-  }
-  const openAttribute = (attribute: string) => {
-    walk.stop()
-    walkToAttribute(attribute)
+    openTrailAt(depth, label)
   }
   const pickValueAt = (area: ProductArea, attribute: string, value: string) =>
     setState((current) => toggleValueAt(current, area, attribute, value))
@@ -339,10 +341,8 @@ export function PrototypeShell() {
               onResolve={submitQuery}
               onScanDone={settleAndWalk}
               onToggleFilter={togglePillFilter}
-              manualCategory={state.manualCategory}
-              manualAttribute={state.manualAttribute}
-              onOpenCategory={openCategory}
-              onOpenAttribute={openAttribute}
+              manualTrail={state.manualTrail}
+              onOpenAt={openAt}
               onValuePickAt={pickValueAt}
               onClosePanel={() => setPanelOpen(false)}
             />
@@ -372,10 +372,8 @@ export function PrototypeShell() {
         manual={
           <ManualSearch
             filters={state.filters}
-            activeCategory={state.manualCategory}
-            activeAttribute={state.manualAttribute}
-            onOpenCategory={openCategory}
-            onOpenAttribute={openAttribute}
+            trail={state.manualTrail}
+            onOpenAt={openAt}
             onToggleValue={pickValueAt}
           />
         }

@@ -22,11 +22,11 @@ export interface Sprint4Idea1cState {
   mode: SearchMode
   query: string
   /**
-   * The manual search's Miller path, kept apart so the pills stay closed.
+   * The manual search's Miller path, kept apart so the pills stay closed: the
+   * area, then the attribute, then as many values down its tree as are open.
    * Drugs is open by default, on the landing page and the results page.
    */
-  manualCategory: ProductArea | null
-  manualAttribute: string | null
+  manualTrail: string[]
   /**
    * Once the box is on screen it stays there, empty if need be, until it is
    * closed. Taking the last clause out is editing the filters, not finishing
@@ -58,8 +58,7 @@ export interface Sprint4Idea1cState {
 const startState = (): Sprint4Idea1cState => ({
   mode: "quick",
   query: "",
-  manualCategory: "Drugs",
-  manualAttribute: null,
+  manualTrail: ["Drugs"],
   filterBoxOpen: false,
   path: null,
   submittedQuery: null,
@@ -73,8 +72,7 @@ const startState = (): Sprint4Idea1cState => ({
 const filteredState = (): Sprint4Idea1cState => ({
   mode: "quick",
   query: workedQuery,
-  manualCategory: "Drugs",
-  manualAttribute: null,
+  manualTrail: ["Drugs"],
   filterBoxOpen: true,
   path: null,
   submittedQuery: workedQuery,
@@ -116,8 +114,7 @@ const pickedState = (): Sprint4Idea1cState => ({
 const resolvingState = (): Sprint4Idea1cState => ({
   mode: "quick",
   query: workedQuery,
-  manualCategory: "Drugs",
-  manualAttribute: null,
+  manualTrail: ["Drugs"],
   filterBoxOpen: false,
   path: null,
   submittedQuery: null,

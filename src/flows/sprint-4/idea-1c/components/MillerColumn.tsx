@@ -35,6 +35,8 @@ export interface ColumnModel {
   items: ColumnRow[]
   /** Values ticked in this column. */
   selected?: string[]
+  /** Values not ticked themselves but holding ticked values a level down. */
+  holding?: string[]
   /** The row whose children are open in the column to the right. */
   open?: string
   /** Whether rows carry a tick box. Areas and attributes are navigation only. */
@@ -93,6 +95,7 @@ export function MillerColumn({
   className?: string
 }) {
   const selected = new Set(column.selected ?? [])
+  const holding = new Set(column.holding ?? [])
   const lane = countLane(column.items, column.negated)
   const hasDrill = column.items.some((item) => item.drillable)
 
@@ -168,6 +171,7 @@ export function MillerColumn({
               lane={lane}
               hasDrill={hasDrill}
               isSelected={selected.has(item.label)}
+              isHolding={holding.has(item.label)}
               onOpen={onOpen}
               onToggle={onToggle}
             />
@@ -197,6 +201,7 @@ function ColumnItem({
   lane,
   hasDrill,
   isSelected,
+  isHolding,
   onOpen,
   onToggle,
 }: {
@@ -205,6 +210,7 @@ function ColumnItem({
   lane: string
   hasDrill: boolean
   isSelected: boolean
+  isHolding: boolean
   onOpen: (label: string) => void
   onToggle?: (label: string) => void
 }) {
@@ -332,7 +338,7 @@ function ColumnItem({
             // the branch under the row holds values. That second reading is the
             // job the lead-lane count badge used to do, and weight does it
             // without putting a second number on the row or spending a colour.
-            isSelected && "font-medium",
+            (isSelected || isHolding) && "font-medium",
             // A zero is an answer: this value would leave nothing, so the row
             // recedes rather than reading as an equal option. It recedes by a
             // whole named rung, not a fraction of one — the label is where the

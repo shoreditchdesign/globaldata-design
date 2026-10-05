@@ -37,10 +37,8 @@ export function SearchPanel({
   onResolve,
   onScanDone,
   onToggleFilter,
-  manualCategory,
-  manualAttribute,
-  onOpenCategory,
-  onOpenAttribute,
+  manualTrail,
+  onOpenAt,
   onValuePickAt,
   onClosePanel,
 }: {
@@ -57,10 +55,8 @@ export function SearchPanel({
   onResolve: () => void
   onScanDone: () => void
   onToggleFilter: (area: ProductArea, attribute: string) => void
-  manualCategory: ProductArea | null
-  manualAttribute: string | null
-  onOpenCategory: (category: ProductArea) => void
-  onOpenAttribute: (attribute: string) => void
+  manualTrail: string[]
+  onOpenAt: (depth: number, label: string) => void
   onValuePickAt: (area: ProductArea, attribute: string, value: string) => void
   /** Folds the panel away so the table takes the full width. */
   onClosePanel: () => void
@@ -184,10 +180,8 @@ export function SearchPanel({
       ) : (
         <ManualSearch
           filters={filters}
-          activeCategory={manualCategory}
-          activeAttribute={manualAttribute}
-          onOpenCategory={onOpenCategory}
-          onOpenAttribute={onOpenAttribute}
+          trail={manualTrail}
+          onOpenAt={onOpenAt}
           onToggleValue={onValuePickAt}
         />
       )}
