@@ -100,18 +100,20 @@ Every task is followed by the same two questions:
 
 ## System Usability Scale (SUS)
 
-Each statement is rated 1–5, where 1 = Strongly disagree and 5 = Strongly agree. These are Brooke's ten standard statements (1996), with "system" changed to "search":
+Second-last, directly before the NPS. Lyssna heading: **System Usability Scale**, with the line "Rate how much you agree with each statement." Each statement is rated 1–5, where 1 = Strongly disagree and 5 = Strongly agree. The wording is Austin's, from his SUS sheet:
 
-1. I think that I would like to use this search frequently.
-2. I found this search unnecessarily complex.
-3. I thought this search was easy to use.
-4. I think that I would need the support of a technical person to be able to use this search.
-5. I found the various functions in this search were well integrated.
-6. I thought there was too much inconsistency in this search.
-7. I would imagine that most people would learn to use this search very quickly.
-8. I found this search very cumbersome to use.
-9. I felt very confident using this search.
-10. I needed to learn a lot of things before I could get going with this search.
+1. I think that I would like to use this product frequently.
+2. I found the product unnecessarily complex.
+3. I thought the product was easy to use.
+4. I think that I would need the support of a technical person to be able to use this product.
+5. I found the various functions in the product were well integrated.
+6. I thought there was too much inconsistency in this product.
+7. I imagine that most people would learn to use this product very quickly.
+8. I found the product very awkward to use.
+9. I felt very confident using the product.
+10. I needed to learn a lot of things before I could get going with this product.
+
+In Lyssna this is its own screen, with the ten statements as ten consecutive 1–5 scale questions. Lyssna's matrix question caps out at seven rows, so it can't hold all ten statements in one block.
 
 **Scoring:** standard SUS scoring. Odd-numbered statements score their rating minus 1, and even-numbered statements score 5 minus their rating. Add the ten scores and multiply by 2.5 to get 0–100. 68 is the commonly cited average.
 
@@ -128,7 +130,7 @@ Each statement is rated 1–5, where 1 = Strongly disagree and 5 = Strongly agre
 
 **Notes for setting it up in Lyssna**
 
-- The test is a duplicate of last round's "Globaldata: Advanced Search 2" and keeps its Live website test format: one task per screen, with its two questions straight after it. SUS goes just before the NPS, which sits in its own final screen as it did last round.
+- The test is a duplicate of last round's "Globaldata: Advanced Search 2" and keeps its Live website test format: one task per screen, with its two questions straight after it. SUS has its own screen just before the NPS, which sits on the final screen as it did last round.
 - The control test ("GlobalData Sprint 5 user testing control", on Idea 1b) stays in Lyssna but won't be run.
 - Don't mention the `$$` shortcut anywhere.
 - The 1–5 scores can't be compared number for number with last round's flipped 1–10 scale. Last round is compared through the tasks and the reasons. With no control, this round's scores are absolute: ease against a 4-out-of-5 target, SUS against 68 and NPS against zero. They become the baseline from here on.
