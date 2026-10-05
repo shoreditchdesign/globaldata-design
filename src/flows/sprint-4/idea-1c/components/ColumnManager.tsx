@@ -1,8 +1,25 @@
 "use client"
 
 import * as React from "react"
-import { ChevronDownIcon, ChevronUpIcon } from "lucide-react"
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core"
+import {
+  sortableKeyboardCoordinates,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
+import { GripVerticalIcon } from "lucide-react"
 
+import { motion, usePrefersReducedMotion } from "@/components/prototype/motion"
 import { Button } from "@/components/ui/button"
 import {
   Command,
@@ -13,6 +30,7 @@ import {
   CommandList,
 } from "@/components/ui/command"
 import { TickBox } from "@/flows/sprint-4/idea-1c/components/TickBox"
+import { cn } from "@/lib/utils"
 import {
   columnByKey,
   hiddenColumnKeys,
@@ -26,8 +44,11 @@ const GROUP_CLASS =
 
 /**
  * AG Grid's columns tool panel, after Sprint 3 Idea 4's manager: every column
- * can be shown, hidden or moved, and the grid changes as you do it. Reordering
- * is a pair of chevrons rather than a drag handle that does not drag.
+ * can be shown, hidden or moved, and the grid changes as you do it. A shown
+ * column is moved by its grip: dragged, it lifts off the list on the raised
+ * surface while the others make way, and settles where it is dropped. The
+ * grip also takes the keyboard — Space to pick up, the arrows to move, Space
+ * to drop, Escape to put it back — through dnd-kit's keyboard sensor.
  *
  * Built out of the same `Command` as Add filter and the filter box's value
  * lists, so every list this idea opens from a button is the same list: a label
@@ -46,6 +67,17 @@ export function ColumnManager({
   const shown = state.order.filter((key) => key !== "select")
   const hidden = hiddenColumnKeys(state)
 
+  const sensors = useSensors(
+    // A few pixels of travel before a drag starts, so a click on the grip is
+    // still a click.
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+  const onDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return
+    onAction({ kind: "reorderColumn", columnKey: String(active.id), overKey: String(over.id) })
+  }
+
   return (
     <Command>
       <div className="text-muted-foreground flex items-center px-3 py-2 text-[10px] font-medium tracking-[0.08em] uppercase">
@@ -58,44 +90,35 @@ export function ColumnManager({
         <CommandEmpty>No matches</CommandEmpty>
 
         <CommandGroup heading={`In the grid · ${shown.length}`} className={GROUP_CLASS}>
-          {shown.map((key) => {
-            const column = columnByKey[key]
-            const index = state.order.indexOf(key)
-            // The row's name is what the grid is keyed on and cannot be taken
-            // out, so its box is drawn ticked and does nothing.
-            const fixed = key === "name"
-            return (
-              <ColumnRow
-                key={key}
-                label={column.label}
-                checked
-                disabled={fixed}
-                onSelect={() => {
-                  if (!fixed) onAction({ kind: "removeColumn", columnKey: key })
-                }}
-                move={
-                  <span className="flex shrink-0 flex-col leading-none">
-                    <MoveButton
-                      label={`Move ${column.label} up`}
-                      // Moving while the list is filtered would move a column
-                      // past one that is not on screen.
-                      disabled={index <= 1 || Boolean(query)}
-                      onClick={() => onAction({ kind: "moveColumn", columnKey: key, by: -1 })}
-                    >
-                      <ChevronUpIcon className="size-3.5" />
-                    </MoveButton>
-                    <MoveButton
-                      label={`Move ${column.label} down`}
-                      disabled={index >= state.order.length - 1 || Boolean(query)}
-                      onClick={() => onAction({ kind: "moveColumn", columnKey: key, by: 1 })}
-                    >
-                      <ChevronDownIcon className="size-3.5" />
-                    </MoveButton>
-                  </span>
-                }
-              />
-            )
-          })}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={onDragEnd}
+            accessibility={{ screenReaderInstructions: { draggable: dragInstructions } }}
+          >
+            <SortableContext items={shown} strategy={verticalListSortingStrategy}>
+              {shown.map((key) => {
+                const column = columnByKey[key]
+                // The row's name is what the grid is keyed on and cannot be
+                // taken out, so its box is drawn ticked and does nothing.
+                const fixed = key === "name"
+                return (
+                  <SortableColumnRow
+                    key={key}
+                    id={key}
+                    label={column.label}
+                    // Moving while the list is filtered would move a column
+                    // past one that is not on screen.
+                    dragDisabled={Boolean(query)}
+                    disabled={fixed}
+                    onSelect={() => {
+                      if (!fixed) onAction({ kind: "removeColumn", columnKey: key })
+                    }}
+                  />
+                )
+              })}
+            </SortableContext>
+          </DndContext>
         </CommandGroup>
 
         <CommandGroup
@@ -116,9 +139,9 @@ export function ColumnManager({
                 label={columnByKey[key].label}
                 checked={false}
                 onSelect={() => onAction({ kind: "addColumn", columnKey: key })}
-                // The lane the shown rows keep for their move chevrons, so both
-                // groups' labels start on the same line.
-                move={<span className="w-3.5 shrink-0" />}
+                // The lane the shown rows keep for their grip, so both groups'
+                // labels start on the same line.
+                move={<span className="w-4 shrink-0" />}
               />
             ))
           )}
@@ -165,30 +188,83 @@ function ColumnRow({
   )
 }
 
-/** One half of the reorder control. Its click is its own, not the row's. */
-function MoveButton({
+const dragInstructions =
+  "To move a column, press Space on its grip, use the arrow keys to move it, then Space to drop it or Escape to cancel."
+
+/**
+ * A shown column's row, sortable by its grip. While dragged it lifts onto the
+ * raised surface with its shadow; the rows around it ease aside on
+ * `motion.settle`, and under reduced motion they jump instead.
+ */
+function SortableColumnRow({
+  id,
   label,
   disabled,
-  onClick,
-  children,
+  dragDisabled,
+  onSelect,
 }: {
+  id: string
   label: string
   disabled: boolean
-  onClick: () => void
-  children: React.ReactNode
+  dragDisabled: boolean
+  onSelect: () => void
 }) {
+  const reducedMotion = usePrefersReducedMotion()
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
+    useSortable({
+      id,
+      disabled: dragDisabled,
+      transition: reducedMotion
+        ? null
+        : { duration: motion.settle, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+    })
+
   return (
-    <button
-      type="button"
-      aria-label={label}
-      disabled={disabled}
-      onClick={(event) => {
-        event.stopPropagation()
-        onClick()
+    <div
+      ref={setNodeRef}
+      style={{
+        // Held to the list's own axis: the row moves up and down, not out.
+        transform: CSS.Translate.toString(transform ? { ...transform, x: 0 } : null),
+        transition: reducedMotion ? undefined : transition,
       }}
-      className="text-muted-foreground hover:text-foreground -my-px disabled:opacity-25"
+      className={cn(
+        "relative rounded-sm",
+        isDragging && "bg-surface-raised shadow-raised z-10",
+      )}
     >
-      {children}
-    </button>
+      <ColumnRow
+        label={label}
+        checked
+        disabled={disabled}
+        onSelect={onSelect}
+        move={
+          <button
+            type="button"
+            ref={setActivatorNodeRef}
+            aria-label={`Move ${label}`}
+            disabled={dragDisabled}
+            {...attributes}
+            {...listeners}
+            // The row selects on click; the grip is its own target.
+            onClick={(event) => event.stopPropagation()}
+            // Its keys belong to the drag, not to the list's highlight. They
+            // are marked handled rather than stopped: cmdk skips a handled
+            // key, and dnd-kit still hears it on the document.
+            onKeyDown={(event) => {
+              listeners?.onKeyDown?.(event)
+              if (isDragging || event.key === " " || event.key === "Enter") {
+                event.preventDefault()
+              }
+            }}
+            className={cn(
+              "text-muted-foreground hover:text-foreground -my-1 flex w-4 shrink-0 touch-none items-center justify-center rounded-sm py-1 disabled:opacity-25",
+              dragDisabled ? "cursor-not-allowed" : isDragging ? "cursor-grabbing" : "cursor-grab",
+            )}
+          >
+            <GripVerticalIcon className="size-3.5" />
+          </button>
+        }
+      />
+    </div>
   )
 }

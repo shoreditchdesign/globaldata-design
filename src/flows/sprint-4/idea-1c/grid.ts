@@ -185,6 +185,8 @@ export type GridAction =
   | { kind: "addColumn"; columnKey: string }
   | { kind: "removeColumn"; columnKey: string }
   | { kind: "moveColumn"; columnKey: string; by: -1 | 1 }
+  /** A shown column dragged from one place in the order to another. */
+  | { kind: "reorderColumn"; columnKey: string; overKey: string }
   | { kind: "resize"; columnKey: string; width: number }
   | { kind: "autosize"; columnKey: string }
   | { kind: "resetColumns" }
@@ -230,6 +232,16 @@ export function applyAction(state: GridState, action: GridAction): GridState {
       if (index < 1 || target < 1 || target >= state.order.length) return state
       const order = [...state.order]
       ;[order[index], order[target]] = [order[target], order[index]]
+      return { ...state, order }
+    }
+    case "reorderColumn": {
+      const from = state.order.indexOf(action.columnKey)
+      const to = state.order.indexOf(action.overKey)
+      // `select` is fixed at 0, so nothing may land above index 1.
+      if (from < 1 || to < 1 || from === to) return state
+      const order = [...state.order]
+      order.splice(from, 1)
+      order.splice(to, 0, action.columnKey)
       return { ...state, order }
     }
     case "resize":
