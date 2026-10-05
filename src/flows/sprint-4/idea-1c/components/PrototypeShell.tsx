@@ -211,6 +211,8 @@ export function PrototypeShell() {
     setState((current) => ({ ...current, mode: "manual", panelOpen: true, manualTrail: trail }))
   }
   const addFilter = () => openAdvancedAt(["Drugs"])
+  const editFilterAt = (area: ProductArea, attribute: string, values: string[]) =>
+    openAdvancedAt(trailFor(area, attribute, values))
   const pickValueAt = (area: ProductArea, attribute: string, value: string) =>
     setState((current) => toggleValueAt(current, area, attribute, value))
   const pickOnlyValueAt = (area: ProductArea, attribute: string, value: string) =>
@@ -329,8 +331,7 @@ export function PrototypeShell() {
       <ProductChrome activeArea={activeProductArea} areas={navAreas} body="row">
         <ResultsPage
           filters={state.filters}
-          onToggleFilterValue={pickValueAt}
-          onPickOnlyFilterValue={pickOnlyValueAt}
+          onEditFilter={editFilterAt}
           onClearFilter={removeFilter}
           onClearFilters={clearFilters}
           filterBox={filterBox}

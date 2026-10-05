@@ -41,8 +41,7 @@ export function ResultsPage({
   panelOpen,
   onPanelOpenChange,
   filters,
-  onToggleFilterValue,
-  onPickOnlyFilterValue,
+  onEditFilter,
   onClearFilter,
   onClearFilters,
 }: {
@@ -51,9 +50,8 @@ export function ResultsPage({
   panelOpen: boolean
   onPanelOpenChange: (open: boolean) => void
   filters: ResolvedFilter[]
-  /** The column menus filter by the same handlers the filter box uses. */
-  onToggleFilterValue: (area: ProductArea, attribute: string, value: string) => void
-  onPickOnlyFilterValue: (area: ProductArea, attribute: string, value: string) => void
+  /** A column's Edit filters opens the search panel's columns at its attribute. */
+  onEditFilter: (area: ProductArea, attribute: string, values: string[]) => void
   onClearFilter: (id: FilterId) => void
   /** Clears every criterion. The search field is not this button's business. */
   onClearFilters: () => void
@@ -85,8 +83,7 @@ export function ResultsPage({
         state={grid}
         filters={filters}
         onAction={onAction}
-        onToggleFilterValue={onToggleFilterValue}
-        onPickOnlyFilterValue={onPickOnlyFilterValue}
+        onEditFilter={onEditFilter}
         onClearFilter={onClearFilter}
         onClearFilters={onClearFilters}
         loading={loading}
