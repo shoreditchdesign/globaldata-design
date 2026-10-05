@@ -14,7 +14,7 @@ import { Grid } from "@/flows/sprint-3/idea-4/screens/Grid"
  */
 export const sprint3Idea4: Flow = {
   id: "idea-4",
-  name: "Idea 4 — Sidebar Agent",
+  name: "4) Sidebar agent",
   premise:
     "No filter surface at all. You land in the grid and filter from the column headers, Excel-style, with counts in every menu — and a docked assistant acts on the same grid: it proposes filters, columns, sorting and grouping, you accept, and its thread shows what it matched, each step landing, and a receipt with an undo.",
   rationale: [
@@ -32,7 +32,7 @@ export const sprint3Idea4: Flow = {
   source: "Sprint 1, approach 4 (Filter Dropdowns) pushed into the results view — no Paper source",
   lastUpdated: "2026-09-14",
   tags: ["Results-first", "Column filters", "Grid redesign", "Docked agent", "Agent thread"],
-  status: "in-progress",
+  status: "superseded",
   screens: [
     {
       slug: "grid",

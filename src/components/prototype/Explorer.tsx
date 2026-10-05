@@ -276,7 +276,12 @@ export function Explorer({
                         isCurrentIdea && "font-medium",
                       )}
                     >
-                      <span className="block truncate">{i.name}</span>
+                      <span className="block truncate">
+                        {i.name}
+                        {i.status === "superseded" ? (
+                          <span className="text-muted-foreground font-semibold"> (Superseded)</span>
+                        ) : null}
+                      </span>
                     </Link>
                     <span className="text-muted-foreground/70 shrink-0 pr-1 text-[11px] tabular-nums">
                       {i.screens.length}

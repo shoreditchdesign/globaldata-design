@@ -8,7 +8,7 @@ import { Start } from "@/flows/sprint-4/idea-1c/screens/Start"
  */
 export const sprint4Idea1c: Flow = {
   id: "idea-1c",
-  name: "Idea 1c — In progress",
+  name: "1c) Pills, revised",
   premise:
     "Idea 1b, reworked after the 5 October client review into the version Sprint 5 tests: one place to build a filter by hand (Add filter and a column's Edit filters both open the Miller tray), Drugs first and open by default, a value tree the columns can drill, Excludes only in the filter bar, not the columns, and the query field back at the head of Quick search.",
   lastUpdated: "2026-10-05",

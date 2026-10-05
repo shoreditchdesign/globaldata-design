@@ -9,7 +9,7 @@ import { Screener } from "@/flows/sprint-3/idea-3/screens/Screener"
  */
 export const sprint3Idea3: Flow = {
   id: "idea-3",
-  name: "Idea 3 — Text Input Field",
+  name: "3) Text input",
   premise:
     "Natural language in, and what comes back is the query itself as one editable line of English: every value a pill with a dropdown, every operator a word you can change. Not a transcript beside a builder — one object, in one place.",
   rationale: [
@@ -24,7 +24,7 @@ export const sprint3Idea3: Flow = {
   source: "Sprint 1, approach 3 (Search Priority) taken to its conclusion — no Paper source",
   lastUpdated: "2026-09-14",
   tags: ["Natural language", "Editable sentence", "Inline Boolean", "Non-modal", "Fewest clicks"],
-  status: "in-progress",
+  status: "superseded",
   screens: [
     {
       slug: "start",

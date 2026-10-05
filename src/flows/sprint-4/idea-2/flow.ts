@@ -8,7 +8,7 @@ import { Screener } from "@/flows/sprint-4/idea-2/screens/Screener"
  */
 export const sprint4Idea2: Flow = {
   id: "idea-2",
-  name: "Idea 2 — Sentence and Explorer",
+  name: "2) Sentence",
   premise:
     "One query, three ways to build it: a sentence typed in your own words, a file tree of the whole taxonomy, and the filters themselves. Whichever you use, the box says what the query now reads, and the other two follow.",
   rationale: [
@@ -26,7 +26,7 @@ export const sprint4Idea2: Flow = {
     "The Sprint 4 hybrid screener (commit ae56cf1, since taken off main) for the query model, sample, text box and results. Through it, Sprint 3 Idea 3 (Text Input Field) for the text box and resolver, Idea 2 (Miller Columns) for the sample, taxonomy and record drawer, and Idea 1 (Incumbent) for the filter dropdowns. No Paper source.",
   lastUpdated: "2026-09-18",
   tags: ["Hybrid", "Natural language", "File tree", "Quick filters", "One query, three ways"],
-  status: "in-progress",
+  status: "superseded",
   screens: [
     {
       slug: "start",

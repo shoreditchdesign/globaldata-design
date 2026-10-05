@@ -29,7 +29,7 @@ export interface Flow {
   lastUpdated: string
   /** Short labels for the modality this idea tests, shown on the index. */
   tags?: string[]
-  status: "placeholder" | "in-progress" | "review" | "final"
+  status: "placeholder" | "in-progress" | "review" | "final" | "superseded"
   screens: Screen[]
 }
 
