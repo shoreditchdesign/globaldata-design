@@ -438,11 +438,9 @@ function Cell({ column, row }: { column: ColumnDef; row: DrugRow }) {
  * put while the rest scroll sideways, row selection and a status bar. Type
  * follows the shared grid scale — 13px cells, 10px uppercase headers, 12px tags.
  *
- * The chat section is a sibling of the table rather than a page beside the
- * whole grid: the status bar runs over both, the two sit side by side in the
- * middle, and the footer runs under both and carries the toggle that folds the
- * chat section away. So the count, the columns and the export read as
- * belonging to the whole search, not to the table half of it.
+ * The search panel is a sibling of the table: the two sit side by side, the
+ * table's own toolbar (count, Columns, Export) runs over the table alone so
+ * the count sits over the drug names, and the footer runs under both.
  */
 export function ResultsGrid({
   rows,
@@ -498,76 +496,6 @@ export function ResultsGrid({
 
   return (
     <div className="bg-surface-panel flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="bg-surface-panel border-edge flex h-11 shrink-0 items-center gap-3 border-b px-3">
-        {asideOpen ? null : (
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Open the search panel"
-            aria-expanded={false}
-            aria-controls={asideId}
-            onClick={onOpenAside}
-            className="text-muted-foreground"
-          >
-            <PanelLeftOpenIcon />
-          </Button>
-        )}
-        <p className="text-[13px] tabular-nums" aria-live="polite">
-          <span className="font-medium">{resultCount.toLocaleString("en-GB")}</span>{" "}
-          <span className="text-muted-foreground">{resultCount === 1 ? "drug" : "drugs"}</span>
-        </p>
-        {selected.length > 0 ? (
-          <>
-            <span className="bg-hairline h-4 w-px" aria-hidden />
-            <span className="text-[13px] tabular-nums">
-              <span className="font-medium">{selected.length}</span>{" "}
-              <span className="text-muted-foreground">selected</span>
-            </span>
-            <Button
-              variant="ghost"
-              size="xs"
-              onClick={() => onAction({ kind: "setSelection", ids: [] })}
-            >
-              Clear
-            </Button>
-          </>
-        ) : null}
-
-        <div className="ml-auto flex items-center gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Columns3Icon className="text-muted-foreground" />
-                Columns
-                <span className="tabular-nums">
-                  {shownColumns}
-                  <span className="text-muted-foreground font-normal">/{totalColumns}</span>
-                </span>
-              </Button>
-            </PopoverTrigger>
-            {/* The same box Add filter and the value lists open in. */}
-            <PopoverContent align="end" className="w-72 gap-0 p-0">
-              <ColumnManager state={state} onAction={onAction} />
-            </PopoverContent>
-          </Popover>
-          {/* Outline until rows are ticked; then exporting them is the one
-              thing this bar is for, and it takes the primary fill. */}
-          <Button
-            variant={selected.length > 0 ? "default" : "outline"}
-            size="sm"
-            onClick={() =>
-              exportCsv(
-                state,
-                selected.length > 0 ? sorted.filter((row) => selected.includes(row.id)) : sorted,
-              )
-            }
-          >
-            <DownloadIcon className={cn(selected.length === 0 && "text-muted-foreground")} />
-            {selected.length > 0 ? "Export selected" : "Export"}
-          </Button>
-        </div>
-      </div>
-
       <div className="flex min-h-0 flex-1">
         {/* The width eases between closed and open; what is inside holds its
             own width, so the section slides away rather than squeezing its
@@ -583,128 +511,210 @@ export function ResultsGrid({
           </div>
         </div>
 
-        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
-          {/* A scrim over the rows, opaque enough and blurred so the rows
-              behind it read as a texture rather than as text, with the loader
-              over the middle of what is on screen rather than the middle of
-              the scrolled table. Always mounted so it can fade both ways;
-              under reduced motion it simply appears and the loader holds
-              still. The column head sits above it (z-40 to its z-30), so only
-              the rows are covered and the columns stay readable. */}
-          <div
-            aria-hidden={!loading}
-            className={cn(
-              "bg-surface-panel/85 ease-settle pointer-events-none absolute inset-0 z-30 flex items-center justify-center backdrop-blur-sm transition-opacity motion-reduce:transition-none",
-              loading ? "opacity-100" : "opacity-0",
-            )}
-            style={{ transitionDuration: `${motion.quick}ms` }}
-          >
-            {loading ? <Loader /> : null}
-          </div>
-          {/* With no rows it becomes a column, so the empty state below the head
-              can take the rest of the height and centre in it. */}
-          <div
-            aria-busy={loading}
-            className={cn(
-              "min-h-0 min-w-0 flex-1 overflow-auto",
-              rows.length === 0 && "flex flex-col",
-            )}
-          >
-            <div className="relative w-full shrink-0 text-[13px]" style={{ minWidth }}>
-              <div
-                className="bg-surface-panel border-edge sticky top-0 z-40 grid h-10 border-b"
-                style={{ gridTemplateColumns: template }}
+        {/* The table's own column: its toolbar, then the grid. The toolbar
+            belongs to the table rather than spanning the panel too, so the
+            count sits over the drug names it counts. */}
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <div className="bg-surface-panel border-edge flex h-11 shrink-0 items-center gap-3 border-b pr-3">
+            {/* The select lane's width, holding the reopen button when the panel
+                is closed, so the count after it starts on the Drug name column's
+                text edge whether the panel is open or not. */}
+            <span
+              className="-mr-3 flex shrink-0 items-center justify-center"
+              style={{ width: laneWidth(state, "select") }}
+            >
+              {asideOpen ? null : (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Open the search panel"
+                  aria-expanded={false}
+                  aria-controls={asideId}
+                  onClick={onOpenAside}
+                  className="text-muted-foreground"
+                >
+                  <PanelLeftOpenIcon />
+                </Button>
+              )}
+            </span>
+            <p className="pl-3 text-[13px] tabular-nums" aria-live="polite">
+              <span className="font-medium">{resultCount.toLocaleString("en-GB")}</span>{" "}
+              <span className="text-muted-foreground">{resultCount === 1 ? "drug" : "drugs"}</span>
+            </p>
+            {selected.length > 0 ? (
+              <>
+                <span className="bg-hairline h-4 w-px" aria-hidden />
+                <span className="text-[13px] tabular-nums">
+                  <span className="font-medium">{selected.length}</span>{" "}
+                  <span className="text-muted-foreground">selected</span>
+                </span>
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  onClick={() => onAction({ kind: "setSelection", ids: [] })}
+                >
+                  Clear
+                </Button>
+              </>
+            ) : null}
+
+            <div className="ml-auto flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Columns3Icon className="text-muted-foreground" />
+                    Columns
+                    <span className="tabular-nums">
+                      {shownColumns}
+                      <span className="text-muted-foreground font-normal">/{totalColumns}</span>
+                    </span>
+                  </Button>
+                </PopoverTrigger>
+                {/* The same box Add filter and the value lists open in. */}
+                <PopoverContent align="end" className="w-72 gap-0 p-0">
+                  <ColumnManager state={state} onAction={onAction} />
+                </PopoverContent>
+              </Popover>
+              {/* Outline until rows are ticked; then exporting them is the one
+                  thing this bar is for, and it takes the primary fill. */}
+              <Button
+                variant={selected.length > 0 ? "default" : "outline"}
+                size="sm"
+                onClick={() =>
+                  exportCsv(
+                    state,
+                    selected.length > 0 ? sorted.filter((row) => selected.includes(row.id)) : sorted,
+                  )
+                }
               >
-                {keys.map((key) => {
-                  if (key === "select") {
-                    const lane = frozen(key, lanes, "bg-surface-panel z-[2]")
+                <DownloadIcon className={cn(selected.length === 0 && "text-muted-foreground")} />
+                {selected.length > 0 ? "Export selected" : "Export"}
+              </Button>
+            </div>
+          </div>
+          <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+            {/* A scrim over the rows, opaque enough and blurred so the rows
+                behind it read as a texture rather than as text, with the loader
+                over the middle of what is on screen rather than the middle of
+                the scrolled table. Always mounted so it can fade both ways;
+                under reduced motion it simply appears and the loader holds
+                still. The column head sits above it (z-40 to its z-30), so only
+                the rows are covered and the columns stay readable. */}
+            <div
+              aria-hidden={!loading}
+              className={cn(
+                "bg-surface-panel/85 ease-settle pointer-events-none absolute inset-0 z-30 flex items-center justify-center backdrop-blur-sm transition-opacity motion-reduce:transition-none",
+                loading ? "opacity-100" : "opacity-0",
+              )}
+              style={{ transitionDuration: `${motion.quick}ms` }}
+            >
+              {loading ? <Loader /> : null}
+            </div>
+            {/* With no rows it becomes a column, so the empty state below the head
+                can take the rest of the height and centre in it. */}
+            <div
+              aria-busy={loading}
+              className={cn(
+                "min-h-0 min-w-0 flex-1 overflow-auto",
+                rows.length === 0 && "flex flex-col",
+              )}
+            >
+              <div className="relative w-full shrink-0 text-[13px]" style={{ minWidth }}>
+                <div
+                  className="bg-surface-panel border-edge sticky top-0 z-40 grid h-10 border-b"
+                  style={{ gridTemplateColumns: template }}
+                >
+                  {keys.map((key) => {
+                    if (key === "select") {
+                      const lane = frozen(key, lanes, "bg-surface-panel z-[2]")
+                      return (
+                        <div
+                          key={key}
+                          className={cn("flex items-center justify-center", lane.className)}
+                          style={lane.style}
+                        >
+                          <SelectBox
+                            checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                            disabled={rows.length === 0}
+                            onCheckedChange={() =>
+                              onAction({ kind: "setSelection", ids: allSelected ? [] : rowIds })
+                            }
+                            aria-label="Select all rows"
+                          />
+                        </div>
+                      )
+                    }
                     return (
-                      <div
+                      <HeaderCell
                         key={key}
-                        className={cn("flex items-center justify-center", lane.className)}
-                        style={lane.style}
-                      >
-                        <SelectBox
-                          checked={allSelected ? true : someSelected ? "indeterminate" : false}
-                          disabled={rows.length === 0}
-                          onCheckedChange={() =>
-                            onAction({ kind: "setSelection", ids: allSelected ? [] : rowIds })
-                          }
-                          aria-label="Select all rows"
-                        />
-                      </div>
+                        column={columnByKey[key]}
+                        state={state}
+                        lanes={lanes}
+                        filters={filters}
+                        onAction={onAction}
+                        onEditFilter={onEditFilter}
+                        onClearFilter={onClearFilter}
+                      />
                     )
-                  }
+                  })}
+                </div>
+
+                {sorted.map((row) => {
+                  const isSelected = selected.includes(row.id)
+                  const fill = isSelected ? "bg-brand-tint" : "bg-surface-panel group-hover/row:bg-accent"
                   return (
-                    <HeaderCell
-                      key={key}
-                      column={columnByKey[key]}
-                      state={state}
-                      lanes={lanes}
-                      filters={filters}
-                      onAction={onAction}
-                      onEditFilter={onEditFilter}
-                      onClearFilter={onClearFilter}
-                    />
+                    <div
+                      key={row.id}
+                      aria-selected={isSelected}
+                      className={cn(
+                        "group/row border-hairline grid border-b transition-colors",
+                        isSelected ? "bg-brand-tint" : "hover:bg-accent",
+                      )}
+                      style={{ gridTemplateColumns: template }}
+                    >
+                      {keys.map((key) => {
+                        const lane = frozen(key, lanes, fill)
+                        return (
+                          <div
+                            key={key}
+                            className={cn(
+                              "flex h-10 min-w-0 items-center transition-colors",
+                              key === "select" ? "justify-center" : "px-3",
+                              lane.className,
+                            )}
+                            style={lane.style}
+                          >
+                            {key === "select" ? (
+                              <SelectBox
+                                checked={isSelected}
+                                onCheckedChange={() => onAction({ kind: "toggleRow", id: row.id })}
+                                aria-label={`Select ${row.name}`}
+                              />
+                            ) : (
+                              <div className="min-w-0 flex-1">
+                                <Cell column={columnByKey[key]} row={row} />
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
                   )
                 })}
               </div>
 
-              {sorted.map((row) => {
-                const isSelected = selected.includes(row.id)
-                const fill = isSelected ? "bg-brand-tint" : "bg-surface-panel group-hover/row:bg-accent"
-                return (
-                  <div
-                    key={row.id}
-                    aria-selected={isSelected}
-                    className={cn(
-                      "group/row border-hairline grid border-b transition-colors",
-                      isSelected ? "bg-brand-tint" : "hover:bg-accent",
-                    )}
-                    style={{ gridTemplateColumns: template }}
-                  >
-                    {keys.map((key) => {
-                      const lane = frozen(key, lanes, fill)
-                      return (
-                        <div
-                          key={key}
-                          className={cn(
-                            "flex h-10 min-w-0 items-center transition-colors",
-                            key === "select" ? "justify-center" : "px-3",
-                            lane.className,
-                          )}
-                          style={lane.style}
-                        >
-                          {key === "select" ? (
-                            <SelectBox
-                              checked={isSelected}
-                              onCheckedChange={() => onAction({ kind: "toggleRow", id: row.id })}
-                              aria-label={`Select ${row.name}`}
-                            />
-                          ) : (
-                            <div className="min-w-0 flex-1">
-                              <Cell column={columnByKey[key]} row={row} />
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                )
-              })}
+              {/* Outside the lane track, so it is as wide as the grid is on screen
+                  rather than as wide as the columns add up to — which is what lets it
+                  centre — and stuck to the left edge so it stays put if the reader
+                  scrolls the empty table sideways. */}
+              {rows.length === 0 ? (
+                <NoMatches
+                  filters={filters}
+                  onRemoveCriterion={onClearFilter}
+                  onClearFilters={onClearFilters}
+                />
+              ) : null}
             </div>
-
-            {/* Outside the lane track, so it is as wide as the grid is on screen
-                rather than as wide as the columns add up to — which is what lets it
-                centre — and stuck to the left edge so it stays put if the reader
-                scrolls the empty table sideways. */}
-            {rows.length === 0 ? (
-              <NoMatches
-                filters={filters}
-                onRemoveCriterion={onClearFilter}
-                onClearFilters={onClearFilters}
-              />
-            ) : null}
           </div>
         </div>
       </div>
