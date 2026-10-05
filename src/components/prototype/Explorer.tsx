@@ -81,10 +81,10 @@ function useHydrated() {
   );
 }
 
-const POSITION_KEY = "gd-explorer-trigger-position";
+const POSITION_KEY = "gd-explorer-trigger-position-left";
 /** The trigger is `size-10`. */
 const TRIGGER_SIZE = 40;
-/** Kept clear of the viewport edge — the `right-3 bottom-3` default. */
+/** Kept clear of the viewport edge — the `left-3 bottom-3` default. */
 const EDGE = 12;
 /** Movement under this many pixels is still a click, not a drag. */
 const DRAG_THRESHOLD = 4;
@@ -126,7 +126,7 @@ function writeStoredPosition(point: Point) {
  * The square trigger. Draggable anywhere on screen; a press that moves less
  * than `DRAG_THRESHOLD` is a click and opens the Explorer, anything further is
  * a drag and does not. Position persists in `localStorage`; `null` means the
- * bottom-right default.
+ * bottom-left default.
  */
 function ExplorerTrigger({
   shortcut,
@@ -211,7 +211,7 @@ function ExplorerTrigger({
           style={position ? { left: position.x, top: position.y } : undefined}
           className={cn(
             "bg-foreground text-background focus-visible:ring-ring/50 fixed z-50 flex size-10 cursor-grab touch-none items-center justify-center rounded-lg shadow-raised outline-none select-none focus-visible:ring-3 focus-visible:ring-offset-2 active:cursor-grabbing",
-            !position && "right-3 bottom-3",
+            !position && "left-3 bottom-3",
           )}
         >
           <FolderIcon className="size-4.5" aria-hidden />
@@ -337,7 +337,7 @@ export function Explorer({
       {scrim}
       <aside
         aria-label="Prototype explorer"
-        className="bg-surface-raised border-edge fixed right-4 bottom-4 z-50 flex max-h-[70svh] w-[320px] flex-col overflow-hidden rounded-xl border shadow-2xl"
+        className="bg-surface-raised border-edge fixed left-4 bottom-4 z-50 flex max-h-[70svh] w-[320px] flex-col overflow-hidden rounded-xl border shadow-2xl"
       >
         <div className="flex items-start gap-2 px-3 py-2.5">
           <div className="min-w-0 flex-1">
