@@ -613,7 +613,8 @@ export function ResultsGrid({
               over the middle of what is on screen rather than the middle of
               the scrolled table. Always mounted so it can fade both ways;
               under reduced motion it simply appears and the loader holds
-              still. */}
+              still. The column head sits above it (z-40 to its z-30), so only
+              the rows are covered and the columns stay readable. */}
           <div
             aria-hidden={!loading}
             className={cn(
@@ -635,7 +636,7 @@ export function ResultsGrid({
           >
             <div className="relative w-full shrink-0 text-[13px]" style={{ minWidth }}>
               <div
-                className="bg-surface-panel border-edge sticky top-0 z-20 grid h-10 border-b"
+                className="bg-surface-panel border-edge sticky top-0 z-40 grid h-10 border-b"
                 style={{ gridTemplateColumns: template }}
               >
                 {keys.map((key) => {
