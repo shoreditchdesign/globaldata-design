@@ -132,22 +132,17 @@ export function LandingPage({
 
   return (
     <main className="bg-surface-page flex min-h-0 flex-1 flex-col overflow-y-auto">
-      {/* The tabs head the page rather than the search, which centres in the space below. */}
-      <div className="flex shrink-0 justify-center pt-6">
-        <SearchTabs mode={mode} onModeChange={onModeChange} />
-      </div>
-
       {/*
         Quick search is centred a little above the middle by padding more below
         than above. It may shrink below its content, so on a short window the
         pills' well gives up its empty space before the page is made to scroll.
-        Advanced search runs top down instead: the title under the tabs, the Miller
+        Advanced search runs top down instead: the title and the tabs, the Miller
         columns filling the page, and the filter box always beneath them.
       */}
       <section
         ref={sectionRef}
         className={cn(
-          "mx-auto flex min-h-0 w-full flex-1 flex-col px-8 pt-6",
+          "mx-auto flex min-h-0 w-full flex-1 flex-col px-8 pt-12",
           // Advanced widens so the three Miller columns span more of the page.
           // Quick is wider than its search field: the field and the filter box
           // are held at 56rem inside it, and the extra room is the pills', so a
@@ -162,13 +157,18 @@ export function LandingPage({
             Describe any key search metrics such as Therapy Area, Classification, Geography,
             Route of Administration etc.
           </p>
+          {/* The tabs sit directly over the field (or the columns that take its
+              place), and travel with the title when the mode changes. */}
+          <div className="mt-6 flex justify-center">
+            <SearchTabs mode={mode} onModeChange={onModeChange} />
+          </div>
         </div>
 
         {manualMode ? (
           <>
             <div
               data-flip="stack"
-              className="bg-surface-panel border-border mt-6 flex min-h-72 flex-1 flex-col overflow-hidden rounded-xl border"
+              className="bg-surface-panel border-border mt-3 flex min-h-72 flex-1 flex-col overflow-hidden rounded-xl border"
             >
               {manual}
             </div>
@@ -181,7 +181,7 @@ export function LandingPage({
           <>
             <form
               data-flip="stack"
-              className="bg-surface-panel border-border focus-within:border-ring mx-auto mt-7 flex min-h-16 w-full max-w-4xl items-center gap-3 rounded-xl border px-4 transition-colors"
+              className="bg-surface-panel border-border focus-within:border-ring mx-auto mt-3 flex min-h-16 w-full max-w-4xl items-center gap-3 rounded-xl border px-4 transition-colors"
               onSubmit={(event) => {
                 event.preventDefault()
                 if (hasQuery && !resolving) onResolve()
