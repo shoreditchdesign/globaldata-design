@@ -5,7 +5,6 @@ import { ChevronDownIcon, PlusIcon, XIcon } from "lucide-react"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { Button } from "@/components/ui/button"
-import { AddFilterCascade } from "@/flows/sprint-4/idea-1c/components/AddFilterCascade"
 import { ValueList } from "@/flows/sprint-4/idea-1c/components/ValueList"
 import {
   DropdownMenu,
@@ -16,7 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import {
   Popover,
-  PopoverAnchor,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
@@ -107,7 +105,7 @@ export function ResolvedFilters({
   onLinkChange,
   onToggleValue,
   onRemove,
-  onPickValue,
+  onAddFilter,
   onPickOnlyValue,
   onClear,
   onSearch,
@@ -121,8 +119,8 @@ export function ResolvedFilters({
   onLinkChange: (id: FilterId, link: FilterLink) => void
   onToggleValue: (id: FilterId, value: string) => void
   onRemove: (id: FilterId) => void
-  /** Add filter ticks a value straight into the box, the way a column does. */
-  onPickValue: (area: ProductArea, attribute: string, value: string) => void
+  /** Add filter opens Advanced search's columns, at Drugs. */
+  onAddFilter: () => void
   /** One value in place of the clause's others — a row clicked, not its box. */
   onPickOnlyValue: (area: ProductArea, attribute: string, value: string) => void
   onClear: () => void
@@ -236,19 +234,16 @@ export function ResolvedFilters({
               rather than an errand in a footer. Clearing is the footer's on the
               landing card, and the far end of the bar on the results page. */}
           <span className="ml-1 flex items-center gap-2">
-            <AddFilterMenu
-              filters={filters}
-              onPickValue={onPickValue}
-              onPickOnlyValue={onPickOnlyValue}
-            >
-              {/* Labelled rather than a bare plus: an icon on its own read as too
-                  quiet to be found at the end of a row of chips. Outline, so it
-                  rests and hovers the way the commonly used filters do. */}
-              <Button variant="outline" size="sm">
-                <PlusIcon />
-                Add filter
-              </Button>
-            </AddFilterMenu>
+            {/* Labelled rather than a bare plus: an icon on its own read as too
+                quiet to be found at the end of a row of chips. Outline, so it
+                rests and hovers the way the commonly used filters do. It opens
+                Advanced search's columns at Drugs rather than a cascade of its
+                own, so there is one place to build a filter by hand. The
+                cascade (AddFilterCascade) is kept, not rendered. */}
+            <Button variant="outline" size="sm" onClick={onAddFilter}>
+              <PlusIcon />
+              Add filter
+            </Button>
           </span>
         </div>
         {/* Clearing sits apart from the filters, at the far end of the bar, as
@@ -285,123 +280,6 @@ export function ResolvedFilters({
         </div>
       )}
     </div>
-  )
-}
-
-/**
- * Add filter: the cascade, opened from whichever trigger it wraps.
- *
- * It used to be a list of the categories not yet in the box, which could only
- * add a category — the values came with it, already chosen. The cascade walks
- * the same tree the Advanced columns walk and ticks the values themselves, so
- * what arrives in the box is the filter that was asked for.
- */
-function AddFilterMenu({
-  filters,
-  onPickValue,
-  onPickOnlyValue,
-  children,
-}: {
-  filters: ResolvedFilter[]
-  onPickValue: (area: ProductArea, attribute: string, value: string) => void
-  onPickOnlyValue: (area: ProductArea, attribute: string, value: string) => void
-  children: React.ReactNode
-}) {
-  const [open, setOpen] = React.useState(false)
-  const triggerRef = React.useRef<HTMLButtonElement>(null)
-  // Where the box was opened, rather than where the button is now. Every value
-  // picked widens the row and walks the button along it, and a box that
-  // followed would move under the hand that is picking from it.
-  //
-  // Offsets inside the box's own `relative` root, which is what both this and
-  // the button measure against.
-  const [anchor, setAnchor] = React.useState<{
-    left: number
-    top: number
-    width: number
-    height: number
-  } | null>(null)
-
-  const place = React.useCallback(() => {
-    const trigger = triggerRef.current
-    if (!trigger) return null
-    return {
-      left: trigger.offsetLeft,
-      top: trigger.offsetTop,
-      width: trigger.offsetWidth,
-      height: trigger.offsetHeight,
-    }
-  }, [])
-
-  // Staying put is only right along a line. Once the button has been pushed to
-  // the next one, the box left behind would be sitting over the clause being
-  // built, so it follows — the one move worth making.
-  //
-  // The row growing a line is the only thing that moves it down, and that is a
-  // change in the box's own height, so the row is watched rather than polled on
-  // every render.
-  React.useEffect(() => {
-    const trigger = triggerRef.current
-    const root = trigger?.offsetParent
-    if (!open || !(root instanceof HTMLElement)) return
-    const observer = new ResizeObserver(() => {
-      const next = place()
-      setAnchor((current) =>
-        current && next && Math.abs(next.top - current.top) > current.height / 2 ? next : current,
-      )
-    })
-    observer.observe(root)
-    return () => observer.disconnect()
-  }, [open, place])
-
-  return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next)
-        setAnchor(next ? place() : null)
-      }}
-    >
-      {anchor ? (
-        <PopoverAnchor asChild>
-          <span
-            aria-hidden
-            className="pointer-events-none absolute"
-            style={{
-              left: anchor.left,
-              top: anchor.top,
-              width: anchor.width,
-              height: anchor.height,
-            }}
-          />
-        </PopoverAnchor>
-      ) : null}
-      <PopoverTrigger asChild ref={triggerRef}>
-        {children}
-      </PopoverTrigger>
-      {/* The same box the value lists open in.
-          Capped at the room it actually has, so a level longer than the window
-          scrolls inside the box rather than growing it off the screen — which
-          is also what keeps it still: each level of the cascade is a different
-          length, and a box that had to be re-placed to fit would walk up the
-          page as the reader walked down the tree.
-          Sideways it is placed against the window, so a button near the right
-          edge gets the box pulled back to sit a gap inside it rather than
-          running off the page. */}
-      <PopoverContent
-        align="start"
-        collisionPadding={16}
-        style={{ maxHeight: "var(--radix-popover-content-available-height, 26rem)" }}
-        className="w-72 gap-0 overflow-hidden p-0"
-      >
-        <AddFilterCascade
-          filters={filters}
-          onPickValue={onPickValue}
-          onPickOnlyValue={onPickOnlyValue}
-          onDone={() => setOpen(false)}
-        />
-      </PopoverContent>
-    </Popover>
   )
 }
 
