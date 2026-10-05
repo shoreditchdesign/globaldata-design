@@ -100,6 +100,17 @@ function clampToViewport(point: Point): Point {
   };
 }
 
+/**
+ * Pins a dropped trigger to whichever side edge is nearer, keeping its height,
+ * so it always docks to the left or right rather than floating mid-screen.
+ */
+function snapToEdge(point: Point): Point {
+  const clamped = clampToViewport(point);
+  const maxX = Math.max(EDGE, window.innerWidth - TRIGGER_SIZE - EDGE);
+  const centre = clamped.x + TRIGGER_SIZE / 2;
+  return { x: centre < window.innerWidth / 2 ? EDGE : maxX, y: clamped.y };
+}
+
 function readStoredPosition(): Point | null {
   if (typeof window === "undefined") return null;
   try {
@@ -108,7 +119,7 @@ function readStoredPosition(): Point | null {
     const parsed = JSON.parse(raw) as Partial<Point>;
     if (typeof parsed.x !== "number" || typeof parsed.y !== "number")
       return null;
-    return clampToViewport({ x: parsed.x, y: parsed.y });
+    return snapToEdge({ x: parsed.x, y: parsed.y });
   } catch {
     return null;
   }
@@ -143,10 +154,13 @@ function ExplorerTrigger({
     moved: boolean;
   } | null>(null);
   const suppressClick = useRef(false);
+  // Off while the pointer is down, so the trigger tracks the hand exactly; on
+  // for the glide to the nearer edge once it is let go.
+  const [dragging, setDragging] = useState(false);
 
   useEffect(() => {
     function onResize() {
-      setPosition((current) => (current ? clampToViewport(current) : current));
+      setPosition((current) => (current ? snapToEdge(current) : current));
     }
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
@@ -171,6 +185,7 @@ function ExplorerTrigger({
     const dx = event.clientX - current.start.x;
     const dy = event.clientY - current.start.y;
     if (!current.moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+    if (!current.moved) setDragging(true);
     current.moved = true;
     setPosition(
       clampToViewport({ x: current.origin.x + dx, y: current.origin.y + dy }),
@@ -186,8 +201,11 @@ function ExplorerTrigger({
     }
     if (current.moved) {
       suppressClick.current = true;
+      setDragging(false);
       const rect = event.currentTarget.getBoundingClientRect();
-      writeStoredPosition({ x: rect.left, y: rect.top });
+      const snapped = snapToEdge({ x: rect.left, y: rect.top });
+      setPosition(snapped);
+      writeStoredPosition(snapped);
     }
   }
 
@@ -212,6 +230,7 @@ function ExplorerTrigger({
           className={cn(
             "bg-foreground text-background focus-visible:ring-ring/50 fixed z-50 flex size-10 cursor-grab touch-none items-center justify-center rounded-lg shadow-raised outline-none select-none focus-visible:ring-3 focus-visible:ring-offset-2 active:cursor-grabbing",
             !position && "left-3 bottom-3",
+            !dragging && "ease-settle transition-[left,top] duration-300 motion-reduce:transition-none",
           )}
         >
           <FolderIcon className="size-4.5" aria-hidden />
