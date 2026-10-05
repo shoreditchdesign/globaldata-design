@@ -609,10 +609,9 @@ export function ResultsGrid({
                   <ColumnManager state={state} onAction={onAction} />
                 </PopoverContent>
               </Popover>
-              {/* Outline until rows are ticked; then exporting them is the one
-                  thing this bar is for, and it takes the primary fill. */}
+              {/* Always the primary action of this bar. */}
               <Button
-                variant={selected.length > 0 ? "default" : "outline"}
+                variant="default"
                 size="sm"
                 onClick={() =>
                   exportCsv(
@@ -621,7 +620,7 @@ export function ResultsGrid({
                   )
                 }
               >
-                <DownloadIcon className={cn(selected.length === 0 && "text-muted-foreground")} />
+                <DownloadIcon />
                 {selected.length > 0 ? "Export selected" : "Export"}
               </Button>
             </div>
