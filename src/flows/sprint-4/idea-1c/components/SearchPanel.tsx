@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils"
  * head, under the tabs, with the commonly used filters beneath it. Advanced
  * search has no field here, only the Miller columns: the client read a field
  * on this page as an assistant to talk to, and the columns are the way in.
- * The tabs, on the left, and the close button share a row of their own over both modes, so
+ * The tabs and the close button share a row of their own over both modes, so
  * they never move when flipped. All of it feeds the filter box above.
  *
  * It fills whatever width the results page gives it, which is the same in
@@ -137,9 +137,7 @@ export function SearchPanel({
       aria-label="Search"
       className="bg-surface-chrome border-edge flex h-full w-full flex-col border-r pt-2"
     >
-      {/* The tabs on the left, in line with the content under them; the close
-          button at the far end. */}
-      <div className="flex shrink-0 items-center justify-start gap-2 px-3 pt-1">
+      <div className="flex shrink-0 items-center justify-end gap-2 px-3 pt-1">
         <SearchTabs mode={mode} onModeChange={onModeChange} />
         {/* Closing sits at the panel's own head, where it is seen, rather than
             in the table's footer, where nobody found it. */}
@@ -150,7 +148,7 @@ export function SearchPanel({
           aria-label="Close the search panel"
           aria-expanded
           onClick={onClosePanel}
-          className="text-muted-foreground ml-auto"
+          className="text-muted-foreground"
         >
           <PanelLeftCloseIcon />
         </Button>
