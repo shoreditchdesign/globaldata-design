@@ -13,6 +13,7 @@ import { ResultsPage } from "@/flows/sprint-4/idea-1c/components/ResultsPage"
 import { SearchPanel } from "@/flows/sprint-4/idea-1c/components/SearchPanel"
 import {
   activeProductArea,
+  navAreas,
   nextAppliedAt,
   stampInOrder,
   emptyPathFilter,
@@ -298,7 +299,7 @@ export function PrototypeShell() {
 
   if (state.showResults) {
     return (
-      <ProductChrome activeArea={activeProductArea} body="row">
+      <ProductChrome activeArea={activeProductArea} areas={navAreas} body="row">
         <ResultsPage
           filters={state.filters}
           onToggleFilterValue={pickValueAt}
@@ -332,7 +333,7 @@ export function PrototypeShell() {
   }
 
   return (
-    <ProductChrome activeArea={activeProductArea}>
+    <ProductChrome activeArea={activeProductArea} areas={navAreas}>
       <LandingPage
         mode={state.mode}
         query={state.query}
