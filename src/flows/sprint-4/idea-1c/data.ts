@@ -289,13 +289,8 @@ function attributeSpec(area: ProductArea, label: string) {
   return searchAttributes[area].find((spec) => spec.label === label) as AttributeSpec
 }
 
-/**
- * The walkthrough query. It used to exclude Austria, Italy and the withdrawn
- * and archived stages; with Excludes removed (5 October call) it asks for the
- * same family in positive terms: Phase II or III, in Europe.
- */
 export const workedQuery =
-  "Find generic anti-inflammatory therapies targeting Actin Gamma Enteric Smooth Muscle, in Phase II or Phase III, available in Europe."
+  "Find generic anti-inflammatory therapies targeting Actin Gamma Enteric Smooth Muscle, but exclude drugs available in Austria or Italy, as well as marketed drugs that are withdrawn or archived."
 
 type AuthoredFilterId =
   | "target"
@@ -303,6 +298,7 @@ type AuthoredFilterId =
   | "descriptor"
   | "stage"
   | "geography"
+  | "geography-excluded"
 /** An authored id, or `area/attribute` for a filter built from the pill path. */
 export type FilterId = AuthoredFilterId | `${ProductArea}/${string}`
 export type FilterJoin = "or" | "and"
@@ -312,6 +308,7 @@ export interface ResolvedFilter {
   id: FilterId
   label: string
   values: string[]
+  excluded: boolean
   join: FilterJoin
   /** How this category combines with the category before it. */
   link: FilterLink
@@ -343,6 +340,7 @@ export const filterDefinitions: FilterDefinition[] = [
     label: "Target",
     values: ["Actin Gamma Enteric Smooth Muscle"],
     options: optionsOf("Target"),
+    excluded: false,
     join: "or",
     link: "and",
   },
@@ -351,6 +349,7 @@ export const filterDefinitions: FilterDefinition[] = [
     label: "Drug type",
     values: ["Generic"],
     options: optionsOf("Drug Type"),
+    excluded: false,
     join: "or",
     link: "and",
   },
@@ -359,32 +358,54 @@ export const filterDefinitions: FilterDefinition[] = [
     label: "Drug descriptor",
     values: ["Antiinflammatory Therapy"],
     options: optionsOf("Drug Descriptor"),
+    excluded: false,
     join: "or",
     link: "and",
   },
   {
     id: "stage",
     label: "Developmental stage",
-    values: ["Phase II", "Phase III"],
+    values: ["Withdrawn (Marketed)", "Archived (Marketed)"],
     options: optionsOf("Development Stage"),
+    excluded: true,
     join: "or",
     link: "and",
   },
   {
     id: "geography",
     label: "Drug geography",
-    values: ["Europe"],
+    values: ["Austria", "Italy"],
     options: optionsOf("Drug Geography"),
+    excluded: true,
     join: "or",
     link: "and",
   },
 ]
 
+/**
+ * Geography again, negatively. Now that a region sits above the countries,
+ * "in Europe but not Austria" is a real narrowing rather than a redundancy, and
+ * the box draws one clause per category — so the exclusion needs a clause of
+ * its own. Only the resolver builds it, from words like "excluding Austria"
+ * said of a region already chosen, which is why it is not in the list above
+ * that Add filter offers.
+ */
+const excludedGeography: FilterDefinition = {
+  id: "geography-excluded",
+  label: "Drug geography",
+  values: [],
+  options: optionsOf("Drug Geography"),
+  excluded: true,
+  join: "or",
+  link: "and",
+}
+
 export function initialResolvedFilters(): ResolvedFilter[] {
-  return filterDefinitions.map(({ id, label, values, join, link }) => ({
+  return filterDefinitions.map(({ id, label, values, excluded, join, link }) => ({
     id,
     label,
     values: [...values],
+    excluded,
     join,
     link,
   }))
@@ -399,13 +420,14 @@ const authoredPaths: Partial<Record<FilterId, AuthoredFilterId>> = {
   "Drugs/Drug Geography": "geography",
 }
 
-/** Where an authored clause sits in the tree. */
+/** Where an authored clause sits in the tree, including the negative one. */
 const authoredLocations: Record<AuthoredFilterId, { area: ProductArea; attribute: string }> = {
   target: { area: "Drugs", attribute: "Target" },
   "drug-type": { area: "Drugs", attribute: "Drug Type" },
   descriptor: { area: "Drugs", attribute: "Drug Descriptor" },
   stage: { area: "Drugs", attribute: "Development Stage" },
   geography: { area: "Drugs", attribute: "Drug Geography" },
+  "geography-excluded": { area: "Drugs", attribute: "Drug Geography" },
 }
 
 /** Where a filter sits in the pill path, whether a query or a pill built it. */
@@ -425,13 +447,14 @@ const pathDefinitions: FilterDefinition[] = searchCategories.flatMap((area) =>
       label: spec.filterLabel,
       values: [],
       options: [...spec.values],
-        join: "or" as const,
+      excluded: false,
+      join: "or" as const,
       link: "and" as const,
     })),
 )
 
 export function definitionFor(id: FilterId) {
-  return [...filterDefinitions, ...pathDefinitions].find(
+  return [excludedGeography, ...filterDefinitions, ...pathDefinitions].find(
     (definition) => definition.id === id,
   ) as FilterDefinition
 }
@@ -445,7 +468,7 @@ export function filterIdFor(area: ProductArea, attribute: string): FilterId {
 /** The single filter a pill path describes: area, then attribute, then value. */
 export function pathFilter(area: ProductArea, attribute: string, value: string): ResolvedFilter {
   const { id, label } = definitionFor(filterIdFor(area, attribute))
-  return { id, label, values: [value], join: "or", link: "and" }
+  return { id, label, values: [value], excluded: false, join: "or", link: "and" }
 }
 
 /** The next sequence number, one past the highest any clause is carrying. */
@@ -473,10 +496,11 @@ export function lastApplied(filters: ResolvedFilter[]) {
     )
 }
 
-/** How a clause reads in a sentence: its values, joined as the clause joins them. */
+/** How a clause reads in a sentence: its values, and whether it excludes them. */
 export function criterionPhrase(filter: ResolvedFilter) {
   if (filter.values.length === 0) return filter.label
-  return filter.values.join(filter.join === "and" ? " and " : " or ")
+  const values = filter.values.join(filter.join === "and" ? " and " : " or ")
+  return filter.excluded ? `not ${values}` : values
 }
 
 /**
@@ -486,5 +510,5 @@ export function criterionPhrase(filter: ResolvedFilter) {
  */
 export function emptyPathFilter(area: ProductArea, attribute: string): ResolvedFilter {
   const { id, label } = definitionFor(filterIdFor(area, attribute))
-  return { id, label, values: [], join: "or", link: "and" }
+  return { id, label, values: [], excluded: false, join: "or", link: "and" }
 }

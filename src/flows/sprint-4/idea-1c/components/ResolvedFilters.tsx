@@ -101,6 +101,7 @@ function useLineClamp(
 export function ResolvedFilters({
   filters,
   resultCount,
+  onModeChange,
   onJoinChange,
   onLinkChange,
   onToggleValue,
@@ -114,6 +115,7 @@ export function ResolvedFilters({
 }: {
   filters: ResolvedFilter[]
   resultCount: number
+  onModeChange: (id: FilterId, excluded: boolean) => void
   onJoinChange: (id: FilterId, join: FilterJoin) => void
   onLinkChange: (id: FilterId, link: FilterLink) => void
   onToggleValue: (id: FilterId, value: string) => void
@@ -144,7 +146,7 @@ export function ResolvedFilters({
   // Their widths follow the labels and values in them, so both go in the key.
   const [rowWidth, setRowWidth] = React.useState(0)
   const clampKey = `${rowWidth}|${filters
-    .map((filter) => `${filter.id}:${filter.values.join(",")}:${filter.link}`)
+    .map((filter) => `${filter.id}:${filter.values.join(",")}:${filter.excluded}:${filter.link}`)
     .join("|")}`
   const visible = useLineClamp(rowRef, filters.length, clampKey, band, foldedOpen)
 
@@ -205,6 +207,7 @@ export function ResolvedFilters({
               ) : null}
               <FilterClause
                 filter={filter}
+                onModeChange={onModeChange}
                 onJoinChange={onJoinChange}
                 onToggleValue={onToggleValue}
                 onPickOnlyValue={onPickOnlyValue}
@@ -218,6 +221,7 @@ export function ResolvedFilters({
               filters={folded}
               open={foldedOpen}
               onOpenChange={setFoldedOpen}
+              onModeChange={onModeChange}
               onJoinChange={onJoinChange}
               onLinkChange={onLinkChange}
               onToggleValue={onToggleValue}
@@ -292,6 +296,7 @@ function FoldedFilters({
   filters,
   open,
   onOpenChange,
+  onModeChange,
   onJoinChange,
   onLinkChange,
   onToggleValue,
@@ -301,6 +306,7 @@ function FoldedFilters({
   filters: ResolvedFilter[]
   open: boolean
   onOpenChange: (open: boolean) => void
+  onModeChange: (id: FilterId, excluded: boolean) => void
   onJoinChange: (id: FilterId, join: FilterJoin) => void
   onLinkChange: (id: FilterId, link: FilterLink) => void
   onToggleValue: (id: FilterId, value: string) => void
@@ -352,6 +358,7 @@ function FoldedFilters({
               />
               <FilterClause
                 filter={filter}
+                onModeChange={onModeChange}
                 onJoinChange={onJoinChange}
                 onToggleValue={onToggleValue}
                 onPickOnlyValue={onPickOnlyValue}
@@ -396,12 +403,14 @@ function FilterLinkControl({
 
 function FilterClause({
   filter,
+  onModeChange,
   onJoinChange,
   onToggleValue,
   onPickOnlyValue,
   onRemove,
 }: {
   filter: ResolvedFilter
+  onModeChange: (id: FilterId, excluded: boolean) => void
   onJoinChange: (id: FilterId, join: FilterJoin) => void
   onToggleValue: (id: FilterId, value: string) => void
   onPickOnlyValue: (area: ProductArea, attribute: string, value: string) => void
@@ -414,17 +423,32 @@ function FilterClause({
       // What the band counts when it works out how many lines the filters run
       // to. The link word before it has no box of its own to measure.
       data-filter-chip
-      className="bg-surface-sunken border-border text-foreground flex min-h-8 max-w-full items-center rounded-lg border text-[12px]"
+      className={cn(
+        "flex min-h-8 max-w-full items-center rounded-lg border text-[12px]",
+        filter.excluded
+          ? "bg-negative border-negative-border text-negative-ink"
+          : "bg-surface-sunken border-border text-foreground",
+      )}
     >
       <span className="shrink-0 border-r border-current/10 px-2.5 py-1.5 font-medium">
         {filter.label}
       </span>
 
-      {/* Plain text now that Excludes are gone: there is no "is not" to
-          choose, but the clause still reads as a sentence. */}
-      <span className="text-muted-foreground shrink-0 border-r border-current/10 px-2 py-1.5">
-        IS
-      </span>
+      <DropdownMenu>
+        <DropdownMenuTrigger className="hover:bg-foreground/5 flex shrink-0 items-center gap-1 border-r border-current/10 px-2 py-1.5 transition-colors">
+          {filter.excluded ? "IS NOT" : "IS"}
+          <ChevronDownIcon className="size-3" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-32">
+          <DropdownMenuRadioGroup
+            value={filter.excluded ? "is-not" : "is"}
+            onValueChange={(value) => onModeChange(filter.id, value === "is-not")}
+          >
+            <DropdownMenuRadioItem value="is">is</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="is-not">is not</DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {/* Select value stands in the first value's slot rather than beside it, and
           that slot keeps its key once a value lands in it. Ticking the first
