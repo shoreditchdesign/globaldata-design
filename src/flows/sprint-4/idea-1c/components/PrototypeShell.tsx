@@ -419,6 +419,7 @@ export function PrototypeShell() {
             hint={state.trayHint}
             hintAt={state.trayHintAt}
             columnsAcross={4}
+            inlineSearch
           />
         }
         pending={state.pending}

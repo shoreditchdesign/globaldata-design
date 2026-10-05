@@ -48,6 +48,7 @@ export function ManualSearch({
   hint,
   hintAt = null,
   columnsAcross = 3,
+  inlineSearch = false,
 }: {
   filters: ResolvedFilter[]
   /** The open path: area, attribute, then values down the attribute's tree. */
@@ -63,6 +64,8 @@ export function ManualSearch({
    * results panel, four on the start page, which has the room for them.
    */
   columnsAcross?: number
+  /** The search field beside the path rather than under it (the start page). */
+  inlineSearch?: boolean
 }) {
   const visibleColumns = columnsAcross
   const [query, setQuery] = React.useState("")
@@ -204,8 +207,15 @@ export function ManualSearch({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="shrink-0 space-y-2 px-3 pt-3 pb-3">
-        <div className="flex h-6 items-center gap-1">
+      {/* The path and the search field: stacked in the results panel, and
+          on one row on the start page, which has the width for both. */}
+      <div
+        className={cn(
+          "shrink-0 px-3 pt-3 pb-3",
+          inlineSearch ? "flex items-center gap-3" : "space-y-2",
+        )}
+      >
+        <div className={cn("flex h-6 min-w-0 items-center gap-1", inlineSearch && "flex-1")}>
           <nav aria-label="Filter path" className="flex min-w-0 items-center gap-1 overflow-hidden">
             <button
               type="button"
@@ -237,7 +247,7 @@ export function ManualSearch({
           </nav>
         </div>
 
-        <InputGroup className="bg-surface-panel">
+        <InputGroup className={cn("bg-surface-panel", inlineSearch && "w-72 shrink-0")}>
           <InputGroupAddon>
             <SearchIcon className="size-4" />
           </InputGroupAddon>
