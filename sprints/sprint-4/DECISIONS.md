@@ -276,7 +276,7 @@ Two other things settled in the same pass. The excluding filter chip takes the w
 
 ## 2026-10-05 — Idea 1c, the tabs come back and the switch is hidden
 
-**Search / Advanced filter are tabs again.** The Advanced filter switch was easy to miss, tucked into the search field on the start page and into the composer's corner on the results page, so it is hidden (`AdvancedToggle` is kept, not rendered) and a pair of tabs carries the mode instead. Two named tabs say there are two ways in, which a switch left the reader to guess. This time the selected tab takes the washed brand — tint, brand edge, foreground text — with a grey hover, rather than the solid fill the first tabs broke the rule with.
+**Search / Advanced filter are tabs again.** The Advanced filter switch was easy to miss, tucked into the search field on the start page and into the composer's corner on the results page, so it is hidden (`AdvancedToggle` is kept, not rendered) and a pair of tabs carries the mode instead. Two named tabs say there are two ways in, which a switch left the reader to guess. The tabs are 1b's own, unchanged: "Quick search" / "Advanced search", the selected tab raised on a white panel fill with a shadow, hover grey. A washed-brand version was tried and reversed the same day because it read as a different control from 1b's.
 
 **Where they sit.** On the start page they sit between the subheading and the field, as Idea 1b's now do. On the results page they sit at the top right of the chat panel on a row of their own, over "Commonly used filters" in Search and over the "All areas" path and the Search filters field in Advanced, so they hold the same place in both modes and nothing crowds them. The composer stays at the foot of the panel.
 

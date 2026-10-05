@@ -17,7 +17,7 @@ export const sprint4Idea1c: Flow = {
     {
       slug: "start",
       title: "Start",
-      note: "A natural-language starting point, with Search / Advanced filter tabs directly over the field and the ten commonly used filters under it.",
+      note: "A natural-language starting point, with Quick search / Advanced search tabs directly over the field and the ten commonly used filters under it.",
       viewport: "desktop",
       component: Start,
     },
@@ -45,7 +45,7 @@ export const sprint4Idea1c: Flow = {
     {
       slug: "results",
       title: "Results",
-      note: "The worked query searched: the filter box across the top, a status bar over both the chat section and the AG Grid-style table, and a footer whose panel toggle folds the chat section away. The Search / Advanced filter tabs sit at the chat section's top right, in the same place in both modes, over the pills or the Miller columns; the query field sits at its foot, like a chat composer. While the table loads, its column head stays above the scrim.",
+      note: "The worked query searched: the filter box across the top, a status bar over both the chat section and the AG Grid-style table, and a footer whose panel toggle folds the chat section away. The Quick search / Advanced search tabs sit at the chat section's top right, in the same place in both modes, over the pills or the Miller columns; the query field sits at its foot, like a chat composer. While the table loads, its column head stays above the scrim.",
       viewport: "desktop",
       component: Start,
     },
