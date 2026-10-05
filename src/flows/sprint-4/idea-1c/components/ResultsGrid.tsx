@@ -573,10 +573,11 @@ export function ResultsGrid({
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="sm">
                     <Columns3Icon className="text-muted-foreground" />
-                    Columns
                     <span className="tabular-nums">
-                      {shownColumns}
-                      <span className="text-muted-foreground font-normal">/{totalColumns}</span>
+                      {shownColumns}{" "}
+                      <span className="text-muted-foreground font-normal">
+                        of {totalColumns} columns
+                      </span>
                     </span>
                   </Button>
                 </PopoverTrigger>
