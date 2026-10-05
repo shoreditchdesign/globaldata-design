@@ -7,8 +7,9 @@
    Tokens, type scale and the spacing scale all come from deck.css. Nothing here sets a
    size or colour of its own. See DESIGN-NOTES.md in this folder for when to use each. */
 
-/* Coral as an accent on a word: the verdict label, goal tags. Never a fill. */
-.accent{color:var(--coral);font-weight:700}
+/* Coral as an accent on a word: the verdict label, goal tags. Never a fill.
+   Medium weight, so the colour carries the emphasis rather than the weight. */
+.accent{color:var(--coral);font-weight:500}
 
 /* Links inherit the text colour; the underline carries them. */
 .slide a{color:inherit;text-decoration-color:var(--rule-dark);text-underline-offset:3px}
@@ -127,3 +128,9 @@ ul.marks li strong{
    once that version is live. */
 .content:has(> .targets){display:flex;flex-direction:column}
 .content > .targets{flex:1;grid-auto-rows:1fr;max-width:none}
+
+/* ---------- plain rows — index and explainer only ----------
+   Hoxton's .rows with the title column dropped: the coral index on the first
+   third, the explainer across the remaining two thirds. */
+.rows--plain .row{grid-template-columns:1fr 2fr}
+.rows--plain .body-text{padding-top:var(--space-1);max-width:760px}

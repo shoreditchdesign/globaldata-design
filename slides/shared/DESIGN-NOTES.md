@@ -45,7 +45,7 @@ live in `extensions.css`.
 
 | Component | Use for | Used in |
 |---|---|---|
-| `.accent` | Coral on a word: a verdict label, a goal tag. Never a fill | All three decks |
+| `.accent` | Coral on a word: a verdict label, a goal tag. Medium weight (500) by default, so the colour carries the emphasis. Never a fill | All three decks |
 | `.slide a` | Links that inherit the text colour, carried by the underline | Sprint 3 options review, Sprint 4 option review |
 | `ul.marks.pos` | Coral marks on the in-favour column too, when both columns of a compare carry them | Sprint 4 option review |
 | `ul.marks li strong` | A mark whose claim sits on its own line above its detail | Sprint 4 option review |
@@ -55,6 +55,7 @@ live in `extensions.css`.
 | `.link-list` | One prototype state per row, its goal tag inline | Sprint 3 options review |
 | `.one-link` | A closing slide that is one centred link at `h2` size | Sprint 4 option review |
 | `.eyebrow` + `h1`/`h2` | A chapter index ("01 — What changed") carried over every heading in that chapter, and over a divider's `h1` | Sprint 5 client review |
+| `.rows--plain` | Hoxton's `rows` without the title column: index on the first third, explainer across the other two | Sprint 5 client review |
 | `.split-text` (`.split-copy`, `.split-frame`) | Copy on the left half, an empty dashed frame on the right half for a screenshot. Hoxton's `profile` puts its media on the right too, but it is built for a bio; this is the general text-and-image slide | Sprint 5 client review |
 
 A slide that fits neither Hoxton's library nor this table is a new component, not a bent existing

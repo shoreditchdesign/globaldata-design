@@ -51,26 +51,22 @@
   <h2>Scope of this review</h2>
   <div class="rule"></div>
   <div class="content">
-    <div class="rows">
+    <div class="rows rows--plain">
       <div class="row">
         <div class="num">01</div>
-        <div class="body-title">A concept prototype</div>
-        <div class="body-text">The prototype shows a <span class="accent">concept</span>. The data is a sample, and only some paths are built.</div>
+        <div class="body-text">This is a <span class="accent">concept prototype</span>. The data is a sample, and only some paths are built.</div>
       </div>
       <div class="row">
         <div class="num">02</div>
-        <div class="body-title">Not for review today</div>
-        <div class="body-text">The UX, the interaction details and the intermediate states are <span class="accent">not final</span>.</div>
+        <div class="body-text">Interaction details and intermediate states are <span class="accent">not within scope</span>.</div>
       </div>
       <div class="row">
         <div class="num">03</div>
-        <div class="body-title">One decision today</div>
-        <div class="body-text">Consensus that the <span class="accent">data side is feasible</span>: a sentence resolves to structured filters across the Drugs fields and values, in line with the current infrastructure.</div>
+        <div class="body-text"><span class="accent">Technical feasibility</span>: the one decision needed is consensus that the data side, a sentence resolved to structured filters across the Drugs fields and values, is feasible and in line with the current infrastructure.</div>
       </div>
       <div class="row">
         <div class="num">04</div>
-        <div class="body-title">All else parked</div>
-        <div class="body-text">All other questions move to a <span class="accent">separate session</span>.</div>
+        <div class="body-text">Future and extended scope will be treated in a <span class="accent">separate session</span>.</div>
       </div>
     </div>
   </div>
@@ -79,39 +75,20 @@
 <!-- ============ WHAT CHANGED ============ -->
 
 <!-- ============ RECAP ============ -->
-<section data-layout="targets" class="slide slide--light" data-section="What changed" data-title="Review of 30 September">
+<section class="slide slide--light" data-section="What changed" data-title="Review of 30 September">
   <div class="logo" data-logo></div>
   <p class="eyebrow">01 &mdash; What changed</p>
   <h2>Review of 30 September</h2>
   <div class="rule"></div>
-  <p class="lede">The points agreed on the call, and the response to each in Idea 1c.</p>
-  <div class="content" style="margin-top:36px">
-    <div class="targets">
-      <div class="target">
-        <div class="body-title">Prototype 1 goes forward</div>
-        <div class="body-text">Idea 1c continues Prototype 1. Prototype 2 does not go to testing again.</div>
-      </div>
-      <div class="target">
-        <div class="body-title">Advanced search is hard to find</div>
-        <div class="body-text">An Advanced filter switch now sits inside the search field.</div>
-      </div>
-      <div class="target">
-        <div class="body-title">One place for filters</div>
-        <div class="body-text">Every filter shows in the filter row at the top. Column filters write back to that row.</div>
-      </div>
-      <div class="target">
-        <div class="body-title">Add filter needs a label</div>
-        <div class="body-text">The button now reads &ldquo;+ Add filter&rdquo;.</div>
-      </div>
-      <div class="target">
-        <div class="body-title">Add filter shows all fields</div>
-        <div class="body-text">Add filter opens the full field list, not four fields.</div>
-      </div>
-      <div class="target">
-        <div class="body-title">Test how a result set is built</div>
-        <div class="body-text">The tasks cover search and filters, not the drugs grid. Task 6 asks testers to narrow the list by company.</div>
-      </div>
-    </div>
+  <div class="content" style="margin-top:44px">
+    <ul class="marks pos">
+      <li><span class="m">+</span><span><strong>Prototype 1 goes forward</strong>Idea 1c continues Prototype 1. Prototype 2 does not go to testing again.</span></li>
+      <li><span class="m">+</span><span><strong>Advanced search is hard to find</strong>Search and Advanced filter tabs now sit directly above the search field.</span></li>
+      <li><span class="m">+</span><span><strong>One place for filters</strong>Every filter shows in the filter row at the top. Column filters write back to that row.</span></li>
+      <li><span class="m">+</span><span><strong>Add filter needs a label</strong>The button now reads &ldquo;+ Add filter&rdquo;.</span></li>
+      <li><span class="m">+</span><span><strong>Add filter shows all fields</strong>Add filter opens the full field list, not four fields.</span></li>
+      <li><span class="m">+</span><span><strong>Test how a result set is built</strong>The tasks cover search and filters, not the drugs grid. Task 6 asks testers to narrow the list by company.</span></li>
+    </ul>
   </div>
 </section>
 
@@ -123,12 +100,13 @@
       <p class="eyebrow">01 &mdash; What changed</p>
       <h2>Advanced search</h2>
       <div class="rule"></div>
-      <p class="lede">In the last round, testers did not find Advanced search. An Advanced filter switch now replaces the Quick and Advanced tabs.</p>
+      <p class="lede">In the last round, testers did not find Advanced search. Two named tabs, Search and Advanced filter, now show that there are two ways in.</p>
       <div class="content">
         <ul class="marks pos">
-          <li><span class="m">+</span><span><strong>Inside the search field</strong>The switch sits in the search field on the start screen and in the composer on the results page.</span></li>
-          <li><span class="m">+</span><span><strong>One control, two modes</strong>One on/off switch replaces two tabs. The field stays in place, and only the area under it changes.</span></li>
-          <li><span class="m">+</span><span><strong>Miller columns under the field</strong>With the switch on, the Miller columns show three at a time, with the filter box below them.</span></li>
+          <li><span class="m">+</span><span><strong>Above the search field</strong>On the start page, the tabs sit directly above the search field, below the title and subheading.</span></li>
+          <li><span class="m">+</span><span><strong>One place on the results page</strong>On the results page, the tabs sit at the top right of the search panel, in the same place in both modes.</span></li>
+          <li><span class="m">+</span><span><strong>A clear selected tab</strong>The selected tab takes a pale brand wash.</span></li>
+          <li><span class="m">+</span><span><strong>Miller columns in Advanced filter</strong>In Advanced filter, the Miller columns show three at a time, with the filter box below them.</span></li>
         </ul>
       </div>
     </div>
@@ -148,30 +126,10 @@
       <div class="content">
         <ul class="marks pos">
           <li><span class="m">+</span><span><strong>A loading state on the table</strong>The table shows a loader after every search and after every filter change.</span></li>
+          <li><span class="m">+</span><span><strong>Column headers stay visible</strong>The column headers stay above the loading overlay. Only the rows are covered.</span></li>
           <li><span class="m">+</span><span><strong>The Miller columns walk to the query</strong>When a typed query resolves, the columns move through each attribute in turn.</span></li>
           <li><span class="m">+</span><span><strong>The table does not wait</strong>The filters apply before the walk starts, so the table never waits for it.</span></li>
           <li><span class="m">+</span><span><strong>An empty state with recovery</strong>When a search finds nothing, the table names the filter to remove and offers two actions.</span></li>
-        </ul>
-      </div>
-    </div>
-    <div class="split-frame"><span class="eyebrow">Screenshot</span></div>
-  </div>
-</section>
-
-<!-- ============ INTERACTIVITY ============ -->
-<section class="slide slide--light" data-section="What changed" data-title="Results layout">
-  <div class="logo" data-logo></div>
-  <div class="split-text">
-    <div class="split-copy">
-      <p class="eyebrow">01 &mdash; What changed</p>
-      <h2>Results layout</h2>
-      <div class="rule"></div>
-      <p class="lede">The results page is now one grid. A chat panel sits beside the table, under the filter row.</p>
-      <div class="content">
-        <ul class="marks pos">
-          <li><span class="m">+</span><span><strong>A chat panel beside the table</strong>The commonly used filters head the panel. The query field sits at its foot, as a chat composer does.</span></li>
-          <li><span class="m">+</span><span><strong>A collapsible panel</strong>A toggle in the footer folds the panel away to the side, and opens it again.</span></li>
-          <li><span class="m">+</span><span><strong>One status bar</strong>The count, Columns and Export run across both the panel and the table.</span></li>
         </ul>
       </div>
     </div>
@@ -193,7 +151,7 @@
           <li><span class="m">+</span><span><strong>Select one, or add</strong>Clicking the row selects only that value. Clicking the box adds it to the values already selected.</span></li>
           <li><span class="m">+</span><span><strong>Remove by unticking</strong>Unticking a value removes it. The &times; on a filter removes the whole filter.</span></li>
           <li><span class="m">+</span><span><strong>Clear at rest</strong>An unticked box shows its edge, and a part-selection shows a bar.</span></li>
-          <li><span class="m">+</span><span><strong>One control throughout</strong>The same tick boxes show in Add filter and in the column menus.</span></li>
+          <li><span class="m">+</span><span><strong>The same tick boxes throughout</strong>The same tick boxes show in Add filter and in the column menus.</span></li>
         </ul>
       </div>
     </div>
