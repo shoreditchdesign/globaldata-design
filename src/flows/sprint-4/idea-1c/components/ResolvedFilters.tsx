@@ -19,13 +19,28 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { ValueList } from "@/flows/sprint-4/idea-1c/components/ValueList"
 import {
+  definitionFor,
+  pathOf,
   type FilterId,
   type FilterJoin,
   type FilterLink,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1c/data"
+import { valueCountOf } from "@/flows/sprint-4/idea-1c/results"
 import { cn } from "@/lib/utils"
+
+/**
+ * The start page's own lists. On the landing card a chip's value opens its
+ * checklist in a popover, as it always did; on the results page (no lists
+ * here) every segment opens Advanced search in the panel instead.
+ */
+interface ChipLists {
+  onToggleValue: (id: FilterId, value: string) => void
+  onPickOnlyValue: (area: ProductArea, attribute: string, value: string) => void
+}
+const ChipListsContext = React.createContext<ChipLists | null>(null)
 
 /**
  * How many lines of filters the results band shows before the rest fold into a
@@ -107,6 +122,7 @@ export function ResolvedFilters({
   onAddFilter,
   onPickValue,
   onPickOnlyValue,
+  onToggleValue,
   onClear,
   onSearch,
   onClose,
@@ -123,8 +139,10 @@ export function ResolvedFilters({
   onAddFilter: () => void
   /** The start page's cascade ticks a value straight into the box. */
   onPickValue: (area: ProductArea, attribute: string, value: string) => void
-  /** One value in place of the clause's others — a cascade row, not its box. */
+  /** One value in place of the clause's others — a list row, not its box. */
   onPickOnlyValue: (area: ProductArea, attribute: string, value: string) => void
+  /** A start-page chip's checklist ticks a value in or out of its clause. */
+  onToggleValue: (id: FilterId, value: string) => void
   onClear: () => void
   /** Runs the search from the landing page. Omitted where results already follow the filters. */
   onSearch?: () => void
@@ -170,129 +188,136 @@ export function ResolvedFilters({
   // caught mid-measurement.
   if (foldedOpen && folded.length === 0) setFoldedOpen(false)
 
-  return (
-    <div
-      className={cn(
-        "relative w-full p-4",
-        band ? "bg-surface-chrome" : "bg-surface-panel border-border rounded-xl border",
-      )}
-    >
-      {onClose ? (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-xs"
-          onClick={onClose}
-          aria-label="Close and clear filters"
-          className="text-muted-foreground absolute top-2 right-2"
-        >
-          <XIcon />
-        </Button>
-      ) : null}
-      <div className="flex items-start gap-4">
-        <div
-          ref={rowRef}
-          className={cn("flex min-h-10 min-w-0 flex-1 flex-wrap items-center gap-2", onClose && "pr-6")}
-        >
-          {filters.length === 0 ? (
-            <p className="text-muted-foreground text-[13px]">No filters selected</p>
-          ) : null}
+  const chipLists = React.useMemo(
+    () => (band ? null : { onToggleValue, onPickOnlyValue }),
+    [band, onToggleValue, onPickOnlyValue],
+  )
 
-          {shown.map((filter, index) => (
-            <div key={filter.id} className="contents">
-              {index > 0 ? (
-                <FilterLinkControl
+  return (
+    <ChipListsContext.Provider value={chipLists}>
+      <div
+        className={cn(
+          "relative w-full p-4",
+          band ? "bg-surface-chrome" : "bg-surface-panel border-border rounded-xl border",
+        )}
+      >
+        {onClose ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            onClick={onClose}
+            aria-label="Close and clear filters"
+            className="text-muted-foreground absolute top-2 right-2"
+          >
+            <XIcon />
+          </Button>
+        ) : null}
+        <div className="flex items-start gap-4">
+          <div
+            ref={rowRef}
+            className={cn("flex min-h-10 min-w-0 flex-1 flex-wrap items-center gap-2", onClose && "pr-6")}
+          >
+            {filters.length === 0 ? (
+              <p className="text-muted-foreground text-[13px]">No filters selected</p>
+            ) : null}
+
+            {shown.map((filter, index) => (
+              <div key={filter.id} className="contents">
+                {index > 0 ? (
+                  <FilterLinkControl
+                    filter={filter}
+                    onChange={(link) => onLinkChange(filter.id, link)}
+                  />
+                ) : null}
+                <FilterClause
                   filter={filter}
-                  onChange={(link) => onLinkChange(filter.id, link)}
+                  onModeChange={onModeChange}
+                  onJoinChange={onJoinChange}
+                  onEditValues={onEditValues}
+                  onRemove={onRemove}
                 />
-              ) : null}
-              <FilterClause
-                filter={filter}
+              </div>
+            ))}
+
+            {folded.length > 0 ? (
+              <FoldedFilters
+                filters={folded}
+                open={foldedOpen}
+                onOpenChange={setFoldedOpen}
                 onModeChange={onModeChange}
                 onJoinChange={onJoinChange}
+                onLinkChange={onLinkChange}
                 onEditValues={onEditValues}
                 onRemove={onRemove}
               />
-            </div>
-          ))}
+            ) : null}
 
-          {folded.length > 0 ? (
-            <FoldedFilters
-              filters={folded}
-              open={foldedOpen}
-              onOpenChange={setFoldedOpen}
-              onModeChange={onModeChange}
-              onJoinChange={onJoinChange}
-              onLinkChange={onLinkChange}
-              onEditValues={onEditValues}
-              onRemove={onRemove}
-            />
-          ) : null}
-
-          {/* Add filter is the end of the row of filters in both variants: it adds
-              one to the line it sits on, which is a thing to say beside them
-              rather than an errand in a footer. Clearing is the footer's on the
-              landing card, and the far end of the bar on the results page. */}
-          <span className="ml-1 flex items-center gap-2">
-            {/* Labelled rather than a bare plus: an icon on its own read as too
-                quiet to be found at the end of a row of chips. Outline, so it
-                rests and hovers the way the commonly used filters do. On the
-                start page it opens the cascade, as it did before; on the
-                results page it opens Advanced search's columns in the panel
-                beside it, so there is one place to build a filter there. */}
-            {band ? (
-              <Button variant="outline" size="sm" onClick={onAddFilter}>
-                <PlusIcon />
-                Add filter
-              </Button>
-            ) : (
-              <AddFilterMenu
-                filters={filters}
-                onPickValue={onPickValue}
-                onPickOnlyValue={onPickOnlyValue}
-              >
-                <Button variant="outline" size="sm">
+            {/* Add filter is the end of the row of filters in both variants: it adds
+                one to the line it sits on, which is a thing to say beside them
+                rather than an errand in a footer. Clearing is the footer's on the
+                landing card, and the far end of the bar on the results page. */}
+            <span className="ml-1 flex items-center gap-2">
+              {/* Labelled rather than a bare plus: an icon on its own read as too
+                  quiet to be found at the end of a row of chips. Outline, so it
+                  rests and hovers the way the commonly used filters do. On the
+                  start page it opens the cascade, as it did before; on the
+                  results page it opens Advanced search's columns in the panel
+                  beside it, so there is one place to build a filter there. */}
+              {band ? (
+                <Button variant="outline" size="sm" onClick={onAddFilter}>
                   <PlusIcon />
                   Add filter
                 </Button>
-              </AddFilterMenu>
-            )}
-          </span>
-        </div>
-        {/* Clearing sits apart from the filters, at the far end of the bar, as
-            a link: it acts on all of them rather than adding to the row. */}
-        {band && filters.length > 0 ? (
-          <Button
-            variant="link"
-            size="sm"
-            onClick={onClear}
-            className="text-brand-ink mt-1.5 shrink-0 px-0"
-          >
-            Clear filters
-          </Button>
-        ) : null}
-      </div>
-
-      {band ? null : (
-        <div className="border-hairline mt-4 flex items-center justify-end gap-4 border-t pt-4">
-          <div className="flex items-center gap-2">
+              ) : (
+                <AddFilterMenu
+                  filters={filters}
+                  onPickValue={onPickValue}
+                  onPickOnlyValue={onPickOnlyValue}
+                >
+                  <Button variant="outline" size="sm">
+                    <PlusIcon />
+                    Add filter
+                  </Button>
+                </AddFilterMenu>
+              )}
+            </span>
+          </div>
+          {/* Clearing sits apart from the filters, at the far end of the bar, as
+              a link: it acts on all of them rather than adding to the row. */}
+          {band && filters.length > 0 ? (
             <Button
-              variant="secondary"
-              size="default"
+              variant="link"
+              size="sm"
               onClick={onClear}
-              disabled={filters.length === 0}
+              className="text-brand-ink mt-1.5 shrink-0 px-0"
             >
               Clear filters
             </Button>
-            {onSearch ? (
-              <Button type="button" size="default" className="shrink-0 tabular-nums" onClick={onSearch}>
-                Search for {resultCount.toLocaleString("en-GB")} drugs
-              </Button>
-            ) : null}
-          </div>
+          ) : null}
         </div>
-      )}
-    </div>
+
+        {band ? null : (
+          <div className="border-hairline mt-4 flex items-center justify-end gap-4 border-t pt-4">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="default"
+                onClick={onClear}
+                disabled={filters.length === 0}
+              >
+                Clear filters
+              </Button>
+              {onSearch ? (
+                <Button type="button" size="default" className="shrink-0 tabular-nums" onClick={onSearch}>
+                  Search for {resultCount.toLocaleString("en-GB")} drugs
+                </Button>
+              ) : null}
+            </div>
+          </div>
+        )}
+      </div>
+    </ChipListsContext.Provider>
   )
 }
 
@@ -540,6 +565,7 @@ function FilterClause({
   onEditValues: (id: FilterId, value?: string) => void
   onRemove: (id: FilterId) => void
 }) {
+  const lists = React.useContext(ChipListsContext)
   return (
     <div
       // What the band counts when it works out how many lines the filters run
@@ -552,16 +578,22 @@ function FilterClause({
           : "bg-surface-sunken border-border text-foreground",
       )}
     >
-      {/* The attribute opens its node in the columns too: no segment of a
-          filter drops a list of its own. */}
-      <button
-        type="button"
-        onClick={() => onEditValues(filter.id)}
-        aria-label={`Open ${filter.label} in Advanced search`}
-        className="hover:bg-foreground/5 shrink-0 rounded-l-lg border-r border-current/10 px-2.5 py-1.5 font-medium transition-colors"
-      >
-        {filter.label}
-      </button>
+      {/* On the results page the attribute opens its node in the columns
+          too; on the start page it is the clause's name and nothing more. */}
+      {lists ? (
+        <span className="shrink-0 border-r border-current/10 px-2.5 py-1.5 font-medium">
+          {filter.label}
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={() => onEditValues(filter.id)}
+          aria-label={`Open ${filter.label} in Advanced search`}
+          className="hover:bg-foreground/5 shrink-0 rounded-l-lg border-r border-current/10 px-2.5 py-1.5 font-medium transition-colors"
+        >
+          {filter.label}
+        </button>
+      )}
 
       <DropdownMenu>
         <DropdownMenuTrigger className="hover:bg-foreground/5 flex shrink-0 items-center gap-1 border-r border-current/10 px-2 py-1.5 transition-colors">
@@ -620,10 +652,10 @@ function FilterClause({
 }
 
 /**
- * One value of a clause. Pressing it no longer drops a checklist under the
- * chip: it opens Advanced search's columns in the panel at this clause's
- * attribute, its values ticked, so values are picked in the one place a
- * filter is built by hand — the same thing a column's Edit filters does.
+ * One value of a clause. On the results page pressing it opens Advanced
+ * search's columns in the panel at this clause's attribute, its values
+ * ticked, as a column's Edit filters does. On the start page it opens the
+ * clause's own checklist, `ValuePopover`.
  */
 function ValueMenu({
   filter,
@@ -639,6 +671,19 @@ function ValueMenu({
   className?: string
   children: React.ReactNode
 }) {
+  const lists = React.useContext(ChipListsContext)
+  if (lists) {
+    return (
+      <ValuePopover
+        filter={filter}
+        onToggleValue={lists.onToggleValue}
+        onPickOnlyValue={lists.onPickOnlyValue}
+        className={className}
+      >
+        {children}
+      </ValuePopover>
+    )
+  }
   return (
     <button
       type="button"
@@ -654,6 +699,59 @@ function ValueMenu({
       {children}
       <ChevronDownIcon className="size-3 shrink-0" />
     </button>
+  )
+}
+
+/**
+ * The start page's value list for a clause: a popover around `ValueList`,
+ * every row with its tick box and count. The row picks only that value; the
+ * box adds it.
+ */
+function ValuePopover({
+  filter,
+  onToggleValue,
+  onPickOnlyValue,
+  className,
+  children,
+}: {
+  filter: ResolvedFilter
+  onToggleValue: (id: FilterId, value: string) => void
+  onPickOnlyValue: (area: ProductArea, attribute: string, value: string) => void
+  className?: string
+  children: React.ReactNode
+}) {
+  const [open, setOpen] = React.useState(false)
+  const path = pathOf(filter.id)
+  const options = definitionFor(filter.id).options
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        aria-label={`Choose ${filter.label}`}
+        className={cn(
+          "hover:bg-foreground/5 flex min-w-0 items-center gap-1.5 px-2.5 py-1.5 text-left transition-colors",
+          className,
+        )}
+      >
+        {children}
+        <ChevronDownIcon className="size-3 shrink-0" />
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-72 gap-0 p-0">
+        <ValueList
+          label={filter.label}
+          // A value ticked from a level down the tree (an indication, say) is
+          // not in the attribute's own list, so it is added to the end.
+          options={[...options, ...filter.values.filter((value) => !options.includes(value))]}
+          selected={filter.values}
+          countOf={(value) => valueCountOf(path.area, path.attribute, value)}
+          onToggle={(value) => onToggleValue(filter.id, value)}
+          onPickOnly={(value) => {
+            onPickOnlyValue(path.area, path.attribute, value)
+            setOpen(false)
+          }}
+        />
+      </PopoverContent>
+    </Popover>
   )
 }
 
