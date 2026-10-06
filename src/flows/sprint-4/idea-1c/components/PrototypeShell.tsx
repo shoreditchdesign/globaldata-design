@@ -217,17 +217,10 @@ export function PrototypeShell() {
   }
   // Add filter also flashes where to click next in the columns, and a column's
   // Edit filters flashes the attribute it opened on.
-  // Where Advanced is already open in the panel, Add filter keeps the reader
-  // where they are and points at the first row of the column they are in;
-  // otherwise it opens the default Drugs › Drug Name.
-  const addFilter = () =>
-    openAdvancedAt(
-      (current) =>
-        current.mode === "manual" && current.panelOpen
-          ? current.manualTrail
-          : defaultTrail(),
-      true,
-    )
+  // Add filter always resets to the first place a filter is built — Drugs ›
+  // Drug Name — and flashes its first value (Rebalzid), wherever the reader
+  // had wandered to, so the way in is the same every time.
+  const addFilter = () => openAdvancedAt(defaultTrail(), true)
   const editFilterAt = (area: ProductArea, attribute: string, values: string[]) =>
     openAdvancedAt(trailFor(area, attribute, values), true, { depth: 1, label: attribute })
   // A filter chip's segments open the same place. A value opens at that value,
