@@ -311,7 +311,7 @@ export function ResolvedFilters({
               </Button>
               {onSearch ? (
                 <Button type="button" size="default" className="shrink-0 tabular-nums" onClick={onSearch}>
-                  Search for {resultCount.toLocaleString("en-GB")} drugs
+                  View {resultCount.toLocaleString("en-GB")} {resultCount === 1 ? "drug" : "drugs"}
                 </Button>
               ) : null}
             </div>
