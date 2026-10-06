@@ -56,8 +56,11 @@ export interface ColumnModel {
   negated?: boolean
   /** Free-text attributes have no value list, so the column has no rows. */
   search?: boolean
-  /** What the number lane counts. The filter areas are whole records, not drugs. */
-  unit?: string
+  /**
+   * What the number lane counts. The filter areas are whole records, not
+   * drugs. Null leaves the caption's right side bare.
+   */
+  unit?: string | null
   /** Columns carrying the long labels take a larger share of the panel. */
   wide?: boolean
   /**
@@ -166,7 +169,7 @@ export function MillerColumn({
         <span className="text-muted-foreground min-w-0 flex-1 truncate text-[10px] font-medium tracking-[0.08em] uppercase">
           {column.level}
         </span>
-        {column.search ? null : (
+        {column.search || column.unit === null ? null : (
           <>
             <span className="text-muted-foreground shrink-0 text-right text-[10px] font-medium tracking-[0.08em] uppercase">
               {column.unit ?? "Drugs"}
