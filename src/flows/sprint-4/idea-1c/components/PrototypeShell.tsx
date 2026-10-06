@@ -13,7 +13,6 @@ import { ResultsPage } from "@/flows/sprint-4/idea-1c/components/ResultsPage"
 import { SearchPanel } from "@/flows/sprint-4/idea-1c/components/SearchPanel"
 import {
   activeProductArea,
-  lastApplied,
   navAreas,
   pathOf,
   nextAppliedAt,
@@ -32,6 +31,7 @@ import {
 } from "@/flows/sprint-4/idea-1c/resolve"
 import { useMillerWalk } from "@/flows/sprint-4/idea-1c/walk"
 import {
+  advancedTrailFor,
   defaultTrail,
   initialState,
   slugFor,
@@ -130,13 +130,7 @@ export function PrototypeShell() {
   const setMode = (mode: SearchMode) =>
     setState((current) => {
       if (mode !== "manual" || current.mode === "manual") return { ...current, mode }
-      const last = lastApplied(current.filters)
-      const at = last ? pathOf(last.id) : null
-      return {
-        ...current,
-        mode,
-        manualTrail: at && last ? trailFor(at.area, at.attribute, last.values) : defaultTrail(),
-      }
+      return { ...current, mode, manualTrail: advancedTrailFor(current.filters) }
     })
   const setPanelOpen = (panelOpen: boolean) => setState((current) => ({ ...current, panelOpen }))
   // A changed query is a new question, so what the last one left unread goes.
@@ -327,6 +321,10 @@ export function PrototypeShell() {
       ...current,
       pending: null,
       showResults: true,
+      // The results page opens on Advanced search; a trail already open stays.
+      ...(current.mode === "manual"
+        ? null
+        : { mode: "manual" as const, manualTrail: advancedTrailFor(current.filters) }),
     }))
 
   const filterBox = (

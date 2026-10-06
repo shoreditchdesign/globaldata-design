@@ -189,7 +189,7 @@ export function DictateButton({
                 : undefined
       }
       className={cn(
-        "rounded-full",
+        "rounded-md",
         listening ? "text-brand hover:text-brand-strong" : "text-muted-foreground",
         problem && !listening && "text-negative-ink",
       )}

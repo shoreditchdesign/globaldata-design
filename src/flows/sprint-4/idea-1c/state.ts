@@ -1,6 +1,8 @@
 import {
   emptyPathFilter,
   initialResolvedFilters,
+  lastApplied,
+  pathOf,
   stampInOrder,
   pathFilter,
   workedQuery,
@@ -8,6 +10,7 @@ import {
 } from "@/flows/sprint-4/idea-1c/data"
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { resolveQuery, type Resolution } from "@/flows/sprint-4/idea-1c/resolve"
+import { trailFor } from "@/flows/sprint-4/idea-1c/results"
 
 export type SearchMode = "quick" | "manual"
 
@@ -23,6 +26,16 @@ export interface SearchPath {
  * attribute, so three columns show rather than two and an empty third.
  */
 export const defaultTrail = (): string[] => ["Drugs", "Drug Name"]
+
+/**
+ * Where Advanced search opens over a set of filters: the path of the criterion
+ * applied last, its values ticked, or the default trail when there is none.
+ */
+export function advancedTrailFor(filters: ResolvedFilter[]): string[] {
+  const last = lastApplied(filters)
+  const at = last ? pathOf(last.id) : null
+  return at && last ? trailFor(at.area, at.attribute, last.values) : defaultTrail()
+}
 
 /** The row a tray hint points at: a column of the trail and a row in it. */
 export interface HintTarget {
@@ -155,10 +168,16 @@ const resolvingState = (): Sprint4Idea1cState => ({
   trayHintAt: null,
 })
 
-const resultsState = (): Sprint4Idea1cState => ({
-  ...filteredState(),
-  showResults: true,
-})
+/** The results page opens its panel on Advanced search, at the last filter. */
+const resultsState = (): Sprint4Idea1cState => {
+  const filtered = filteredState()
+  return {
+    ...filtered,
+    mode: "manual",
+    manualTrail: advancedTrailFor(filtered.filters),
+    showResults: true,
+  }
+}
 
 /**
  * A column's Edit filters pressed on the results page: the panel open on
