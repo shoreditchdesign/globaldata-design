@@ -350,18 +350,26 @@ function ColumnItem({
         >
           {item.label}
         </span>
-        <span
-          className={cn(
-            "shrink-0 text-right text-xs tabular-nums",
-            lane,
-            // The number is read, not pressed, so it is not the accent's to
-            // spend: a value in the query states its count in full ink, and
-            // everything else sits at `muted-foreground`.
-            isSelected ? "text-foreground" : "text-muted-foreground",
-          )}
-        >
-          {item.count === null ? "—" : formatCount(item.count)}
-        </span>
+        {/* Only a folder carries a number — how many options sit inside it —
+            and its arrow. An end value has neither: it is ticked, not opened.
+            In a column that mixes the two, an end value keeps the empty lane
+            so the labels and folder counts stay plumb. */}
+        {item.drillable ? (
+          <span
+            className={cn(
+              "shrink-0 text-right text-xs tabular-nums",
+              lane,
+              // The number is read, not pressed, so it is not the accent's to
+              // spend: an open folder states its count in full ink, and
+              // everything else sits at `muted-foreground`.
+              isSelected ? "text-foreground" : "text-muted-foreground",
+            )}
+          >
+            {item.count === null ? "—" : formatCount(item.count)}
+          </span>
+        ) : hasDrill ? (
+          <span aria-hidden className={cn("shrink-0", lane)} />
+        ) : null}
         {hasDrill ? (
           <span className="flex w-4 shrink-0 justify-center">
             {item.drillable ? (
