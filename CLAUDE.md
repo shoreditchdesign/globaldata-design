@@ -63,6 +63,8 @@ A sticky table head is not automatically `sunken`: Idea 3's went back to opaque 
 
 Three rule weights, because one was doing four jobs: `border-hairline` inside a surface · `border-border` the edge of a control or card · `border-edge` between two surfaces.
 
+**Text inputs always contrast with the surface they sit on — the fill is the opposite of what's behind them.** On a white surface (`bg-surface-panel`, e.g. the start page's white Advanced header block) the field takes the grey `bg-surface-sunken`, like the global header's "Search all of GlobalData". On a grey surface (`bg-surface-chrome` / `bg-surface-page`, e.g. the results page's search panel) the field is white `bg-surface-panel`. Decide the fill from the surface behind the field, never from the layout (inline vs stacked) or the page it happens to be on.
+
 Do not invent a sixth layer with `bg-muted/30`. If a screen needs a step that is not here, that is a conversation about the ladder.
 
 ### Semantic colour
