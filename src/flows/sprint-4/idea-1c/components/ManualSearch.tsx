@@ -49,6 +49,7 @@ export function ManualSearch({
   hintAt = null,
   columnsAcross = 3,
   inlineSearch = false,
+  onWhite = false,
 }: {
   filters: ResolvedFilter[]
   /** The open path: area, attribute, then values down the attribute's tree. */
@@ -66,6 +67,12 @@ export function ManualSearch({
   columnsAcross?: number
   /** The search field beside the path rather than under it (both pages now). */
   inlineSearch?: boolean
+  /**
+   * The header block behind the field is white (the start page), so the field
+   * takes the grey sunken fill. On the results panel the header is the grey
+   * chrome surface, so the field stays white.
+   */
+  onWhite?: boolean
 }) {
   const visibleColumns = columnsAcross
   const [query, setQuery] = React.useState("")
@@ -253,7 +260,8 @@ export function ManualSearch({
             "bg-surface-panel",
             // On the start page's white header block, the global header
             // search's own off-white, so the field reads as a field.
-            inlineSearch && "bg-surface-sunken w-72 shrink-0",
+            inlineSearch && "w-72 shrink-0",
+            onWhite && "bg-surface-sunken",
           )}
         >
           <InputGroupAddon>
