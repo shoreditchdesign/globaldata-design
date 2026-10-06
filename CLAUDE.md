@@ -9,7 +9,7 @@ everything under "Design system" and "Repo shape" is specific to this one.
 
 ## File naming
 
-- **Working files** (everything under `docs/`, `slides/` and `sprints/`): no spaces in any file or folder name. Folders and non-Markdown files are lowercase with underscores (`slides/sprint-4/user_testing/`, `sprint_1.pdf`), and a folder inside a sprint folder does not repeat the sprint name (`slides/sprint-4/user_testing/`, not `slides/sprint-4/sprint_4_user_testing/`).
+- **Working files** (everything under `docs/`, `slides/` and `sprints/`): no spaces in any file or folder name. Text files — Markdown **and** `.txt` (scratchpad lists, Slack drafts) — are all caps with hyphens (`IDEA-1C-CHANGES.txt`, `SLACK-TEAM-UPDATE.txt`). Folders and other non-text files (HTML, PDF, exports) are lowercase with underscores (`slides/sprint-4/user_testing/`, `sprint_1.pdf`), and a folder inside a sprint folder does not repeat the sprint name (`slides/sprint-4/user_testing/`, not `slides/sprint-4/sprint_4_user_testing/`).
 - **The app itself** (`src/`, `public/`, config) follows normal conventions for its stack, below, and is never renamed to fit the working-file rule. Do not rename anything that would change an existing route or link (`/sprint-4/idea-1c/start` is live in user tests).
 - Markdown files: all caps with hyphens (`SPRINT-3-DECK-OUTLINE.md`, not `Sprint-3-Deck-Outline.md`).
 - Code files: kebab-case (`table-cell.ts`), except React component files, which keep PascalCase to match their exported component name (`PrototypeScreen.tsx`, `Explorer.tsx`).
