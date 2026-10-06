@@ -1,14 +1,14 @@
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
+import { SearchIcon, XIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 /**
- * The search panel's open and close control: a bare chevron, pointing left to
- * fold the panel away and right to bring it back, with a tooltip naming what
- * it does. Rounded like the query box's dictation and send buttons. It sits at
- * the panel's head while the panel is open, and at the top of the rail the
- * panel folds down to once it is closed.
+ * The search panel's open and close control. Open, it is a quiet text button
+ * at the panel's head — Close search, with an X — and closed, the rail the
+ * panel folds down to holds a search icon that brings it back. Both are
+ * ghost buttons on the grey chrome: no fill or edge at rest, a grey wash on
+ * hover.
  */
 export function PanelToggle({
   open,
@@ -20,7 +20,23 @@ export function PanelToggle({
   /** The id of the panel it opens and closes, where it is known. */
   controls?: string
 }) {
-  const label = open ? "Hide filters" : "Show filters"
+  if (open) {
+    return (
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        // No aria-expanded: the ghost variant fills an expanded button grey,
+        // and this one should rest bare. Its label says what it does.
+        aria-controls={controls}
+        onClick={onToggle}
+        className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md text-[13px]"
+      >
+        Close search
+        <XIcon data-icon="inline-end" />
+      </Button>
+    )
+  }
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -28,18 +44,16 @@ export function PanelToggle({
           type="button"
           variant="ghost"
           size="icon-sm"
-          aria-label={label}
-          aria-expanded={open}
+          aria-label="Open search"
+          aria-expanded={false}
           aria-controls={controls}
           onClick={onToggle}
-          // Both states sit on the grey chrome — the panel's head or the rail —
-          // so both get a white fill and the table's edge to read as a control.
-          className="text-muted-foreground hover:text-foreground bg-surface-panel border-edge hover:bg-muted rounded-md border"
+          className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md"
         >
-          {open ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+          <SearchIcon />
         </Button>
       </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
+      <TooltipContent side="right">Open search</TooltipContent>
     </Tooltip>
   )
 }

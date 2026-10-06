@@ -409,6 +409,7 @@ export function PrototypeShell() {
             hint={state.trayHint}
             hintAt={state.trayHintAt}
             columnsAcross={4}
+            minColumnWidth={300}
             inlineSearch
             onWhite
           />

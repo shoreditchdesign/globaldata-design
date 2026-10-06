@@ -48,6 +48,7 @@ export function ManualSearch({
   hint,
   hintAt = null,
   columnsAcross = 3,
+  minColumnWidth,
   inlineSearch = false,
   onWhite = false,
 }: {
@@ -65,6 +66,12 @@ export function ManualSearch({
    * results panel, four on the start page, which has the room for them.
    */
   columnsAcross?: number
+  /**
+   * Where set, the strip measures itself and shows fewer than `columnsAcross`
+   * once each would fall under this width (never fewer than one), with the
+   * older columns overflowing to the left as before.
+   */
+  minColumnWidth?: number
   /** The search field beside the path rather than under it (both pages now). */
   inlineSearch?: boolean
   /**
@@ -74,9 +81,13 @@ export function ManualSearch({
    */
   onWhite?: boolean
 }) {
-  const visibleColumns = columnsAcross
   const [query, setQuery] = React.useState("")
   const stripRef = React.useRef<HTMLDivElement>(null)
+  const stripWidth = useElementWidth(stripRef, minColumnWidth !== undefined)
+  const visibleColumns =
+    minColumnWidth && stripWidth
+      ? Math.max(1, Math.min(columnsAcross, Math.floor(stripWidth / minColumnWidth)))
+      : columnsAcross
   const reducedMotion = usePrefersReducedMotion()
   const scrollTo = useStripScroll(stripRef, reducedMotion)
 
@@ -145,8 +156,9 @@ export function ManualSearch({
       columns.push({
         key,
         level,
-        unit:
-          parents === 0 ? "Results" : parents === items.length ? "Values" : "Values / results",
+        // Only a column of parents names its counts; where the rows count
+        // results the numbers speak for themselves, so the side stays bare.
+        unit: parents === items.length ? "Values" : null,
         items,
         selectable: true,
         negated: openFilter?.excluded ?? false,
@@ -204,7 +216,7 @@ export function ManualSearch({
     if (!strip) return
     scrollTo(strip.scrollWidth - strip.clientWidth, placed.current)
     placed.current = true
-  }, [pathKey, scrollTo])
+  }, [pathKey, visibleColumns, scrollTo])
 
   /** A crumb brings its column back to the left edge of the strip. */
   const showColumn = (index: number) => {
@@ -315,6 +327,20 @@ export function ManualSearch({
       </div>
     </div>
   )
+}
+
+/** An element's content width, kept current while `active`; null until measured. */
+function useElementWidth(ref: React.RefObject<HTMLElement | null>, active: boolean) {
+  const [width, setWidth] = React.useState<number | null>(null)
+  React.useLayoutEffect(() => {
+    const element = ref.current
+    if (!active || !element) return
+    setWidth(element.clientWidth)
+    const observer = new ResizeObserver(() => setWidth(element.clientWidth))
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [ref, active])
+  return width
 }
 
 /**

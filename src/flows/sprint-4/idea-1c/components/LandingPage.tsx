@@ -54,11 +54,11 @@ export function LandingPage({
   const hasQuery = query.trim().length > 0
   const resolving = Boolean(pending)
 
-  // Switching between Quick and Advanced is a crossfade, not a move. Every
-  // width is shared — the field, the columns card and the filter box all run
-  // the section's full width in both modes — so nothing resizes. What sits
-  // under the field fades out a few pixels downward, the layout swaps while it
-  // is clear, and the new set fades in where it rests: the columns card at its
+  // Switching between Quick and Advanced is a crossfade, not a move. Quick
+  // has the query field, the filter box and the pills; Advanced the columns
+  // card and the filter box at the page's full width. Whatever sits under the
+  // tabs fades out a few pixels downward, the layout swaps (and the width
+  // changes) while it is clear, and the new set fades in where it rests: the columns card at its
   // final height, the filter box at its new place, together. Only the title
   // block eases into its new place, since Quick centres it and Advanced runs
   // top down; the incoming set waits a beat for it so the two never overlap.
@@ -197,9 +197,11 @@ export function LandingPage({
       <section
         ref={sectionRef}
         className={cn(
-          "mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-8 pt-12",
-          // One width in both modes, so the switch never resizes anything.
-          manualMode ? "pb-8" : "items-center justify-center pb-16",
+          "mx-auto flex min-h-0 w-full flex-1 flex-col px-8 pt-12",
+          // Advanced takes the page's full width, gutters aside, for its
+          // columns; Quick keeps the narrower measure. The width changes
+          // only while the outgoing set is faded clear.
+          manualMode ? "pb-8" : "max-w-7xl items-center justify-center pb-16",
         )}
       >
         {/* The title, the tabs and the field move as one, so the tab the
@@ -215,17 +217,18 @@ export function LandingPage({
           <div className="mt-6 flex justify-center">
             <SearchTabs mode={mode} onModeChange={onModeChange} className="border-edge" />
           </div>
-          {field}
-          {manualMode && unread ? (
-            <ReadNotice resolution={unread} className="mt-2 w-full px-4 text-sm" />
-          ) : null}
+          {/* The query field is Quick search's alone: Advanced is the columns.
+              It fades with the rest of the outgoing set. */}
+          {manualMode ? null : <div data-fade>{field}</div>}
         </div>
 
         {manualMode ? (
           <>
             <div
               data-fade
-              className="bg-surface-panel border-ring mt-5 flex min-h-72 flex-1 flex-col overflow-hidden rounded-xl border"
+              // Capped at 60vh, each column scrolling inside it, so on a
+              // laptop the filter box underneath stays on screen.
+              className="bg-surface-panel border-ring mt-5 flex max-h-[60vh] min-h-72 flex-1 flex-col overflow-hidden rounded-xl border"
             >
               {manual}
             </div>
