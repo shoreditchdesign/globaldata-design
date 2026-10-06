@@ -49,3 +49,6 @@ next-env.d.ts
 
 # Internal drafts, not for the public repo.
 MESSAGE.md
+docs/
+slides/
+sprints/
