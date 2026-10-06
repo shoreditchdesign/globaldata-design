@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 
 /**
  * The search panel's open and close control. Open, it is a quiet text button
- * at the panel's head — Close search, with an X — and closed, the rail the
+ * at the panel's head — Close filters, with an X — and closed, the rail the
  * panel folds down to holds a search icon that brings it back. Both are
  * ghost buttons on the grey chrome: no fill or edge at rest, a grey wash on
  * hover.
@@ -32,7 +32,7 @@ export function PanelToggle({
         onClick={onToggle}
         className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md text-[13px]"
       >
-        Close search
+        Close filters
         <XIcon data-icon="inline-end" />
       </Button>
     )
@@ -44,7 +44,7 @@ export function PanelToggle({
           type="button"
           variant="ghost"
           size="icon-sm"
-          aria-label="Open search"
+          aria-label="Open filters"
           aria-expanded={false}
           aria-controls={controls}
           onClick={onToggle}
@@ -53,7 +53,7 @@ export function PanelToggle({
           <SearchIcon />
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="right">Open search</TooltipContent>
+      <TooltipContent side="right">Open filters</TooltipContent>
     </Tooltip>
   )
 }
