@@ -16,8 +16,8 @@ The full set, with what would confirm or refute each one, is in `sprints/sprint-
 
 | # | Change or finding | Fix in Idea 1c | Task |
 |---|---|---|---|
-| 1 | Nobody found Advanced search | An "Advanced filter" switch inside the search field | 4 (judged from "Talk us through how you went about it") |
-| 2 | A tester didn't know which mode they were in | One on/off switch instead of two tabs | 4 |
+| 1 | Nobody found Advanced search | Quick search and Advanced search tabs; the results page opens on Advanced search | 4 (judged from "Talk us through how you went about it") |
+| 2 | A tester didn't know which mode they were in | Two named tabs, Quick search and Advanced search | 4 |
 | 3 | Tapping a value added it instead of replacing it | Tick boxes: the row picks only that value, the box adds it | 2 |
 | 4 | No way to remove a value once it was added | Untick a value, or remove a filter with its × | 2, 5 |
 | 5 | The builder crowded out the results as the query grew | The filter row is capped at three lines, with the rest folded into a count | 3, 4 |
@@ -36,8 +36,9 @@ As edited in Lyssna:
 
 We're working on a new way to search the Drugs database for GlobalData Healthcare. You start with a sentence in your own words, and it turns into filters you can see and change.
 
-We're testing how you build a set of results. That's writing a search, checking and changing the filters it picks, and picking filters yourself.
+We're testing how Quick search and Advanced search work, and how searching in your own words sits alongside them. It isn't the full set of fields and filters.
 
+- The results table, grouping and AI assistant features such as pivots, exports and deliverables aren't part of this test.
 - There are no wrong answers. We're testing the design, not you. If something is confusing or annoying, that's the most useful thing you can tell us.
 - This is a prototype. The drug data is a sample and only some paths are built. If something doesn't respond, tell us what you expected and carry on.
 - Please answer each question straight after its task.
@@ -76,9 +77,9 @@ Every task is followed by the same two questions:
 - Drug Geography = United States
 - Mechanism of Action = any receptor-based one.
 
-> **Why:** this replaces last round's Task 4, which named "the advanced search" and "the file explorer" and so gave away where to go. It drops last round's extra "which was easier" box too. It's the discoverability test Neil asked for ("challenge people… to at least do an advanced search using the search builder"). The task can only be done in the builder, but it doesn't name Advanced filter. Neil's "contrast the ease" is this score set against Task 3's. Picking Mechanism of action by hand is also where Target vs. Mechanism of action will trip people up, if it still does.
+> **Why:** this replaces last round's Task 4, which named "the advanced search" and "the file explorer" and so gave away where to go. It drops last round's extra "which was easier" box too. It's the discoverability test Neil asked for ("challenge people… to at least do an advanced search using the search builder"). The task can only be done in the builder, but it doesn't name Advanced search. Neil's "contrast the ease" is this score set against Task 3's. Picking Mechanism of action by hand is also where Target vs. Mechanism of action will trip people up, if it still does.
 >
-> Instead of "What's the reason for your answer?", this task's long-text prompt is **"Talk us through how you went about it."** It's neutral and doesn't name anything, but whether someone describes turning on Advanced filter, typing, or getting stuck tells us whether they found the builder on their own. That's how discoverability gets judged.
+> Instead of "What's the reason for your answer?", this task's long-text prompt is **"Talk us through how you went about it."** It's neutral and doesn't name anything, but whether someone describes switching to Advanced search, typing, or getting stuck tells us whether they found the builder on their own. That's how discoverability gets judged.
 
 **5.** Now take route of administration out of your search, so drugs given any way are included.
 
@@ -91,6 +92,10 @@ Every task is followed by the same two questions:
 **7.** Start a new search for Phase I gene therapies for dermatology in Brazil. If it finds nothing, change the search until it does.
 
 > **Why:** this is new. It tests a search that comes back empty, and recovering from it. The full query matches nothing in either sample. Dropping "gene therapies" gives 8 drugs, and dropping "dermatology" gives 1. 1c's empty state names the filter to step back from, so the reasons show whether that's enough to get people moving again.
+
+**8.** If you haven't used Advanced search yet, narrow your search using both Quick search and Advanced search.
+
+> **Why:** Neil, 6 Oct: makes sure everyone tries Advanced search, including those who reached every earlier task by typing.
 
 **Not given a task of their own:**
 - **Knowing a search has run.** Every task above runs a search, so if the loading state isn't working, it will come up in the reasons.
@@ -121,8 +126,10 @@ In Lyssna this is its own screen, with the ten statements as ten consecutive 1�
 
 ---
 
-**8.** How likely are you to recommend this way of searching to a colleague? `0–10`, where 0 = Not at all likely and 10 = Extremely likely
+**9.** How likely are you to recommend this way of searching to a colleague? `0–10`, where 0 = Not at all likely and 10 = Extremely likely
 - What's the reason for your score?
+
+Lyssna intro on this screen: "Based on your experience of the last 8 tasks, answer the following (click on Task complete to proceed)".
 
 > **Why:** this is kept from last round. It runs 0–10 rather than 1–10 because that's the standard NPS scale, and the NPS calculation (promoters 9–10 minus detractors 0–6) relies on the 0. Last round's version ran 1–10 with "Very Likely" on the left, so some testers read it backwards. Both ends are labelled the right way round now.
 
