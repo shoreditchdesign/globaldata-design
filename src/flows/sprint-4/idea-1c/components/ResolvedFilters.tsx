@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronDownIcon, PlusIcon, XIcon } from "lucide-react"
+import { PlusIcon, XIcon } from "lucide-react"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { Button } from "@/components/ui/button"
@@ -13,12 +13,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Popover,
-  PopoverAnchor,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ValueList } from "@/flows/sprint-4/idea-1c/components/ValueList"
 import {
   definitionFor,
@@ -199,7 +194,7 @@ export function ResolvedFilters({
         className={cn(
           "relative w-full p-4",
           // The landing card takes the columns card's darker edge.
-        band ? "bg-surface-chrome" : "bg-surface-panel border-ring rounded-xl border",
+          band ? "bg-surface-chrome" : "bg-surface-panel border-ring rounded-xl border",
         )}
       >
         {onClose ? (
@@ -217,7 +212,10 @@ export function ResolvedFilters({
         <div className="flex items-start gap-4">
           <div
             ref={rowRef}
-            className={cn("flex min-h-10 min-w-0 flex-1 flex-wrap items-center gap-2", onClose && "pr-6")}
+            className={cn(
+              "flex min-h-10 min-w-0 flex-1 flex-wrap items-center gap-2",
+              onClose && "pr-6",
+            )}
           >
             {filters.length === 0 ? (
               <p className="text-muted-foreground text-[13px]">No filters selected</p>
@@ -310,7 +308,12 @@ export function ResolvedFilters({
                 Clear filters
               </Button>
               {onSearch ? (
-                <Button type="button" size="default" className="shrink-0 tabular-nums" onClick={onSearch}>
+                <Button
+                  type="button"
+                  size="default"
+                  className="shrink-0 tabular-nums"
+                  onClick={onSearch}
+                >
                   View {resultCount.toLocaleString("en-GB")} {resultCount === 1 ? "drug" : "drugs"}
                 </Button>
               ) : null}
@@ -425,7 +428,9 @@ function AddFilterMenu({
       <PopoverContent
         align="start"
         collisionPadding={16}
-        style={{ maxHeight: "var(--radix-popover-content-available-height, 26rem)" }}
+        style={{
+          maxHeight: "var(--radix-popover-content-available-height, 26rem)",
+        }}
         className="w-72 gap-0 overflow-hidden p-0"
       >
         <AddFilterCascade
@@ -535,10 +540,9 @@ function FilterLinkControl({
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={`Combine ${filter.label} with the previous filter using ${filter.link}`}
-        className="text-muted-foreground hover:bg-accent hover:text-foreground flex h-7 items-center gap-1 rounded-md px-1.5 text-[11px] font-medium uppercase transition-colors"
+        className="text-muted-foreground hover:bg-accent hover:text-foreground flex h-7 cursor-pointer items-center rounded-md px-1.5 text-[11px] font-medium uppercase transition-colors"
       >
         {filter.link}
-        <ChevronDownIcon className="size-3" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center" className="w-36">
         <DropdownMenuRadioGroup
@@ -597,9 +601,8 @@ function FilterClause({
       )}
 
       <DropdownMenu>
-        <DropdownMenuTrigger className="hover:bg-foreground/5 flex shrink-0 items-center gap-1 border-r border-current/10 px-2 py-1.5 transition-colors">
+        <DropdownMenuTrigger className="hover:bg-foreground/10 flex shrink-0 cursor-pointer items-center border-r border-current/10 px-2 py-1.5 transition-colors">
           {filter.excluded ? "IS NOT" : "IS"}
-          <ChevronDownIcon className="size-3" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-32">
           <DropdownMenuRadioGroup
@@ -619,10 +622,7 @@ function FilterClause({
       {(filter.values.length > 0 ? filter.values : [null]).map((value, index) => (
         <div key={index === 0 ? "first" : value} className="contents">
           {index > 0 ? (
-            <ValueJoinControl
-              filter={filter}
-              onChange={(join) => onJoinChange(filter.id, join)}
-            />
+            <ValueJoinControl filter={filter} onChange={(join) => onJoinChange(filter.id, join)} />
           ) : null}
           <ValueMenu
             filter={filter}
@@ -693,12 +693,11 @@ function ValueMenu({
         value ? `Open ${value} in Advanced search` : `Choose ${filter.label} in Advanced search`
       }
       className={cn(
-        "hover:bg-foreground/5 flex min-w-0 items-center gap-1.5 px-2.5 py-1.5 text-left transition-colors",
+        "hover:bg-foreground/10 flex min-w-0 cursor-pointer items-center px-2.5 py-1.5 text-left transition-colors",
         className,
       )}
     >
       {children}
-      <ChevronDownIcon className="size-3 shrink-0" />
     </button>
   )
 }
@@ -730,12 +729,11 @@ function ValuePopover({
       <PopoverTrigger
         aria-label={`Choose ${filter.label}`}
         className={cn(
-          "hover:bg-foreground/5 flex min-w-0 items-center gap-1.5 px-2.5 py-1.5 text-left transition-colors",
+          "hover:bg-foreground/10 flex min-w-0 cursor-pointer items-center px-2.5 py-1.5 text-left transition-colors",
           className,
         )}
       >
         {children}
-        <ChevronDownIcon className="size-3 shrink-0" />
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 gap-0 p-0">
         <ValueList
@@ -768,10 +766,9 @@ function ValueJoinControl({
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={`Match ${filter.label} values using ${filter.join}`}
-        className="hover:bg-foreground/5 flex shrink-0 items-center gap-1 border-x border-current/10 px-2 py-1.5 transition-colors"
+        className="hover:bg-foreground/10 flex shrink-0 cursor-pointer items-center border-x border-current/10 px-2 py-1.5 transition-colors"
       >
         {filter.join.toUpperCase()}
-        <ChevronDownIcon className="size-3" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center" className="w-44">
         <DropdownMenuRadioGroup

@@ -15,13 +15,11 @@ import {
   FilterIcon,
   FilterXIcon,
   SearchXIcon,
-  SlidersHorizontalIcon,
   MoveHorizontalIcon,
   PinIcon,
   PinOffIcon,
   type LucideIcon,
 } from "lucide-react"
-import { toast } from "sonner"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { motion } from "@/components/prototype/motion"
@@ -34,11 +32,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Loader } from "@/flows/sprint-4/idea-1c/components/Loader"
 import { PanelToggle } from "@/flows/sprint-4/idea-1c/components/PanelToggle"
 import { SelectBox } from "@/flows/sprint-4/idea-1c/components/SelectBox"
@@ -104,7 +98,9 @@ function exportCsv(state: GridState, rows: DrugRow[]) {
   const body = rows.map((row) =>
     keys.map((key) => cell(columnByKey[key].values(row).join("; "))).join(","),
   )
-  const blob = new Blob([[header, ...body].join("\n")], { type: "text/csv;charset=utf-8" })
+  const blob = new Blob([[header, ...body].join("\n")], {
+    type: "text/csv;charset=utf-8",
+  })
   const url = URL.createObjectURL(blob)
   const link = document.createElement("a")
   link.href = url
@@ -145,10 +141,7 @@ function SortMark({ sorted }: { sorted: "asc" | "desc" | null }) {
       }
       aria-hidden={sorted ? undefined : true}
     >
-      <ChevronUpIcon
-        strokeWidth={2.5}
-        className={cn(chevron, sorted === "desc" && "opacity-35")}
-      />
+      <ChevronUpIcon strokeWidth={2.5} className={cn(chevron, sorted === "desc" && "opacity-35")} />
       <ChevronDownIcon
         strokeWidth={2.5}
         className={cn(chevron, sorted === "asc" && "opacity-35")}
@@ -184,9 +177,7 @@ function HeaderCell({
   // attribute for it and the box is holding one.
   const path = columnFilterPath[column.key]
   const definition = path ? definitionFor(filterIdFor(path.area, path.attribute)) : null
-  const clause = definition
-    ? filters.find((filter) => filter.id === definition.id)
-    : undefined
+  const clause = definition ? filters.find((filter) => filter.id === definition.id) : undefined
   const applied = clause?.values.length ?? 0
 
   // Drag the right edge to resize, as in AG Grid. Double-click returns the lane
@@ -199,7 +190,11 @@ function HeaderCell({
     const handle = event.currentTarget
     handle.setPointerCapture(event.pointerId)
     const move = (next: PointerEvent) =>
-      onAction({ kind: "resize", columnKey: column.key, width: startWidth + next.clientX - startX })
+      onAction({
+        kind: "resize",
+        columnKey: column.key,
+        width: startWidth + next.clientX - startX,
+      })
     const stop = () => {
       handle.removeEventListener("pointermove", move)
       handle.removeEventListener("pointerup", stop)
@@ -254,10 +249,7 @@ function HeaderCell({
         >
           <EllipsisVerticalIcon className="size-3.5" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="start"
-          className="w-52"
-        >
+        <DropdownMenuContent align="start" className="w-52">
           <MenuAction
             icon={ArrowDownAZIcon}
             onSelect={() =>
@@ -337,28 +329,6 @@ function HeaderCell({
   )
 
   return cell
-}
-
-/**
- * Neil asked for room for an advanced data settings control beside Columns.
- * What it holds is not defined yet, so it is a real button that says so in a
- * toast rather than a menu of guesses.
- */
-function DataSettingsButton() {
-  return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={() =>
-        toast("Work pending", {
-          description: "Advanced data settings are not designed yet.",
-        })
-      }
-    >
-      <SlidersHorizontalIcon className="text-muted-foreground" />
-      Data settings
-    </Button>
-  )
 }
 
 /**
@@ -476,13 +446,19 @@ function Cell({ column, row }: { column: ColumnDef; row: DrugRow }) {
       return (
         <span
           title={value}
-          className={cn("block truncate", column.muted ? "text-muted-foreground" : "text-foreground")}
+          className={cn(
+            "block truncate",
+            column.muted ? "text-muted-foreground" : "text-foreground",
+          )}
         >
           {value}
         </span>
       )
   }
 }
+
+/** The closed panel's rail: room for Show filters and a little air. */
+const RAIL_WIDTH = "44px"
 
 /**
  * The results, as an AG Grid-style table: a frozen header, click-to-sort
@@ -492,7 +468,8 @@ function Cell({ column, row }: { column: ColumnDef; row: DrugRow }) {
  *
  * The search panel is a sibling of the table: the two sit side by side, the
  * table's own toolbar (count, Columns, Export) runs over the table alone so
- * the count sits over the drug names, and the footer runs under both.
+ * the count sits over the drug names. The footer belongs to the table's column
+ * too. Closed, the panel folds down to a rail that holds Show filters.
  */
 export function ResultsGrid({
   rows,
@@ -546,12 +523,14 @@ export function ResultsGrid({
   // The page belongs to one set of rows and one sort: a change to either puts
   // the reader back on the first page. Held beside what it was set against, so
   // the reset is a comparison at render rather than an effect a frame late.
-  const [paging, setPaging] = React.useState({ rows, sort: state.sort, page: 0 })
+  const [paging, setPaging] = React.useState({
+    rows,
+    sort: state.sort,
+    page: 0,
+  })
   const pageCount = Math.max(1, Math.ceil(sorted.length / RESULT_PAGE_SIZE))
   const page =
-    paging.rows === rows && paging.sort === state.sort
-      ? Math.min(paging.page, pageCount - 1)
-      : 0
+    paging.rows === rows && paging.sort === state.sort ? Math.min(paging.page, pageCount - 1) : 0
   const pageStart = page * RESULT_PAGE_SIZE
   const pageRows = sorted.slice(pageStart, pageStart + RESULT_PAGE_SIZE)
   const scrollerRef = React.useRef<HTMLDivElement>(null)
@@ -571,276 +550,287 @@ export function ResultsGrid({
   const someSelected = pageSelected.length > 0 && !allSelected
 
   return (
-    <div className="bg-surface-panel flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex min-h-0 flex-1">
-        {/* The width eases between closed and open; what is inside holds its
-            own width, so the section slides away rather than squeezing its
-            pills into a column on the way. */}
-        <div
-          id={asideId}
-          inert={!asideOpen}
-          className="ease-settle shrink-0 overflow-hidden transition-[width] motion-reduce:transition-none"
-          style={{ width: asideOpen ? asideWidth : 0, transitionDuration: `${motion.reflow}ms` }}
-        >
-          {/* Painted at its mode's width straight away, so Quick and Advanced
+    <div className="bg-surface-panel flex min-h-0 flex-1 overflow-hidden">
+      {/* The width eases between the open panel and the closed rail; what is
+            inside holds its own width, so the section slides away rather than
+            squeezing its pills into a column on the way. */}
+      <div
+        className="ease-settle relative shrink-0 overflow-hidden transition-[width] motion-reduce:transition-none"
+        style={{
+          width: asideOpen ? asideWidth : RAIL_WIDTH,
+          transitionDuration: `${motion.reflow}ms`,
+        }}
+      >
+        {/* Painted at its mode's width straight away, so Quick and Advanced
               never visibly grow and nothing inside rewraps on the way; only
               the wrapper's edge eases, which is what moves the table. */}
-          <div className="h-full" style={{ width: asideWidth }}>
-            {aside}
+        <div id={asideId} inert={!asideOpen} className="h-full" style={{ width: asideWidth }}>
+          {aside}
+        </div>
+        {/* Closed, the panel leaves a rail holding Show filters, on the
+              header bar's centre line. It fades over the panel as it folds. */}
+        <div
+          inert={asideOpen}
+          aria-hidden={asideOpen}
+          className={cn(
+            "bg-surface-chrome border-edge ease-settle absolute inset-y-0 left-0 flex flex-col items-center border-r transition-opacity motion-reduce:transition-none",
+            asideOpen ? "pointer-events-none opacity-0" : "opacity-100",
+          )}
+          style={{ width: RAIL_WIDTH, transitionDuration: `${motion.quick}ms` }}
+        >
+          <div className="flex h-11 shrink-0 items-center justify-center">
+            <PanelToggle open={false} onToggle={onToggleAside} controls={asideId} />
           </div>
         </div>
+      </div>
 
-        {/* The table's own column: its toolbar, then the grid. The toolbar
+      {/* The table's own column: its toolbar, then the grid. The toolbar
             belongs to the table rather than spanning the panel too, so the
             count sits over the drug names it counts. */}
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <div className="bg-surface-panel border-edge flex h-11 shrink-0 items-center gap-3 border-b pr-3">
-            {/* The select lane's width, so the count after it starts on the
-                Drug name column's text edge whether the panel is open or not.
-                With the panel closed, the lane holds the button that opens it. */}
-            <span
-              className="-mr-3 flex shrink-0 items-center justify-center"
-              style={{ width: laneWidth(state, "select") }}
-            >
-              {asideOpen ? null : (
-                <PanelToggle open={false} onToggle={onToggleAside} controls={asideId} />
-              )}
-            </span>
-            <p className="pl-3 text-[13px] tabular-nums" aria-live="polite">
-              <span className="font-medium">{drugCount.toLocaleString("en-GB")}</span>{" "}
-              <span className="text-muted-foreground">{drugCount === 1 ? "drug" : "drugs"}</span>
-            </p>
-            {selected.length > 0 ? (
-              <>
-                <span className="bg-hairline h-4 w-px" aria-hidden />
-                <span className="text-[13px] tabular-nums">
-                  <span className="font-medium">{selected.length}</span>{" "}
-                  <span className="text-muted-foreground">selected</span>
-                </span>
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  onClick={() => onAction({ kind: "setSelection", ids: [] })}
-                >
-                  Clear
-                </Button>
-              </>
-            ) : null}
-
-            <div className="ml-auto flex items-center gap-2">
-              <DataSettingsButton />
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Columns3Icon className="text-muted-foreground" />
-                    Edit columns
-                  </Button>
-                </PopoverTrigger>
-                {/* The same box Add filter and the value lists open in. */}
-                <PopoverContent align="end" className="w-72 gap-0 p-0">
-                  <ColumnManager state={state} onAction={onAction} />
-                </PopoverContent>
-              </Popover>
-              {/* Always the primary action of this bar. */}
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="bg-surface-panel border-edge flex h-11 shrink-0 items-center gap-3 border-b pr-3">
+          {/* The select lane's width, so the count after it starts on the
+                Drug name column's text edge whether the panel is open or not. */}
+          <span
+            className="-mr-3 shrink-0"
+            style={{ width: laneWidth(state, "select") }}
+            aria-hidden
+          />
+          <p className="pl-3 text-base tabular-nums" aria-live="polite">
+            <span className="font-medium">{drugCount.toLocaleString("en-GB")}</span>{" "}
+            <span className="text-muted-foreground">{drugCount === 1 ? "drug" : "drugs"}</span>
+          </p>
+          {selected.length > 0 ? (
+            <>
+              <span className="bg-hairline h-4 w-px" aria-hidden />
+              <span className="text-[13px] tabular-nums">
+                <span className="font-medium">{selected.length}</span>{" "}
+                <span className="text-muted-foreground">selected</span>
+              </span>
               <Button
-                variant="default"
-                size="sm"
-                onClick={() =>
-                  exportCsv(
-                    state,
-                    selected.length > 0 ? sorted.filter((row) => selected.includes(row.id)) : sorted,
-                  )
-                }
+                variant="ghost"
+                size="xs"
+                onClick={() => onAction({ kind: "setSelection", ids: [] })}
               >
-                <DownloadIcon />
-                {selected.length > 0 ? "Export selected" : "Export"}
+                Clear
               </Button>
-            </div>
+            </>
+          ) : null}
+
+          <div className="ml-auto flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Columns3Icon className="text-muted-foreground" />
+                  Edit columns
+                </Button>
+              </PopoverTrigger>
+              {/* The same box Add filter and the value lists open in. */}
+              <PopoverContent align="end" className="w-72 gap-0 p-0">
+                <ColumnManager state={state} onAction={onAction} />
+              </PopoverContent>
+            </Popover>
+            {/* Always the primary action of this bar. */}
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() =>
+                exportCsv(
+                  state,
+                  selected.length > 0 ? sorted.filter((row) => selected.includes(row.id)) : sorted,
+                )
+              }
+            >
+              <DownloadIcon />
+              {selected.length > 0 ? "Export selected" : "Export"}
+            </Button>
           </div>
-          <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
-            {/* A scrim over the rows, opaque enough and blurred so the rows
+        </div>
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+          {/* A scrim over the rows, opaque enough and blurred so the rows
                 behind it read as a texture rather than as text, with the loader
                 over the middle of what is on screen rather than the middle of
                 the scrolled table. Always mounted so it can fade both ways;
                 under reduced motion it simply appears and the loader holds
                 still. The column head sits above it (z-40 to its z-30), so only
                 the rows are covered and the columns stay readable. */}
-            <div
-              aria-hidden={!loading}
-              className={cn(
-                "bg-surface-panel/85 ease-settle pointer-events-none absolute inset-0 z-30 flex items-center justify-center backdrop-blur-sm transition-opacity motion-reduce:transition-none",
-                loading ? "opacity-100" : "opacity-0",
-              )}
-              style={{ transitionDuration: `${motion.quick}ms` }}
-            >
-              {loading ? <Loader /> : null}
-            </div>
-            {/* With no rows it becomes a column, so the empty state below the head
+          <div
+            aria-hidden={!loading}
+            className={cn(
+              "bg-surface-panel/85 ease-settle pointer-events-none absolute inset-0 z-30 flex items-center justify-center backdrop-blur-sm transition-opacity motion-reduce:transition-none",
+              loading ? "opacity-100" : "opacity-0",
+            )}
+            style={{ transitionDuration: `${motion.quick}ms` }}
+          >
+            {loading ? <Loader /> : null}
+          </div>
+          {/* With no rows it becomes a column, so the empty state below the head
                 can take the rest of the height and centre in it. */}
-            <div
-              ref={scrollerRef}
-              aria-busy={loading}
-              className={cn(
-                "min-h-0 min-w-0 flex-1 overflow-auto",
-                rows.length === 0 && "flex flex-col",
-              )}
-            >
-              <div className="relative w-full shrink-0 text-[13px]" style={{ minWidth }}>
-                <div
-                  className="bg-surface-panel border-edge sticky top-0 z-40 grid h-10 border-b"
-                  style={{ gridTemplateColumns: template }}
-                >
-                  {keys.map((key) => {
-                    if (key === "select") {
-                      const lane = frozen(key, lanes, "bg-surface-panel z-[2]")
-                      return (
-                        <div
-                          key={key}
-                          className={cn("flex items-center justify-center", lane.className)}
-                          style={lane.style}
-                        >
-                          <SelectBox
-                            checked={allSelected ? true : someSelected ? "indeterminate" : false}
-                            disabled={rows.length === 0}
-                            onCheckedChange={() =>
-                              onAction({
-                                kind: "setSelection",
-                                ids: allSelected
-                                  ? selected.filter((id) => !pageIds.includes(id))
-                                  : [...new Set([...selected, ...pageIds])],
-                              })
-                            }
-                            aria-label="Select all rows on this page"
-                          />
-                        </div>
-                      )
-                    }
+          <div
+            ref={scrollerRef}
+            aria-busy={loading}
+            className={cn(
+              "min-h-0 min-w-0 flex-1 overflow-auto",
+              rows.length === 0 && "flex flex-col",
+            )}
+          >
+            <div className="relative w-full shrink-0 text-[13px]" style={{ minWidth }}>
+              <div
+                className="bg-surface-panel border-edge sticky top-0 z-40 grid h-10 border-b"
+                style={{ gridTemplateColumns: template }}
+              >
+                {keys.map((key) => {
+                  if (key === "select") {
+                    const lane = frozen(key, lanes, "bg-surface-panel z-[2]")
                     return (
-                      <HeaderCell
+                      <div
                         key={key}
-                        column={columnByKey[key]}
-                        state={state}
-                        lanes={lanes}
-                        filters={filters}
-                        onAction={onAction}
-                        onEditFilter={onEditFilter}
-                        onClearFilter={onClearFilter}
-                      />
+                        className={cn("flex items-center justify-center", lane.className)}
+                        style={lane.style}
+                      >
+                        <SelectBox
+                          checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                          disabled={rows.length === 0}
+                          onCheckedChange={() =>
+                            onAction({
+                              kind: "setSelection",
+                              ids: allSelected
+                                ? selected.filter((id) => !pageIds.includes(id))
+                                : [...new Set([...selected, ...pageIds])],
+                            })
+                          }
+                          aria-label="Select all rows on this page"
+                        />
+                      </div>
                     )
-                  })}
-                </div>
-
-                {pageRows.map((row) => {
-                  const isSelected = selected.includes(row.id)
-                  const fill = isSelected ? "bg-brand-tint" : "bg-surface-panel group-hover/row:bg-accent"
+                  }
                   return (
-                    <div
-                      key={row.id}
-                      aria-selected={isSelected}
-                      className={cn(
-                        "group/row border-hairline grid border-b transition-colors",
-                        isSelected ? "bg-brand-tint" : "hover:bg-accent",
-                      )}
-                      style={{ gridTemplateColumns: template }}
-                    >
-                      {keys.map((key) => {
-                        const lane = frozen(key, lanes, fill)
-                        return (
-                          <div
-                            key={key}
-                            className={cn(
-                              "flex h-10 min-w-0 items-center transition-colors",
-                              key === "select" ? "justify-center" : "px-3",
-                              lane.className,
-                            )}
-                            style={lane.style}
-                          >
-                            {key === "select" ? (
-                              <SelectBox
-                                checked={isSelected}
-                                onCheckedChange={() => onAction({ kind: "toggleRow", id: row.id })}
-                                aria-label={`Select ${row.name}`}
-                              />
-                            ) : (
-                              <div className="min-w-0 flex-1">
-                                <Cell column={columnByKey[key]} row={row} />
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
+                    <HeaderCell
+                      key={key}
+                      column={columnByKey[key]}
+                      state={state}
+                      lanes={lanes}
+                      filters={filters}
+                      onAction={onAction}
+                      onEditFilter={onEditFilter}
+                      onClearFilter={onClearFilter}
+                    />
                   )
                 })}
               </div>
 
-              {/* Outside the lane track, so it is as wide as the grid is on screen
+              {pageRows.map((row) => {
+                const isSelected = selected.includes(row.id)
+                const fill = isSelected
+                  ? "bg-brand-tint"
+                  : "bg-surface-panel group-hover/row:bg-accent"
+                return (
+                  <div
+                    key={row.id}
+                    aria-selected={isSelected}
+                    className={cn(
+                      "group/row border-hairline grid border-b transition-colors",
+                      isSelected ? "bg-brand-tint" : "hover:bg-accent",
+                    )}
+                    style={{ gridTemplateColumns: template }}
+                  >
+                    {keys.map((key) => {
+                      const lane = frozen(key, lanes, fill)
+                      return (
+                        <div
+                          key={key}
+                          className={cn(
+                            "flex h-10 min-w-0 items-center transition-colors",
+                            key === "select" ? "justify-center" : "px-3",
+                            lane.className,
+                          )}
+                          style={lane.style}
+                        >
+                          {key === "select" ? (
+                            <SelectBox
+                              checked={isSelected}
+                              onCheckedChange={() => onAction({ kind: "toggleRow", id: row.id })}
+                              aria-label={`Select ${row.name}`}
+                            />
+                          ) : (
+                            <div className="min-w-0 flex-1">
+                              <Cell column={columnByKey[key]} row={row} />
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Outside the lane track, so it is as wide as the grid is on screen
                   rather than as wide as the columns add up to — which is what lets it
                   centre — and stuck to the left edge so it stays put if the reader
                   scrolls the empty table sideways. */}
-              {rows.length === 0 ? (
-                <NoMatches
-                  filters={filters}
-                  onRemoveCriterion={onClearFilter}
-                  onClearFilters={onClearFilters}
-                />
-              ) : null}
-            </div>
+            {rows.length === 0 ? (
+              <NoMatches
+                filters={filters}
+                onRemoveCriterion={onClearFilter}
+                onClearFilters={onClearFilters}
+              />
+            ) : null}
           </div>
         </div>
-      </div>
 
-      <div className="bg-surface-chrome border-edge flex h-9 shrink-0 items-center justify-end gap-4 border-t px-3 text-xs tabular-nums">
-        <span>
-          <span className="text-muted-foreground">Selected </span>
-          <span className="font-medium">{selected.length}</span>
-        </span>
-        {/* Where this page sits in the match. */}
-        <span className="ml-4 flex items-center gap-1.5">
-          <span aria-live="polite">
-            {resultCount === 0 ? (
-              <span className="text-muted-foreground">0 rows</span>
-            ) : (
-              <>
-                <span className="font-medium">
-                  {(pageStart + 1).toLocaleString("en-GB")}–
-                  {(pageStart + pageRows.length).toLocaleString("en-GB")}
-                </span>
-                <span className="text-muted-foreground">
-                  {" "}
-                  of {resultCount.toLocaleString("en-GB")}
-                </span>
-              </>
-            )}
+        <div className="bg-surface-chrome border-edge flex h-9 shrink-0 items-center justify-end gap-4 border-t px-3 text-xs tabular-nums">
+          <span>
+            <span className="text-muted-foreground">Selected </span>
+            <span className="font-medium">{selected.length}</span>
           </span>
-        </span>
-        {pageCount > 1 ? (
-          <span className="-mr-1.5 flex items-center gap-1.5">
-            <span className="text-muted-foreground">
-              Page {page + 1} of {pageCount}
-            </span>
-            <span className="flex items-center">
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                aria-label="Previous page"
-                disabled={page === 0}
-                onClick={() => goToPage(page - 1)}
-              >
-                <ChevronLeftIcon />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                aria-label="Next page"
-                disabled={page >= pageCount - 1}
-                onClick={() => goToPage(page + 1)}
-              >
-                <ChevronRightIcon />
-              </Button>
+          {/* Where this page sits in the match. */}
+          <span className="ml-4 flex items-center gap-1.5">
+            <span aria-live="polite">
+              {resultCount === 0 ? (
+                <span className="text-muted-foreground">0 rows</span>
+              ) : (
+                <>
+                  <span className="font-medium">
+                    {(pageStart + 1).toLocaleString("en-GB")}–
+                    {(pageStart + pageRows.length).toLocaleString("en-GB")}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {" "}
+                    of {resultCount.toLocaleString("en-GB")}
+                  </span>
+                </>
+              )}
             </span>
           </span>
-        ) : null}
+          {pageCount > 1 ? (
+            <span className="-mr-1.5 flex items-center gap-1.5">
+              <span className="text-muted-foreground">
+                Page {page + 1} of {pageCount}
+              </span>
+              <span className="flex items-center">
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label="Previous page"
+                  disabled={page === 0}
+                  onClick={() => goToPage(page - 1)}
+                >
+                  <ChevronLeftIcon />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label="Next page"
+                  disabled={page >= pageCount - 1}
+                  onClick={() => goToPage(page + 1)}
+                >
+                  <ChevronRightIcon />
+                </Button>
+              </span>
+            </span>
+          ) : null}
+        </div>
       </div>
     </div>
   )
