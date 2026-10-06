@@ -64,7 +64,7 @@ export function ManualSearch({
    * results panel, four on the start page, which has the room for them.
    */
   columnsAcross?: number
-  /** The search field beside the path rather than under it (the start page). */
+  /** The search field beside the path rather than under it (both pages now). */
   inlineSearch?: boolean
 }) {
   const visibleColumns = columnsAcross
@@ -208,8 +208,8 @@ export function ManualSearch({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* The path and the search field: stacked in the results panel, and
-          on one row on the start page, which has the width for both. */}
+      {/* The path and the search field on one row; stacked only where a
+          caller leaves inlineSearch off. */}
       <div
         className={cn(
           "shrink-0 px-3 pt-3 pb-3",

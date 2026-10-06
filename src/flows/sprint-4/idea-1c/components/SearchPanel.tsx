@@ -180,6 +180,7 @@ export function SearchPanel({
         </div>
       ) : (
         <ManualSearch
+          inlineSearch
           filters={filters}
           trail={manualTrail}
           onOpenAt={onOpenAt}
