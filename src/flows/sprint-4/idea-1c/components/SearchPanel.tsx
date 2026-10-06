@@ -150,7 +150,7 @@ export function SearchPanel({
             size="icon-sm"
             disabled={!hasQuery || resolving}
             aria-label="Update filters from this search"
-            className="rounded-full"
+            className="rounded-md"
           >
             <ArrowRightIcon />
           </Button>
@@ -163,11 +163,13 @@ export function SearchPanel({
   return (
     <aside
       aria-label="Search"
-      className="bg-surface-chrome border-edge flex h-full w-full flex-col border-r pt-2"
+      className="bg-surface-chrome border-edge flex h-full w-full flex-col border-r"
     >
-      {/* Left-aligned, in line with the content under them. */}
-      <div className="flex shrink-0 items-center justify-start gap-2 px-3 pt-1">
-        <SearchTabs mode={mode} onModeChange={onModeChange} />
+      {/* Left-aligned, in line with the content under them. The row is the
+          table's header bar height (h-11), so Hide filters here and Show
+          filters in that bar sit on one centre line. */}
+      <div className="flex h-11 shrink-0 items-center justify-start gap-2 px-3">
+        <SearchTabs mode={mode} onModeChange={onModeChange} advancedFirst />
         <span className="ml-auto">
           <PanelToggle open onToggle={onHidePanel} />
         </span>

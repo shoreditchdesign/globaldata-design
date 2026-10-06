@@ -178,7 +178,7 @@ export function LandingPage({
         aria-label={
           hasResolvedFilters ? "Update filters from this search" : "Build filters from this search"
         }
-        className="rounded-full"
+        className="rounded-md"
       >
         <ArrowRightIcon />
       </Button>
