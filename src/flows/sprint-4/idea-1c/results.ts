@@ -26,6 +26,7 @@ import {
   type FilterId,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1c/data"
+import { cardiovascularTree, type TreeNode } from "@/flows/sprint-4/idea-1c/taxonomy"
 
 /** The most rows the grid draws at once: it pages through the rest. */
 export const RESULT_PAGE_SIZE = 100
@@ -252,7 +253,7 @@ const filterReaders: Partial<Record<FilterId, (row: DrugRow) => string[]>> = {
   geography: geographyValuesOf,
   "geography-excluded": geographyValuesOf,
   "Drugs/Drug Name": (row) => [row.name],
-  "Drugs/Therapy Area / Indication": (row) => [row.therapyArea, row.indication],
+  "Drugs/Therapy Area / Indication": (row) => [row.therapyArea, ...therapyPathOf(row)],
   "Drugs/Route of Administration": (row) => [row.route],
   "Drugs/Molecule Type": (row) => [row.molecule],
   "Drugs/Mechanism of Action": (row) => [row.mechanism],
@@ -797,6 +798,64 @@ export function valueCountOf(area: ProductArea, attribute: string, value: string
   return tallyFor(area, attribute).get(value) ?? 0
 }
 
+/**
+ * The therapy areas that carry a deeper tree than area › indication, indexed
+ * both ways by label. A node with nothing under it has no children entry.
+ */
+const therapyTrees: Readonly<Record<string, readonly TreeNode[]>> = {
+  Cardiovascular: cardiovascularTree,
+}
+const therapyChildren = new Map<string, string[]>()
+const therapyParent = new Map<string, string>()
+for (const [therapyArea, nodes] of Object.entries(therapyTrees)) {
+  const visit = (parent: string, children: readonly TreeNode[]) => {
+    therapyChildren.set(parent, children.map(({ label }) => label))
+    for (const child of children) {
+      therapyParent.set(child.label, parent)
+      if (child.children?.length) visit(child.label, child.children)
+    }
+  }
+  visit(therapyArea, nodes)
+}
+
+/** A stable small number from a string, so a row's place in a tree never moves. */
+function hashOf(text: string) {
+  let hash = 0
+  for (let index = 0; index < text.length; index += 1) {
+    hash = (hash * 31 + text.charCodeAt(index)) | 0
+  }
+  return Math.abs(hash)
+}
+
+const therapyPathCache = new Map<string, string[]>()
+
+/**
+ * Where a row sits below its therapy area: every node from the area's first
+ * level down. In a flat area that is just the indication. In a deep one it is
+ * the chain above the indication, the indication, and — where the indication
+ * has children — one branch further down, chosen from the row's id rather
+ * than the sample's generator, so the rows and every count off them are the
+ * same as before the tree was deepened.
+ */
+function therapyPathOf(row: DrugRow) {
+  const cached = therapyPathCache.get(row.id)
+  if (cached) return cached
+  let path = [row.indication]
+  if (therapyTrees[row.therapyArea]) {
+    for (let parent = therapyParent.get(row.indication); parent && parent !== row.therapyArea; ) {
+      path = [parent, ...path]
+      parent = therapyParent.get(parent)
+    }
+    for (let children = therapyChildren.get(row.indication); children?.length; ) {
+      const child = children[hashOf(`${row.id}/${path.length}`) % children.length]
+      path = [...path, child]
+      children = therapyChildren.get(child)
+    }
+  }
+  therapyPathCache.set(row.id, path)
+  return path
+}
+
 /** The indications the sample files under each therapy area, most common first. */
 const indicationsByArea = (() => {
   const byArea = new Map<string, Map<string, number>>()
@@ -818,12 +877,15 @@ const GEOGRAPHY = "Drug Geography"
 
 /**
  * The two trees in the sample. Therapy area holds its indications, built from
- * the rows themselves, and a region holds its countries. Every other value is
- * a leaf. Deeper levels wait on the client's own trees.
+ * the rows themselves — or, where the incumbent's deeper tree is in
+ * `taxonomy.ts`, that tree, as deep as it goes — and a region holds its
+ * countries. Every other value is a leaf.
  */
 export function childValuesOf(area: ProductArea, attribute: string, value: string): string[] {
   if (area !== "Drugs") return []
-  if (attribute === THERAPY) return indicationsByArea.get(value) ?? []
+  if (attribute === THERAPY) {
+    return therapyChildren.get(value) ?? (therapyTrees[value] ? [] : indicationsByArea.get(value)) ?? []
+  }
   if (attribute === GEOGRAPHY) return [...geographyChildren(value)]
   return []
 }
@@ -845,6 +907,7 @@ export function parentValueOf(area: ProductArea, attribute: string, value: strin
   if (area !== "Drugs") return undefined
   if (attribute === GEOGRAPHY) return regionOf(value)
   if (attribute === THERAPY) {
+    if (therapyParent.has(value)) return therapyParent.get(value)
     if (indicationsByArea.has(value)) return undefined
     for (const [therapyArea, indications] of indicationsByArea) {
       if (indications.includes(value)) return therapyArea
@@ -853,13 +916,42 @@ export function parentValueOf(area: ProductArea, attribute: string, value: strin
   return undefined
 }
 
+/** Every value above one in its tree, nearest first. */
+function ancestorsOf(area: ProductArea, attribute: string, value: string) {
+  const ancestors: string[] = []
+  for (let parent = parentValueOf(area, attribute, value); parent; ) {
+    ancestors.push(parent)
+    parent = parentValueOf(area, attribute, parent)
+  }
+  return ancestors
+}
+
+/** Every value below one in its tree, at any depth. */
+function descendantsOf(area: ProductArea, attribute: string, value: string): string[] {
+  return childValuesOf(area, attribute, value).flatMap((child) => [
+    child,
+    ...descendantsOf(area, attribute, child),
+  ])
+}
+
+/** Whether anything under a value, at any depth, is in the clause. */
+export function hasTickedBelow(
+  area: ProductArea,
+  attribute: string,
+  values: string[],
+  value: string,
+) {
+  return descendantsOf(area, attribute, value).some((child) => values.includes(child))
+}
+
 /**
- * One value ticked or unticked in a clause, with the tree taken into account.
- * Ticking a parent selects everything under it: the clause holds the parent
- * (the chip reads "Europe", the rows are every European country's), and its
- * children read as ticked. Unticking one child of a ticked parent swaps the
- * parent for the siblings left; ticking the last missing child folds the set
- * back into the parent.
+ * One value ticked or unticked in a clause, with the tree taken into account,
+ * at any depth. Ticking a parent selects everything under it: the clause holds
+ * the parent (the chip reads "Europe", the rows are every European country's),
+ * and everything below reads as ticked. Unticking a value under a ticked
+ * ancestor swaps that ancestor for everything beside the path down to the
+ * value; ticking the last missing child folds the set back into its parent,
+ * level by level.
  */
 export function toggleTreeValue(
   area: ProductArea,
@@ -867,38 +959,39 @@ export function toggleTreeValue(
   values: string[],
   value: string,
 ): string[] {
-  const parent = parentValueOf(area, attribute, value)
   if (values.includes(value)) return values.filter((item) => item !== value)
-  if (parent && values.includes(parent)) {
-    const siblings = childValuesOf(area, attribute, parent).filter((child) => child !== value)
-    return [...values.filter((item) => item !== parent), ...siblings]
+  const ancestors = ancestorsOf(area, attribute, value)
+  const tickedAt = ancestors.findIndex((ancestor) => values.includes(ancestor))
+  if (tickedAt >= 0) {
+    const kept = [value, ...ancestors.slice(0, tickedAt)].flatMap((item, index) =>
+      childValuesOf(area, attribute, ancestors[index]).filter((child) => child !== item),
+    )
+    return [...values.filter((item) => item !== ancestors[tickedAt]), ...kept]
   }
-  const children = childValuesOf(area, attribute, value)
-  const next = [...values.filter((item) => !children.includes(item)), value]
-  if (parent) {
+  const below = descendantsOf(area, attribute, value)
+  let next = [...values.filter((item) => !below.includes(item)), value]
+  for (const parent of ancestors) {
     const siblings = childValuesOf(area, attribute, parent)
-    if (siblings.every((child) => next.includes(child))) {
-      return [...next.filter((item) => !siblings.includes(item)), parent]
-    }
+    if (!siblings.every((child) => next.includes(child))) break
+    next = [...next.filter((item) => !siblings.includes(item)), parent]
   }
   return next
 }
 
-/** Whether a value reads as ticked: in the clause, or under a parent that is. */
+/** Whether a value reads as ticked: in the clause, or under an ancestor that is. */
 export function isTicked(area: ProductArea, attribute: string, values: string[], value: string) {
   if (values.includes(value)) return true
-  const parent = parentValueOf(area, attribute, value)
-  return Boolean(parent && values.includes(parent))
+  return ancestorsOf(area, attribute, value).some((ancestor) => values.includes(ancestor))
 }
 
 /**
  * Where the Miller columns should stand to show a clause: its area and
- * attribute, and the parent of its first value when that value sits a level
- * down, so the value is on screen with its tick.
+ * attribute, and every value above its first one, so that value is on screen
+ * with its tick however deep it sits.
  */
 export function trailFor(area: ProductArea, attribute: string, values: string[]) {
-  const parent = values[0] ? parentValueOf(area, attribute, values[0]) : undefined
-  return parent ? [area, attribute, parent] : [area, attribute]
+  const above = values[0] ? ancestorsOf(area, attribute, values[0]).reverse() : []
+  return [area, attribute, ...above]
 }
 
 export interface Results {

@@ -15,6 +15,7 @@ import {
 } from "@/flows/sprint-4/idea-1c/data"
 import {
   childValuesOf,
+  hasTickedBelow,
   isTicked,
   rootValuesOf,
   valueCountOf,
@@ -167,14 +168,10 @@ export function ManualSearch({
         selected: values.filter((value) =>
           isTicked(activeCategory, activeAttribute, ticked, value),
         ),
-        // A value with something ticked beneath it reads as holding values,
-        // in weight, the way a navigation row does.
+        // A value with something ticked beneath it, at any depth, reads as
+        // holding values, in weight, the way a navigation row does.
         holding: items
-          .filter(({ label }) =>
-            childValuesOf(activeCategory, activeAttribute, label).some((child) =>
-              ticked.includes(child),
-            ),
-          )
+          .filter(({ label }) => hasTickedBelow(activeCategory, activeAttribute, ticked, label))
           .map(({ label }) => label),
         open: trail[depth],
       })
