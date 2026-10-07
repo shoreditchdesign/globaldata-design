@@ -16,13 +16,13 @@ The full set, with what would confirm or refute each one, is in `sprints/sprint-
 
 | # | Change or finding | Fix in Idea 1c | Task |
 |---|---|---|---|
-| 1 | Nobody found Advanced search | Quick search and Advanced search tabs; the results page opens on Advanced search | 4 (judged from "Talk us through how you went about it") |
+| 1 | Nobody found Advanced search | Quick search and Advanced search tabs; the results page opens on Advanced search | 1, 4 (judged from "Talk us through how you went about it") |
 | 2 | A tester didn't know which mode they were in | Two named tabs, Quick search and Advanced search | 4 |
-| 3 | Tapping a value added it instead of replacing it | Tick boxes: the row picks only that value, the box adds it | 2 |
-| 4 | No way to remove a value once it was added | Untick a value, or remove a filter with its × | 2, 5 |
-| 5 | The builder crowded out the results as the query grew | The filter row is capped at three lines, with the rest folded into a count | 3, 4 |
+| 3 | Tapping a value added it instead of replacing it | Tick boxes: the row picks only that value, the box adds it | 3 |
+| 4 | No way to remove a value once it was added | Untick a value, or remove a filter with its × | 3, 5 |
+| 5 | The builder crowded out the results as the query grew | The filter row is capped at three lines, with the rest folded into a count | 2, 4 |
 | 6 | The system didn't show it was working | The table shows a loading state after every search or change | All (it comes up in the reasons) |
-| 7 | Target vs. Mechanism of action was ambiguous | **No fix yet**, so this is a check | 1, 4 (it comes up in the reasons) |
+| 7 | Target vs. Mechanism of action was ambiguous | **No fix yet**, so this is a check | 2, 4 (it comes up in the reasons) |
 | 8 | Add filter was a bare + icon (Neil, on the call) | "+ Add filter", which opens the full field list | 6 |
 | 9 | Whether people expect to filter from the columns (Neil, on the call) | Column filters that write into the filter row | 6 |
 | 10 | A search that finds nothing (added for coverage, not a round 1 finding) | An empty state that names the filter to step back from | 7 |
@@ -47,55 +47,37 @@ We're testing how Quick search and Advanced search work, and how searching in yo
 
 ## Usability questions
 
-Every task is followed by the same two questions:
+Revised by Emma on 7 Oct. Seven tasks, each followed by the same two questions:
 - **How easy or difficult was this?** `1–5`, where 1 = Very difficult and 5 = Very easy
 - **What's the reason for your answer?** `long text`. Task 4 is the exception: its prompt is **"Talk us through how you went about it."**
 
-**1.** Find every Phase III drug available in Europe that works on Janus Kinase.
+**1.** You need to find all Phase I drugs. Show me how you would start.
 
-> **Why:** this is last round's Task 1, word for word, and it tests G1, Quick search. It returns 50 drugs. The phrase "works on Janus Kinase" fills both Target and Mechanism of action, so if that ambiguity still bothers people, this is where they'll say so.
+> **Why:** discoverability. Where people reach first, typing or the builder, with nothing to steer them.
 
-**2.** Using the search you just built, swap Europe for the United States.
+**2.** Find oral Phase III drugs in Europe that act on Janus Kinase.
 
-> **Why:** this is last round's Task 2, word for word, and it tests G2, Refine. It returns 33 drugs. It scored worst last round, because tapping a value added it instead of replacing it, and there was no way to take a value out. Last round's score can't be compared directly because its scale was flipped, so the target is an average of 4 or more, with no reasons describing a value being added instead of replaced.
+> **Why:** building a complex search, G1. Returns 12 drugs. "Oral" is in so that Task 5 has a route to take out. "Act on Janus Kinase" fills both Target and Mechanism of action, so the ambiguity shows here if it still bothers people.
 
-**3.** Get results for this set of filters, using plain language
+**3.** Your research is now focused on the United States. Update your search.
 
-- Development Stage = Marketed
-- Route of Administration = Oral
-- Molecule Type = Small Molecule
-- Drug Geography = United States
-- Mechanism of Action = any receptor-based one.
+> **Why:** modifying a search, G2, last round's worst task. Swapping Europe for the United States gives 8.
 
-> **Why:** this is the Task 3 that actually went out in Lyssna last round, word for word. (The old `USER-TESTING-QUESTIONS.md` says "write a search in your own words", but that isn't what was sent.) It tests G3, Power search, through typing: five filters, with an OR inside Mechanism of action. A plain sentence resolves all five and returns 12 drugs. Five filters is also enough to test whether the filter row still crowds out the results.
+**4.** Now find the same results using a different approach.
 
-**4.** Now get that same set of results again by choosing each filter yourself, without typing a sentence.
+> **Why:** we watch whether they switch between plain language and the filters by hand. The long-text prompt is neutral, and what they describe tells us whether they found Advanced search.
 
-- Development Stage = Marketed
-- Route of Administration = Oral
-- Molecule Type = Small Molecule
-- Drug Geography = United States
-- Mechanism of Action = any receptor-based one.
+**5.** You no longer need to restrict the search by route of administration. Update your search.
 
-> **Why:** this replaces last round's Task 4, which named "the advanced search" and "the file explorer" and so gave away where to go. It drops last round's extra "which was easier" box too. It's the discoverability test Neil asked for ("challenge people… to at least do an advanced search using the search builder"). The task can only be done in the builder, but it doesn't name Advanced search. Neil's "contrast the ease" is this score set against Task 3's. Picking Mechanism of action by hand is also where Target vs. Mechanism of action will trip people up, if it still does.
->
-> Instead of "What's the reason for your answer?", this task's long-text prompt is **"Talk us through how you went about it."** It's neutral and doesn't name anything, but whether someone describes switching to Advanced search, typing, or getting stuck tells us whether they found the builder on their own. That's how discoverability gets judged.
+> **Why:** removing something you added, which last round's testers couldn't do. Taking out Oral goes from 8 to 33.
 
-**5.** Now take route of administration out of your search, so drugs given any way are included.
+**6.** Now show only drugs from Sandoz.
 
-> **Why:** this is new. It tests removing something you've added, which last round's testers couldn't do ("no way to remove a value once added"). Starting from Task 4's 12 drugs, it goes to 28. Choosing more than one value in a field isn't a task of its own now: Task 2's swap already covers last round's tick-versus-replace confusion.
+> **Why:** Neil's narrow-it-further task. Sandoz is in the results but not in the search: 3 of the 33. It can be done by typing, from Add filter, the builder or a column.
 
-**6.** You now only want the drugs from one company in your list. Choose any company you can see, and narrow the list down to it.
+**7.** Find Phase I gene therapies for dermatology in Brazil.
 
-> **Why:** this is new, and it's Neil's narrow-it-further task. On the call it was "narrow down the 123 drugs further, how would you do this?", with "company is a great one" because company is in the results but not in the search. There are 16 companies in the 28 results, each with between 1 and 4 drugs, and every one is in the Manufacturer field, so it can be done by typing, from Add filter, from the builder or from a column. The task doesn't say how, so the reasons show where people reach first, and whether the column filters earn their place.
-
-**7.** Start a new search for Phase I gene therapies for dermatology in Brazil. If it finds nothing, change the search until it does.
-
-> **Why:** this is new. It tests a search that comes back empty, and recovering from it. The full query matches nothing in either sample. Dropping "gene therapies" gives 8 drugs, and dropping "dermatology" gives 1. 1c's empty state names the filter to step back from, so the reasons show whether that's enough to get people moving again.
-
-**8.** If you haven't used Advanced search yet, narrow your search using both Quick search and Advanced search.
-
-> **Why:** Neil, 6 Oct: makes sure everyone tries Advanced search, including those who reached every earlier task by typing.
+> **Why:** zero results and recovery. The full query matches nothing; we watch what they do next. Dropping "gene therapies" gives 8 drugs, dropping "dermatology" gives 1.
 
 **Not given a task of their own:**
 - **Knowing a search has run.** Every task above runs a search, so if the loading state isn't working, it will come up in the reasons.
@@ -105,7 +87,7 @@ Every task is followed by the same two questions:
 
 ## System Usability Scale (SUS)
 
-Second-last, directly before the NPS. Lyssna heading: **System Usability Scale**, with the line "Rate how much you agree with each statement." Each statement is rated 1–5, where 1 = Strongly disagree and 5 = Strongly agree. The wording is Austin's, from his SUS sheet:
+Straight after the seven tasks, on its own screen, before the wrap-up. Lyssna heading: **System Usability Scale**, with the line "Rate how much you agree with each statement." Each statement is rated 1–5, where 1 = Strongly disagree and 5 = Strongly agree. The wording is Austin's, from his SUS sheet:
 
 1. I think that I would like to use this product frequently.
 2. I found the product unnecessarily complex.
@@ -122,22 +104,29 @@ In Lyssna this is its own screen, with the ten statements as ten consecutive 1�
 
 **Scoring:** standard SUS scoring. Odd-numbered statements score their rating minus 1, and even-numbered statements score 5 minus their rating. Add the ten scores and multiply by 2.5 to get 0–100. 68 is the commonly cited average.
 
-> **Why:** SUS is a standard benchmark with a published average, so it gives a score that means something without a control group. It can also be compared across future rounds of this one. It comes after the tasks, so it rates the whole experience, and before NPS, so the recommendation question stays last as it was in round 1.
+> **Why:** SUS is a standard benchmark with a published average, so it gives a score that means something without a control group. It can also be compared across future rounds of this one. It comes straight after the tasks, so it rates the whole experience while it's fresh.
 
 ---
 
-**9.** How likely are you to recommend this way of searching to a colleague? `0–10`, where 0 = Not at all likely and 10 = Extremely likely
-- What's the reason for your score?
+## Wrap-up
 
-Lyssna intro on this screen: "Based on your experience of the last 8 tasks, answer the following (click on Task complete to proceed)".
+The last screen, after SUS. Lyssna intro: "Based on your experience of the last 8 tasks, answer the following (click on Task complete to proceed)". It needs updating to 7 tasks.
 
-> **Why:** this is kept from last round. It runs 0–10 rather than 1–10 because that's the standard NPS scale, and the NPS calculation (promoters 9–10 minus detractors 0–6) relies on the 0. Last round's version ran 1–10 with "Very Likely" on the left, so some testers read it backwards. Both ends are labelled the right way round now.
+1. Looking at these results, what do you think you've searched for? `long text`
+2. How confident are you that these are the results you were looking for? `1–5`, where 1 = Not at all confident and 5 = Very confident
+3. What's the reason for your answer? `long text`
+4. When would you use Advanced Search rather than Quick Search? `long text`
+5. How likely are you to recommend this search experience to a colleague? `0–10`, where 0 = Not at all likely and 10 = Extremely likely
+6. Why did you give it that score? `long text`
+7. Was there anything you expected to be able to do but couldn't? `long text`
+
+> **Why:** questions 1–4 check whether people understood what they built and when they'd reach for each mode. The NPS stays 0–10, the standard scale; last round's 1–10 with "Very Likely" on the left was read backwards. The open question at the end catches what the tasks didn't cover.
 
 ---
 
 **Notes for setting it up in Lyssna**
 
-- The test is a duplicate of last round's "Globaldata: Advanced Search 2" and keeps its Live website test format: one task per screen, with its two questions straight after it. SUS has its own screen just before the NPS, which sits on the final screen as it did last round.
+- The test is a duplicate of last round's "Globaldata: Advanced Search 2" and keeps its Live website test format: one task per screen, with its two questions straight after it. SUS has its own screen after the tasks, and the wrap-up questions, NPS included, share the final screen.
 - The control test ("GlobalData Sprint 5 user testing control", on Idea 1b) stays in Lyssna but won't be run.
 - Don't mention the `$$` shortcut anywhere.
 - The 1–5 scores can't be compared number for number with last round's flipped 1–10 scale. Last round is compared through the tasks and the reasons. With no control, this round's scores are absolute: ease against a 4-out-of-5 target, SUS against 68 and NPS against zero. They become the baseline from here on.

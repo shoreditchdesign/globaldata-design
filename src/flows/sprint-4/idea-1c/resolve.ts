@@ -10,6 +10,7 @@ import {
   type FilterLink,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1c/data"
+import { childValuesOf } from "@/flows/sprint-4/idea-1c/results"
 
 /**
  * Turning typed English into filters.
@@ -495,6 +496,25 @@ function buildMatchers() {
   for (const { id, label } of entries) {
     const [code, words] = label.split(" — ")
     if (words) claim(id, label, [plain(code), plain(words)])
+  }
+
+  // Every value below a therapy area — its indications, and the deeper tree
+  // where there is one — claims last, so it never takes a phrase an
+  // established value already reads: `angina` stays the antianginal
+  // descriptor, while `chronic stable angina` is the indication. A label's
+  // parenthetical alias is dropped for typing, so `angina pectoris` and
+  // `angina` both reach "Angina (Angina Pectoris)" where nothing claimed them.
+  const therapy = filterIdFor("Drugs", "Therapy Area / Indication")
+  const below = (value: string): string[] =>
+    childValuesOf("Drugs", "Therapy Area / Indication", value).flatMap((child) => [
+      child,
+      ...below(child),
+    ])
+  for (const area of searchAttributeValues("Drugs", "Therapy Area / Indication")) {
+    for (const label of below(area)) {
+      const bare = label.replace(/\s*\([^)]*\)/g, "")
+      claim(therapy, label, [...labelPatterns(label), ...(bare !== label ? labelPatterns(bare) : [])])
+    }
   }
 
   return [...built, ...compounds, ...familyMatchers]
