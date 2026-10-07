@@ -157,7 +157,7 @@ export function LandingPage({
         <input
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="Describe a therapy area, classification, geography, route…"
+          placeholder="Search for a therapy area, classification, geography, route or something else"
           aria-label="Describe the drugs you are looking for"
           aria-hidden={resolving}
           disabled={resolving}
