@@ -157,7 +157,7 @@ export function LandingPage({
         <input
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="What are you looking for?"
+          placeholder="Describe a therapy area, classification, geography, route…"
           aria-label="Describe the drugs you are looking for"
           aria-hidden={resolving}
           disabled={resolving}
@@ -209,10 +209,6 @@ export function LandingPage({
         <div data-flip="title" className="w-full shrink-0">
           <div className="text-center">
             <h1 className="text-2xl font-semibold tracking-tight">Drug Database</h1>
-            <p className="text-muted-foreground mx-auto mt-2 max-w-md text-sm leading-5 text-balance">
-              Describe any key search metrics such as Therapy Area, Classification, Geography,
-              Route of Administration etc.
-            </p>
           </div>
           <div className="mt-6 flex justify-center">
             <SearchTabs mode={mode} onModeChange={onModeChange} className="border-edge" />
