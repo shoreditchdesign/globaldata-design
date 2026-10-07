@@ -168,7 +168,10 @@ const resolvingState = (): Sprint4Idea1cState => ({
   trayHintAt: null,
 })
 
-/** The results page opens its panel on Advanced search, at the last filter. */
+/**
+ * The results page opens with its panel collapsed to the rail. Opened, it
+ * shows Advanced search at the last filter.
+ */
 const resultsState = (): Sprint4Idea1cState => {
   const filtered = filteredState()
   return {
@@ -176,6 +179,7 @@ const resultsState = (): Sprint4Idea1cState => {
     mode: "manual",
     manualTrail: advancedTrailFor(filtered.filters),
     showResults: true,
+    panelOpen: false,
   }
 }
 
