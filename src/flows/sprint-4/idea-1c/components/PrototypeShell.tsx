@@ -321,7 +321,10 @@ export function PrototypeShell() {
       ...current,
       pending: null,
       showResults: true,
-      // The results page opens on Advanced search; a trail already open stays.
+      // The results page opens with the search panel collapsed to its rail,
+      // the table getting the width. Opening it lands on Advanced search; a
+      // trail already open stays.
+      panelOpen: false,
       ...(current.mode === "manual"
         ? null
         : { mode: "manual" as const, manualTrail: advancedTrailFor(current.filters) }),
