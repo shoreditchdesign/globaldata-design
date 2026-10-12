@@ -253,6 +253,17 @@ function FilterClause({
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {filter.values.length === 0 ? (
+        <ValueMenu
+          filter={filter}
+          options={definition.options}
+          onToggleValue={onToggleValue}
+          className="text-muted-foreground border-r border-current/10"
+        >
+          Select value
+        </ValueMenu>
+      ) : null}
+
       {filter.values.map((value, index) => (
         <div key={value} className="contents">
           {index > 0 ? (
@@ -261,32 +272,16 @@ function FilterClause({
               onChange={(join) => onJoinChange(filter.id, join)}
             />
           ) : null}
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className={cn(
-                "hover:bg-foreground/5 flex min-w-0 items-center gap-1.5 px-2.5 py-1.5 text-left transition-colors",
-                index < filter.values.length - 1
-                  ? "border-r-0"
-                  : "border-r border-current/10",
-              )}
-            >
-              <span className="max-w-64 truncate">{value}</span>
-              <ChevronDownIcon className="size-3 shrink-0" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-72">
-              <DropdownMenuLabel>{filter.label}</DropdownMenuLabel>
-              {definition.options.map((option) => (
-                <DropdownMenuCheckboxItem
-                  key={option}
-                  checked={filter.values.includes(option)}
-                  onSelect={(event) => event.preventDefault()}
-                  onCheckedChange={() => onToggleValue(filter.id, option)}
-                >
-                  {option}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ValueMenu
+            filter={filter}
+            options={definition.options}
+            onToggleValue={onToggleValue}
+            className={cn(
+              index < filter.values.length - 1 ? "border-r-0" : "border-r border-current/10",
+            )}
+          >
+            <span className="max-w-64 truncate">{value}</span>
+          </ValueMenu>
         </div>
       ))}
 
@@ -299,6 +294,49 @@ function FilterClause({
         <XIcon className="size-3" />
       </button>
     </div>
+  )
+}
+
+/** One value of a clause, and the whole list behind it. */
+function ValueMenu({
+  filter,
+  options,
+  onToggleValue,
+  className,
+  children,
+}: {
+  filter: ResolvedFilter
+  options: string[]
+  onToggleValue: (id: FilterId, value: string) => void
+  className?: string
+  children: React.ReactNode
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        aria-label={`Choose ${filter.label}`}
+        className={cn(
+          "hover:bg-foreground/5 flex min-w-0 items-center gap-1.5 px-2.5 py-1.5 text-left transition-colors",
+          className,
+        )}
+      >
+        {children}
+        <ChevronDownIcon className="size-3 shrink-0" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="max-h-80 w-72 overflow-y-auto">
+        <DropdownMenuLabel>{filter.label}</DropdownMenuLabel>
+        {options.map((option) => (
+          <DropdownMenuCheckboxItem
+            key={option}
+            checked={filter.values.includes(option)}
+            onSelect={(event) => event.preventDefault()}
+            onCheckedChange={() => onToggleValue(filter.id, option)}
+          >
+            {option}
+          </DropdownMenuCheckboxItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
