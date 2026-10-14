@@ -169,10 +169,19 @@ const resolvingState = (): Sprint4Idea1cState => ({
 })
 
 /**
- * The results page opens with its panel collapsed to the rail. Opened, it
- * shows Advanced search at the last filter.
+ * The results page reached by its address: no search and no filters, so a
+ * tester arriving here starts from nothing. The panel is collapsed to the
+ * rail and opens on Advanced search at its default path.
  */
-const resultsState = (): Sprint4Idea1cState => {
+const resultsState = (): Sprint4Idea1cState => ({
+  ...startState(),
+  mode: "manual",
+  showResults: true,
+  panelOpen: false,
+})
+
+/** The results page with the worked query applied, for screens built on it. */
+const filteredResultsState = (): Sprint4Idea1cState => {
   const filtered = filteredState()
   return {
     ...filtered,
@@ -189,7 +198,7 @@ const resultsState = (): Sprint4Idea1cState => {
  * ticked. The address bar then reads `results`, which is the page it is.
  */
 const editFilterState = (): Sprint4Idea1cState => ({
-  ...resultsState(),
+  ...filteredResultsState(),
   mode: "manual",
   panelOpen: true,
   manualTrail: ["Drugs", "Development Stage"],
