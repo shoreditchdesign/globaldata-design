@@ -1,15 +1,10 @@
 import {
-  emptyPathFilter,
-  initialResolvedFilters,
   lastApplied,
   pathOf,
-  stampInOrder,
-  pathFilter,
-  workedQuery,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1c/data"
 import type { ProductArea } from "@/components/prototype/ProductChrome"
-import { resolveQuery, type Resolution } from "@/flows/sprint-4/idea-1c/resolve"
+import { type Resolution } from "@/flows/sprint-4/idea-1c/resolve"
 import { trailFor } from "@/flows/sprint-4/idea-1c/results"
 
 export type SearchMode = "quick" | "manual"
@@ -108,64 +103,10 @@ const startState = (): Sprint4Idea1cState => ({
   trayHintAt: null,
 })
 
-const filteredState = (): Sprint4Idea1cState => ({
-  mode: "quick",
-  query: workedQuery,
-  manualTrail: defaultTrail(),
-  filterBoxOpen: true,
-  path: null,
-  submittedQuery: workedQuery,
-  // Stamped in the order the worked query names them, so a screen seeded
-  // with filters can say which was applied last just as a built one can.
-  filters: stampInOrder(initialResolvedFilters()),
-  pending: null,
-  unread: null,
-  showResults: false,
-  panelOpen: true,
-  trayHint: 0,
-  trayHintAt: null,
-})
-
-/** A pill pressed: its clause is in the box, waiting for a value. */
-const valuesState = (): Sprint4Idea1cState => ({
-  ...startState(),
-  filterBoxOpen: true,
-  filters: stampInOrder([emptyPathFilter("Companies", "Company Name")]),
-})
-
-/** Advanced chosen on the landing page: the Miller columns with the filter box beneath. */
+/** Advanced chosen on the landing page: the Miller columns, nothing ticked. */
 const manualState = (): Sprint4Idea1cState => ({
   ...startState(),
   mode: "manual",
-})
-
-const pickedPath: SearchPath = {
-  area: "Drugs",
-  attribute: "Therapy Area / Indication",
-  value: "Musculoskeletal Disorders",
-}
-
-const pickedState = (): Sprint4Idea1cState => ({
-  ...startState(),
-  filterBoxOpen: true,
-  path: pickedPath,
-  filters: stampInOrder([pathFilter(pickedPath.area, pickedPath.attribute, pickedPath.value)]),
-})
-
-const resolvingState = (): Sprint4Idea1cState => ({
-  mode: "quick",
-  query: workedQuery,
-  manualTrail: defaultTrail(),
-  filterBoxOpen: false,
-  path: null,
-  submittedQuery: null,
-  filters: [],
-  pending: resolveQuery(workedQuery),
-  unread: null,
-  showResults: false,
-  panelOpen: true,
-  trayHint: 0,
-  trayHintAt: null,
 })
 
 /**
@@ -180,48 +121,26 @@ const resultsState = (): Sprint4Idea1cState => ({
   panelOpen: false,
 })
 
-/** The results page with the worked query applied, for screens built on it. */
-const filteredResultsState = (): Sprint4Idea1cState => {
-  const filtered = filteredState()
-  return {
-    ...filtered,
-    mode: "manual",
-    manualTrail: advancedTrailFor(filtered.filters),
-    showResults: true,
-    panelOpen: false,
-  }
-}
-
 /**
- * A column's Edit filters pressed on the results page: the panel open on
- * Advanced search at Drugs › Development Stage, the worked query's stages
- * ticked. The address bar then reads `results`, which is the page it is.
+ * Seed the living screen from its URL, the way the live app would open it:
+ * nothing typed, picked or applied. Every address opens one of three clean
+ * pages; the states between them (a pill pressed, a query read, filters
+ * built, a filter being edited) are only reached by using the prototype, and
+ * the address bar then follows them. Unknown states return to the start.
  */
-const editFilterState = (): Sprint4Idea1cState => ({
-  ...filteredResultsState(),
-  mode: "manual",
-  panelOpen: true,
-  manualTrail: ["Drugs", "Development Stage"],
-})
-
-/** Seed the living screen from its URL. Unknown states return to the start. */
 export function initialState(slug: string): Sprint4Idea1cState {
   switch (slug) {
-    case "values":
-      return valuesState()
     case "manual":
       return manualState()
-    case "picked":
-      return pickedState()
     case "results":
       return resultsState()
     case "edit-filter":
-      return editFilterState()
-    case "resolving":
-      return resolvingState()
-    case "filters":
-      return filteredState()
+      return { ...resultsState(), panelOpen: true }
     case "start":
+    case "values":
+    case "picked":
+    case "resolving":
+    case "filters":
     default:
       return startState()
   }
