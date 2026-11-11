@@ -85,6 +85,15 @@ export interface Sprint4Idea1cState {
    * column's first row (Add filter's next click).
    */
   trayHintAt: HintTarget | null
+  /**
+   * Bumped whenever one search ends and the next begins, so the columns'
+   * Search filters field empties rather than carrying the last search's
+   * text into the next: a search run, the filters cleared, the panel opened
+   * again, and the panel sent to a place in the columns (Add filter, a chip,
+   * a column's Edit filters), whose flashed row the old text could hide.
+   * A counter, as `trayHint` is, so two in a row both land.
+   */
+  columnSearchReset: number
 }
 
 const startState = (): Sprint4Idea1cState => ({
@@ -101,6 +110,7 @@ const startState = (): Sprint4Idea1cState => ({
   panelOpen: true,
   trayHint: 0,
   trayHintAt: null,
+  columnSearchReset: 0,
 })
 
 /** Advanced chosen on the landing page: the Miller columns, nothing ticked. */

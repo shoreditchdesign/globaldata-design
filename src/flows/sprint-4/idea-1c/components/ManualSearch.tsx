@@ -52,6 +52,7 @@ export function ManualSearch({
   minColumnWidth,
   inlineSearch = false,
   onWhite = false,
+  searchReset = 0,
 }: {
   filters: ResolvedFilter[]
   /** The open path: area, attribute, then values down the attribute's tree. */
@@ -81,8 +82,21 @@ export function ManualSearch({
    * chrome surface, so the field stays white.
    */
   onWhite?: boolean
+  /**
+   * Bumped between searches. The field's text is the reader's narrowing of
+   * the columns for one search, not a setting, and testers had to delete it
+   * by hand every time they came back ("you have to null it out every time").
+   */
+  searchReset?: number
 }) {
   const [query, setQuery] = React.useState("")
+  // Emptied during render rather than in an effect, so the columns never
+  // paint one frame still filtered by the last search's text.
+  const [resetSeen, setResetSeen] = React.useState(searchReset)
+  if (resetSeen !== searchReset) {
+    setResetSeen(searchReset)
+    setQuery("")
+  }
   const stripRef = React.useRef<HTMLDivElement>(null)
   const stripWidth = useElementWidth(stripRef, minColumnWidth !== undefined)
   const visibleColumns =

@@ -132,7 +132,17 @@ export function PrototypeShell() {
       if (mode !== "manual" || current.mode === "manual") return { ...current, mode }
       return { ...current, mode, manualTrail: advancedTrailFor(current.filters) }
     })
-  const setPanelOpen = (panelOpen: boolean) => setState((current) => ({ ...current, panelOpen }))
+  // Opening the panel again starts a new look through the columns, so the
+  // Search filters field comes back empty.
+  const setPanelOpen = (panelOpen: boolean) =>
+    setState((current) => ({
+      ...current,
+      panelOpen,
+      columnSearchReset:
+        panelOpen && !current.panelOpen
+          ? current.columnSearchReset + 1
+          : current.columnSearchReset,
+    }))
   // A changed query is a new question, so what the last one left unread goes.
   // `$$` is expanded here, outside the updater, so each press is one example.
   const setQuery = (typed: string) => {
@@ -207,6 +217,9 @@ export function PrototypeShell() {
       manualTrail: typeof trail === "function" ? trail(current) : trail,
       trayHint: hint ? current.trayHint + 1 : current.trayHint,
       trayHintAt: hint ? hintAt : current.trayHintAt,
+      // The row about to flash has to be on screen, and text left in Search
+      // filters could be hiding it.
+      columnSearchReset: current.columnSearchReset + 1,
     }))
   }
   // Add filter also flashes where to click next in the columns, and a column's
@@ -267,6 +280,8 @@ export function PrototypeShell() {
               filters: stampInOrder(current.pending.filters),
               path: null,
               pending: null,
+              // A read is a new search.
+              columnSearchReset: current.columnSearchReset + 1,
               // Anything the read could not place is said once it has settled.
               unread: leftOver(current.pending) ? current.pending : null,
             }
@@ -314,13 +329,19 @@ export function PrototypeShell() {
       ...current,
       filters: current.filters.filter((filter) => filter.id !== id),
     }))
-  const clearFilters = () => setState((current) => ({ ...current, filters: [] }))
+  const clearFilters = () =>
+    setState((current) => ({
+      ...current,
+      filters: [],
+      columnSearchReset: current.columnSearchReset + 1,
+    }))
   const closeFilters = () => setState(initialState("start"))
   const search = () =>
     setState((current) => ({
       ...current,
       pending: null,
       showResults: true,
+      columnSearchReset: current.columnSearchReset + 1,
       // The results page opens with the search panel collapsed to its rail,
       // the table getting the width. Opening it lands on Advanced search; a
       // trail already open stays.
@@ -382,6 +403,7 @@ export function PrototypeShell() {
               trayHintAt={state.trayHintAt}
               onValuePickAt={pickValueAt}
               onHidePanel={() => setPanelOpen(false)}
+              columnSearchReset={state.columnSearchReset}
             />
           }
         />
@@ -415,6 +437,7 @@ export function PrototypeShell() {
             minColumnWidth={300}
             inlineSearch
             onWhite
+            searchReset={state.columnSearchReset}
           />
         }
         pending={state.pending}

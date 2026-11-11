@@ -43,6 +43,7 @@ export function SearchPanel({
   trayHintAt,
   onValuePickAt,
   onHidePanel,
+  columnSearchReset,
 }: {
   mode: SearchMode
   query: string
@@ -65,6 +66,8 @@ export function SearchPanel({
   onValuePickAt: (area: ProductArea, attribute: string, value: string) => void
   /** Folds the panel away; the table's header bar holds the way back. */
   onHidePanel: () => void
+  /** Bumped between searches, to empty the columns' Search filters field. */
+  columnSearchReset: number
 }) {
   const hasQuery = query.trim().length > 0
   const resolving = Boolean(pending)
@@ -189,6 +192,7 @@ export function SearchPanel({
           onToggleValue={onValuePickAt}
           hint={trayHint}
           hintAt={trayHintAt}
+          searchReset={columnSearchReset}
         />
       )}
     </aside>
