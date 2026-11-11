@@ -109,9 +109,13 @@ export function SearchPanel({
   }, [mode])
   // Opened from the rail's Quick search, the field takes the cursor, so the
   // one click that opened it is the only step before typing. The panel is no
-  // longer inert by the time this runs: the same update opened it.
+  // longer inert by the time this runs: the same update opened it. The caret
+  // goes to the end, so a query already there is added to, not typed into.
   React.useEffect(() => {
-    if (quickFocus > 0) fieldRef.current?.focus({ preventScroll: true })
+    const field = fieldRef.current
+    if (quickFocus === 0 || !field) return
+    field.focus({ preventScroll: true })
+    field.setSelectionRange(field.value.length, field.value.length)
   }, [quickFocus])
   const submit = () => {
     if (hasQuery && !resolving) onResolve()
