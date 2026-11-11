@@ -9,6 +9,7 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/in
 import { MillerColumn, type ColumnModel } from "@/flows/sprint-4/idea-1c/components/MillerColumn"
 import {
   pathOf,
+  searchAttributeDescription,
   searchAttributeLabels,
   searchCategories,
   type ResolvedFilter,
@@ -142,6 +143,7 @@ export function ManualSearch({
         // its parents (five regions), not every value down the tree.
         count: rootValuesOf(activeCategory, attribute).length,
         drillable: true,
+        description: searchAttributeDescription(activeCategory, attribute),
       })),
       open: activeAttribute ?? undefined,
       selected: paths.filter((path) => path.area === activeCategory).map((path) => path.attribute),

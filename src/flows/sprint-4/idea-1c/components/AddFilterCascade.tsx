@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/command"
 import {
   pathOf,
+  searchAttributeDescription,
   searchAttributeLabels,
   searchAttributeValues,
   searchCategories,
@@ -122,7 +123,12 @@ export function AddFilterCascade({
               ))
             : attribute === null
               ? searchAttributeLabels(area).map((item) => (
-                  <DrillItem key={item} label={item} onSelect={() => move({ attribute: item })} />
+                  <DrillItem
+                    key={item}
+                    label={item}
+                    description={searchAttributeDescription(area, item)}
+                    onSelect={() => move({ attribute: item })}
+                  />
                 ))
               : searchAttributeValues(area, attribute).map((value) => (
                   <ValueItem
@@ -142,16 +148,35 @@ export function AddFilterCascade({
   )
 }
 
-/** A row that goes a level deeper. */
-function DrillItem({ label, onSelect }: { label: string; onSelect: () => void }) {
+/**
+ * A row that goes a level deeper, with the attribute's descriptor under its
+ * name where it has one, as the Advanced columns show it.
+ */
+function DrillItem({
+  label,
+  description,
+  onSelect,
+}: {
+  label: string
+  description?: string
+  onSelect: () => void
+}) {
   return (
     <CommandItem
-      value={label}
+      // The descriptor is searchable too, so "binds" finds Target.
+      value={description ? `${label} ${description}` : label}
       onSelect={onSelect}
       // The item's own trailing check means nothing on a row that drills in.
       className="gap-2 [&>svg:last-child]:hidden"
     >
-      <span className="truncate">{label}</span>
+      {description ? (
+        <span className="min-w-0">
+          <span className="block truncate">{label}</span>
+          <span className="text-muted-foreground block truncate text-xs">{description}</span>
+        </span>
+      ) : (
+        <span className="truncate">{label}</span>
+      )}
       <ChevronRightIcon className="text-muted-foreground ml-auto size-3.5 shrink-0" />
     </CommandItem>
   )

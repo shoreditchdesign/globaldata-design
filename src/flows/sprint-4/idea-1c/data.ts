@@ -37,6 +37,14 @@ interface AttributeSpec {
    * Everything else is counted off the sample itself, in `results.ts`.
    */
   counts?: Readonly<Record<string, number>>
+  /**
+   * One quiet line under the attribute's name in the field lists, only where
+   * the name alone gets confused with a neighbour's. Target and Mechanism of
+   * action are the pair: three of eleven testers in round two read them as
+   * the same field, because a drug's target and what it does there are
+   * usually named after the same molecule.
+   */
+  description?: string
 }
 
 const drugNames = [
@@ -62,6 +70,12 @@ const counted = (label: string, filterLabel: string, values: ValueCounts): Attri
   filterLabel,
   values: values.map(([value]) => value),
   counts: Object.fromEntries(values),
+})
+
+/** An attribute with its one-line descriptor for the field lists. */
+const described = (description: string, spec: AttributeSpec): AttributeSpec => ({
+  ...spec,
+  description,
 })
 
 /* -------------------------------------------------------------------------- */
@@ -151,21 +165,21 @@ const searchAttributes: Record<ProductArea, AttributeSpec[]> = {
     attribute("Molecule Type", "Molecule type", [
       "Small Molecule", "Monoclonal Antibody", "Peptide", "Recombinant Protein", "Gene Therapy",
     ]),
-    attribute("Target", "Target", [
+    described("The molecule the drug binds to", attribute("Target", "Target", [
       "Actin Gamma Enteric Smooth Muscle", "Cyclooxygenase 2", "Cyclooxygenase 1",
       "Interleukin 17A", "Janus Kinase 1", "Janus Kinase 2", "Janus Kinase 3",
       "Vitamin D Receptor", "ATP Citrate Lyase", "HCN Channel",
       "Sodium Glucose Cotransporter 2", "NS5B Polymerase", "Hydrogen Potassium ATPase",
       "Survival Motor Neuron 1", "Glucocorticoid Receptor", "Beta 3 Adrenergic Receptor",
       "Thrombopoietin Receptor", "Thyroid Hormone Receptor",
-    ]),
-    attribute("Mechanism of Action", "Mechanism of action", [
+    ])),
+    described("What the drug does to its target", attribute("Mechanism of Action", "Mechanism of action", [
       "Cyclooxygenase Inhibitor", "Interleukin 17A Antagonist", "Janus Kinase Inhibitor",
       "Proton Pump Inhibitor", "SGLT2 Inhibitor", "Polymerase Inhibitor",
       "Vitamin D Receptor Agonist", "ATP Citrate Lyase Inhibitor", "If Current Inhibitor",
       "Gene Replacement", "Glucocorticoid Receptor Agonist", "Beta 3 Adrenergic Agonist",
       "Thrombopoietin Receptor Agonist", "Thyroid Hormone Receptor Agonist",
-    ]),
+    ])),
     attribute("ATC Classification", "ATC classification", [
       "M01A — Antiinflammatory and Antirheumatic, Non-Steroids",
       "N02B — Other Analgesics and Antipyretics",
@@ -269,6 +283,11 @@ export const commonAttributes: readonly { area: ProductArea; attribute: string }
   { area: "Regulatory Milestones", attribute: "Regulatory Body" },
   { area: "Drugs", attribute: "Marketing Status" },
 ]
+
+/** The attribute's descriptor in the field lists, where it carries one. */
+export function searchAttributeDescription(area: ProductArea, label: string) {
+  return attributeSpec(area, label).description
+}
 
 /** The third layer: the values under one area's attribute. */
 export function searchAttributeValues(area: ProductArea, label: string) {

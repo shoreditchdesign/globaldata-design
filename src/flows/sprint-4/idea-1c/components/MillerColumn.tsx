@@ -32,6 +32,8 @@ export interface ColumnRow {
   count: number | null
   /** True when the row opens a further column rather than only being ticked. */
   drillable?: boolean
+  /** A quiet second line, for an attribute easily taken for its neighbour. */
+  description?: string
 }
 
 export interface ColumnModel {
@@ -266,7 +268,11 @@ function ColumnItem({
         // colour one in without insetting its lanes a pixel further than its
         // neighbours' — the count lane has to stay plumb down the column.
         // Isolated, so a hint flash can sit under the row's text.
-        "relative isolate flex h-8 items-center rounded-md border border-transparent",
+        "relative isolate flex items-center rounded-md border border-transparent",
+        // A described row grows to two lines rather than squeezing the
+        // descriptor into the label's lane; the lanes either side are fixed
+        // widths, so the counts stay plumb down the column regardless.
+        item.description ? "min-h-8 py-1" : "h-8",
         tintClass,
         // Hover is grey on every row you can still move to, a ticked one
         // included — a `hover:` class outranks a flat one, so no row is left
@@ -332,23 +338,32 @@ function ColumnItem({
           !(column.selectable && onToggle) && "pl-2.5",
         )}
       >
-        <span
-          className={cn(
-            "min-w-0 flex-1 truncate text-[13px] text-foreground",
-            // Weight is what `selected` means in both kinds of column: in a
-            // value column the value is in the query, in a navigation column
-            // the branch under the row holds values. That second reading is the
-            // job the lead-lane count badge used to do, and weight does it
-            // without putting a second number on the row or spending a colour.
-            (isSelected || isHolding) && "font-medium",
-            // A zero is an answer: this value would leave nothing, so the row
-            // recedes rather than reading as an equal option. It recedes by a
-            // whole named rung, not a fraction of one — the label is where the
-            // zero is read, so it is the label that steps back.
-            empty && !isSelected && "text-muted-foreground",
-          )}
-        >
-          {item.label}
+        <span className="min-w-0 flex-1">
+          <span
+            className={cn(
+              "block truncate text-[13px] text-foreground",
+              // Weight is what `selected` means in both kinds of column: in a
+              // value column the value is in the query, in a navigation column
+              // the branch under the row holds values. That second reading is the
+              // job the lead-lane count badge used to do, and weight does it
+              // without putting a second number on the row or spending a colour.
+              (isSelected || isHolding) && "font-medium",
+              // A zero is an answer: this value would leave nothing, so the row
+              // recedes rather than reading as an equal option. It recedes by a
+              // whole named rung, not a fraction of one — the label is where the
+              // zero is read, so it is the label that steps back.
+              empty && !isSelected && "text-muted-foreground",
+            )}
+          >
+            {item.label}
+          </span>
+          {/* The grid's 12px meta line, in muted ink: it says what the field
+              holds, so it is read once and then ignored. */}
+          {item.description ? (
+            <span className="text-muted-foreground block truncate text-xs leading-4">
+              {item.description}
+            </span>
+          ) : null}
         </span>
         {/* Only a folder carries a number — how many options sit inside it —
             and its arrow. An end value has neither: it is ticked, not opened.
