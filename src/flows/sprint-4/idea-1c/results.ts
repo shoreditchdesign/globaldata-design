@@ -21,8 +21,12 @@ import {
   filterIdFor,
   geographyChildren,
   geographyRegionNames,
+  pathOf,
   regionOf,
+  searchAttributeLabels,
   searchAttributeValueCounts,
+  searchAttributeValues,
+  searchCategories,
   type FilterId,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1c/data"
@@ -241,9 +245,9 @@ function geographyValuesOf(row: DrugRow) {
  * the areas the drug sample does not cover — is drawn but not evaluated.
  *
  * Company name is the one attribute outside Drugs that is here, because every
- * row in the sample carries the company that owns it. Its four authored values
- * are four of the sample's own companies, so filtering by one is a real
- * narrowing rather than a lookup into an area the sample does not hold.
+ * row in the sample carries the company that owns it. Its values are the
+ * sample's own companies, so filtering by one is a real narrowing rather than
+ * a lookup into an area the sample does not hold.
  */
 const filterReaders: Partial<Record<FilterId, (row: DrugRow) => string[]>> = {
   target: (row) => [row.target],
@@ -265,6 +269,34 @@ const filterReaders: Partial<Record<FilterId, (row: DrugRow) => string[]>> = {
   "Drugs/Marketing Status": (row) => [marketingStatusFor(row)],
   "Drugs by Manufacturer/Manufacturer": (row) => [row.company],
   "Companies/Company Name": (row) => [row.company],
+}
+
+/**
+ * The other fields a clause's values could be read as: every attribute the
+ * grid evaluates whose own list holds all of them, the clause's own excepted.
+ *
+ * This is what makes the field on a chip changeable. Quick search has to pick
+ * one reading of a word, and some words belong to two fields — a company is
+ * a manufacturer or a company name, "Marketed" is a development stage or a
+ * marketing status — so the chip offers the other reading rather than making
+ * the reader delete it and build it again by hand. Round two's tester could
+ * not see how to change "the company role it suggested". Only fields the grid
+ * can evaluate are offered, so switching never leaves a clause that is drawn
+ * but rules nothing out.
+ */
+export function fieldAlternativesFor(filter: ResolvedFilter) {
+  if (filter.values.length === 0) return []
+  const own = pathOf(filter.id)
+  return searchCategories.flatMap((area) =>
+    searchAttributeLabels(area).flatMap((attribute) => {
+      if (area === own.area && attribute === own.attribute) return []
+      if (!filterReaders[filterIdFor(area, attribute)]) return []
+      const options = searchAttributeValues(area, attribute)
+      return filter.values.every((value) => options.includes(value))
+        ? [{ area, attribute }]
+        : []
+    }),
+  )
 }
 
 /* -------------------------------------------------------------------------- */

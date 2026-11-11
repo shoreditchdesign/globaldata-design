@@ -58,6 +58,18 @@ const casNumbers = [
   "864070-44-0", "477600-75-2", "161796-78-7", "1922968-73-7",
 ]
 
+/**
+ * The companies the sample names. Manufacturer and Company name both hold
+ * all of them, so a company Quick search reads as one can be switched to the
+ * other from its chip (see `fieldAlternativesFor` in `results.ts`).
+ */
+const sampleCompanies = [
+  "Pfizer", "Novartis", "Sandoz", "Teva Pharmaceutical", "Sun Pharmaceutical", "Cipla",
+  "Dr. Reddy's Laboratories", "Zydus Lifesciences", "Glenmark Pharmaceuticals",
+  "Hikma Pharmaceuticals", "Alkem Laboratories", "Krka", "LEO Pharma", "Servier", "Lupin",
+  "Aurobindo Pharma", "Viatris", "Bayer", "AstraZeneca", "Sanofi", "Esperion Therapeutics",
+]
+
 const attribute = (
   label: string,
   filterLabel: string,
@@ -139,7 +151,7 @@ export function geographyChildren(value: string): readonly string[] {
  */
 const searchAttributes: Record<ProductArea, AttributeSpec[]> = {
   Companies: [
-    counted("Company Name", "Company name", [["Pfizer", 1], ["Novartis", 1], ["Sandoz", 1], ["Teva Pharmaceutical", 1]]),
+    attribute("Company Name", "Company name", sampleCompanies),
     counted("Headquarters Country", "Headquarters country", [["United States", 4_812], ["Switzerland", 1_204], ["India", 2_930], ["Germany", 1_866]]),
     counted("Company Type", "Company type", [["Pharmaceutical", 6_140], ["Biotechnology", 4_318], ["Generic Manufacturer", 2_209], ["Contract Research", 1_105]]),
   ],
@@ -237,12 +249,7 @@ const searchAttributes: Record<ProductArea, AttributeSpec[]> = {
   "Drugs by Manufacturer": [
     // The companies the sample actually names, so a manufacturer in the grid
     // can also be filtered on rather than being reported as outside the sample.
-    attribute("Manufacturer", "Manufacturer", [
-      "Pfizer", "Novartis", "Sandoz", "Teva Pharmaceutical", "Sun Pharmaceutical", "Cipla",
-      "Dr. Reddy's Laboratories", "Zydus Lifesciences", "Glenmark Pharmaceuticals",
-      "Hikma Pharmaceuticals", "Alkem Laboratories", "Krka", "LEO Pharma", "Servier", "Lupin",
-      "Aurobindo Pharma", "Viatris", "Bayer", "AstraZeneca", "Sanofi", "Esperion Therapeutics",
-    ]),
+    attribute("Manufacturer", "Manufacturer", sampleCompanies),
     counted("Manufacturing Site Country", "Manufacturing site country", [["United States", 8_112], ["India", 11_204], ["Ireland", 2_118], ["China", 6_440]]),
     counted("Production Stage", "Production stage", [["API", 9_118], ["Formulation", 12_204], ["Packaging", 7_330], ["Distribution", 5_112]]),
   ],

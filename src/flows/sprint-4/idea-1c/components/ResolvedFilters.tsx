@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { PlusIcon, XIcon } from "lucide-react"
+import { ChevronDownIcon, PlusIcon, XIcon } from "lucide-react"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { Button } from "@/components/ui/button"
@@ -9,21 +9,24 @@ import { AddFilterCascade } from "@/flows/sprint-4/idea-1c/components/AddFilterC
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ValueList } from "@/flows/sprint-4/idea-1c/components/ValueList"
 import {
   definitionFor,
+  filterIdFor,
   pathOf,
   type FilterId,
   type FilterJoin,
   type FilterLink,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1c/data"
-import { valueCountOf } from "@/flows/sprint-4/idea-1c/results"
+import { fieldAlternativesFor, valueCountOf } from "@/flows/sprint-4/idea-1c/results"
 import { cn } from "@/lib/utils"
 
 /**
@@ -112,6 +115,7 @@ export function ResolvedFilters({
   onModeChange,
   onJoinChange,
   onLinkChange,
+  onFieldChange,
   onEditValues,
   onRemove,
   onAddFilter,
@@ -128,6 +132,8 @@ export function ResolvedFilters({
   onModeChange: (id: FilterId, excluded: boolean) => void
   onJoinChange: (id: FilterId, join: FilterJoin) => void
   onLinkChange: (id: FilterId, link: FilterLink) => void
+  /** A chip's field switched to another that holds the same values. */
+  onFieldChange: FieldChange
   onEditValues: (id: FilterId, value?: string) => void
   onRemove: (id: FilterId) => void
   /** Add filter on the results page: Advanced search's columns, in the panel. */
@@ -233,6 +239,7 @@ export function ResolvedFilters({
                   filter={filter}
                   onModeChange={onModeChange}
                   onJoinChange={onJoinChange}
+                  onFieldChange={onFieldChange}
                   onEditValues={onEditValues}
                   onRemove={onRemove}
                 />
@@ -247,6 +254,7 @@ export function ResolvedFilters({
                 onModeChange={onModeChange}
                 onJoinChange={onJoinChange}
                 onLinkChange={onLinkChange}
+                onFieldChange={onFieldChange}
                 onEditValues={onEditValues}
                 onRemove={onRemove}
               />
@@ -459,6 +467,7 @@ function FoldedFilters({
   onModeChange,
   onJoinChange,
   onLinkChange,
+  onFieldChange,
   onEditValues,
   onRemove,
 }: {
@@ -468,6 +477,7 @@ function FoldedFilters({
   onModeChange: (id: FilterId, excluded: boolean) => void
   onJoinChange: (id: FilterId, join: FilterJoin) => void
   onLinkChange: (id: FilterId, link: FilterLink) => void
+  onFieldChange: FieldChange
   onEditValues: (id: FilterId, value?: string) => void
   onRemove: (id: FilterId) => void
 }) {
@@ -518,6 +528,7 @@ function FoldedFilters({
                 filter={filter}
                 onModeChange={onModeChange}
                 onJoinChange={onJoinChange}
+                onFieldChange={onFieldChange}
                 onEditValues={onEditValues}
                 onRemove={onRemove}
               />
@@ -561,16 +572,19 @@ function FilterClause({
   filter,
   onModeChange,
   onJoinChange,
+  onFieldChange,
   onEditValues,
   onRemove,
 }: {
   filter: ResolvedFilter
   onModeChange: (id: FilterId, excluded: boolean) => void
   onJoinChange: (id: FilterId, join: FilterJoin) => void
+  onFieldChange: FieldChange
   onEditValues: (id: FilterId, value?: string) => void
   onRemove: (id: FilterId) => void
 }) {
   const lists = React.useContext(ChipListsContext)
+  const alternatives = fieldAlternativesFor(filter)
   return (
     <div
       // What the band counts when it works out how many lines the filters run
@@ -583,9 +597,18 @@ function FilterClause({
           : "bg-surface-sunken border-border text-foreground",
       )}
     >
-      {/* On the results page the attribute opens its node in the columns
-          too; on the start page it is the clause's name and nothing more. */}
-      {lists ? (
+      {/* Where the values could be read as another field, the attribute is
+          a menu of those fields, on both pages. Otherwise, on the results
+          page the attribute opens its node in the columns too; on the start
+          page it is the clause's name and nothing more. */}
+      {alternatives.length > 0 ? (
+        <FieldMenu
+          filter={filter}
+          alternatives={alternatives}
+          onFieldChange={onFieldChange}
+          onOpenInColumns={lists ? undefined : () => onEditValues(filter.id)}
+        />
+      ) : lists ? (
         <span className="shrink-0 border-r border-current/10 px-2.5 py-1.5 font-medium">
           {filter.label}
         </span>
@@ -649,6 +672,71 @@ function FilterClause({
         <XIcon className="size-3" />
       </button>
     </div>
+  )
+}
+
+type FieldChange = (id: FilterId, area: ProductArea, attribute: string) => void
+
+/**
+ * A chip's attribute, as a menu of the fields its values could also be read
+ * as: the field Quick search chose, ticked, and the others under it. Picking
+ * one keeps the values and the rest of the clause and changes what it tests.
+ *
+ * A quiet chevron marks it, which the other segments do not carry: they all
+ * open something, and say so on hover, but nothing said the field could
+ * change at all, and that was the finding. On the results page the menu also
+ * keeps the attribute's old job, opening it in the columns.
+ */
+function FieldMenu({
+  filter,
+  alternatives,
+  onFieldChange,
+  onOpenInColumns,
+}: {
+  filter: ResolvedFilter
+  alternatives: { area: ProductArea; attribute: string }[]
+  onFieldChange: FieldChange
+  /** The results page's Open in Advanced search; omitted on the start page. */
+  onOpenInColumns?: () => void
+}) {
+  const own = pathOf(filter.id)
+  const fields = [own, ...alternatives].map((field) => ({
+    ...field,
+    key: `${field.area}/${field.attribute}`,
+    label: definitionFor(filterIdFor(field.area, field.attribute)).label,
+  }))
+  const ownKey = `${own.area}/${own.attribute}`
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        aria-label={`Change the field for ${filter.values.join(", ")}, now ${filter.label}`}
+        className="hover:bg-foreground/5 flex shrink-0 cursor-pointer items-center gap-1 rounded-l-lg border-r border-current/10 py-1.5 pr-2 pl-2.5 font-medium transition-colors"
+      >
+        {filter.label}
+        <ChevronDownIcon className="size-3 opacity-60" aria-hidden />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-52">
+        <DropdownMenuRadioGroup
+          value={ownKey}
+          onValueChange={(key) => {
+            const field = fields.find((item) => item.key === key)
+            if (field && key !== ownKey) onFieldChange(filter.id, field.area, field.attribute)
+          }}
+        >
+          {fields.map((field) => (
+            <DropdownMenuRadioItem key={field.key} value={field.key}>
+              {field.label}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+        {onOpenInColumns ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={onOpenInColumns}>Open in Advanced search</DropdownMenuItem>
+          </>
+        ) : null}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 

@@ -66,7 +66,7 @@ export const sprint4Idea1c: Flow = {
     {
       slug: "filters",
       title: "Resolved filters",
-      note: "The walkthrough query resolved into editable Float-style filters and 48 drugs, two of them excluded with IS NOT. Its address opens the clean start page; run a search to reach it.",
+      note: "The walkthrough query resolved into editable Float-style filters and 48 drugs, two of them excluded with IS NOT. Where a chip's values belong to more than one field (a company as Manufacturer or Company name, Marketed as Developmental stage or Marketing status), its field name carries a chevron and switches between them in place. Its address opens the clean start page; run a search to reach it.",
       viewport: "desktop",
       component: Start,
     },

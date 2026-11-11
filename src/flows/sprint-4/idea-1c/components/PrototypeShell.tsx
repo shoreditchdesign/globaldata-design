@@ -14,6 +14,8 @@ import { SearchPanel } from "@/flows/sprint-4/idea-1c/components/SearchPanel"
 import {
   activeProductArea,
   navAreas,
+  definitionFor,
+  filterIdFor,
   pathOf,
   nextAppliedAt,
   stampInOrder,
@@ -308,6 +310,40 @@ export function PrototypeShell() {
         filter.id === id ? { ...filter, excluded } : filter,
       ),
     }))
+  // A chip's field changed: the same values read as another attribute (a
+  // manufacturer as a company name, say). The clause keeps its place, its
+  // values, IS or IS NOT and its joins; only what it tests changes. Where the
+  // new field already has a clause, the values join that one instead, since
+  // the box draws one clause per field.
+  const setFilterField = (id: FilterId, area: ProductArea, attribute: string) =>
+    setState((current) => {
+      const clause = current.filters.find((filter) => filter.id === id)
+      const { id: nextId, label } = definitionFor(filterIdFor(area, attribute))
+      if (!clause || nextId === id) return current
+      const at = nextAppliedAt(current.filters)
+      const existing = current.filters.find((filter) => filter.id === nextId)
+      const filters = existing
+        ? current.filters.flatMap((filter) =>
+            filter.id === id
+              ? []
+              : filter.id === nextId
+                ? [
+                    {
+                      ...filter,
+                      values: [
+                        ...filter.values,
+                        ...clause.values.filter((value) => !filter.values.includes(value)),
+                      ],
+                      appliedAt: at,
+                    },
+                  ]
+                : [filter],
+          )
+        : current.filters.map((filter) =>
+            filter.id === id ? { ...filter, id: nextId, label, appliedAt: at } : filter,
+          )
+      return { ...current, filters }
+    })
   const setFilterJoin = (id: FilterId, join: FilterJoin) =>
     setState((current) => ({
       ...current,
@@ -370,6 +406,7 @@ export function PrototypeShell() {
       onModeChange={setFilterMode}
       onJoinChange={setFilterJoin}
       onLinkChange={setFilterLink}
+      onFieldChange={setFilterField}
       onEditValues={editFilterValues}
       onRemove={removeFilter}
       onAddFilter={addFilter}
