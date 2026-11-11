@@ -45,7 +45,7 @@ import {
   type FilterId,
   type ResolvedFilter,
 } from "@/flows/sprint-4/idea-1c/data"
-import { RESULT_PAGE_SIZE, type DrugRow } from "@/flows/sprint-4/idea-1c/results"
+import { RESULT_PAGE_SIZE, resultsFor, type DrugRow } from "@/flows/sprint-4/idea-1c/results"
 import {
   columnByKey,
   columnFilterPath,
@@ -331,6 +331,9 @@ function HeaderCell({
   return cell
 }
 
+/** How many drugs the whole sample holds, for the empty state to name. */
+const SAMPLE_DRUGS = resultsFor([]).drugCount
+
 /**
  * What the table says when the criteria are too narrow for the sample.
  *
@@ -344,6 +347,13 @@ function HeaderCell({
  * Everything that would let them fix it by hand stays where it was: the filter
  * bar, the chips, the search field and the column heads are all outside this
  * and none of them are disabled.
+ *
+ * The words say the search worked. "No drugs match these criteria" over "Try
+ * clearing all filters" read as an error to three of eleven testers in round
+ * two, who took the zero for something they had done wrong. So the line names
+ * the sample instead, which is also the honest reason: these are a few
+ * thousand made-up rows, and five filters deep a real question can rule them
+ * all out where the full database would not.
  */
 function NoMatches({
   filters,
@@ -378,18 +388,16 @@ function NoMatches({
 
       <div className="flex flex-col gap-1.5">
         <h3 aria-live="polite" className="text-foreground text-base font-semibold">
-          No drugs match these criteria
+          No drugs in the sample match every filter
         </h3>
         <p
           aria-live="polite"
           className="text-muted-foreground mx-auto max-w-md text-[13px] leading-5"
         >
-          {/* Named in the order the buttons below offer them, and only where
-              both are offered: with one criterion applied there is nothing to
-              step back through. */}
-          {applied.length > 1 && last
-            ? "Try clearing all filters, or removing the last criterion."
-            : "Try clearing all filters."}
+          {/* The search ran; it is the sample that ran out. The buttons below
+              say what to do about it, so this line no longer repeats them. */}
+          The search worked, but these filters are narrower than this
+          prototype&rsquo;s {SAMPLE_DRUGS.toLocaleString("en-GB")} sample drugs.
         </p>
       </div>
 
