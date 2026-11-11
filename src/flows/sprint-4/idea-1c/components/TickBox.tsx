@@ -10,7 +10,8 @@ import { cn } from "@/lib/utils"
  * Given `onClick` it is a control of its own, and the click stops there rather
  * than reaching the row underneath: the row says "this one and nothing else",
  * the box says "this one as well". Two targets in one row only work if the
- * smaller one is unmistakably a target, so it answers to hover.
+ * smaller one is unmistakably a target, so it answers to hover, and it takes
+ * clicks from a larger area than it draws.
  *
  * Without `onClick` it is the same mark, drawn: the row it sits in is the only
  * thing being clicked, and a screen reader hears that row's own state.
@@ -73,6 +74,13 @@ export function TickBox({
       }}
       className={cn(
         className,
+        // The hit area is 32px square around the 16px mark, drawn by a
+        // pseudo-element that belongs to the button, so a near miss still
+        // lands on the box instead of falling through to the row and
+        // replacing the clause's values. 8px out on every side meets the
+        // edges of a 32px list row exactly, so it never reaches the rows
+        // above or below, and on the left it stops in the gap before the count.
+        "relative after:absolute after:-inset-2",
         !disabled &&
           (checked
             ? negated
