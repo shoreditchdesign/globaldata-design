@@ -1,4 +1,4 @@
-import { SearchIcon, XIcon } from "lucide-react"
+import { SearchIcon, TextCursorInputIcon, XIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -60,6 +60,42 @@ export function PanelToggle({
         </Button>
       </TooltipTrigger>
       <TooltipContent side="right">Open search</TooltipContent>
+    </Tooltip>
+  )
+}
+
+/**
+ * The rail's second way back in: the panel opened straight on Quick search,
+ * its field focused. Open search lands on Advanced, which is right for
+ * building a filter by hand, but it left Quick search two steps away once a
+ * search had run, and two of eleven testers in round two went looking for it.
+ * The same ghost button as Open search, under it, so the rail reads as the
+ * panel's two tabs folded down.
+ */
+export function QuickSearchToggle({
+  onOpen,
+  controls,
+}: {
+  onOpen: () => void
+  controls?: string
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Open Quick search"
+          aria-expanded={false}
+          aria-controls={controls}
+          onClick={onOpen}
+          className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md"
+        >
+          <TextCursorInputIcon />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="right">Quick search</TooltipContent>
     </Tooltip>
   )
 }

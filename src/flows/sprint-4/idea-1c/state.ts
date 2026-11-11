@@ -94,6 +94,8 @@ export interface Sprint4Idea1cState {
    * A counter, as `trayHint` is, so two in a row both land.
    */
   columnSearchReset: number
+  /** Bumped by the rail's Quick search, to put the cursor in the query field. */
+  quickFocus: number
 }
 
 const startState = (): Sprint4Idea1cState => ({
@@ -111,6 +113,7 @@ const startState = (): Sprint4Idea1cState => ({
   trayHint: 0,
   trayHintAt: null,
   columnSearchReset: 0,
+  quickFocus: 0,
 })
 
 /** Advanced chosen on the landing page: the Miller columns, nothing ticked. */

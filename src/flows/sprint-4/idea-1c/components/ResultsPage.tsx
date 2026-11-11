@@ -42,6 +42,7 @@ export function ResultsPage({
   panelOpen,
   panelMode,
   onPanelOpenChange,
+  onOpenQuickSearch,
   filters,
   onEditFilter,
   onClearFilter,
@@ -53,6 +54,8 @@ export function ResultsPage({
   /** The panel's mode, which sets its width. */
   panelMode: SearchMode
   onPanelOpenChange: (open: boolean) => void
+  /** Opens the panel on Quick search, from the rail. */
+  onOpenQuickSearch: () => void
   filters: ResolvedFilter[]
   /** A column's Edit filters opens the search panel's columns at its attribute. */
   onEditFilter: (area: ProductArea, attribute: string, values: string[]) => void
@@ -99,6 +102,7 @@ export function ResultsPage({
         // 260px floor. The width eases between them.
         asideWidth={panelMode === "manual" ? "800px" : "400px"}
         onToggleAside={() => onPanelOpenChange(!panelOpen)}
+        onOpenQuickSearch={onOpenQuickSearch}
       />
     </main>
   )

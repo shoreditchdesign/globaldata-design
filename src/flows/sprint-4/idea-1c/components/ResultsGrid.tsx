@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Loader } from "@/flows/sprint-4/idea-1c/components/Loader"
-import { PanelToggle } from "@/flows/sprint-4/idea-1c/components/PanelToggle"
+import { PanelToggle, QuickSearchToggle } from "@/flows/sprint-4/idea-1c/components/PanelToggle"
 import { SelectBox } from "@/flows/sprint-4/idea-1c/components/SelectBox"
 import { ColumnManager } from "@/flows/sprint-4/idea-1c/components/ColumnManager"
 import {
@@ -494,6 +494,7 @@ export function ResultsGrid({
   asideOpen,
   asideWidth,
   onToggleAside,
+  onOpenQuickSearch,
 }: {
   /** Every row the filters keep, before sorting. The grid draws a page of them. */
   rows: DrugRow[]
@@ -518,6 +519,8 @@ export function ResultsGrid({
   /** Its width when open, as CSS — it changes with the mode the section is in. */
   asideWidth: string
   onToggleAside: () => void
+  /** The rail's Quick search: the panel opened on that tab, not Advanced. */
+  onOpenQuickSearch: () => void
 }) {
   const asideId = React.useId()
   const keys = visibleColumnKeys(state)
@@ -589,6 +592,7 @@ export function ResultsGrid({
           <div className="flex h-11 shrink-0 items-center justify-center">
             <PanelToggle open={false} onToggle={onToggleAside} controls={asideId} />
           </div>
+          <QuickSearchToggle onOpen={onOpenQuickSearch} controls={asideId} />
         </div>
       </div>
 

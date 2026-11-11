@@ -44,6 +44,7 @@ export function SearchPanel({
   onValuePickAt,
   onHidePanel,
   columnSearchReset,
+  quickFocus,
 }: {
   mode: SearchMode
   query: string
@@ -68,6 +69,8 @@ export function SearchPanel({
   onHidePanel: () => void
   /** Bumped between searches, to empty the columns' Search filters field. */
   columnSearchReset: number
+  /** Bumped when the panel is opened on Quick search, to focus the field. */
+  quickFocus: number
 }) {
   const hasQuery = query.trim().length > 0
   const resolving = Boolean(pending)
@@ -104,6 +107,12 @@ export function SearchPanel({
     return () => observer.disconnect()
     // The field only exists in Quick search, so it is found again on a switch.
   }, [mode])
+  // Opened from the rail's Quick search, the field takes the cursor, so the
+  // one click that opened it is the only step before typing. The panel is no
+  // longer inert by the time this runs: the same update opened it.
+  React.useEffect(() => {
+    if (quickFocus > 0) fieldRef.current?.focus({ preventScroll: true })
+  }, [quickFocus])
   const submit = () => {
     if (hasQuery && !resolving) onResolve()
   }

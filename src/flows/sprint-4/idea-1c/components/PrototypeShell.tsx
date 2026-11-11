@@ -143,6 +143,18 @@ export function PrototypeShell() {
           ? current.columnSearchReset + 1
           : current.columnSearchReset,
     }))
+  // The rail's Quick search: the panel open on that tab, its field focused.
+  // Open search still lands on Advanced; this is the one-step way to type.
+  const openQuickSearch = () => {
+    walk.stop()
+    setState((current) => ({
+      ...current,
+      mode: "quick",
+      panelOpen: true,
+      columnSearchReset: current.columnSearchReset + 1,
+      quickFocus: current.quickFocus + 1,
+    }))
+  }
   // A changed query is a new question, so what the last one left unread goes.
   // `$$` is expanded here, outside the updater, so each press is one example.
   const setQuery = (typed: string) => {
@@ -385,6 +397,7 @@ export function PrototypeShell() {
           panelOpen={state.panelOpen}
           panelMode={state.mode}
           onPanelOpenChange={setPanelOpen}
+          onOpenQuickSearch={openQuickSearch}
           panel={
             <SearchPanel
               mode={state.mode}
@@ -404,6 +417,7 @@ export function PrototypeShell() {
               onValuePickAt={pickValueAt}
               onHidePanel={() => setPanelOpen(false)}
               columnSearchReset={state.columnSearchReset}
+              quickFocus={state.quickFocus}
             />
           }
         />
