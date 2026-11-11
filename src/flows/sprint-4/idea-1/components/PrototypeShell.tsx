@@ -14,6 +14,7 @@ import { SearchPanel } from "@/flows/sprint-4/idea-1/components/SearchPanel"
 import {
   activeProductArea,
   definitionFor,
+  emptyPathFilter,
   pathFilter,
   type FilterId,
   type FilterJoin,
@@ -81,17 +82,30 @@ export function PrototypeShell() {
 
   const setMode = (mode: SearchMode) => setState((current) => ({ ...current, mode }))
   const setQuery = (query: string) => setState((current) => ({ ...current, query }))
-  const toggleCategory = (category: ProductArea) =>
+  // Dictation adds to the query rather than replacing it, so a session spoken
+  // in several goes builds one request — the arrow still resolves it.
+  const appendQuery = (text: string) =>
     setState((current) => ({
       ...current,
-      activeCategory: current.activeCategory === category ? null : category,
-      activeAttribute: null,
+      query: current.query.trim() ? `${current.query.trim()} ${text}` : text,
     }))
-  const toggleAttribute = (attribute: string) =>
-    setState((current) => ({
-      ...current,
-      activeAttribute: current.activeAttribute === attribute ? null : attribute,
-    }))
+  // A pill puts its clause in the filter box, waiting for a value, and takes it
+  // out again when pressed a second time. The value is chosen from the clause's
+  // own selector, which the reader opens when they are ready.
+  const togglePillFilter = (area: ProductArea, attribute: string) =>
+    setState((current) => {
+      const started = emptyPathFilter(area, attribute)
+      const existing = current.filters.some((filter) => filter.id === started.id)
+      return {
+        ...current,
+        // The box opens with the first clause and stays open once it has: a
+        // pill taken off again empties the box, it does not close it.
+        filterBoxOpen: true,
+        filters: existing
+          ? current.filters.filter((filter) => filter.id !== started.id)
+          : [...current.filters, started],
+      }
+    })
   // Miller columns open rather than toggle: clicking the open row keeps it open.
   const openCategory = (category: ProductArea) =>
     setState((current) => ({
@@ -101,12 +115,6 @@ export function PrototypeShell() {
     }))
   const openAttribute = (attribute: string) =>
     setState((current) => ({ ...current, manualAttribute: attribute }))
-  const pickValue = (value: string) =>
-    setState((current) =>
-      current.activeCategory && current.activeAttribute
-        ? toggleValueAt(current, current.activeCategory, current.activeAttribute, value)
-        : current,
-    )
   const pickValueAt = (area: ProductArea, attribute: string, value: string) =>
     setState((current) => toggleValueAt(current, area, attribute, value))
   const submitQuery = () =>
@@ -121,6 +129,7 @@ export function PrototypeShell() {
           ? {
               ...current,
               submittedQuery: current.pending.raw,
+              filterBoxOpen: true,
               filters: current.pending.filters,
               path: null,
               pending: null,
@@ -158,7 +167,9 @@ export function PrototypeShell() {
         const values = filter.values.includes(value)
           ? filter.values.filter((item) => item !== value)
           : [...filter.values, value]
-        return values.length > 0 ? [{ ...filter, values }] : []
+        // An emptied clause stays, back at Select value. Its pill is what puts
+        // it in the box and what takes it out, so unticking a value must not.
+        return [{ ...filter, values }]
       }),
     }))
   const removeFilter = (id: FilterId) =>
@@ -182,9 +193,6 @@ export function PrototypeShell() {
       ...current,
       pending: null,
       showResults: true,
-      // The results page opens with its pills closed.
-      activeCategory: null,
-      activeAttribute: null,
     }))
 
   const filterBox = (
@@ -199,7 +207,7 @@ export function PrototypeShell() {
       onAdd={addFilter}
       onClear={clearFilters}
       onSearch={state.showResults ? undefined : search}
-      // Manual always shows the box, so it has nothing to close back to.
+      // Advanced always shows the box, so it has nothing to close back to.
       onClose={state.showResults || state.mode === "manual" ? undefined : closeFilters}
       // On the results page the box is a band above the grid, not a card.
       variant={state.showResults ? "band" : "card"}
@@ -216,17 +224,14 @@ export function PrototypeShell() {
             <SearchPanel
               mode={state.mode}
               query={state.query}
-              activeCategory={state.activeCategory}
-              activeAttribute={state.activeAttribute}
               filters={state.filters}
               pending={state.pending}
               onModeChange={setMode}
               onQueryChange={setQuery}
+              onDictate={appendQuery}
               onResolve={submitQuery}
               onScanDone={settleQuery}
-              onCategoryChange={toggleCategory}
-              onAttributeChange={toggleAttribute}
-              onValuePick={pickValue}
+              onToggleFilter={togglePillFilter}
               manualCategory={state.manualCategory}
               manualAttribute={state.manualAttribute}
               onOpenCategory={openCategory}
@@ -244,20 +249,20 @@ export function PrototypeShell() {
       <LandingPage
         mode={state.mode}
         query={state.query}
-        activeCategory={state.activeCategory}
         onModeChange={setMode}
         onQueryChange={setQuery}
-        onCategoryChange={toggleCategory}
-        activeAttribute={state.activeAttribute}
-        onAttributeChange={toggleAttribute}
-        onValuePick={pickValue}
+        onDictate={appendQuery}
+        onToggleFilter={togglePillFilter}
         onResolve={submitQuery}
         filters={state.filters}
         hasResolvedFilters={Boolean(state.submittedQuery || state.path)}
-        filterBox={state.mode === "manual" || state.submittedQuery || state.path ? filterBox : null}
+        filterBox={
+          state.mode === "manual" || state.submittedQuery || state.filterBoxOpen
+            ? filterBox
+            : null
+        }
         manual={
           <ManualSearch
-            layout="wide"
             filters={state.filters}
             activeCategory={state.manualCategory}
             activeAttribute={state.manualAttribute}
