@@ -1,4 +1,5 @@
 import {
+  emptyPathFilter,
   initialResolvedFilters,
   pathFilter,
   workedQuery,
@@ -19,12 +20,15 @@ export interface SearchPath {
 export interface Sprint4Idea1State {
   mode: SearchMode
   query: string
-  activeCategory: ProductArea | null
-  /** The open second-layer pill, whose values show as a third layer. */
-  activeAttribute: string | null
   /** The manual search's Miller path, kept apart so the pills stay closed. */
   manualCategory: ProductArea | null
   manualAttribute: string | null
+  /**
+   * Once the box is on screen it stays there, empty if need be, until it is
+   * closed. Taking the last clause out is editing the filters, not finishing
+   * with them, so the box must not fold up underneath the hand doing it.
+   */
+  filterBoxOpen: boolean
   /** The pill path that built the current filters, when no query did. */
   path: SearchPath | null
   /** The last query resolved into filters. Typing never changes this value. */
@@ -39,10 +43,9 @@ export interface Sprint4Idea1State {
 const startState = (): Sprint4Idea1State => ({
   mode: "quick",
   query: "",
-  activeCategory: null,
-  activeAttribute: null,
   manualCategory: null,
   manualAttribute: null,
+  filterBoxOpen: false,
   path: null,
   submittedQuery: null,
   filters: [],
@@ -53,10 +56,9 @@ const startState = (): Sprint4Idea1State => ({
 const filteredState = (): Sprint4Idea1State => ({
   mode: "quick",
   query: workedQuery,
-  activeCategory: null,
-  activeAttribute: null,
   manualCategory: null,
   manualAttribute: null,
+  filterBoxOpen: true,
   path: null,
   submittedQuery: workedQuery,
   filters: initialResolvedFilters(),
@@ -64,13 +66,14 @@ const filteredState = (): Sprint4Idea1State => ({
   showResults: false,
 })
 
+/** A pill pressed: its clause is in the box, waiting for a value. */
 const valuesState = (): Sprint4Idea1State => ({
   ...startState(),
-  activeCategory: "Drugs",
-  activeAttribute: "Therapy Area / Indication",
+  filterBoxOpen: true,
+  filters: [emptyPathFilter("Companies", "Company Name")],
 })
 
-/** Manual chosen on the landing page: the Miller columns with the filter box beneath. */
+/** Advanced chosen on the landing page: the Miller columns with the filter box beneath. */
 const manualState = (): Sprint4Idea1State => ({
   ...startState(),
   mode: "manual",
@@ -84,6 +87,7 @@ const pickedPath: SearchPath = {
 
 const pickedState = (): Sprint4Idea1State => ({
   ...startState(),
+  filterBoxOpen: true,
   path: pickedPath,
   filters: [pathFilter(pickedPath.area, pickedPath.attribute, pickedPath.value)],
 })
@@ -91,10 +95,9 @@ const pickedState = (): Sprint4Idea1State => ({
 const resolvingState = (): Sprint4Idea1State => ({
   mode: "quick",
   query: workedQuery,
-  activeCategory: null,
-  activeAttribute: null,
   manualCategory: null,
   manualAttribute: null,
+  filterBoxOpen: false,
   path: null,
   submittedQuery: null,
   filters: [],
@@ -134,6 +137,10 @@ export function slugFor(state: Sprint4Idea1State) {
   if (state.pending) return "resolving"
   if (state.mode === "manual") return "manual"
   if (state.submittedQuery) return "filters"
+  // A clause with no value in it is a pill pressed and nothing chosen yet.
+  if (state.filters.length > 0) {
+    return state.filters.some((filter) => filter.values.length > 0) ? "picked" : "values"
+  }
   if (state.path) return "picked"
-  return state.activeAttribute ? "values" : "start"
+  return "start"
 }

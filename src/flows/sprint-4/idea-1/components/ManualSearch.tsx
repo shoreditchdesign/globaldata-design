@@ -16,7 +16,7 @@ import {
 import { cn } from "@/lib/utils"
 
 /**
- * Manual search as Miller columns, after Sprint 3 Idea 2's filter panel:
+ * Advanced search as Miller columns, after Sprint 3 Idea 2's filter panel:
  * filter area, then attribute, then values. Drilling in adds a column beside
  * the last rather than replacing it, and ticking a value writes it into the
  * same filters the quick search builds. Its open path is its own, so opening
