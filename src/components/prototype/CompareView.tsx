@@ -38,7 +38,7 @@ export function CompareView({
       <header className="bg-surface-chrome border-edge border-b">
         <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center gap-4 px-6 py-3">
           <Button asChild size="sm" variant="ghost" className="-ml-3">
-            <Link href="/">← All sprints</Link>
+            <Link href="/archive">← All sprints</Link>
           </Button>
           <Badge variant="secondary">{sprintName} — compare</Badge>
           <div className="ml-auto flex items-center gap-2">

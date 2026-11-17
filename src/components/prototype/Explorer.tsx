@@ -387,7 +387,7 @@ export function Explorer({
           no history to go back to, and the button would do nothing visible.
         */}
           <Button asChild size="sm" variant="ghost" className="h-7 px-2">
-            <Link href="/">
+            <Link href="/archive">
               <ArrowLeftIcon className="size-3.5" />
               All sprints
             </Link>
