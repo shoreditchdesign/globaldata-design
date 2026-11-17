@@ -72,6 +72,11 @@ export interface ProductChromeProps {
   user?: string
   /** How the region under the chrome lays out. */
   body?: keyof typeof bodyClass
+  /**
+   * Makes the wordmark a button that takes the reader back to the start of the
+   * direction. Omit and the wordmark stays static, as every other direction has it.
+   */
+  onHome?: () => void
   className?: string
 }
 
@@ -85,8 +90,8 @@ export interface ProductChromeProps {
  * call them. So identity, search and account own the first row; the areas own
  * the second, where all eight fit at full length.
  *
- * Presentational apart from `activeArea`. Nothing here is clickable, because
- * every screen is one fixed state.
+ * Presentational apart from `activeArea`, and `onHome` for a direction that
+ * wants the wordmark to lead back to its start.
  */
 export function ProductChrome({
   children,
@@ -97,12 +102,24 @@ export function ProductChrome({
   actions,
   user = "ND",
   body = "column",
+  onHome,
   className,
 }: ProductChromeProps) {
   return (
     <div className={cn("bg-surface-page flex h-full flex-col overflow-hidden", className)}>
       <header className="bg-surface-chrome border-edge flex h-14 shrink-0 items-center gap-4 border-b px-4">
-        <Wordmark />
+        {onHome ? (
+          <button
+            type="button"
+            onClick={onHome}
+            aria-label="GlobalData, back to start"
+            className="focus-visible:ring-ring -mx-1.5 cursor-pointer rounded-md px-1.5 py-1 outline-none focus-visible:ring-2"
+          >
+            <Wordmark />
+          </button>
+        ) : (
+          <Wordmark />
+        )}
 
         <div className="ml-auto flex items-center gap-3">
           <div className={cn("shrink-0", SEARCH_SLOT_WIDTH)}>

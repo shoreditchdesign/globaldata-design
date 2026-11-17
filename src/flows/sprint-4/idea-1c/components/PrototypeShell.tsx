@@ -384,6 +384,11 @@ export function PrototypeShell() {
       columnSearchReset: current.columnSearchReset + 1,
     }))
   const closeFilters = () => setState(initialState("start"))
+  // The wordmark starts over: a clean start page, whatever was searched.
+  const goHome = () => {
+    walk.stop()
+    setState(initialState("start"))
+  }
   const search = () =>
     setState((current) => ({
       ...current,
@@ -424,7 +429,7 @@ export function PrototypeShell() {
 
   if (state.showResults) {
     return (
-      <ProductChrome activeArea={activeProductArea} areas={navAreas} body="row">
+      <ProductChrome activeArea={activeProductArea} areas={navAreas} body="row" onHome={goHome}>
         <ResultsPage
           filters={state.filters}
           onEditFilter={editFilterAt}
@@ -463,7 +468,7 @@ export function PrototypeShell() {
   }
 
   return (
-    <ProductChrome activeArea={activeProductArea} areas={navAreas}>
+    <ProductChrome activeArea={activeProductArea} areas={navAreas} onHome={goHome}>
       <LandingPage
         mode={state.mode}
         query={state.query}
