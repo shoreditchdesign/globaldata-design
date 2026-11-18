@@ -2,31 +2,19 @@ import type { SearchMode } from "@/flows/sprint-4/idea-1c/state"
 import { cn } from "@/lib/utils"
 
 /**
- * Quick search or advanced search, as a segmented control. `advancedFirst`
- * puts Advanced on the left, as the results panel does; the start page keeps
- * Quick first.
+ * Quick search or advanced search, as a segmented control. Quick search sits
+ * on the left everywhere: it is the one being put first, and the tabs are read
+ * left to right.
  */
 export function SearchTabs({
   mode,
   onModeChange,
-  advancedFirst = false,
   className,
 }: {
   mode: SearchMode
   onModeChange: (mode: SearchMode) => void
-  advancedFirst?: boolean
   className?: string
 }) {
-  const quick = (
-    <SearchTab key="quick" active={mode === "quick"} onClick={() => onModeChange("quick")}>
-      Quick search
-    </SearchTab>
-  )
-  const advanced = (
-    <SearchTab key="manual" active={mode === "manual"} onClick={() => onModeChange("manual")}>
-      Advanced search
-    </SearchTab>
-  )
   return (
     <div
       role="tablist"
@@ -36,7 +24,12 @@ export function SearchTabs({
         className,
       )}
     >
-      {advancedFirst ? [advanced, quick] : [quick, advanced]}
+      <SearchTab active={mode === "quick"} onClick={() => onModeChange("quick")}>
+        Quick search
+      </SearchTab>
+      <SearchTab active={mode === "manual"} onClick={() => onModeChange("manual")}>
+        Advanced search
+      </SearchTab>
     </div>
   )
 }

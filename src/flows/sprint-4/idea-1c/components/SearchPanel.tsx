@@ -185,7 +185,7 @@ export function SearchPanel({
           table's header bar height (h-11), so Hide filters here and Show
           filters in that bar sit on one centre line. */}
       <div className="flex h-11 shrink-0 items-center justify-start gap-2 px-3">
-        <SearchTabs mode={mode} onModeChange={onModeChange} advancedFirst />
+        <SearchTabs mode={mode} onModeChange={onModeChange} />
         <span className="ml-auto">
           <PanelToggle open onToggle={onHidePanel} />
         </span>

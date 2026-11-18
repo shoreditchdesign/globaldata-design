@@ -5,6 +5,7 @@ import { ChevronRightIcon, SearchIcon } from "lucide-react"
 
 import type { ProductArea } from "@/components/prototype/ProductChrome"
 import { motion, usePrefersReducedMotion } from "@/components/prototype/motion"
+import { Button } from "@/components/ui/button"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { MillerColumn, type ColumnModel } from "@/flows/sprint-4/idea-1c/components/MillerColumn"
 import {
@@ -94,10 +95,14 @@ export function ManualSearch({
   // Emptied during render rather than in an effect, so the columns never
   // paint one frame still filtered by the last search's text.
   const [resetSeen, setResetSeen] = React.useState(searchReset)
+  // Opened by hand from its icon while the path is long enough to fold it.
+  const [searchOpened, setSearchOpened] = React.useState(false)
   if (resetSeen !== searchReset) {
     setResetSeen(searchReset)
     setQuery("")
+    setSearchOpened(false)
   }
+  const searchInput = React.useRef<HTMLInputElement>(null)
   const stripRef = React.useRef<HTMLDivElement>(null)
   const stripWidth = useElementWidth(stripRef, minColumnWidth !== undefined)
   const visibleColumns =
@@ -211,6 +216,9 @@ export function ManualSearch({
   }
 
   const path = trail.slice(0, columns.length)
+  // Past three columns the path's crumbs need the row, so the field folds to
+  // its icon. It opens again from the icon, and stays open while it holds text.
+  const searchFolded = inlineSearch && columns.length > 3 && !searchOpened && !query
   const needle = query.trim().toLowerCase()
   const visible = columns.map((column) =>
     needle
@@ -280,26 +288,49 @@ export function ManualSearch({
           </nav>
         </div>
 
-        <InputGroup
-          className={cn(
-            "bg-surface-panel",
-            // On the start page's white header block, the global header
-            // search's own off-white, so the field reads as a field.
-            inlineSearch && "w-72 shrink-0",
-            onWhite && "bg-surface-sunken",
-          )}
-        >
-          <InputGroupAddon>
+        {searchFolded ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            aria-label="Search filters"
+            onClick={() => {
+              setSearchOpened(true)
+              // Focus once the field has replaced the icon.
+              requestAnimationFrame(() => searchInput.current?.focus())
+            }}
+            className={cn(
+              "text-muted-foreground hover:text-foreground border-input shrink-0",
+              onWhite ? "bg-surface-sunken" : "bg-surface-panel",
+            )}
+          >
             <SearchIcon className="size-4" />
-          </InputGroupAddon>
-          <InputGroupInput
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search filters"
-            aria-label="Search the columns on screen"
-            className="md:text-[13px]"
-          />
-        </InputGroup>
+          </Button>
+        ) : (
+          <InputGroup
+            className={cn(
+              "bg-surface-panel",
+              // On the start page's white header block, the global header
+              // search's own off-white, so the field reads as a field.
+              inlineSearch && "w-72 shrink-0",
+              onWhite && "bg-surface-sunken",
+            )}
+          >
+            <InputGroupAddon>
+              <SearchIcon className="size-4" />
+            </InputGroupAddon>
+            <InputGroupInput
+              ref={searchInput}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              // Left empty, it folds back to its icon on the way out.
+              onBlur={() => setSearchOpened(false)}
+              placeholder="Search filters"
+              aria-label="Search the columns on screen"
+              className="md:text-[13px]"
+            />
+          </InputGroup>
+        )}
       </div>
 
       <div
